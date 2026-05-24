@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "JapLearn",
+    "slug": "japlearn",
+    "scheme": "your-app-scheme",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/APPLOGO.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/APPLOGO.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/APPLOGO.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.japlearn.cit"
+    },
+    "web": {
+      "favicon": "./assets/APPLOGO.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "3d2a6458-faf8-4012-b174-bec1665b2b1d"
+      }
+    }
+  }
+}
