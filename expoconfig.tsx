@@ -53,7 +53,7 @@ const LOCAL_BACKEND_PORT = 8080;
 
 const ANDROID_EMULATOR_URL = `http://10.0.2.2:${LOCAL_BACKEND_PORT}`;
 
-const LAN_IP_URL = `http://192.168.1.5:${LOCAL_BACKEND_PORT}`;
+const LAN_IP_URL = `http://192.168.192.36:${LOCAL_BACKEND_PORT}`;
 
 const getApiUrl = () => {
   if (__DEV__) {

@@ -4,25 +4,29 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const ClassCodeContext = createContext();
 
 export const ClassCodeProvider = ({ children }) => {
-    const [classCode, setClassCode] = useState('');
+    const [classCode, setClassCodeState] = useState('');
 
     useEffect(() => {
         const loadClassCode = async () => {
-            const storedClassCode = await AsyncStorage.getItem('classCode');
-            if (storedClassCode) {
-                setClassCode(storedClassCode);
+            try {
+                const storedClassCode = await AsyncStorage.getItem('classCode');
+                setClassCodeState(storedClassCode || '');
+            } catch {
+                setClassCodeState('');
             }
         };
+
         loadClassCode();
     }, []);
 
-    const saveClassCode = async (code) => {
-        setClassCode(code);
-        await AsyncStorage.setItem('classCode', code);
+    const setClassCode = async (code) => {
+        const safeCode = code || '';
+        setClassCodeState(safeCode);
+        await AsyncStorage.setItem('classCode', safeCode);
     };
 
     return (
-        <ClassCodeContext.Provider value={{ classCode, setClassCode: saveClassCode }}>
+        <ClassCodeContext.Provider value={{ classCode, setClassCode }}>
             {children}
         </ClassCodeContext.Provider>
     );

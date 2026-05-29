@@ -7,7 +7,7 @@ import { AuthContext, AuthProvider } from '../context/AuthContext';
 import { ClassCodeProvider } from '../context/ClassCodeContext';
 import { LessonProgressProvider, useLessonProgress } from '../context/LessonProgressContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
+// import { createDrawerNavigator, DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
 
 
 const getFonts = async () => {
@@ -26,7 +26,14 @@ const routeAccessConfig = {
     'HiraganaSet2', 'HiraganaSet3', 'KatakanaSet1', 'KatakanaSet2', 'KatakanaSet3', 'Quackman', 'StartMenu',
     'Profile', 'Lessons', 'LessonKanaGame', 'LearnMenu', 'Exercises', 'Content3', 'Game3', 'CharacterExercise1',
     'CharacterExercise2', 'CharacterExercise3', 'CharacterExercise4', 'CharacterExercise5', 'CharacterExercise6', 'WordsMenu', 
-    'Words2', 'WordsPractice'
+    'Words2', 'WordsPractice', 'QuackSituate', 'QuackSituate',
+'QuackSituateRecognition',
+'QuackSituateMatching',
+'QuackSituateFormal',
+'QuackSituateFeedback',
+'QuackTalk', 'QuackTalkConversation',
+'QuackResponse', 'QuackResponseGuided', 'QuackResponseTimed', 'QuackResponseMultiStep', 'QuackTalkSpeech', 'QuackTalkFeedback'
+
   ],
   teacher: [
     'TeacherDashboard', 'QuackmanContent', 'ProfileTeacher', 'ClassDashboard', 'QuackmanLevels', 'QuackmanEdit', 'QuackslateHost', 'QuackslateLevels',
@@ -35,29 +42,29 @@ const routeAccessConfig = {
 };
 
 const defaultRouteByRole = {
-  student: 'Menu',
-  teacher: 'TeacherDashboard',
+  student: '/Menu',
+  teacher: '/TeacherDashboard',
 };
 
-const Drawer = createDrawerNavigator();
+// const Drawer = createDrawerNavigator();
 
-function CustomDrawerContent(props) {
-  return (
-    <DrawerContentScrollView {...props}>
-      <DrawerItemList {...props} />
-      <DrawerItem label="Home" onPress={() => props.navigation.navigate('Home')} />
-      <DrawerItem label="Next Page" onPress={() => { /* Handle next page */ }} />
-      <DrawerItem label="Previous Page" onPress={() => { /* Handle previous page */ }} />
-    </DrawerContentScrollView>
-  );
-}
+// function CustomDrawerContent(props) {
+//   return (
+//     <DrawerContentScrollView {...props}>
+//       <DrawerItemList {...props} />
+//       <DrawerItem label="Home" onPress={() => props.navigation.navigate('Home')} />
+//       <DrawerItem label="Next Page" onPress={() => { /* Handle next page */ }} />
+//       <DrawerItem label="Previous Page" onPress={() => { /* Handle previous page */ }} />
+//     </DrawerContentScrollView>
+//   );
+// }
 
 const RootLayout = () => {
   const [fontLoaded, setFontsLoaded] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const { user, setUser } = useContext(AuthContext);
+const { user, setUser, authLoading } = useContext(AuthContext);
   const router = useRouter();
-  const [isDrawerOpen, setDrawerOpen] = useState(false);
+  // const [isDrawerOpen, setDrawerOpen] = useState(false);
   const segments = useSegments();
 
   useEffect(() => {
@@ -83,25 +90,34 @@ const RootLayout = () => {
   }, []);
 
   useEffect(() => {
-    if (isMounted && fontLoaded) {
-      const currentSegment = segments.length > 0 ? segments[0] : '';
-      console.log("Current segment:", currentSegment, "User:", user);
+  if (authLoading || !isMounted || !fontLoaded) return;
 
-      // Check if user is authenticated
-      if (!user && (routeAccessConfig.student.includes(currentSegment) || routeAccessConfig.teacher.includes(currentSegment))) {
-        router.replace('/Login');
-      } else if (user) {
-        // Check if the current segment is allowed for the user's role
-        if (!routeAccessConfig[user.role].includes(currentSegment)) {
-          // Redirect to the default route only if not already there
-          const defaultRoute = defaultRouteByRole[user.role] || '/Login';
-          if (currentSegment !== defaultRoute.slice(1)) { // Removing leading '/' for comparison
-            router.replace(defaultRoute);
-          }
-        }
+  const currentSegment = segments.length > 0 ? segments[0] : '';
+
+  console.log("Current segment:", currentSegment, "User:", user);
+
+  if (
+    !user &&
+    (
+      routeAccessConfig.student.includes(currentSegment) ||
+      routeAccessConfig.teacher.includes(currentSegment)
+    )
+  ) {
+    router.replace('/Login');
+    return;
+  }
+
+  if (user) {
+    const allowedRoutes = routeAccessConfig[user.role] || [];
+    const defaultRoute = defaultRouteByRole[user.role] || '/Login';
+
+    if (!allowedRoutes.includes(currentSegment)) {
+      if (currentSegment !== defaultRoute.slice(1)) {
+        router.replace(defaultRoute);
       }
     }
-  }, [isMounted, fontLoaded, user, segments]);
+  }
+}, [authLoading, isMounted, fontLoaded, user, segments]);
 
   if (!fontLoaded || !isMounted) {
     return <ActivityIndicator size="large" color="#0000ff" />;
@@ -146,6 +162,16 @@ const RootLayout = () => {
         <Stack.Screen name="Words1" />
         <Stack.Screen name="Words2" />
         <Stack.Screen name="WordsPractice" />
+        <Stack.Screen name="QuackSituate" />
+
+<Stack.Screen name="QuackSituateRecognition" />
+<Stack.Screen name="QuackSituateMatching" />
+<Stack.Screen name="QuackSituateFormal" />
+<Stack.Screen name="QuackSituateFeedback" />
+<Stack.Screen name="QuackTalk" />
+<Stack.Screen name="QuackTalkConversation" /> 
+<Stack.Screen name="QuackTalkSpeech" /> 
+<Stack.Screen name="QuackTalkFeedback" /> 
       </Stack>
     </GestureHandlerRootView>
   );

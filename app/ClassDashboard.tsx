@@ -47,6 +47,10 @@ const ClassDashboard = () => {
     const [showDatesModal, setShowDatesModal] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null);
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+    const [showAddStudentModal, setShowAddStudentModal] = useState(false);
+    const [allStudents, setAllStudents] = useState([]);
+    const [studentSearchQuery, setStudentSearchQuery] = useState('');
+    const [studentEmailToAdd, setStudentEmailToAdd] = useState('');
 
     const deleteScoresByDate = async (date) => {
         try {
@@ -142,8 +146,23 @@ const ClassDashboard = () => {
 
         fetchUserData();
     }, [classCode]);
+//NEWLY ADDED CODE - Fetch all students for adding to class
+    const fetchAllStudents = async () => {
+        try {
+            const response = await fetch(`${expoconfig.API_URL}/api/students/getAllStudents`);
+            const text = await response.text();
 
-
+            if (response.ok && text) {
+                const data = JSON.parse(text);
+                setAllStudents(data);
+            } else {
+                setAllStudents([]);
+            }
+        } catch (error) {
+            console.error('Error fetching all students:', error);
+            setAllStudents([]);
+        }
+    };
     const handleDeleteModalConfirm = async () => {
         setShowDeleteModal(false);
         console.log('Removing students:', selectedStudents);
@@ -228,8 +247,53 @@ const ClassDashboard = () => {
         }
         setShowDeleteModal(true);
     };
+const handleOpenAddStudentModal = async () => {
+    await fetchAllStudents();
+    setStudentSearchQuery('');
+    setShowAddStudentModal(true);
+};
 
+const handleAddStudentToClass = async (email) => {
+    const emailToAdd = email.trim().toLowerCase();
 
+    if (!emailToAdd) {
+        alert('Please enter student email.');
+        return;
+    }
+
+    try {
+        const joinResponse = await fetch(
+            `${expoconfig.API_URL}/api/students/joinClass?email=${encodeURIComponent(emailToAdd)}&classCode=${encodeURIComponent(classCode)}`,
+            {
+                method: 'POST',
+            }
+        );
+
+        const joinText = await joinResponse.text();
+
+        if (joinResponse.ok) {
+            alert('Student added successfully.');
+
+            setShowAddStudentModal(false);
+            setStudentSearchQuery('');
+
+            const updatedResponse = await fetch(
+                `${expoconfig.API_URL}/api/students/getByClassCode?classCode=${encodeURIComponent(classCode)}`
+            );
+
+            const updatedData = await updatedResponse.json();
+
+            setUserData(updatedData);
+
+        } else {
+            alert(joinText || 'Failed to add student.');
+        }
+
+    } catch (error) {
+        console.error('Error adding student:', error);
+        alert('Backend connection error.');
+    }
+};
     // Lessons Code 
     useEffect(() => {
         if (activeCategory === 'LESSONS') {
@@ -538,7 +602,13 @@ const ClassDashboard = () => {
         setLessonType('');
         setShowEditLessonTitleModal(false);
     }
+const filteredAllStudents = allStudents.filter(student => {
+    const fullName = `${student.fname || ''} ${student.lname || ''}`.toLowerCase();
+    const email = `${student.email || ''}`.toLowerCase();
+    const query = studentSearchQuery.toLowerCase();
 
+    return fullName.includes(query) || email.includes(query);
+});
     return (
         <View style={stylesClass.container}>
             <View style={stylesClass.header}>
@@ -568,12 +638,19 @@ const ClassDashboard = () => {
                          onChangeText={setSearchQuery}
                          placeholderTextColor="#BDBDBD" // Subtle placeholder color
                      />
-                     <CustomButton 
-                         title="Remove" 
-                         onPress={handleRemoveStudents} 
-                         buttonStyle={stylesClass.button} 
-                         textStyle={stylesClass.buttonText} 
-                     />
+<CustomButton 
+    title="Add" 
+    onPress={handleOpenAddStudentModal}
+    buttonStyle={stylesClass.button} 
+    textStyle={stylesClass.buttonText} 
+/>
+
+                <CustomButton 
+                    title="Remove" 
+                    onPress={handleRemoveStudents} 
+                    buttonStyle={stylesClass.button} 
+                    textStyle={stylesClass.buttonText} 
+                />
                  </View>
                  
                 )}
@@ -904,7 +981,41 @@ const ClassDashboard = () => {
                     </View>
                 </View>
             </Modal>
+<Modal
+    animationType="slide"
+    transparent={true}
+    visible={showAddStudentModal}
+    onRequestClose={() => setShowAddStudentModal(false)}
+>
+    <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+            <View style={styles.closeButtonContainer}>
+                <TouchableOpacity onPress={() => setShowAddStudentModal(false)} style={styles.closeButton}>
+                    <Text style={styles.closeButtonText}>X</Text>
+                </TouchableOpacity>
+            </View>
 
+            <Text style={styles.text}>Add Student to Class</Text>
+
+            <TextInput
+                style={styles.input}
+                placeholder="Enter student email..."
+                value={studentEmailToAdd}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                onChangeText={(text) => setStudentEmailToAdd(text.replace(/\s/g, '').toLowerCase())}
+                onSubmitEditing={() => handleAddStudentToClass(studentEmailToAdd)}
+            />
+
+            <CustomButton
+                title="Add Student"
+                onPress={() => handleAddStudentToClass(studentEmailToAdd)}
+                buttonStyle={stylesClass.button}
+                textStyle={stylesClass.buttonText}
+            />
+        </View>
+    </View>
+</Modal>
         </View>
     );
 }
