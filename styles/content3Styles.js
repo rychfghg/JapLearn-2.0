@@ -1,183 +1,45 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'flex-end',
-  },
-  characterContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 10,
-    borderRadius: 5,
-    borderColor: '#D6B4FC',
-    borderWidth: 3,
-    alignSelf: 'center', // Center horizontally
-    marginBottom: 10,
-  },
-  character: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-    alignSelf: 'center',
-  },
-  dialogueContainer: {
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 30,
-    alignSelf: 'center',
-    borderColor: '#D6B4FC',
-    borderWidth: 3,
-  },
-  dialogue: {
-    fontSize: 16,
-    color: 'white',
-  },
-  characterImage: {
-    alignSelf: 'center',
-    width: width * 0.8,
-    height: height * 0.4,
-    resizeMode: 'contain',
-  },
-  cinematicContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cinematicText: {
-    fontSize: 24,
-    fontStyle: 'italic',
-    color: 'white',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 20,
-    borderRadius: 10,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  gameContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  gameTitle: {
-    fontSize: 24,
-    color: 'white',
-    marginBottom: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  gameQuestion: {
-    fontSize: 20,
-    color: 'white',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  gameChoice: {
-    backgroundColor: '#3b6b3b',
-    padding: 10,
-    marginVertical: 5,
-    borderRadius: 5,
-    width: '80%',
-    alignItems: 'center',
-  },
-  gameChoiceText: {
-    color: 'white',
-    fontSize: 14,
-  },
-  gameFeedback: {
-    marginTop: 20,
-    fontSize: 18,
-    color: 'white',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 10,
-    borderRadius: 5,
-    textAlign: 'center',
-  },
-  gameImage: {
-    width: width * 0.7,
-    height: height * 0.3,
-    resizeMode: 'contain',
-  },
-  // New styles added for the enemy and attack effect
-  enemyContainer: {
-    position: 'absolute',
-    top: 50,
-    right: 50,
-    alignItems: 'center',
-  },
-  enemyImage: {
-    width: 100,
-    height: 100,
-    resizeMode: 'contain',
-  },
-  enemyHPContainer: {
-    width: 80,
-    height: 10,
-    backgroundColor: '#ccc',
-    marginTop: 5,
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  enemyHPText: {
-    color: '#fff',
-    fontSize: 14,
-    marginBottom: 5,
-    textAlign: 'center',
-  },
-  enemyHPBar: {
-    width: 80,
-    height: 10,
-    backgroundColor: '#ccc',
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  enemyHPFill: {
-    height: '100%',
-    backgroundColor: '#ff0000',
-  },
-  attackEffect: {
-    position: 'absolute',
-    width: 50,
-    height: 50,
-    left: 100,
-    bottom: 120,
-    resizeMode: 'contain',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Slightly transparent
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Dark transparent background
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  finishText: {
-    fontSize: 40, // Increase font size for prominence
-    color: '#f8f8f8', // Slightly off-white color
-    fontStyle: 'italic', // Apply italic style
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)', // Add a shadow for depth
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
-  },
+  background: { flex: 1, paddingTop: 44, paddingHorizontal: 20, overflow: 'hidden' },
+  softShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(247,241,250,.12)' },
+  lightOrb: { position: 'absolute', top: 130, left: -70, width: 150, height: 150, borderRadius: 75, backgroundColor: 'rgba(229,204,255,.18)' },
+  fallingLeaf: { position: 'absolute', top: 190, left: -45, fontSize: 22, opacity: .5 },
+  header: { zIndex: 10, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  backButton: { width: 48, height: 48, borderRadius: 17, backgroundColor: 'rgba(255,255,255,.94)', alignItems: 'center', justifyContent: 'center', shadowColor: '#321640', shadowOpacity: .12, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 5 },
+  headerCopy: { flex: 1 },
+  pathLabel: { color: '#432653', fontFamily: 'Jua', fontSize: 10, letterSpacing: 1.25 },
+  progressTrack: { height: 5, marginTop: 7, backgroundColor: 'rgba(255,255,255,.62)', borderRadius: 5, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: '#8424E8', borderRadius: 5 },
+  soundPill: { width: 42, height: 42, borderRadius: 15, backgroundColor: 'rgba(255,255,255,.9)', alignItems: 'center', justifyContent: 'center' },
+  storyLayout: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
+  warningLayout: { paddingTop: 84 },
+  characterImage: { width: width * .72, height: height * .39, resizeMode: 'contain', marginBottom: -7 },
+  warningCharacterImage: { width: width * .55, height: height * .31, marginBottom: 4 },
+  warningBadge: { position: 'absolute', top: 92, alignSelf: 'center', flexDirection: 'row', gap: 6, backgroundColor: '#FFF0F2', borderWidth: 1, borderColor: '#F3C7CE', borderRadius: 20, paddingHorizontal: 13, paddingVertical: 7 },
+  warningText: { color: '#C94F63', fontFamily: 'Jua', fontSize: 10, letterSpacing: 1.2 },
+  dialogueCard: { width: '100%', backgroundColor: 'rgba(255,253,255,.97)', borderRadius: 27, padding: 20, marginBottom: 22, borderWidth: 1, borderColor: '#E9DBEF', shadowColor: '#25102F', shadowOpacity: .2, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
+  warningDialogueCard: { paddingHorizontal: 22, paddingTop: 18, paddingBottom: 18, marginBottom: 18 },
+  speakerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
+  speakerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#75C93F', marginRight: 7 },
+  speaker: { color: '#633378', fontFamily: 'Jua', fontSize: 10, letterSpacing: 1.1 },
+  step: { marginLeft: 'auto', color: '#998A9F', fontSize: 11 },
+  dialogueTitle: { color: '#33203E', fontFamily: 'Jua', fontSize: 24, lineHeight: 29 },
+  dialogue: { color: '#716378', fontSize: 14, lineHeight: 21, marginTop: 7, minHeight: 43 },
+  continueButton: { height: 52, marginTop: 17, borderRadius: 17, backgroundColor: '#8424E8', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, shadowColor: '#8424E8', shadowOpacity: .22, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 4 },
+  cinematicContinueButton: { width: 248, position: 'relative', paddingHorizontal: 46 },
+  cinematicContinueText: { width: '100%', textAlign: 'center' },
+  cinematicContinueIcon: { position: 'absolute', right: 17 },
+  continueDisabled: { backgroundColor: '#B9AFC0', shadowOpacity: 0 },
+  continueText: { color: '#fff', fontFamily: 'Jua', fontSize: 13, letterSpacing: .65 },
+  cinematicWrap: { flex: 1, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 32 },
+  chapterIcon: { width: 60, height: 60, borderRadius: 22, backgroundColor: 'rgba(255,255,255,.94)', alignItems: 'center', justifyContent: 'center', marginBottom: 13, shadowColor: '#21102A', shadowOpacity: .18, shadowRadius: 14, elevation: 6 },
+  chapter: { color: '#B8F07E', fontFamily: 'Jua', fontSize: 11, letterSpacing: 2 },
+  cinematicTitle: { color: '#fff', fontFamily: 'Jua', fontSize: 30, lineHeight: 36, textAlign: 'center', marginTop: 7, textShadowColor: 'rgba(27,8,35,.45)', textShadowRadius: 8 },
+  cinematicText: { color: '#F7F1F9', fontSize: 15, lineHeight: 22, textAlign: 'center', maxWidth: 330, marginTop: 9, textShadowColor: 'rgba(24,5,31,.6)', textShadowRadius: 5 },
+  sceneDots: { flexDirection: 'row', gap: 7, marginTop: 17 },
+  sceneDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,.45)' },
+  sceneDotActive: { width: 25, backgroundColor: '#A94CFF' },
 });
-

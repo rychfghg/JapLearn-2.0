@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, ImageBackground, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, ImageBackground, TouchableOpacity, Dimensions, Modal } from 'react-native';
 import * as Animatable from 'react-native-animatable';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { styles } from '../styles/game3Styles';
 
 const { width, height } = Dimensions.get('window');
@@ -56,6 +58,7 @@ const redBlinkAnimation = {
 };
 
 const Game3 = ({ onGameOver }) => {
+  const router = useRouter();
   const questions = [
     {
       question: "Which particle makes the sentence possessive?",
@@ -98,7 +101,9 @@ const Game3 = ({ onGameOver }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [enemyHealth, setEnemyHealth] = useState(100); // Enemy health now just visual feedback
   const [playerHealth, setPlayerHealth] = useState(100);
-  const [showCurtain, setShowCurtain] = useState(true);
+  const [showCurtain, setShowCurtain] = useState(false);
+  const [showBattleBrief, setShowBattleBrief] = useState(true);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [choicePositions, setChoicePositions] = useState(Array(questions[0].choices.length).fill('original'));
   const [gameOver, setGameOver] = useState(false);
@@ -108,13 +113,28 @@ const Game3 = ({ onGameOver }) => {
   const enemyRef = useRef(null);
   const playerRef = useRef(null);
   const attackEffectRef = useRef(null);
+  const curtainTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
       // Shuffle questions when the component mounts
       const randomizedQuestions = shuffleArray(questions);
       setShuffledQuestions(randomizedQuestions);
-      setTimeout(() => setShowCurtain(false), 3500);
+      return () => {
+        if (curtainTimerRef.current) clearTimeout(curtainTimerRef.current);
+      };
     }, []);
+
+  const beginBattle = () => {
+    setShowBattleBrief(false);
+    setShowCurtain(true);
+    curtainTimerRef.current = setTimeout(() => setShowCurtain(false), 5600);
+  };
+
+  const leaveBattle = () => {
+    if (curtainTimerRef.current) clearTimeout(curtainTimerRef.current);
+    setShowExitConfirm(false);
+    router.back();
+  };
 
   const handleAnswer = (choice) => {
     setSelectedAnswer(choice); // Store the selected choice
@@ -208,6 +228,9 @@ const Game3 = ({ onGameOver }) => {
   return (
     <ImageBackground source={require('../assets/fightbg.png')} style={styles.background}>
       <View style={styles.container}>
+        <TouchableOpacity style={styles.battleBackButton} onPress={() => setShowExitConfirm(true)} activeOpacity={0.85}>
+          <Ionicons name="arrow-back" size={23} color="#432653" />
+        </TouchableOpacity>
         {!gameOver && <Text style={styles.question}>{currentQuestion.question}</Text>}
 
          {/* Selected Choice Display */}
@@ -307,6 +330,27 @@ const Game3 = ({ onGameOver }) => {
           </View>
         )}
 
+        {showBattleBrief && (
+          <View style={styles.battleBriefOverlay}>
+            <Animatable.View animation="fadeInUp" duration={650} style={styles.battleBriefCard}>
+              <View style={styles.briefBadge}><Ionicons name="shield-half" size={18} color="#8424E8" /><Text style={styles.briefBadgeText}>THE GRAMMAR GATE</Text></View>
+              <Text style={styles.briefTitle}>The master accepts your challenge.</Text>
+              <Text style={styles.briefText}>Ahiru draws his blade as the gate seals behind you. The master will test the particles you learned along the journey.</Text>
+              <View style={styles.briefRule}>
+                <View style={styles.briefRuleIcon}><Ionicons name="sparkles" size={20} color="#65B83B" /></View>
+                <Text style={styles.briefRuleText}>Choose the correct word, then tap Attack. Correct answers weaken the master; mistakes cost Ahiru health.</Text>
+              </View>
+              <View style={styles.briefDialogue}>
+                <Animatable.Image source={require('../assets/Idle_Katana.png')} animation="pulse" iterationCount="infinite" duration={2200} style={styles.briefMascot} />
+                <View style={styles.briefBubble}><Text style={styles.briefSpeaker}>AHIRU-SAN</Text><Text style={styles.briefQuote}>“Our lesson brought us here. Trust what you learned—and fight beside me!”</Text></View>
+              </View>
+              <TouchableOpacity style={styles.briefButton} onPress={beginBattle} activeOpacity={0.88}>
+                <Text style={styles.briefButtonText}>I'M READY</Text><Ionicons name="arrow-forward" size={20} color="#fff" />
+              </TouchableOpacity>
+            </Animatable.View>
+          </View>
+        )}
+
 {gameOver && (
           <View style={styles.overlay}>
             <Text style={styles.gameOverText}>{gameOverText}</Text>
@@ -321,6 +365,18 @@ const Game3 = ({ onGameOver }) => {
             )}
           </View>
         )}
+
+        <Modal visible={showExitConfirm} transparent animationType="fade" onRequestClose={() => setShowExitConfirm(false)}>
+          <View style={styles.exitOverlay}>
+            <View style={styles.exitCard}>
+              <View style={styles.exitIcon}><Ionicons name="flag-outline" size={28} color="#8424E8" /></View>
+              <Text style={styles.exitTitle}>Leave this battle?</Text>
+              <Text style={styles.exitText}>Your current fight will stop. You can return later and begin the battle again.</Text>
+              <TouchableOpacity style={styles.stayButton} onPress={() => setShowExitConfirm(false)}><Text style={styles.stayButtonText}>CONTINUE FIGHTING</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.leaveButton} onPress={leaveBattle}><Text style={styles.leaveButtonText}>Leave battle</Text></TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     </ImageBackground>
   );

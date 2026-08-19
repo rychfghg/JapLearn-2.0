@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Image, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
+﻿import React, { useState, useEffect } from 'react';
+import { View, Text, Image, ImageBackground, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { stylesQuackman } from '../styles/stylesQuackman';
 import { stylesClass } from '../styles/stylesClass';
 import BackIcon from '../assets/svg/back-icon.svg';
@@ -15,18 +16,23 @@ const allRomaji = [
     'do', 'ba', 'bi', 'bu', 'be', 'bo', 'pa', 'pi', 'pu', 'pe', 'po'
 ];
 
-const Quackman = ({ navigation }) => {
+type QuackmanQuestion = { hint: string; word: string[] };
+
+const Quackman = () => {
     const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
-    const [data, setData] = useState([]);
-    const [romajiGrid, setRomajiGrid] = useState([]);
-    const [inputRomaji, setInputRomaji] = useState([]);
+    const [data, setData] = useState<QuackmanQuestion[]>([]);
+    const [romajiGrid, setRomajiGrid] = useState<string[]>([]);
+    const [inputRomaji, setInputRomaji] = useState<string[]>([]);
+    const [selectedTileIndexes, setSelectedTileIndexes] = useState<number[]>([]);
     const [currentHint, setCurrentHint] = useState('');
     const [wordLength, setWordLength] = useState(0);
     const [modalVisible, setModalVisible] = useState(false);
     const [introModalVisible, setIntroModalVisible] = useState(true);
     const [currentWordIndex, setCurrentWordIndex] = useState(0);
-    const [attempts, setAttempts] = useState([null, null, null]);
+    const [attempts, setAttempts] = useState<Array<boolean | null>>([null, null, null]);
     const [gameOver, setGameOver] = useState(false);
+    const [roundTransitioning, setRoundTransitioning] = useState(false);
+    const [exitConfirmVisible, setExitConfirmVisible] = useState(false);
     const [characterImage, setCharacterImage] = useState(require('../assets/Idle_TrapDoor.png'));
     const [userInteracted, setUserInteracted] = useState(false); // Track if the user interacted
 
@@ -37,12 +43,13 @@ const Quackman = ({ navigation }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [progress, setProgress] = useState(0);
     const fadeAnim = new Animated.Value(1);
-    const [sound, setSound] = useState();
-    const [correctSound, setCorrectSound] = useState();
-    const [incorrectSound, setIncorrectSound] = useState();
+    const [sound, setSound] = useState<Audio.Sound | null>(null);
+    const [correctSound, setCorrectSound] = useState<Audio.Sound | null>(null);
+    const [incorrectSound, setIncorrectSound] = useState<Audio.Sound | null>(null);
+    const [angelSound, setAngelSound] = useState<Audio.Sound | null>(null);
 
     // Background music
-    const [bgMusic, setBgMusic] = useState();
+    const [bgMusic, setBgMusic] = useState<Audio.Sound | null>(null);
 
     useEffect(() => {
         const simulateProgress = () => {
@@ -80,10 +87,15 @@ const Quackman = ({ navigation }) => {
             const { sound: incorrectSfx } = await Audio.Sound.createAsync(
                 require('../assets/audio/sfx/incorrect_sfx.mp3')
             );
+            const { sound: angelSfx } = await Audio.Sound.createAsync(
+                require('../assets/audio/sfx/incorrect.mp3'),
+                { volume: 0.48 }
+            );
 
             setSound(quackmanSound);
             setCorrectSound(correctSfx);
             setIncorrectSound(incorrectSfx);
+            setAngelSound(angelSfx);
         };
 
         const loadBackgroundMusic = async () => {
@@ -102,6 +114,7 @@ const Quackman = ({ navigation }) => {
             if (sound) sound.unloadAsync();
             if (correctSound) correctSound.unloadAsync();
             if (incorrectSound) incorrectSound.unloadAsync();
+            if (angelSound) angelSound.unloadAsync();
             if (bgMusic) bgMusic.unloadAsync();
         };
     }, []);
@@ -157,7 +170,7 @@ const Quackman = ({ navigation }) => {
                 const response = await fetch(`${expoconfig.API_URL}/api/quackmancontent`);
                 const json = await response.json();
                 if (json.length > 0) {
-                    const transformedData = json.map((item) => ({
+                    const transformedData = json.map((item: { description: string; romajiWord: string }) => ({
                         hint: item.description,
                         word: syllabifyWord(item.romajiWord),
                     }));
@@ -174,13 +187,15 @@ const Quackman = ({ navigation }) => {
         fetchData();
     }, []);
 
-    const syllabifyWord = (word) => {
-        let syllables = [];
+    const syllabifyWord = (word: string) => {
+        let syllables: string[] = [];
+        const normalizedWord = word.toLowerCase().replace(/[^a-z]/g, '');
+        const longestRomaji = Math.max(...allRomaji.map((romaji) => romaji.length));
         let i = 0;
-        while (i < word.length) {
+        while (i < normalizedWord.length) {
             let found = false;
-            for (let len = 2; len > 0; len--) {
-                let sub = word.slice(i, i + len);
+            for (let len = longestRomaji; len > 0; len--) {
+                let sub = normalizedWord.slice(i, i + len);
                 if (allRomaji.includes(sub)) {
                     syllables.push(sub);
                     i += len;
@@ -202,22 +217,35 @@ const Quackman = ({ navigation }) => {
         }
     }, [currentWordIndex, data]);
 
-    const loadWord = (index) => {
+    const loadWord = (index: number) => {
         if (index < data.length) {
             const selectedData = data[index];
             const { hint, word } = selectedData;
+
+            if (!word.length) {
+                console.error(`Quackman round ${index + 1} has no playable romaji syllables.`);
+                setCurrentHint('This word could not be prepared. Moving to the next challenge.');
+                setWordLength(0);
+                setRomajiGrid([]);
+                setInputRomaji([]);
+                setSelectedTileIndexes([]);
+                setTimeout(() => moveToNextWord(), 0);
+                return;
+            }
 
             setCurrentHint(hint);
             setWordLength(word.length);
             const grid = fillGrid(word, allRomaji, 12);
             setRomajiGrid(grid);
             setInputRomaji([]);
+            setSelectedTileIndexes([]);
             setAttempts([null, null, null]);
+            setRoundTransitioning(false);
             setCharacterImage(require('../assets/Idle_TrapDoor.png'));
         }
     };
 
-    const fillGrid = (syllables, allSyllables, gridSize) => {
+    const fillGrid = (syllables: string[], allSyllables: string[], gridSize: number) => {
         const filledGrid = [...syllables];
 
         while (filledGrid.length < gridSize) {
@@ -237,6 +265,7 @@ const Quackman = ({ navigation }) => {
     };
 
     const handleAttemptsExhausted = () => {
+        angelSound?.stopAsync().then(() => angelSound.replayAsync()).catch(() => undefined);
         setCharacterImage(require('../assets/Fallin_TrapDoor.png'));
         setTimeout(() => {
             setCharacterImage(require('../assets/Trapdoor.png'));
@@ -259,21 +288,20 @@ const Quackman = ({ navigation }) => {
         });
     };
 
-    const toggleRomaji = (char) => {
+    const toggleRomaji = (char: string, tileIndex: number) => {
+        if (roundTransitioning || modalVisible || showAngel) return;
         playSound();
-        setInputRomaji((prevInput) => {
-            let newInput;
-            if (prevInput.includes(char)) {
-                newInput = prevInput.filter((c) => c !== char);
-            } else {
-                newInput = prevInput.length < wordLength ? [...prevInput, char] : prevInput;
-            }
-
-            if (newInput.length === wordLength) {
-                setModalVisible(true);
-            }
-
-            return newInput;
+        setSelectedTileIndexes((previousIndexes) => {
+            const alreadySelected = previousIndexes.includes(tileIndex);
+            const nextIndexes = alreadySelected
+                ? previousIndexes.filter((index) => index !== tileIndex)
+                : previousIndexes.length < wordLength
+                    ? [...previousIndexes, tileIndex]
+                    : previousIndexes;
+            const nextInput = nextIndexes.map((index) => romajiGrid[index]);
+            setInputRomaji(nextInput);
+            if (!alreadySelected && nextInput.length === wordLength) setModalVisible(true);
+            return nextIndexes;
         });
     };
 
@@ -282,7 +310,8 @@ const Quackman = ({ navigation }) => {
         const { word } = selectedData;
 
         if (inputRomaji.join('') === word.join('')) {
-            correctSound.playAsync();
+            setRoundTransitioning(true);
+            correctSound?.playAsync();
 
             // Set the character to the jumping animation
             setCorrectAnswersCount((prevCount) => prevCount + 1);
@@ -294,7 +323,7 @@ const Quackman = ({ navigation }) => {
                 moveToNextWord(); // Proceed to the next question
             }, 2000); // Duration of the animation in milliseconds
         } else {
-            incorrectSound.playAsync();
+            incorrectSound?.playAsync();
             setAttempts((prevAttempts) => {
                 const updatedAttempts = [...prevAttempts];
                 const nextAttemptIndex = prevAttempts.findIndex((attempt) => attempt === null);
@@ -302,6 +331,7 @@ const Quackman = ({ navigation }) => {
                     updatedAttempts[nextAttemptIndex] = false;
                 }
                 if (updatedAttempts.filter((attempt) => attempt === false).length === 3) {
+                    setRoundTransitioning(true);
                     handleAttemptsExhausted();
                 }
                 return updatedAttempts;
@@ -310,15 +340,18 @@ const Quackman = ({ navigation }) => {
 
         setModalVisible(false);
         setInputRomaji([]); // Reset the input field
+        setSelectedTileIndexes([]);
     };
 
     const moveToNextWord = () => {
-        if (currentWordIndex + 1 === data.length) {
-            setGameOver(true);
-        } else {
-            setCurrentWordIndex(currentWordIndex + 1);
-            setAttempts([null, null, null]); // Reset the attempts
-        }
+        setCurrentWordIndex((previousIndex) => {
+            if (previousIndex + 1 >= data.length) {
+                setGameOver(true);
+                setRoundTransitioning(false);
+                return previousIndex;
+            }
+            return previousIndex + 1;
+        });
     };
 
     const handleCancel = () => {
@@ -337,11 +370,32 @@ const Quackman = ({ navigation }) => {
         }
         router.push('/Exercises'); // Navigate back to the exercises page
     };
+
+    const requestExit = () => setExitConfirmVisible(true);
+    const cancelExit = () => setExitConfirmVisible(false);
+    const confirmExit = () => { setExitConfirmVisible(false); handleBackPress(); };
+
+    const renderExitModal = () => (
+        <Modal visible={exitConfirmVisible} transparent animationType="fade" onRequestClose={cancelExit}>
+            <View style={stylesQuackman.exitOverlay}>
+                <View style={stylesQuackman.exitCard}>
+                    <View style={stylesQuackman.exitIcon}><Ionicons name="cloud-outline" size={28} color="#7140C6" /></View>
+                    <Text style={stylesQuackman.exitTitle}>Leave the word trial?</Text>
+                    <Text style={stylesQuackman.exitMessage}>Your current word and selected syllables will be cleared.</Text>
+                    <TouchableOpacity style={stylesQuackman.continueButton} onPress={cancelExit}><Text style={stylesQuackman.continueButtonText}>CONTINUE TRIAL</Text></TouchableOpacity>
+                    <TouchableOpacity style={stylesQuackman.leaveButton} onPress={confirmExit}><Text style={stylesQuackman.leaveButtonText}>Exit to Exercises</Text></TouchableOpacity>
+                </View>
+            </View>
+        </Modal>
+    );
     
     const handleRetry = async () => {
         setGameOver(false);
         setCurrentWordIndex(0);
         setAttempts([null, null, null]);
+        setInputRomaji([]);
+        setSelectedTileIndexes([]);
+        setRoundTransitioning(false);
         if (bgMusic) {
             try {
                 await bgMusic.stopAsync(); // Stop the music
@@ -362,18 +416,16 @@ const Quackman = ({ navigation }) => {
         >
             <View style={stylesQuackman.introModalBackground}>
                 <View style={stylesQuackman.introModalContainer}>
-                    <TouchableOpacity
-                        style={stylesQuackman.closeButton}
-                        onPress={() => setIntroModalVisible(false)}
-                    >
-                        <Text style={stylesQuackman.closeButtonText}>X</Text>
-                    </TouchableOpacity>
                     <View style={stylesQuackman.modalContentContainer}>
                         <View style={stylesQuackman.modalTextContent}>
-                            <Text style={stylesQuackman.introTitle}>Welcome to Quackman</Text>
+                            <View style={stylesQuackman.introIcon}><Ionicons name="shield-checkmark-outline" size={31} color="#7140C6" /></View>
+                            <Text style={stylesQuackman.introKicker}>AHIRU'S SKY TRIAL</Text>
+                            <Text style={stylesQuackman.introTitle}>Survive the word gate</Text>
                             <Text style={stylesQuackman.introText}>
-                                Translate the English definition into romaji by selecting the correct syllables from the grid below. Enjoy playing!
+                                Read the clue and build its Japanese romaji word. You have three chances before Ahiru falls through the gate.
                             </Text>
+                            <View style={stylesQuackman.introRules}><View style={stylesQuackman.introRule}><Ionicons name="grid-outline" size={18} color="#7140C6" /><Text style={stylesQuackman.introRuleText}>Select syllables</Text></View><View style={stylesQuackman.introRule}><Ionicons name="heart-outline" size={18} color="#D9576C" /><Text style={stylesQuackman.introRuleText}>Three chances</Text></View></View>
+                            <TouchableOpacity style={stylesQuackman.introStart} onPress={() => setIntroModalVisible(false)}><Text style={stylesQuackman.introStartText}>BEGIN THE TRIAL</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></TouchableOpacity>
                         </View>
                     </View>
                 </View>
@@ -384,16 +436,26 @@ const Quackman = ({ navigation }) => {
     if (isLoading || !userInteracted) {
         return (
             <TouchableOpacity
-                style={[stylesQuackman.loadingContainer]}
+                style={stylesQuackman.loadingContainer}
                 onPress={handleUserInteraction}
                 disabled={progress < 100}
             >
-                <Image
-                    source={require('../assets/quackman_loadingscreen.png')}
-                    style={stylesQuackman.loadingBackgroundImage}
-                />
+                <Image source={require('../assets/quackman/quackman-sky-temple.png')} style={stylesQuackman.loadingBackgroundImage} resizeMode="cover" />
+                <View style={stylesQuackman.loadingShade} />
+                {renderExitModal()}
+                <TouchableOpacity
+                    style={stylesQuackman.loadingBackButton}
+                    onPress={(event) => {
+                        event.stopPropagation();
+                        requestExit();
+                    }}
+                >
+                    <Ionicons name="arrow-back" size={23} color="#432653" />
+                </TouchableOpacity>
                 <View style={stylesQuackman.loadingContent}>
-                    <Image source={require('../assets/flipload.gif')} style={stylesQuackman.Quacklogo} />
+                    <View style={stylesQuackman.loadingBadge}><Ionicons name="text-outline" size={14} color="#7140C6" /><Text style={stylesQuackman.loadingBadgeText}>JAPLEARN WORD SURVIVAL</Text></View>
+                    <View style={stylesQuackman.loadingPortal}><Image source={require('../assets/Idle_TrapDoor.png')} style={stylesQuackman.loadingMascot} /></View>
+                    <Text style={stylesQuackman.loadingGameTitle}>QUACKMAN</Text><Text style={stylesQuackman.loadingSubtitle}>Opening the sky word gate...</Text>
                     <View style={stylesQuackman.progressBarContainer}>
                         <Animated.View
                             style={[
@@ -404,10 +466,10 @@ const Quackman = ({ navigation }) => {
                     </View>
                     {progress < 100 ? (
                         <Text style={stylesQuackman.loadingText}>
-                            {Math.round(progress)}%
+                            PREPARING TRIAL - {Math.round(progress)}%
                         </Text>
                     ) : (
-                        <Text style={stylesQuackman.loadingText}>Tap to Start</Text>
+                        <Text style={stylesQuackman.loadingText}>TAP TO ENTER</Text>
                     )}
                 </View>
             </TouchableOpacity>
@@ -417,7 +479,8 @@ const Quackman = ({ navigation }) => {
 
     if (gameOver) {
         return (
-            <View style={[stylesQuackman.gameOverContainer]}>
+            <ImageBackground source={require('../assets/quackman/quackman-sky-temple.png')} style={stylesQuackman.gameOverContainer}>
+                <View style={stylesQuackman.screenShade} />
                 <Text style={stylesQuackman.gameOverText}>Game Over!</Text>
                 <Text style={stylesQuackman.scoreText}>
                 You answered {correctAnswersCount} question{correctAnswersCount === 1 ? '' : 's'}.
@@ -436,58 +499,54 @@ const Quackman = ({ navigation }) => {
                         <Text style={stylesQuackman.backButtonText}>Back</Text>
                     </TouchableOpacity>
                 </View>
-            </View>
+            </ImageBackground>
         );
     }
     
 
     return (
-        <View style={{ flex: 1 }}>
+        <ImageBackground source={require('../assets/quackman/quackman-sky-temple.png')} style={stylesQuackman.gameScreen} resizeMode="cover">
+            <View style={stylesQuackman.screenShade} />
             {renderIntroModal()}
-            <View style={stylesClass.header}>
-                <TouchableOpacity onPress={handleBackPress}>
-                    <View style={stylesClass.backButtonContainer}>
-                        <BackIcon width={20} height={20} fill={'white'} />
-                    </View>
-                </TouchableOpacity>
+            {renderExitModal()}
+            <View style={stylesQuackman.gameHeader}>
+                <TouchableOpacity onPress={requestExit} style={stylesQuackman.headerButton}><Ionicons name="arrow-back" size={22} color="#432653" /></TouchableOpacity>
+                <View style={stylesQuackman.modePill}><Ionicons name="text-outline" size={14} color="#7140C6" /><Text style={stylesQuackman.modeText}>WORD SURVIVAL</Text></View>
+                <View style={stylesQuackman.roundPill}><Text style={stylesQuackman.roundText}>{currentWordIndex + 1}/{data.length}</Text></View>
             </View>
 
-            <View style={stylesQuackman.progressContainer}>
-                <View style={stylesQuackman.progress}>
-                    <Text style={stylesQuackman.progressText}>{currentWordIndex + 1}/{data.length}</Text>
-                </View>
-            </View>
-
-            <View style={stylesQuackman.menuContainer}>
+            <View style={[stylesQuackman.menuContainer,stylesQuackman.refinedStage]}>
                 <View style={stylesQuackman.centeredContainer}>
-                    <Text style={stylesQuackman.textStyle}>Quackman</Text>
-                    <Image source={characterImage} style={stylesQuackman.Quacklogo} />
+                    <Text style={stylesQuackman.textStyle}>AHIRU'S WORD GATE</Text>
+                    <Image source={characterImage} style={[stylesQuackman.Quacklogo,stylesQuackman.refinedMascot]} />
                 </View>
             </View>
 
-            <View style={stylesQuackman.attemptsContainer}>
+            <View style={[stylesQuackman.attemptsContainer,stylesQuackman.refinedAttempts]}>
                 {attempts.map((attempt, index) => (
                     <View key={index} style={[stylesQuackman.attempt, attempt === false && stylesQuackman.attemptWrong, attempt === true && stylesQuackman.attemptCorrect]}></View>
                 ))}
             </View>
 
-            <View style={stylesQuackman.charGridContainer}>
-                <View style={stylesQuackman.charGrid}>
+            <View style={[stylesQuackman.charGridContainer,stylesQuackman.refinedGridContainer]}>
+                <View style={[stylesQuackman.charGrid,stylesQuackman.refinedGrid]}>
                     {romajiGrid.map((char, index) => (
-                        <TouchableOpacity key={index} style={[stylesQuackman.charCell, inputRomaji.includes(char) && stylesQuackman.charCellSelected]} onPress={() => toggleRomaji(char)}>
+                        <TouchableOpacity key={`${currentWordIndex}-${index}-${char}`} disabled={roundTransitioning} style={[stylesQuackman.charCell,stylesQuackman.refinedTile, selectedTileIndexes.includes(index) && stylesQuackman.charCellSelected, roundTransitioning && { opacity: 0.68 }]} onPress={() => toggleRomaji(char, index)}>
                             <Text style={stylesQuackman.charText}>{char}</Text>
                         </TouchableOpacity>
                     ))}
                 </View>
             </View>
 
-            <View style={stylesQuackman.hintInputContainer}>
-                <View style={stylesQuackman.hintContainer}>
-                    <Text style={stylesQuackman.hintText}>
+            <View style={[stylesQuackman.hintInputContainer,stylesQuackman.refinedHintPanel]}>
+                <Text style={[stylesQuackman.clueLabel,stylesQuackman.readableClueLabel]}>WORD CLUE</Text><View style={stylesQuackman.clueRow}><View style={stylesQuackman.clueIcon}><Ionicons name="bulb-outline" size={19} color="#D58A1E"/></View><View style={stylesQuackman.clueTextWrap}><Text style={[stylesQuackman.clueTitle,stylesQuackman.readableClueTitle]}>Build the Japanese word</Text><View style={stylesQuackman.hintContainer}>
+                    <Text style={[stylesQuackman.hintText,stylesQuackman.readableHint]}>
                         {currentHint}
                     </Text>
-                </View>
-                <View style={stylesQuackman.inputContainer}>
+                    </View>
+                </View></View>
+                <Text style={stylesQuackman.answerLabel}>YOUR ROMAJI</Text>
+                <View style={[stylesQuackman.inputContainer,stylesQuackman.refinedInputs]}>
                     {Array.from({ length: wordLength }, (_, index) => (
                         <View key={index} style={[stylesQuackman.inputCell]}>
                             <Text style={stylesQuackman.inputText}>{inputRomaji[index]}</Text>
@@ -504,10 +563,10 @@ const Quackman = ({ navigation }) => {
             >
                 <View style={stylesQuackman.modalContainer}>
                     <View style={stylesQuackman.modalContent}>
-                        <Text style={stylesQuackman.modalText}>Are you sure you want to submit?</Text>
+                        <View style={stylesQuackman.submitIcon}><Ionicons name="sparkles" size={26} color="#7140C6" /></View><Text style={stylesQuackman.modalKicker}>WORD READY</Text><Text style={stylesQuackman.modalText}>Lock in this romaji word?</Text><Text style={stylesQuackman.modalWord}>{inputRomaji.join(' / ')}</Text>
                         <View style={stylesQuackman.modalButtons}>
-                            <CustomButton style={stylesQuackman.modButton} title="Cancel" onPress={handleCancel} />
-                            <CustomButton style={stylesQuackman.modButton} title="Confirm" onPress={handleConfirm} />
+                            <CustomButton buttonStyle={stylesQuackman.cancelSubmit} textStyle={stylesQuackman.cancelSubmitText} title="EDIT" onPress={handleCancel} />
+                            <CustomButton buttonStyle={stylesQuackman.modButton} textStyle={stylesQuackman.confirmSubmitText} title="SUBMIT" onPress={handleConfirm} />
                         </View>
                     </View>
                 </View>
@@ -517,18 +576,21 @@ const Quackman = ({ navigation }) => {
             {showAngel && (
                 <Animated.View
                     style={[
-                        stylesQuackman.angelContainer,
+                        stylesQuackman.angelContainer,stylesQuackman.centeredAngel,
                         { transform: [{ translateY: angelPosition }] },
                     ]}
                 >
+                    <View style={stylesQuackman.angelGlow}/>
                     <Image
                         source={require('../assets/Angel.png')}
                         style={stylesQuackman.angelImage}
                     />
                 </Animated.View>
             )}
-        </View>
+        </ImageBackground>
     );
 };
 
 export default Quackman;
+
+

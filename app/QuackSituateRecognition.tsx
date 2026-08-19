@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
+import AhiruMissionExit from '../components/AhiruMissionExit';
 import { stylesRecognition } from '../styles/stylesQuackSituateRecognition';
 
 import background from '../assets/background.png';
@@ -25,25 +26,44 @@ const scenarioGif =
   'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExOWZqcTBmaWRqN2dwN2RqcTVob3E4ZjlsYThjaGlpeTBqemtyMW9kaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/fg5A4osUhTM0e0g1Xt/giphy.gif';
 
 const scenario = {
-  title: 'School Hallway',
+  title: '📍 School Hallway',
   question: 'Your teacher passes by you in the morning. What should you say?',
   correctChoice: 'おはようございます',
   correctRomaji: 'ohayou gozaimasu',
   choices: [
-    { jp: 'ありがとう', romaji: 'arigatou' },
-    { jp: 'すみません', romaji: 'sumimasen' },
-    { jp: 'おはようございます', romaji: 'ohayou gozaimasu' },
-    { jp: 'じゃあね', romaji: 'jaa ne' },
+    {
+      jp: 'ありがとう',
+      romaji: 'arigatou',
+      hint: 'This is used when someone helps you or gives you something.',
+    },
+    {
+      jp: 'すみません',
+      romaji: 'sumimasen',
+      hint: 'This is often used to apologize or politely get attention.',
+    },
+    {
+      jp: 'おはようございます',
+      romaji: 'ohayou gozaimasu',
+      hint: 'This is a polite expression often heard early in the day.',
+    },
+    {
+      jp: 'じゃあね',
+      romaji: 'jaa ne',
+      hint: 'This is casual and is usually said when leaving someone.',
+    },
   ],
 };
 
 const QuackSituateRecognition = () => {
   const [selectedChoice, setSelectedChoice] = useState<any>(null);
   const [character, setCharacter] = useState(duckIdle);
-  const [message, setMessage] = useState('Watch the animated scene and choose the best expression.');
+  const [message, setMessage] = useState('Watch the scene. What would you say to your teacher?');
   const [resultVisible, setResultVisible] = useState(false);
+  const [hintVisible, setHintVisible] = useState(false);
+  const [hintChoice, setHintChoice] = useState<any>(null);
   const [isCorrect, setIsCorrect] = useState(false);
   const [effectImage, setEffectImage] = useState<any>(null);
+  const [isExiting, setIsExiting] = useState(false);
 
   const floatAnim = useRef(new Animated.Value(0)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
@@ -82,19 +102,26 @@ const QuackSituateRecognition = () => {
     ).start();
   }, []);
 
+  const closeAllPopups = () => {
+    setResultVisible(false);
+    setHintVisible(false);
+    setHintChoice(null);
+  };
+
   const handleBackPress = () => {
-    if (resultVisible) {
-      setResultVisible(false);
+    if (hintVisible || resultVisible) {
+      closeAllPopups();
       return;
     }
 
-    router.push('/QuackSituate');
+    setIsExiting(true);
   };
 
   const shake = () => {
     Animated.sequence([
       Animated.timing(shakeAnim, { toValue: -8, duration: 50, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: 8, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -5, duration: 50, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
     ]).start();
   };
@@ -105,7 +132,7 @@ const QuackSituateRecognition = () => {
 
     Animated.timing(effectAnim, {
       toValue: 1,
-      duration: 800,
+      duration: 850,
       useNativeDriver: true,
     }).start(() => setEffectImage(null));
   };
@@ -113,7 +140,19 @@ const QuackSituateRecognition = () => {
   const handleSelectChoice = (choice: any) => {
     setSelectedChoice(choice);
     setCharacter(duckTalk);
-    setMessage(`Selected: ${choice.romaji}`);
+
+    if (choice.jp === scenario.correctChoice) {
+      setMessage('That sounds polite for this situation. Submit when ready!');
+    } else {
+      setMessage('Think about the time of day and who you are speaking to.');
+    }
+  };
+
+  const openHint = (choice: any) => {
+    setHintChoice(choice);
+    setHintVisible(true);
+    setCharacter(duckThinking);
+    setMessage('Hints guide you, but they will not directly give the answer.');
   };
 
   const handleSubmit = () => {
@@ -129,11 +168,11 @@ const QuackSituateRecognition = () => {
 
     if (correct) {
       setCharacter(duckHappy);
-      setMessage('Correct! This is the polite morning greeting.');
+      setMessage('Correct! You used the polite morning greeting.');
       showEffect(CheckImage);
     } else {
       setCharacter(duckSad);
-      setMessage('Not quite. Think about greeting a teacher in the morning.');
+      setMessage('Not quite. Look again at the time and the person in the scene.');
       showEffect(WrongImage);
       shake();
     }
@@ -144,10 +183,25 @@ const QuackSituateRecognition = () => {
   const handleRetry = () => {
     setSelectedChoice(null);
     setCharacter(duckIdle);
-    setMessage('Watch the animated scene and choose the best expression.');
+    setMessage('Watch the scene. What would you say to your teacher?');
     setResultVisible(false);
+    setHintVisible(false);
+    setHintChoice(null);
     setIsCorrect(false);
   };
+
+  const handleResultButtonPress = () => {
+    closeAllPopups();
+
+    if (isCorrect) {
+      setIsExiting(true);
+      return;
+    }
+
+    handleRetry();
+  };
+
+  if (isExiting) return <AhiruMissionExit color="#65A936" tint="#EAF5E3" icon="eye-outline" eyebrow="RECOGNITION COMPLETE" title="Sharp eyes, great choice!" message="You practiced reading a real situation and choosing the expression that fits naturally." footer="Every moment you notice builds fluency." mascot={duckHappy} onComplete={() => router.push({ pathname: '/QuackSituate', params: { skipLoading: '1' } })} />;
 
   return (
     <View style={stylesRecognition.container}>
@@ -161,6 +215,13 @@ const QuackSituateRecognition = () => {
         <View style={stylesRecognition.topBoard}>
           <Text style={stylesRecognition.levelText}>Situational Recognition</Text>
           <Text style={stylesRecognition.titleText}>Scenario Response</Text>
+        </View>
+
+        <View style={stylesRecognition.progressWrap}>
+          <Text style={stylesRecognition.progressText}>Scenario 1 / 3 • Beginner Greetings</Text>
+          <View style={stylesRecognition.progressTrack}>
+            <View style={stylesRecognition.progressFill} />
+          </View>
         </View>
 
         <View style={stylesRecognition.scenarioCard}>
@@ -186,44 +247,55 @@ const QuackSituateRecognition = () => {
           {scenario.choices.map((choice) => (
             <TouchableOpacity
               key={choice.jp}
-              activeOpacity={0.88}
+              activeOpacity={0.9}
               onPress={() => handleSelectChoice(choice)}
               style={[
                 stylesRecognition.choiceButton,
                 selectedChoice?.jp === choice.jp && stylesRecognition.choiceSelected,
               ]}
             >
+              <View style={stylesRecognition.choiceTopRow}>
+                <TouchableOpacity
+                  style={stylesRecognition.hintButton}
+                  onPress={() => openHint(choice)}
+                >
+                  <Text style={stylesRecognition.hintText}>💡</Text>
+                </TouchableOpacity>
+              </View>
+
               <Text style={stylesRecognition.choiceJP}>{choice.jp}</Text>
               <Text style={stylesRecognition.choiceRomaji}>{choice.romaji}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <Animated.View
-          style={[
-            stylesRecognition.duckGlow,
-            {
-              opacity: glowAnim,
-              transform: [{ scale: glowAnim }],
-            },
-          ]}
-        />
+        <View style={stylesRecognition.guideArea}>
+          <Animated.View
+            style={[
+              stylesRecognition.duckGlow,
+              {
+                opacity: glowAnim,
+                transform: [{ scale: glowAnim }],
+              },
+            ]}
+          />
 
-        <Animated.Image
-          source={character}
-          style={[
-            stylesRecognition.characterImage,
-            {
-              transform: [
-                { translateY: floatAnim },
-                { translateX: shakeAnim },
-              ],
-            },
-          ]}
-        />
+          <Animated.Image
+            source={character}
+            style={[
+              stylesRecognition.characterImage,
+              {
+                transform: [
+                  { translateY: floatAnim },
+                  { translateX: shakeAnim },
+                ],
+              },
+            ]}
+          />
 
-        <View style={stylesRecognition.dialogueContainer}>
-          <Text style={stylesRecognition.dialogueText}>{message}</Text>
+          <View style={stylesRecognition.dialogueContainer}>
+            <Text style={stylesRecognition.dialogueText}>{message}</Text>
+          </View>
         </View>
 
         <TouchableOpacity style={stylesRecognition.submitButton} onPress={handleSubmit}>
@@ -260,16 +332,48 @@ const QuackSituateRecognition = () => {
         )}
 
         <Modal
-          visible={resultVisible}
+          visible={hintVisible}
           transparent
-          animationType="slide"
-          onRequestClose={() => setResultVisible(false)}
+          animationType="fade"
+          onRequestClose={closeAllPopups}
         >
           <View style={stylesRecognition.modalOverlay}>
             <View style={stylesRecognition.modalCard}>
               <TouchableOpacity
                 style={stylesRecognition.modalCloseButton}
-                onPress={() => setResultVisible(false)}
+                onPress={closeAllPopups}
+              >
+                <Text style={stylesRecognition.modalCloseText}>X</Text>
+              </TouchableOpacity>
+
+              <Text style={stylesRecognition.modalTitle}>Hint 💡</Text>
+
+              <Text style={stylesRecognition.modalJP}>{hintChoice?.jp}</Text>
+              <Text style={stylesRecognition.modalRomaji}>{hintChoice?.romaji}</Text>
+
+              <Text style={stylesRecognition.modalText}>{hintChoice?.hint}</Text>
+
+              <TouchableOpacity
+                style={stylesRecognition.modalButton}
+                onPress={closeAllPopups}
+              >
+                <Text style={stylesRecognition.modalButtonText}>Got it</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={resultVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={closeAllPopups}
+        >
+          <View style={stylesRecognition.modalOverlay}>
+            <View style={stylesRecognition.modalCard}>
+              <TouchableOpacity
+                style={stylesRecognition.modalCloseButton}
+                onPress={closeAllPopups}
               >
                 <Text style={stylesRecognition.modalCloseText}>X</Text>
               </TouchableOpacity>
@@ -283,13 +387,19 @@ const QuackSituateRecognition = () => {
 
               <Text style={stylesRecognition.modalText}>
                 {isCorrect
-                  ? 'Good job! This expression is appropriate when greeting your teacher in the morning.'
-                  : 'The situation is a morning greeting with a teacher, so use the polite greeting.'}
+                  ? 'Good job! This is appropriate when greeting your teacher in the morning.'
+                  : 'The situation is a morning greeting with a teacher. Use a polite greeting.'}
               </Text>
+
+              {isCorrect && (
+                <Text style={stylesRecognition.modalReward}>
+                  ⭐ +10 XP{'\n'}Politeness +1
+                </Text>
+              )}
 
               <TouchableOpacity
                 style={stylesRecognition.modalButton}
-                onPress={isCorrect ? () => router.push('/QuackSituate') : handleRetry}
+                onPress={handleResultButtonPress}
               >
                 <Text style={stylesRecognition.modalButtonText}>
                   {isCorrect ? 'Back' : 'Retry'}

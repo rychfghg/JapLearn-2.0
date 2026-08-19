@@ -10,9 +10,11 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
+import AhiruMissionExit from '../components/AhiruMissionExit';
 import styles from '../styles/stylesQuackSituateFormal';
 
-import background from '../assets/background.png';
+import background from '../assets/forest.jpg';
+
 import duckIdle from '../assets/idle.png';
 import duckHappy from '../assets/hello.png';
 import duckThinking from '../assets/thinking.png';
@@ -24,9 +26,12 @@ import professorHappy from '../assets/img/Sprite Male Dark Hair Smi01.png';
 import professorAngry from '../assets/img/Sprite Male Dark Hair Ang01.png';
 
 const scenario = {
-  chapter: 'DAY 1 — PROFESSOR’S OFFICE',
+  chapter: 'Situational Politeness',
+  place: '📍 Professor’s Office',
+  npcName: 'Professor Tanaka',
   npcLine: 'You missed class yesterday. What would you like to say?',
-  duckThought: 'This is my professor... I need to choose the respectful response.',
+  question: 'Choose the best Japanese response for this situation.',
+  hint: 'Think about who you are speaking to. Is this someone close, or someone you should speak to respectfully?',
   choices: [
     {
       jp: 'すみませんでした',
@@ -44,22 +49,47 @@ const scenario = {
 const QuackSituateFormal = () => {
   const [selected, setSelected] = useState<any>(null);
   const [character, setCharacter] = useState(duckIdle);
-  const [professorSprite, setProfessorSprite] = useState(professorNeutral);
-  const [respect, setRespect] = useState(50);
-  const [message, setMessage] = useState('Choose the best response to Professor Tanaka.');
+  const [npcSprite, setNpcSprite] = useState(professorNeutral);
+  const [message, setMessage] = useState('Read the situation and choose the best response.');
+  const [hintVisible, setHintVisible] = useState(false);
   const [resultVisible, setResultVisible] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
-  const floatAnim = useRef(new Animated.Value(0)).current;
+  const duckFloat = useRef(new Animated.Value(0)).current;
+  const npcFloat = useRef(new Animated.Value(0)).current;
   const shakeAnim = useRef(new Animated.Value(0)).current;
-  const bubbleAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const bubbleAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0.7)).current;
+  const fireflyAnim = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(floatAnim, { toValue: -8, duration: 750, useNativeDriver: true }),
-        Animated.timing(floatAnim, { toValue: 0, duration: 750, useNativeDriver: true }),
+        Animated.timing(duckFloat, { toValue: -8, duration: 750, useNativeDriver: true }),
+        Animated.timing(duckFloat, { toValue: 0, duration: 750, useNativeDriver: true }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(npcFloat, { toValue: -5, duration: 950, useNativeDriver: true }),
+        Animated.timing(npcFloat, { toValue: 0, duration: 950, useNativeDriver: true }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 0.65, duration: 1000, useNativeDriver: true }),
+      ])
+    ).start();
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fireflyAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(fireflyAnim, { toValue: 0.35, duration: 900, useNativeDriver: true }),
       ])
     ).start();
 
@@ -74,6 +104,7 @@ const QuackSituateFormal = () => {
     Animated.sequence([
       Animated.timing(shakeAnim, { toValue: -8, duration: 50, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: 8, duration: 50, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -5, duration: 50, useNativeDriver: true }),
       Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
     ]).start();
   };
@@ -102,16 +133,14 @@ const QuackSituateFormal = () => {
 
     if (selected.correct) {
       setIsCorrect(true);
-      setRespect(100);
-      setProfessorSprite(professorHappy);
+      setNpcSprite(professorHappy);
       setCharacter(duckHappy);
-      setMessage('Great! Professor Tanaka accepts your respectful response.');
+      setMessage('Great! That response fits the situation.');
     } else {
       setIsCorrect(false);
-      setRespect(20);
-      setProfessorSprite(professorAngry);
+      setNpcSprite(professorAngry);
       setCharacter(duckSad);
-      setMessage('Oh no! That sounded too casual for a professor.');
+      setMessage('That sounds too casual for this situation.');
       shake();
     }
 
@@ -121,67 +150,88 @@ const QuackSituateFormal = () => {
   const resetGame = () => {
     setSelected(null);
     setCharacter(duckIdle);
-    setProfessorSprite(professorNeutral);
-    setRespect(50);
-    setMessage('Choose the best response to Professor Tanaka.');
+    setNpcSprite(professorNeutral);
+    setMessage('Read the situation and choose the best response.');
+    setHintVisible(false);
     setResultVisible(false);
     setIsCorrect(false);
   };
+
+  const goBack = () => {
+    setHintVisible(false);
+    setResultVisible(false);
+    setIsExiting(true);
+  };
+
+  if (isExiting) return <AhiruMissionExit color="#8423D9" tint="#F0E4FA" icon="people-outline" eyebrow="TONE QUEST CLOSED" title="A thoughtful farewell" message="You practiced choosing respectful Japanese for the person, place, and moment." footer="The right tone turns words into good communication." mascot={duckTalk} onComplete={() => router.push({ pathname: '/QuackSituate', params: { skipLoading: '1' } })} />;
 
   return (
     <ImageBackground source={background} style={styles.background} resizeMode="cover">
       <View style={styles.overlay} />
 
-      <TouchableOpacity style={styles.backButton} onPress={() => router.push('/QuackSituate')}>
+      <TouchableOpacity style={styles.backButton} onPress={goBack}>
         <BackIcon width={20} height={20} fill="white" />
       </TouchableOpacity>
 
       <View style={styles.headerBoard}>
         <Text style={styles.chapterText}>{scenario.chapter}</Text>
-        <Text style={styles.headerTitle}>Respect Battle</Text>
+        <Text style={styles.headerTitle}>Choose the Right Response</Text>
       </View>
 
-      <View style={styles.respectPanel}>
-        <Text style={styles.respectLabel}>Professor Respect</Text>
-        <View style={styles.respectBar}>
-          <View style={[styles.respectFill, { width: `${respect}%` }]} />
-        </View>
-        <Text style={styles.respectValue}>{respect}%</Text>
-      </View>
+      <View style={styles.sceneCard}>
+        <Animated.View style={[styles.fireflyOne, { opacity: fireflyAnim }]} />
+        <Animated.View style={[styles.fireflyTwo, { opacity: fireflyAnim }]} />
+        <Animated.View style={[styles.fireflyThree, { opacity: fireflyAnim }]} />
 
-      <View style={styles.scenePanel}>
-        <Image source={professorSprite} style={styles.professorSprite} />
+        <Text style={styles.placeText}>{scenario.place}</Text>
 
         <Animated.View
           style={[
-            styles.professorBubble,
+            styles.npcBubble,
             {
               opacity: bubbleAnim,
               transform: [{ scale: bubbleAnim }],
             },
           ]}
         >
-          <Text style={styles.speakerName}>Professor Tanaka</Text>
-          <Text style={styles.professorText}>{scenario.npcLine}</Text>
+          <Text style={styles.speakerName}>{scenario.npcName}</Text>
+          <Text style={styles.npcText}>{scenario.npcLine}</Text>
         </Animated.View>
+
+        <Animated.Image
+          source={npcSprite}
+          style={[styles.npcSprite, { transform: [{ translateY: npcFloat }] }]}
+        />
 
         <Animated.View
           style={[
             styles.duckWrap,
             {
-              transform: [{ translateY: floatAnim }, { translateX: shakeAnim }],
+              transform: [{ translateY: duckFloat }, { translateX: shakeAnim }],
             },
           ]}
         >
-          <View style={styles.duckGlow} />
+          <Animated.View
+            style={[
+              styles.duckGlow,
+              {
+                opacity: glowAnim,
+                transform: [{ scale: glowAnim }],
+              },
+            ]}
+          />
           <Image source={character} style={styles.duckImage} />
         </Animated.View>
 
         <View style={styles.duckBubble}>
-          <Text style={styles.duckName}>Ahiru-san</Text>
-          <Text style={styles.duckText}>{scenario.duckThought}</Text>
+          <Text style={styles.duckName}>Quacky</Text>
+          <Text style={styles.duckText}>{scenario.question}</Text>
         </View>
       </View>
+
+      <TouchableOpacity style={styles.hintButton} onPress={() => setHintVisible(true)}>
+        <Text style={styles.hintButtonText}>💡 Need a hint?</Text>
+      </TouchableOpacity>
 
       <View style={styles.choiceContainer}>
         {scenario.choices.map((choice) => (
@@ -199,6 +249,7 @@ const QuackSituateFormal = () => {
             >
               <Text style={styles.choiceJP}>{choice.jp}</Text>
               <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
+              <Text style={styles.choiceMeaning}>{choice.meaning}</Text>
             </TouchableOpacity>
           </Animated.View>
         ))}
@@ -209,8 +260,26 @@ const QuackSituateFormal = () => {
       </View>
 
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Respond</Text>
+        <Text style={styles.submitButtonText}>Submit</Text>
       </TouchableOpacity>
+
+      <Modal visible={hintVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <TouchableOpacity style={styles.closeButton} onPress={() => setHintVisible(false)}>
+              <Text style={styles.closeButtonText}>X</Text>
+            </TouchableOpacity>
+
+            <Image source={duckThinking} style={styles.modalDuck} />
+            <Text style={styles.modalTitle}>Hint 💡</Text>
+            <Text style={styles.modalText}>{scenario.hint}</Text>
+
+            <TouchableOpacity style={styles.modalButton} onPress={() => setHintVisible(false)}>
+              <Text style={styles.modalButtonText}>Got it</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={resultVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
@@ -219,25 +288,25 @@ const QuackSituateFormal = () => {
               <Text style={styles.closeButtonText}>X</Text>
             </TouchableOpacity>
 
-            <Text style={styles.modalTitle}>
-              {isCorrect ? 'Respect Up!' : 'Too Casual!'}
-            </Text>
+            <Image source={isCorrect ? duckHappy : duckThinking} style={styles.modalDuck} />
 
-            <Text style={styles.modalRank}>
-              {isCorrect ? '+50 Respect' : '-30 Respect'}
+            <Text style={styles.modalTitle}>
+              {isCorrect ? 'Good Response!' : 'Try Again!'}
             </Text>
 
             <Text style={styles.modalText}>
               {isCorrect
-                ? 'That response was appropriate for speaking to a professor.'
-                : 'This response sounds casual. Choose a more respectful expression.'}
+                ? 'Correct! This response is suitable for talking to your professor.'
+                : 'This answer does not fit the relationship in the situation. Think about who you are talking to.'}
             </Text>
 
             <TouchableOpacity
               style={styles.modalButton}
-              onPress={isCorrect ? () => router.push('/QuackSituate') : resetGame}
+              onPress={isCorrect ? goBack : resetGame}
             >
-              <Text style={styles.modalButtonText}>{isCorrect ? 'Back' : 'Try Again'}</Text>
+              <Text style={styles.modalButtonText}>
+                {isCorrect ? 'Back' : 'Try Again'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

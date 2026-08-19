@@ -4,11 +4,12 @@ const { width, height } = Dimensions.get('window');
 const cellSize = Math.min(width, height - 100) / 5 - 25;
 
 export const stylesQuackman = StyleSheet.create({
+    gameScreen:{flex:1,paddingTop:48},screenShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(250,247,255,.18)'},gameHeader:{height:51,flexDirection:'row',alignItems:'center',paddingHorizontal:16,zIndex:8},headerButton:{width:46,height:46,borderRadius:16,backgroundColor:'#FFF',alignItems:'center',justifyContent:'center',elevation:6},modePill:{marginLeft:9,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'rgba(255,255,255,.94)',borderRadius:99,paddingHorizontal:11,paddingVertical:9},modeText:{fontSize:8,fontWeight:'900',letterSpacing:.9,color:'#563270'},roundPill:{marginLeft:'auto',backgroundColor:'#7140C6',borderRadius:14,paddingHorizontal:13,paddingVertical:10},roundText:{fontFamily:'Jua',fontSize:12,color:'#FFF'},
     progressContainer: {
         alignItems: 'flex-end',
     },
     progress: {
-        backgroundColor: '#FDFCFE',
+        backgroundColor: 'rgba(255,255,255,.94)',
         width: 100,
         height: 50,
         borderRadius: 50,
@@ -22,7 +23,7 @@ export const stylesQuackman = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        marginBottom: -30,
+        marginBottom: -44,
     },
     centeredContainer: {
         alignItems: 'center',
@@ -30,13 +31,14 @@ export const stylesQuackman = StyleSheet.create({
         flexDirection: 'column', // This ensures text is above the image
     },
     Quacklogo: {
-        width: 150,
-        height: 150,
+        width: 132,
+        height: 132,
         marginBottom: 50,
     },
     textStyle: {
         fontFamily: 'Jua',
-        fontSize: 30,
+        fontSize: 21,
+        color:'#43264F',backgroundColor:'rgba(255,255,255,.90)',paddingHorizontal:15,paddingVertical:6,borderRadius:99,
         marginTop: 10, // Add some margin for spacing between the image and the text
     },
     attemptsContainer: {
@@ -47,10 +49,10 @@ export const stylesQuackman = StyleSheet.create({
         marginBottom: 10, // Increased margin to add space below the circles
     },
     attempt: {
-        height: 40,
-        width: 40,
-        borderRadius: 20,
-        backgroundColor: '#C7C5C5',
+        height: 19,
+        width: 42,
+        borderRadius: 10,
+        backgroundColor: '#F3EAF8',borderWidth:2,borderColor:'#D7C4E3',
         margin: 5,
     },
     attemptWrong: {
@@ -63,7 +65,7 @@ export const stylesQuackman = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingBottom: 20,
+        paddingBottom: 10,
         marginTop: 10, // Added margin above the grid for spacing
     },
     charGrid: {
@@ -78,9 +80,9 @@ export const stylesQuackman = StyleSheet.create({
         height: cellSize,
         justifyContent: 'center',
         alignItems: 'center',
-        margin: 8, // Increased margin between individual cells
-        backgroundColor: '#8423D9',
-        borderRadius: 10,
+        margin: 6,
+        backgroundColor: 'rgba(255,255,255,.95)',
+        borderRadius: 14,borderWidth:2,borderColor:'#7140C6',elevation:4,
     },
     charCellSelected: {
         backgroundColor: '#6C3A99', // Change color when selected
@@ -88,20 +90,21 @@ export const stylesQuackman = StyleSheet.create({
     charText: {
         fontSize: 18, // Slightly reduce text size for better readability
         fontWeight: 'bold',
-        color: 'white',
+        color: '#4A275B',fontFamily:'Jua',
         marginBottom: 5, // Space between text and the character
     },
     hintInputContainer: {
         padding: 10,
-        backgroundColor: '#A883C8', // Set background color for the entire container
+        backgroundColor: 'rgba(255,255,255,.96)',
         alignItems: 'center',
+        borderTopLeftRadius:28,borderTopRightRadius:28,borderWidth:1,borderColor:'#E3D5EA',
     },
     hintContainer: {
         marginBottom: 10, // Add margin to separate hint text from input cells
     },
     hintText: {
-        fontSize: 16,
-        color: '#333',
+        fontSize: 14,
+        color: '#4A4150',fontFamily:undefined,fontWeight:'400',textAlign:'left',lineHeight:20,
     },
     inputContainer: {
         flexDirection: 'row',
@@ -135,7 +138,7 @@ export const stylesQuackman = StyleSheet.create({
         width: 300,
         padding: 20,
         backgroundColor: 'white',
-        borderRadius: 10,
+        borderRadius: 26,
         alignItems: 'center',
     },
     modalText: {
@@ -225,8 +228,8 @@ export const stylesQuackman = StyleSheet.create({
         textAlign: 'center',
     },
     modButton: {
-        height: 40,
-        backgroundColor: '#8ED94D'
+        height: 44,
+        backgroundColor: '#7140C6',borderRadius:14
     },
     loadingContainer: {
         flex: 1,
@@ -260,7 +263,7 @@ export const stylesQuackman = StyleSheet.create({
     introModalContainer: {
         width: '85%',
         backgroundColor: 'white',
-        borderRadius: 15,
+        borderRadius: 28,
         padding: 20,
         alignItems: 'center',
         justifyContent: 'center',
@@ -282,7 +285,7 @@ export const stylesQuackman = StyleSheet.create({
     },
     introTitle: {
         fontSize: 22,
-        fontWeight: 'bold',
+        fontFamily:'Jua',
         marginBottom: 15,
         color: '#333',
         textAlign: 'center',
@@ -348,7 +351,12 @@ export const stylesQuackman = StyleSheet.create({
         backgroundColor: '#8423D9', // Progress bar color
         borderRadius: 10, // Match the container's radius
     },
+    exitOverlay:{flex:1,backgroundColor:'rgba(37,20,48,.56)',alignItems:'center',justifyContent:'center',padding:24},exitCard:{width:'100%',maxWidth:360,backgroundColor:'#FFF',borderRadius:28,padding:22,alignItems:'center'},exitIcon:{width:62,height:62,borderRadius:21,backgroundColor:'#EEE6FA',alignItems:'center',justifyContent:'center'},exitTitle:{fontFamily:'Jua',fontSize:24,color:'#382044',marginTop:13},exitMessage:{fontSize:11,lineHeight:17,color:'#766A7B',textAlign:'center',marginTop:6,marginBottom:17},continueButton:{width:'100%',height:50,borderRadius:16,backgroundColor:'#7140C6',alignItems:'center',justifyContent:'center'},continueButtonText:{fontFamily:'Jua',fontSize:12,color:'#FFF'},leaveButton:{paddingTop:15,paddingBottom:3},leaveButtonText:{fontFamily:'Jua',fontSize:11,color:'#B04D60'},
     
     
     
+    loadingShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(37,19,52,.24)'},loadingBadge:{flexDirection:'row',gap:7,alignItems:'center',backgroundColor:'rgba(255,255,255,.94)',borderRadius:99,paddingHorizontal:13,paddingVertical:9},loadingBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#58316D'},loadingPortal:{width:180,height:180,borderRadius:90,backgroundColor:'rgba(255,255,255,.28)',borderWidth:2,borderColor:'rgba(255,255,255,.65)',alignItems:'center',justifyContent:'center',marginTop:18},loadingMascot:{width:142,height:142,resizeMode:'contain'},loadingGameTitle:{fontFamily:'Jua',fontSize:34,color:'#FFF',letterSpacing:1,textShadowColor:'rgba(44,20,60,.6)',textShadowRadius:8,marginTop:8},loadingSubtitle:{fontSize:11,color:'#FFF',marginTop:3},introIcon:{width:66,height:66,borderRadius:22,backgroundColor:'#EEE6FA',alignItems:'center',justifyContent:'center',alignSelf:'center'},introKicker:{fontSize:8,fontWeight:'900',letterSpacing:1.2,color:'#65A936',textAlign:'center',marginTop:13},introRules:{flexDirection:'row',gap:8,marginTop:16},introRule:{flex:1,alignItems:'center',backgroundColor:'#F8F4FB',borderRadius:16,padding:10},introRuleText:{fontSize:9,color:'#65566D',marginTop:5},introStart:{height:51,borderRadius:16,backgroundColor:'#7140C6',flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,marginTop:17},introStartText:{fontFamily:'Jua',fontSize:12,color:'#FFF'},submitIcon:{width:56,height:56,borderRadius:19,backgroundColor:'#EEE6FA',alignItems:'center',justifyContent:'center'},modalKicker:{fontSize:8,fontWeight:'900',letterSpacing:1.1,color:'#65A936',marginTop:10},modalWord:{fontFamily:'Jua',fontSize:20,color:'#7140C6',backgroundColor:'#F4ECFA',borderRadius:14,paddingHorizontal:15,paddingVertical:9,marginBottom:16},cancelSubmit:{height:44,minWidth:95,borderRadius:14,backgroundColor:'#F1EAF5'},cancelSubmitText:{color:'#694D75'},confirmSubmitText:{color:'#FFF'},
+    refinedStage:{height:220,marginTop:2,marginBottom:0},refinedMascot:{width:122,height:122,marginBottom:8},refinedAttempts:{height:34,marginBottom:1},refinedGridContainer:{paddingBottom:6,marginTop:0},refinedGrid:{marginTop:0,paddingHorizontal:10},refinedTile:{width:(width-68)/4,height:52,margin:5,borderRadius:14},refinedHintPanel:{marginHorizontal:12,marginBottom:10,borderRadius:24,paddingHorizontal:15,paddingTop:14,paddingBottom:12,borderWidth:1,borderColor:'#DED0E7',shadowColor:'#3D204A',shadowOpacity:.13,shadowRadius:10,elevation:6},clueLabel:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#65A936',marginBottom:6},clueRow:{flexDirection:'row',alignItems:'flex-start',gap:9},clueIcon:{width:35,height:35,borderRadius:12,backgroundColor:'#FFF0C9',alignItems:'center',justifyContent:'center'},clueTextWrap:{flex:1},clueTitle:{fontFamily:'Jua',fontSize:13,color:'#43264F'},clueHint:{fontSize:10,lineHeight:15,color:'#766A7B',marginTop:2},answerLabel:{fontSize:7,fontWeight:'900',letterSpacing:.8,color:'#7140C6',textAlign:'center',marginTop:10},refinedInputs:{paddingVertical:7},centeredAngel:{left:0,right:0,top:'35%',bottom:'auto',transform:[],zIndex:40,pointerEvents:'none'},angelGlow:{position:'absolute',width:230,height:230,borderRadius:115,backgroundColor:'rgba(255,255,255,.50)'},
+readableClueLabel:{fontFamily:undefined,fontWeight:'700'},readableClueTitle:{fontFamily:undefined,fontWeight:'600',fontSize:14,color:'#352C3A'},readableHint:{fontFamily:undefined,fontWeight:'400',fontSize:13,lineHeight:19,color:'#4A4150',textAlign:'left'},
+    loadingBackButton:{position:'absolute',left:20,top:50,width:49,height:49,borderRadius:17,backgroundColor:'rgba(255,255,255,.96)',alignItems:'center',justifyContent:'center',zIndex:20,shadowColor:'#34203D',shadowOpacity:.18,shadowRadius:8,shadowOffset:{width:0,height:4},elevation:8},
 });

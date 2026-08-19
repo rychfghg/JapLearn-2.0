@@ -26,18 +26,21 @@ const routeAccessConfig = {
     'HiraganaSet2', 'HiraganaSet3', 'KatakanaSet1', 'KatakanaSet2', 'KatakanaSet3', 'Quackman', 'StartMenu',
     'Profile', 'Lessons', 'LessonKanaGame', 'LearnMenu', 'Exercises', 'Content3', 'Game3', 'CharacterExercise1',
     'CharacterExercise2', 'CharacterExercise3', 'CharacterExercise4', 'CharacterExercise5', 'CharacterExercise6', 'WordsMenu', 
-    'Words2', 'WordsPractice', 'QuackSituate', 'QuackSituate',
+    'Words2', 'Words3', 'WordsPractice', 'QuackSituate', 'QuackSituate',
 'QuackSituateRecognition',
 'QuackSituateMatching',
 'QuackSituateFormal',
 'QuackSituateFeedback',
 'QuackTalk', 'QuackTalkConversation',
-'QuackResponse', 'QuackResponseGuided', 'QuackResponseTimed', 'QuackResponseMultiStep', 'QuackTalkSpeech', 'QuackTalkFeedback'
+'QuackResponse', 'QuackResponseGuided', 'QuackResponseTimed', 'QuackResponseMultiStep', 'QuackTalkSpeech', 'QuackTalkFeedback', 'QuackProgress', 'QuackProgressProgression',
+'QuackProgressAnalytics', 'PrivacyPolicyPage',
+
 
   ],
   teacher: [
     'TeacherDashboard', 'QuackmanContent', 'ProfileTeacher', 'ClassDashboard', 'QuackmanLevels', 'QuackmanEdit', 'QuackslateHost', 'QuackslateLevels',
     'QuackslateEdit', 'PendingApproval', 'QuackamoleLevels', 'QuackamoleEdit', 'QuackamoleContent', 'LessonPageEdit', 'LessonContentEdit',
+    'TeacherCommunicationPerformance', 'TeacherAssignCommunication', 'TeacherCommunicationReports',
   ],
 };
 
@@ -161,17 +164,24 @@ const { user, setUser, authLoading } = useContext(AuthContext);
         <Stack.Screen name="WordsMenu" />
         <Stack.Screen name="Words1" />
         <Stack.Screen name="Words2" />
+        <Stack.Screen name="Words3" />
         <Stack.Screen name="WordsPractice" />
         <Stack.Screen name="QuackSituate" />
 
-<Stack.Screen name="QuackSituateRecognition" />
-<Stack.Screen name="QuackSituateMatching" />
-<Stack.Screen name="QuackSituateFormal" />
-<Stack.Screen name="QuackSituateFeedback" />
-<Stack.Screen name="QuackTalk" />
-<Stack.Screen name="QuackTalkConversation" /> 
-<Stack.Screen name="QuackTalkSpeech" /> 
-<Stack.Screen name="QuackTalkFeedback" /> 
+        <Stack.Screen name="QuackSituateRecognition" />
+        <Stack.Screen name="QuackSituateMatching" />
+        <Stack.Screen name="QuackSituateFormal" />
+        <Stack.Screen name="QuackSituateFeedback" />
+        <Stack.Screen name="QuackTalk" />
+        <Stack.Screen name="QuackTalkConversation" /> 
+        <Stack.Screen name="QuackTalkSpeech" /> 
+        <Stack.Screen name="QuackTalkFeedback" />
+        <Stack.Screen name="QuackProgress" />  
+        <Stack.Screen name="QuackProgressProgression" />
+        <Stack.Screen name="QuackProgressAnalytics" />
+        <Stack.Screen name="TeacherCommunicationPerformance" />
+        <Stack.Screen name="TeacherAssignCommunication" />
+        <Stack.Screen name="TeacherCommunicationReports" />
       </Stack>
     </GestureHandlerRootView>
   );

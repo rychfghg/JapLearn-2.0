@@ -11,6 +11,7 @@ import {
 
 import { router } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
+import AhiruMissionExit from '../components/AhiruMissionExit';
 import styles from '../styles/stylesQuackResponseTimed';
 
 import bgGym from '../assets/img/background/school a gym s1st2 day.png';
@@ -109,6 +110,7 @@ const QuackResponseTimed = () => {
   const [combo, setCombo] = useState(0);
   const [result, setResult] = useState<any>(null);
   const [finished, setFinished] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   const current = rounds[roundIndex];
 
@@ -187,6 +189,8 @@ const QuackResponseTimed = () => {
     });
   };
 
+  if (isExiting) return <AhiruMissionExit color="#E58B2A" tint="#FFF0DE" icon="timer-outline" eyebrow="SPEED RUN SAVED" title="Fast thinking!" message="Your timed response run is complete. Every quick choice strengthens your Japanese instincts." footer="Speed grows when accurate responses become familiar." mascot={require('../assets/Surprised.png')} onComplete={() => router.replace({ pathname:'/QuackResponse', params:{skipLoading:'1'} })} />;
+
   return (
     <ImageBackground
       source={current.background}
@@ -205,7 +209,7 @@ const QuackResponseTimed = () => {
     setScore(0);
     setCombo(0);
 
-    router.replace('/QuackResponse');
+    setIsExiting(true);
   }}
 >
           <View style={styles.backButtonContainer}>
@@ -337,7 +341,7 @@ const QuackResponseTimed = () => {
   setScore(0);
   setCombo(0);
 
-  router.replace('/QuackResponse');
+  setIsExiting(true);
 }}
             >
               <Text style={styles.finishText}>

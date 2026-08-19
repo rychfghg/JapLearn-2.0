@@ -7,9 +7,10 @@ import {
     Pressable,
     ActivityIndicator,
     KeyboardAvoidingView,
+    Platform,
+    ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
-import CustomButton from '../components/CustomButton';
 import CustomModal from '../components/CustomModal';
 import styles from '../styles/stylesLogin';
 import Logo from '../assets/svg/jpLogo.svg';
@@ -180,22 +181,42 @@ const Login = () => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.imageContainer}>
-                <Logo width={150} height={150} />
-                <Text style={styles.titleText}>JAPLEARN 2.0</Text>
-            </View>
+            <View style={styles.backgroundOrbTop} />
+            <View style={styles.backgroundOrbBottom} />
+            <KeyboardAvoidingView
+                style={styles.keyboardView}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                <View style={styles.imageContainer}>
+                    <View style={styles.mascotWrap}>
+                        <Logo width={150} height={150} />
+                    </View>
+                    <Text style={styles.titleText}>JAPLEARN 2.0</Text>
+                    <Text style={styles.subtitleText}>Learn Japanese, one step at a time.</Text>
+                </View>
 
-            <KeyboardAvoidingView>
+                <View style={styles.formCard}>
+                <Text style={styles.formTitle}>Sign in</Text>
+                <Text style={styles.formSubtitle}>Enter your details to continue learning.</Text>
+                <View style={styles.inputContainer}>
+                    <Ionicons name="mail-outline" size={21} color="#8423D9" style={styles.inputIcon} />
                 <TextInput
                     style={styles.input}
                     value={email}
                     placeholder="Email"
                     autoCapitalize="none"
-                    keyboardType="email-address"
+                    inputMode="email"
                     onChangeText={(text) => setEmail(text.replace(/\s/g, '').toLowerCase())}
                 />
+                </View>
 
                 <View style={styles.passwordContainer}>
+                    <Ionicons name="lock-closed-outline" size={21} color="#8423D9" style={styles.inputIcon} />
                     <TextInput
                         style={[styles.input, styles.passwordInput]}
                         secureTextEntry={!showPassword}
@@ -213,7 +234,7 @@ const Login = () => {
                             <Ionicons
                                 name={showPassword ? 'eye-off' : 'eye'}
                                 size={24}
-                                color="#4F4F4F"
+                            color="#4F4F4F"
                             />
                         </Pressable>
                     )}
@@ -221,66 +242,64 @@ const Login = () => {
 
                 <View style={styles.buttonContainer}>
                     {loading ? (
-                        <ActivityIndicator size="large" color="#0000ff" />
+                        <View style={styles.button}><ActivityIndicator size="small" color="#FFFFFF" /></View>
                     ) : (
-                        <CustomButton
-                            title="Login"
-                            onPress={handleLogin}
-                            buttonStyle={styles.button}
-                            textStyle={styles.buttonText}
-                        />
+                        <Pressable onPress={handleLogin} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
+                            <Text style={styles.buttonText}>Login</Text>
+                            <Ionicons name="arrow-forward" size={21} color="#FFFFFF" />
+                        </Pressable>
                     )}
                 </View>
-            </KeyboardAvoidingView>
+                <View style={styles.linkContainer}>
+                    <Pressable onPress={() => router.push('/Signup')} hitSlop={8}>
+                        <Text style={styles.linkText}>Create an account</Text>
+                    </Pressable>
 
-            <View style={styles.policyTextContainer}>
+                    <Pressable onPress={() => setForgotPasswordVisible(true)} hitSlop={8}>
+                        <Text style={styles.linkText}>Forgot password?</Text>
+                    </Pressable>
+                </View>
+                </View>
+
+                <View style={styles.policyTextContainer}>
                 <Text style={styles.policyText}>
                     By continuing, you agree with{' '}
                     <Text onPress={() => router.push('/PrivacyPolicyPage')} style={styles.linkText2}>
                         Japlearn's Terms of Service and Privacy Policy
                     </Text>
                 </Text>
-            </View>
-
-            <View style={styles.linkContainer}>
-                <Pressable onPress={() => router.push('/Signup')}>
-                    <Text style={styles.linkText}>Create account?</Text>
-                </Pressable>
-
-                <Pressable onPress={() => setForgotPasswordVisible(true)}>
-                    <Text style={styles.linkText}>Forgot Password?</Text>
-                </Pressable>
-            </View>
+                </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
 
             <Modal visible={forgotPasswordVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
+                        <Pressable onPress={() => setForgotPasswordVisible(false)} style={styles.modalClose} hitSlop={10}>
+                            <Ionicons name="close" size={22} color="#66596F" />
+                        </Pressable>
+                        <View style={styles.modalIconWrap}>
+                            <Ionicons name="key-outline" size={28} color="#8423D9" />
+                        </View>
                         <Text style={styles.modalTitle}>Reset Password</Text>
-
-                        <TextInput
-                            style={styles.inputReset}
-                            placeholder="Enter your email"
-                            value={forgotPasswordEmail}
-                            autoCapitalize="none"
-                            keyboardType="email-address"
-                            onChangeText={(text) =>
-                                setForgotPasswordEmail(text.replace(/\s/g, '').toLowerCase())
-                            }
-                        />
-
-                        <CustomButton
-                            title="Reset"
-                            onPress={handleForgotPassword}
-                            buttonStyle={styles.buttonReset}
-                            textStyle={styles.buttonTextReset}
-                        />
-
-                        <CustomButton
-                            title="Close"
-                            onPress={() => setForgotPasswordVisible(false)}
-                            buttonStyle={styles.buttonReset}
-                            textStyle={styles.buttonTextReset}
-                        />
+                        <Text style={styles.modalDescription}>Enter your account email and we’ll send you a password reset link.</Text>
+                        <View style={styles.resetInputContainer}>
+                            <Ionicons name="mail-outline" size={21} color="#8423D9" />
+                            <TextInput
+                                style={styles.inputReset}
+                                placeholder="Email address"
+                                value={forgotPasswordEmail}
+                                autoCapitalize="none"
+                                inputMode="email"
+                                onChangeText={(text) =>
+                                    setForgotPasswordEmail(text.replace(/\s/g, '').toLowerCase())
+                                }
+                            />
+                        </View>
+                        <Pressable onPress={handleForgotPassword} style={({ pressed }) => [styles.buttonReset, pressed && styles.buttonPressed]}>
+                            <Ionicons name="paper-plane-outline" size={20} color="#FFFFFF" />
+                            <Text style={styles.buttonTextReset}>Send reset link</Text>
+                        </Pressable>
                     </View>
                 </View>
             </Modal>

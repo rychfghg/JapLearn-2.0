@@ -1,167 +1,109 @@
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#fff',
-    },
-    pictureCircle: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-    },
-    header: {
-        backgroundColor: '#8423D9',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 20,
-        paddingTop: 60,
-        marginBottom: 20,
-        borderBottomWidth: 10,
-        borderBottomColor: '#6C3A99',
-        height: 150,
-    },
-    hText: {
-        fontFamily: 'Jua',
-        color: 'white',
-        fontSize: 20,
-    },
-    leftContainer: {
-        flex: 1,
-    },
-    rightContainer: {
-        flex: 1,
-        alignItems: 'flex-end',
-    },
-    menuContainer: {
-        flex: 1,
-        paddingHorizontal: 20,
-    },
-    sectionTitle: {
-        fontFamily: 'Jua',
-        fontSize: 18,
-        marginBottom: 10,
-    },
-    flatListContainer: {
-        flexGrow: 1, // Ensure it grows to take available space
-        justifyContent: 'center', // Center vertically
-        alignItems: 'center', // Center horizontally
-    },
-    columnWrapper: {
-        justifyContent: 'space-between',
-        paddingHorizontal: 10,
-    },
-    levelContainer: {
-        marginVertical: 10, // Add some vertical spacing between buttons
-        alignItems: 'center', // Ensure the buttons are aligned centrally
-    },
-    menuText: {
-        fontFamily: 'Jua',
-        fontSize: 20,
-        textAlign: 'center',
-    },
-    buttonText: {
-        fontSize: 20,
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalView: {
-        width: 300,
-        backgroundColor: 'white',
-        borderRadius: 20,
-        padding: 20,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    modalText: {
-        fontSize: 16,
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    modalButton: {
-        backgroundColor: '#8ED94D',
-        borderRadius: 5,
-        padding: 5
-
-    },
-    modalButtonText: {
-        fontSize: 20,
-        color: "#fff",
-    },
-    imageIcon: {
-        width: 148,
-        height: 100,
-        resizeMode: 'contain',
-    },
-    backgroundImage: {
-        flex: 1,
-        resizeMode: 'cover', // Ensure the image covers the entire background
-    },
-    container: {
-        flex: 1,
-        backgroundColor: 'transparent', // Make sure the background is transparent to show the image
-    },
-    titleContainer: {
-        alignItems: 'center',
-        marginBottom: 20, // Increased margin for better spacing
-        marginTop: 20, // Add top margin to separate from the header
-    },
-    titleText: {
-        fontFamily: 'Jua', 
-        fontSize: 18,
-        color: 'black', 
-        textAlign: 'center',
-    },
-
-menuButton: {
-    backgroundColor: '#8ED94D',
-    height: 160,
-    borderRadius: 5,
-    padding: 5,
-    marginBottom: 30,
-    
-
-},
-menuButtonText: {
-    fontSize: 40,
-    color: "#fff",
-},
-
-classContainer: {
-    backgroundColor: '#8ED94D',
-    padding: 15,
-    marginBottom: 40,
-    marginTop: 20, // Add margin at the top for spacing
-    borderRadius: 10,
-    borderBottomWidth: 5,
-    borderBottomColor: '#81AF59',
-    borderBottomEndRadius: 5,
-    borderBottomStartRadius: 5,
-},
-classText: {
-    fontSize: 20,
-    textAlign: 'left',
-    fontFamily: 'Jua',
-    color: 'white',
-    lineHeight: 28, // Add line height for better readability
-},
-
+    safeArea: { flex: 1, backgroundColor: '#FCFAFF' },
+    container: { flex: 1, backgroundColor: '#FCFAFF' },
+    scrollContent: { paddingBottom: 112 },
+    pressed: { opacity: 0.82 },
+    header: { minHeight: 410, paddingHorizontal: 24, paddingBottom: 22, backgroundColor: '#FBF8FF', overflow: 'hidden' },
+    headerCompact: { minHeight: 385, paddingHorizontal: 16, paddingBottom: 18 },
+    heroCircle: { position: 'absolute', width: 320, height: 320, borderRadius: 160, right: -50, top: 58, backgroundColor: '#EEE2FA' },
+    cloudOne: { position: 'absolute', width: 74, height: 24, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.70)', right: 252, top: 172 },
+    cloudTwo: { position: 'absolute', width: 55, height: 18, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.62)', right: 155, top: 140 },
+    fujiSilhouette: { position: 'absolute', right: 22, bottom: 26, width: 0, height: 0, borderLeftWidth: 128, borderRightWidth: 128, borderBottomWidth: 170, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: 'rgba(132,35,217,0.10)' },
+    fujiSnow: { position: 'absolute', right: 93, bottom: 131, width: 0, height: 0, borderLeftWidth: 57, borderRightWidth: 57, borderBottomWidth: 68, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: 'rgba(255,255,255,0.72)' },
+    heroTorii: { position: 'absolute', width: 112, height: 116, right: 248, bottom: 17, opacity: 0.72 },
+    heroToriiRoof: { position: 'absolute', width: 108, height: 10, borderRadius: 6, backgroundColor: 'rgba(101,45,151,0.18)', top: 13, left: 2, transform: [{ rotate: '-2deg' }] },
+    heroToriiBeam: { position: 'absolute', width: 88, height: 8, borderRadius: 3, backgroundColor: 'rgba(101,45,151,0.18)', top: 29, left: 12 },
+    heroToriiPostLeft: { position: 'absolute', width: 9, height: 82, borderRadius: 4, backgroundColor: 'rgba(101,45,151,0.18)', top: 26, left: 25, transform: [{ rotate: '3deg' }] },
+    heroToriiPostRight: { position: 'absolute', width: 9, height: 82, borderRadius: 4, backgroundColor: 'rgba(101,45,151,0.18)', top: 26, right: 25, transform: [{ rotate: '-3deg' }] },
+    heroTopBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 5 },
+    headerIntro: { flex: 1, paddingRight: 14 },
+    konnichiwa: { color: '#8ED94D', fontSize: 10, fontWeight: '900', letterSpacing: 1.6, marginBottom: 4 },
+    profileButton: { width: 50, height: 50, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#4A315D', shadowOpacity: 0.14, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 6 },
+    heroBody: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingTop: 8 },
+    headerCopy: { width: '53%', zIndex: 3 },
+    greeting: { color: '#23153B', fontFamily: 'Jua', fontSize: 28, lineHeight: 34 },
+    greetingCompact: { fontSize: 23, lineHeight: 28 },
+    headerSubtitle: { color: '#5F556C', fontSize: 14, lineHeight: 21, maxWidth: 190 },
+    mascotStage: { width: '47%', height: 275, alignItems: 'center', justifyContent: 'flex-end', alignSelf: 'flex-end', zIndex: 2 },
+    mascotImage: { width: 225, height: 270 },
+    mascotSun: { position: 'absolute', width: 245, height: 245, borderRadius: 123, backgroundColor: 'rgba(224,203,246,0.72)', bottom: 4, right: -12 },
+    mascotGround: { position: 'absolute', width: 218, height: 34, borderRadius: 18, backgroundColor: 'rgba(132,35,217,0.09)', bottom: 1, right: 1 },
+    miniFuji: { position: 'absolute', right: -5, bottom: 23, width: 0, height: 0, borderLeftWidth: 82, borderRightWidth: 82, borderBottomWidth: 112, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: 'rgba(132,35,217,0.09)' },
+    miniFujiSnow: { position: 'absolute', right: 44, bottom: 91, width: 0, height: 0, borderLeftWidth: 33, borderRightWidth: 33, borderBottomWidth: 42, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderBottomColor: 'rgba(255,255,255,0.62)' },
+    heroBodyCompact: { paddingTop: 3 },
+    headerCopyCompact: { width: '56%' },
+    mascotStageCompact: { width: '44%', height: 245, marginRight: -10 },
+    mascotImageCompact: { width: 178, height: 225 },
+    goalCard: { minHeight: 105, marginTop: 22, backgroundColor: '#FFFFFF', borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', shadowColor: '#4D385F', shadowOpacity: 0.11, shadowRadius: 16, shadowOffset: { width: 0, height: 7 }, elevation: 5 },
+    goalCardCompact: { minHeight: 88, marginTop: 14, borderRadius: 18, padding: 10 },
+    goalIcon: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#FFF0DA', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    goalCopy: { flex: 1 },
+    goalLabel: { color: '#655A70', fontSize: 11, fontWeight: '600' },
+    goalValue: { color: '#24153D', fontFamily: 'Jua', fontSize: 19, marginTop: 2 },
+    goalUnit: { color: '#756A80', fontSize: 12, fontFamily: undefined },
+    goalTrack: { height: 7, borderRadius: 4, backgroundColor: '#EDE8F0', marginTop: 8, overflow: 'hidden' },
+    goalFill: { width: '72%', height: '100%', borderRadius: 4, backgroundColor: '#8F35E4' },
+    content: { paddingHorizontal: 20, marginTop: -4 },
+    classContainer: { backgroundColor: '#EFF8E8', borderRadius: 22, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#B9DB9D', shadowColor: '#55793B', shadowOpacity: 0.10, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 4 },
+    classContainerCompact: { padding: 12, borderRadius: 18 },
+    classCharacter: { position: 'absolute', right: 48, bottom: -18, color: 'rgba(91,152,47,0.06)', fontFamily: 'Jua', fontSize: 96 },
+    classIconWrap: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#76BE43', alignItems: 'center', justifyContent: 'center', marginRight: 13 },
+    classCopy: { flex: 1 },
+    classLabel: { color: '#4C9A2C', fontSize: 10, fontWeight: '800', letterSpacing: 1.2 },
+    classText: { color: '#25421E', fontSize: 15, fontFamily: 'Jua', marginTop: 2 },
+    classTextCompact: { fontSize: 13 },
+    classCode: { color: '#687563', fontSize: 11, marginTop: 2 },
+    sectionHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 28, marginBottom: 15 },
+    sectionTitle: { fontFamily: 'Jua', fontSize: 22, color: '#462A5E' },
+    sectionSubtitle: { color: '#817586', fontSize: 12, marginTop: 2 },
+    streakPill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FFF5DD', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 7 },
+    streakText: { color: '#9A6515', fontSize: 11, fontWeight: '700' },
+    primaryCard: { minHeight: 190, borderRadius: 26, padding: 20, overflow: 'hidden', backgroundColor: '#8423D9', flexDirection: 'row', alignItems: 'center', borderBottomWidth: 5, borderBottomColor: '#6417A6', shadowColor: '#52206F', shadowOpacity: 0.18, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 7 },
+    primaryGlow: { position: 'absolute', width: 210, height: 210, borderRadius: 105, right: -72, top: -91, backgroundColor: 'rgba(255,255,255,0.055)' },
+    cardPressed: { opacity: 0.88, transform: [{ scale: 0.99 }] },
+    cardIconPrimary: { width: 58, height: 58, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center', marginRight: 16, alignSelf: 'flex-start', marginTop: 5 },
+    cardCopy: { flex: 1, zIndex: 2 },
+    lessonPill: { alignSelf: 'flex-start', backgroundColor: 'rgba(255,255,255,0.13)', borderRadius: 99, paddingHorizontal: 8, paddingVertical: 4, marginBottom: 7 },
+    lessonPillText: { color: '#EEDFF8', fontSize: 8, fontWeight: '900', letterSpacing: 1 },
+    cardTitleLight: { color: '#FFFFFF', fontFamily: 'Jua', fontSize: 22 },
+    cardDescriptionLight: { color: '#EEDFF8', fontSize: 12, lineHeight: 18, marginTop: 4, maxWidth: 250 },
+    cardActionLight: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 15, paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.42)' },
+    cardActionTextLight: { color: '#FFFFFF', fontSize: 12, fontWeight: '900' },
+    decorativeKana: { position: 'absolute', right: 0, bottom: -25, color: 'rgba(255,255,255,0.075)', fontFamily: 'Jua', fontSize: 130, transform: [{ rotate: '-7deg' }] },
+    cardRow: { flexDirection: 'row', gap: 12, marginTop: 14 },
+    cardRowCompact: { gap: 8 },
+    flipWrapper: { flex: 1, minHeight: 210 },
+    flipFace: { ...StyleSheet.absoluteFillObject, backfaceVisibility: 'hidden' },
+    flipBack: { position: 'absolute' },
+    smallCard: { flex: 1, minHeight: 210, backgroundColor: '#FFFFFF', borderRadius: 23, padding: 17, borderWidth: 1, borderColor: '#ECE5EF', shadowColor: '#462A5E', shadowOpacity: 0.10, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 5, overflow: 'hidden' },
+    smallIcon: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+    playIcon: { backgroundColor: '#F0E4FA' },
+    progressIcon: { backgroundColor: '#EAF7DF' },
+    smallCardTitle: { fontFamily: 'Jua', fontSize: 19, color: '#462A5E', marginTop: 13 },
+    smallCardDescription: { color: '#817586', fontSize: 12, lineHeight: 17, marginTop: 4, marginBottom: 13, flex: 1 },
+    playCharacter: { position: 'absolute', right: -7, bottom: -30, color: 'rgba(132,35,217,0.065)', fontFamily: 'Jua', fontSize: 118 },
+    progressCharacter: { position: 'absolute', right: -4, bottom: -28, color: 'rgba(90,157,43,0.065)', fontFamily: 'Jua', fontSize: 112 },
+    chartSilhouette: { position: 'absolute', right: -12, bottom: -16 },
+    infoButton: { position: 'absolute', right: 11, top: 11, width: 30, height: 30, borderRadius: 11, backgroundColor: '#F7F2FA', alignItems: 'center', justifyContent: 'center', zIndex: 5 },
+    backCard: { flex: 1, minHeight: 210, backgroundColor: '#FFFFFF', borderRadius: 23, padding: 17, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E9E1EE', shadowColor: '#462A5E', shadowOpacity: 0.10, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 5 },
+    backTitle: { color: '#462A5E', fontFamily: 'Jua', fontSize: 16, marginTop: 10, textAlign: 'center' },
+    backDescription: { color: '#817586', fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 6 },
+    backHint: { color: '#9C8FA3', fontSize: 9, fontWeight: '700', marginTop: 13 },
+    tipCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFDF6', borderWidth: 1, borderColor: '#F5E8BE', borderRadius: 18, padding: 15, paddingRight: 40, marginTop: 16 },
+    tipClose: { position: 'absolute', right: 12, top: 10, width: 27, height: 27, borderRadius: 10, backgroundColor: '#FFF3CF', alignItems: 'center', justifyContent: 'center', zIndex: 3 },
+    tipIcon: { width: 42, height: 42, borderRadius: 14, backgroundColor: '#FFF3CF', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+    tipCopy: { flex: 1 },
+    tipLabel: { color: '#8B621C', fontWeight: '800', fontSize: 12 },
+    tipText: { color: '#75694F', fontSize: 12, lineHeight: 17, marginTop: 2 },
+    darkPage: { backgroundColor: '#120D17' },
+    darkHeader: { backgroundColor: '#1B1223' },
+    darkContent: { backgroundColor: '#120D17' },
+    darkCard: { backgroundColor: '#21172A', borderColor: '#3B2B46' },
+    darkTitle: { color: '#F6EFFA' },
+    darkMuted: { color: '#B9ACBF' },
+    darkTip: { backgroundColor: '#282016', borderColor: '#5B4724' },
 });
 
 export default styles;

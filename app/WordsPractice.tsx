@@ -1,204 +1,73 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
-import { View, Pressable, ImageBackground, Modal, Animated, Text, Button, TouchableWithoutFeedback, Image } from 'react-native';
-import expoconfig from '../expoconfig';
-import styles from '../styles/stylesWords';
-import { AuthContext } from '../context/AuthContext';
-import BackIcon from '../assets/svg/back-icon.svg'
+import React, { useMemo, useState } from 'react';
+import { Image, Pressable, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import LessonContentEdit from './LessonContentEdit';
+import styles from '../styles/stylesWordsPractice';
 
-const WordsPractices = () => {
-    const { user } = useContext(AuthContext);
-    const [wordLessons, setWordLessons] = useState([]);
-    const [vocabulary, setvocabulary] = useState([]);
-    const [classCode, setClassCode] = useState('');
-    const [lessonContent, setLessonContent] = useState([]);
-    const [processedWords, setProcessedWords] = useState([]);
-    const [currentWordIndex, setCurrentWordIndex] = useState(0); 
-    const [idSet, setIdSet] = useState([]);
-    const router = useRouter();
-  
-    const fetchUserClassCode = async () => {
-        try {
-          const response = await fetch(`${expoconfig.API_URL}/api/students/getStudentByEmail?email=${user.email}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
-    
-          const responseData = await response.json();
-          setClassCode(responseData.classCode);
-        } catch (error) {
-          console.log("Error fetching user class code: ", error);
-        }
-      };
-    
-      const fetchWordLesson = async () => {
-        try {
-          const response = await fetch(`${expoconfig.API_URL}/api/lesson/getLessonByClass/${classCode}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
-    
-          const responseData = await response.json();
-          setWordLessons(responseData);
-          console.log(responseData);
+const questions = [
+  { image: require('../assets/words_premium/words1-friend.png'), answer: 'ともだち', choices: ['ともだち', 'かぞく', 'がくせい'], meaning: 'friend' },
+  { image: require('../assets/words_premium/words2-teacher.png'), answer: 'せんせい', choices: ['いしゃ', 'せんせい', 'べんごし'], meaning: 'teacher' },
+  { image: require('../assets/words3_image/station.png'), answer: 'えき', choices: ['ぎんこう', 'えき', 'がっこう'], meaning: 'station' },
+  { image: require('../assets/words3_image/book.png'), answer: 'ほん', choices: ['かぎ', 'かばん', 'ほん'], meaning: 'book' },
+  { image: require('../assets/words3_image/train.png'), answer: 'でんしゃ', choices: ['くるま', 'でんしゃ', 'じてんしゃ'], meaning: 'train' },
+  { image: require('../assets/words_premium/words1-family.png'), answer: 'かぞく', choices: ['こども', 'かぞく', 'ともだち'], meaning: 'family' },
+];
 
-          const ids = responseData.map((lesson)=>lesson.id);
-          console.log(ids);
-          setIdSet(ids);
-          
-        } catch (error) {
-          console.log("Error fetching word lessons: ", error);
-        }
-      };
+export default function WordsPractice() {
+  const router = useRouter();
+  const mixed = useMemo(() => [...questions].sort(() => Math.random() - 0.5), []);
+  const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState('');
+  const [score, setScore] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const item = mixed[index];
+  const isCorrect = selected === item.answer;
 
-    useEffect(() => {
-          if (user?.email) {
-            fetchUserClassCode();
-          }
-        }, [user]);
-      
-    useEffect(() => {
-          if (classCode) {
-            fetchWordLesson();
-          }
-        }, [classCode]);
+  const choose = (choice: string) => {
+    if (selected) return;
+    setSelected(choice);
+    if (choice === item.answer) setScore(score + 1);
+  };
 
-    const handleFetchLessonContent = async (id) => {
-        try {
-            const response = await fetch(`${expoconfig.API_URL}/api/lessonPage/getAllLessonPage/${id}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-            });
-    
-            const lessonPageData = await response.json();
-    
-            const allLessonContent = [];
-    
-            for (const lessonPage of lessonPageData) {
-            const content = await fetch(`${expoconfig.API_URL}/api/lessonContent/getAllLessonContentWithFiles/${lessonPage.id}`, {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-            });
-    
-            const lessonContentData = await content.json();
-            allLessonContent.push(...lessonContentData);
-            }
-    
-            setLessonContent(prevContent => [...prevContent, ...allLessonContent]);
-        } catch (error) {
-            console.error('Error in fetching lesson content: ', error);
-        }
-    };
+  const next = () => {
+    if (index === mixed.length - 1) setFinished(true);
+    else { setIndex(index + 1); setSelected(''); }
+  };
 
-    useEffect(() => {
-        const fetchContentSequentially = async () => {
-          for (const lessonId of idSet) {
-            await handleFetchLessonContent(lessonId); // Await each fetch to maintain order
-          }
-        };
-      
-        if (idSet.length > 0) {
-          fetchContentSequentially();
-        }
-      }, [idSet]);
+  const replay = () => {
+    setIndex(0); setScore(0); setSelected(''); setFinished(false);
+  };
 
-    useEffect(() => {
-        if (lessonContent.length > 0) {
-            const allParsedWords = lessonContent
-              .filter(item => item.text_content) // Ensure only items with text_content are processed
-              .flatMap(content => 
-                content.text_content
-                  .match(/\(word: [^)]*\)/g) || [] // Extract individual word groups, handle null match
-              )
-              .map(entry => {
-                const [word, romaji, translation] = entry
-                  .replace(/[()]/g, '') // Remove parentheses
-                  .split(', ') // Split by commas
-                  .map(str => str.split(': ')[1]); // Extract value after `: `
-                return { word, romaji, translation, image: require('../assets/hello.png') }; // Replace with actual image if available
-              });
-    
-            setProcessedWords(allParsedWords);
-        }
-    }, [lessonContent]);
+  if (finished) return <View style={styles.screen}>
+    <View style={styles.ambientTop} /><View style={styles.ambientBottom} />
+    <View style={styles.resultCard}>
+      <View style={styles.resultIcon}><Ionicons name="trophy" size={45} color="#8423D9" /></View>
+      <Text style={styles.eyebrow}>REVIEW COMPLETE</Text><Text style={styles.resultTitle}>Picture-perfect practice!</Text>
+      <View style={styles.scorePanel}><Text style={styles.scoreLabel}>YOUR SCORE</Text><Text style={styles.score}>{score} / {mixed.length}</Text></View>
+      <Text style={styles.resultCopy}>You reviewed words from People, Professions, and Everyday Places & Objects.</Text>
+      <Pressable style={styles.primaryButton} onPress={() => router.replace('/WordsMenu')}><Text style={styles.primaryText}>Back to collections</Text><Ionicons name="arrow-forward" size={19} color="#FFF" /></Pressable>
+      <Pressable style={styles.replayButton} onPress={replay}><Text style={styles.replayText}>Practice again</Text></Pressable>
+    </View>
+  </View>;
 
-      const handleBackPress = () => {
-        router.back(); // Navigate to the previous screen
-      };
-    
-      const handleNextPress = () => {
-        if (currentWordIndex < processedWords.length - 1) {
-          setCurrentWordIndex(currentWordIndex + 1); // Move to the next word
-        } else {
-          console.log('End of word list!');
-        }
-      };
-    
-      const handlePreviousPress = () => {
-        if (currentWordIndex > 0) {
-          setCurrentWordIndex(currentWordIndex - 1); // Move to the previous word
-        }
-      };
-
-      const handleFinishLesson = async () => {        
-        router.push('/WordsMenu');
-      };
-
-    const currentWord = processedWords[currentWordIndex];
-
-    return (
-        <ImageBackground
-          source={require('../assets/img/MenuBackground.png')}
-          style={styles.background}
-        >
-          <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Pressable onPress={handleBackPress}>
-                <View style={styles.backButtonContainer}>
-                  <BackIcon width={30} height={30} fill={'white'} />
-                </View>
-              </Pressable>
-            </View>
-    
-            {/* Word Content */}
-            {currentWord ? (
-              <View style={styles.contentContainer}>
-                <Image source={currentWord.image} style={styles.image} />
-                <Text style={styles.japanese}>{currentWord.word}</Text>
-                <Text style={styles.romaji}>{currentWord.romaji}</Text>
-                <Text style={styles.english}>{currentWord.translation}</Text>
-    
-                {/* Navigation Buttons */}
-                <View style={styles.navigationContainer}>
-                  <Pressable
-                    style={[
-                      styles.nextButton,
-                      currentWordIndex === 0 && styles.disabledButton, // Disable styling for first word
-                    ]}
-                    onPress={handlePreviousPress}
-                    disabled={currentWordIndex === 0} // Disable button if at the first word
-                  >
-                    <Text style={styles.nextButtonText}>Previous</Text>
-                  </Pressable>
-    
-                  <Pressable
-                    style={styles.nextButton}
-                    onPress={currentWordIndex < processedWords.length - 1 ? handleNextPress : handleFinishLesson}
-                  >
-                    <Text style={styles.nextButtonText}>
-                      {currentWordIndex < processedWords.length - 1 ? 'Next' : 'Finish'}
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            ) : (
-              <Text style={styles.noWordsText}>No words available!</Text>
-            )}
-          </View>
-        </ImageBackground>
-      );
-    };
-
-export default WordsPractices;
+  return <View style={styles.screen}>
+    <View style={styles.ambientTop} /><View style={styles.ambientBottom} />
+    <View style={styles.topRow}>
+      <Pressable style={styles.backButton} onPress={() => router.back()}><Ionicons name="arrow-back" size={23} color="#552E68" /></Pressable>
+      <View style={styles.headerCopy}><Text style={styles.topEyebrow}>WORDS CHECKPOINT</Text><Text style={styles.topLabel}>Picture Mix Review</Text></View>
+      <View style={styles.countPill}><Text style={styles.topCount}>{index + 1} / {mixed.length}</Text></View>
+    </View>
+    <View style={styles.progress}><View style={[styles.progressFill, { width: `${((index + 1) / mixed.length) * 100}%` }]} /></View>
+    <View style={styles.quizCard}>
+      <View style={styles.questionHead}><View style={styles.questionTag}><Ionicons name="images-outline" size={14} color="#8423D9" /><Text style={styles.questionTagText}>VISUAL RECALL</Text></View><Text style={styles.prompt}>Which Japanese word matches this picture?</Text></View>
+      <View style={styles.imageStage}><Image source={item.image} style={styles.image} /></View>
+      <View style={styles.hintRow}><Text style={styles.hintLabel}>English clue</Text><Ionicons name="arrow-forward" size={13} color="#8B7E90" /><Text style={styles.hint}>{item.meaning}</Text></View>
+      <View style={styles.choices}>{item.choices.map(choice => {
+        const correct = Boolean(selected) && choice === item.answer;
+        const wrong = selected === choice && choice !== item.answer;
+        return <Pressable key={choice} style={[styles.choice, correct && styles.correct, wrong && styles.wrong]} onPress={() => choose(choice)}><Text style={[styles.choiceText, (correct || wrong) && styles.selectedText]}>{choice}</Text>{correct && <Ionicons name="checkmark-circle" size={21} color="#FFF" />}{wrong && <Ionicons name="close-circle" size={21} color="#FFF" />}</Pressable>;
+      })}</View>
+      {selected ? <><View style={[styles.feedback, isCorrect ? styles.feedbackCorrect : styles.feedbackWrong]}><Ionicons name={isCorrect ? 'sparkles' : 'information-circle'} size={18} color={isCorrect ? '#4C9929' : '#C34F66'} /><Text style={[styles.feedbackText, isCorrect ? styles.feedbackTextCorrect : styles.feedbackTextWrong]}>{isCorrect ? 'Great recall! That is the correct word.' : `The correct answer is ${item.answer}.`}</Text></View><Pressable style={styles.primaryButton} onPress={next}><Text style={styles.primaryText}>{index === mixed.length - 1 ? 'See results' : 'Next picture'}</Text><Ionicons name="arrow-forward" size={19} color="#FFF" /></Pressable></> : <Text style={styles.helper}>Choose one Japanese word to continue.</Text>}
+    </View>
+  </View>;
+}

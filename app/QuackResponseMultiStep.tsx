@@ -11,6 +11,7 @@ import {
 
 import { router } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
+import AhiruMissionExit from '../components/AhiruMissionExit';
 import styles from '../styles/stylesQuackResponseMultiStep';
 
 import classroomBg from '../assets/img/background/classroom a st2 day.png';
@@ -193,6 +194,7 @@ const QuackResponseMultiStep = () => {
   const [history, setHistory] = useState<any[]>([]);
   const [reply, setReply] = useState<any>(null);
   const [finished, setFinished] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   const panelAnim = useRef(new Animated.Value(0)).current;
   const zoomAnim = useRef(new Animated.Value(1)).current;
@@ -265,7 +267,7 @@ const QuackResponseMultiStep = () => {
 
   const backToMenu = () => {
     setFinished(false);
-    router.push('/QuackResponse');
+    setIsExiting(true);
   };
 
   const restart = () => {
@@ -287,12 +289,14 @@ const QuackResponseMultiStep = () => {
     reply && !reply.correct ? sumiFrown :
     current.sumi || sumiSmile;
 
+  if (isExiting) return <AhiruMissionExit color="#D84F83" tint="#FCE7EF" icon="git-branch-outline" eyebrow="CONVERSATION SAVED" title="You kept it flowing!" message="You connected several responses and carried a Japanese conversation through each step." footer="Each connected reply builds real conversation confidence." mascot={require('../assets/thinking.png')} onComplete={() => router.push({ pathname:'/QuackResponse', params:{skipLoading:'1'} })} />;
+
   return (
     <ImageBackground source={classroomBg} style={styles.background} resizeMode="cover">
       <View style={styles.overlay} />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/QuackResponse')}>
+        <TouchableOpacity onPress={backToMenu}>
           <View style={styles.backButtonContainer}>
             <BackIcon width={22} height={22} fill="white" />
           </View>

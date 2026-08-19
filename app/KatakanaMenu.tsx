@@ -1,339 +1,116 @@
-import React, { useEffect, useState, useRef, useContext, } from 'react';
-import { View, Pressable, ImageBackground, Modal, Animated, Text, TouchableWithoutFeedback, StyleSheet } from 'react-native';
-import { useRouter, useLocalSearchParams, usePathname } from 'expo-router';
-import styles from '../styles/stylesLearnMenu';
-import BackIcon from '../assets/svg/back-icon.svg';
-import ImageButton from '../components/ImageButton';
-import { AuthContext } from '../context/AuthContext'; // Assuming AuthContext holds user data
-import expoconfig from '../expoconfig'; // Configuration for your backend API
-import { Easing } from 'react-native-reanimated'; // Ensure you import Easing for animations
-import CustomButton from '../components/CustomButton';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useContext, useState } from 'react';
+import { Image, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AuthContext } from '../context/AuthContext';
+import expoconfig from '../expoconfig';
+import styles from '../styles/stylesKanaJourney';
 
-
-const KatakanaMenu = () => {
-  const { user } = useContext(AuthContext); // Get the user object (which includes email)
-  const [completedLessons, setCompletedLessons] = useState({});
-  const [badge1, setBadge1] = useState(false); // To track if the badge has been earned
-  const router = useRouter();
-  const { fromExercise } = useLocalSearchParams(); // Get the query parameter
-  const currentPath = usePathname();
-  const [isModalVisible, setIsModalVisible] = useState(false); // State for modal visibility
-
-  const [isBadgeVisible, setBadgeVisible] = useState(false);
-  const badgeCheckCompleted = useRef(false);
-
-  const closeModal = () => {
-    setIsModalVisible(false);
-  };
-
-  // Badge animation values
-  const badgeScale = useRef(new Animated.Value(0)).current;
-  const badgeSpin = useRef(new Animated.Value(0)).current;
-  const messageOpacity = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const checkBadgeShown = async () => {
-      // Only execute badge logic if on the KatakanaMenu screen
-      if (currentPath !== '/KatakanaMenu') {
-        console.log('Not on KatakanaMenu. Skipping badge logic.');
-        return;
-      }
-
-      badgeCheckCompleted.current = true;
-
-      // Only execute logic if redirected from CharacterExercise6
-      if (fromExercise !== 'true') {
-        console.log('Not redirected from CharacterExercise6. Skipping badge logic.');
-        return;
-      }
-
-      // Check if all Hiragana and Katakana lessons are completed
-      const allLessonsCompleted = (
-        completedLessons.hiragana1 && completedLessons.hiragana2 && completedLessons.hiragana3 &&
-        completedLessons.katakana1 && completedLessons.katakana2 && completedLessons.katakana3
-      );
-
-      // If all lessons are completed and badge1 is false, show the badge
-      if (allLessonsCompleted && !badge1) {
-        console.log('All lessons completed, showing badge now...');
-        setBadgeVisible(true);
-        animateBadge();
-        await updateBadge1(); // Call the function to update badge1 to true in the backend
-      } else {
-        console.log('Conditions for badge not met or badge already earned.');
-      }
-    };
-
-    checkBadgeShown();
-  }, [completedLessons, fromExercise, currentPath, badge1]); // Add badge1 to the dependency array
-
-  const animateBadge = () => {
-    Animated.parallel([
-      Animated.timing(badgeScale, {
-        toValue: 1,
-        duration: 3500, // Slow enlargement
-        easing: Easing.out(Easing.exp),
-        useNativeDriver: true,
-      }),
-      Animated.timing(badgeSpin, {
-        toValue: 1, // Coin spin effect
-        duration: 5000,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(messageOpacity, {
-        toValue: 1,
-        duration: 1000, // Smooth fade-in
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  const handleBadgeDismiss = () => {
-    Animated.parallel([
-      Animated.timing(badgeScale, {
-        toValue: 0, // Shrink to zero
-        duration: 400,
-        easing: Easing.out(Easing.exp),
-        useNativeDriver: true,
-      }),
-      Animated.timing(badgeSpin, {
-        toValue: 0, // Reverse spin
-        duration: 400,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(messageOpacity, {
-        toValue: 0, // Fade-out
-        duration: 400,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-    ]).start(() => setBadgeVisible(false));
-  };
-
-  const fetchProgress = async () => {
-    if (user && user.email) {
-      try {
-        const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}`);
-        const data = await response.json();
-
-        if (response.ok) {
-          setCompletedLessons({
-            hiragana1: data.hiragana1,
-            hiragana2: data.hiragana2,
-            hiragana3: data.hiragana3,
-            katakana1: data.katakana1,
-            katakana2: data.katakana2,
-            katakana3: data.katakana3,
-          });
-
-          if (!data.katakana1) {
-            setIsModalVisible(true);
-          }
-
-          setBadge1(data.badge1); // Update the badge1 state from the backend data
-        } else {
-          console.error('Failed to fetch student progress');
-        }
-      } catch (error) {
-        console.error('Error fetching progress:', error);
-      }
-    }
-  };
-
-  const updateBadge1 = async () => {
-    if (user && user.email) {
-      try {
-        const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=badge1&value=true`, {
-          method: 'PUT',
-        });
-
-        if (response.ok) {
-          console.log('Badge1 updated successfully!');
-          setBadge1(true); // Update the local state to reflect the change
-        } else {
-          console.error('Failed to update badge1');
-        }
-      } catch (error) {
-        console.error('Error updating badge1:', error);
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchProgress();
-  }, [user]);
-
-  const handleBackPress = () => {
-    router.push('/KanaMenu');
-  };
-
-  const handleButtonPress = (buttonTitle) => {
-    switch (buttonTitle) {
-      case 'Katakana Basics 1':
-        router.push('/KatakanaSet1');
-        break;
-      case 'Katakana Basics 2':
-        if (completedLessons.katakana1) {
-          router.push('/KatakanaSet2');
-        }
-        break;
-      case 'Katakana Basics 3':
-        if (completedLessons.katakana2) {
-          router.push('/KatakanaSet3');
-        }
-        break;
-      default:
-        console.log(`Unhandled button: ${buttonTitle}`);
-    }
-  };
-
-  return (
-    <ImageBackground
-      source={require('../assets/img/MenuBackground.png')}
-      style={styles.background}
-    >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Pressable onPress={handleBackPress}>
-            <View style={styles.backButtonContainer}>
-              <BackIcon width={20} height={20} fill={'white'} />
-            </View>
-          </Pressable>
-        </View>
-        <View style={styles.menuContainer}>
-          <ImageButton
-            title="Katakana Basics 1"
-            subtitle="Learn the first set of Katakana characters"
-            onPress={() => handleButtonPress('Katakana Basics 1')}
-            imageSource={require('../assets/img/kana_button.png')}
-            infoContent="This lesson introduces the first set of Katakana characters."
-          />
-          <ImageButton
-            title="Katakana Basics 2"
-            subtitle="Continue learning Katakana characters"
-            onPress={() => handleButtonPress('Katakana Basics 2')}
-            imageSource={require('../assets/img/kana_button.png')}
-            infoContent="This lesson covers the next set of Katakana characters."
-            buttonStyle={!completedLessons.katakana1 ? [styles.disabledButton] : null}
-            textStyle={!completedLessons.katakana1 ? [styles.disabledText] : null}
-            disabled={!completedLessons.katakana1}
-          />
-          <ImageButton
-            title="Katakana Basics 3"
-            subtitle="Master the remaining Katakana characters"
-            onPress={() => handleButtonPress('Katakana Basics 3')}
-            imageSource={require('../assets/img/kana_button.png')}
-            infoContent="This lesson completes your Katakana learning journey."
-            buttonStyle={!completedLessons.katakana2 ? [styles.disabledButton] : null}
-            textStyle={!completedLessons.katakana2 ? [styles.disabledText] : null}
-            disabled={!completedLessons.katakana2}
-          />
-        </View>
-
-        {/* Modal for Introduction */}
-        <Modal
-          visible={isModalVisible}
-          transparent={true}
-          animationType="slide"
-        >
-          <View style={modalStyles.modalBackground}>
-            <View style={modalStyles.modalContainer}>
-              <Text style={modalStyles.modalTitle}>Welcome to Katakana</Text>
-              <Text style={modalStyles.modalText}>
-                Katakana is one of the three main writing systems in Japanese. It is a phonetic script, just like Hiragana. Katakana is primarily used for foreign loanwords, names, and onomatopoeia.
-                {"\n\n"}
-                Why learn Katakana?
-                {"\n"}• It is essential for reading and writing foreign loanwords.
-                {"\n"}• It helps you understand how Japanese incorporates words from other languages.
-                {"\n"}• It is widely used in menus, advertisements, and modern media.
-                {"\n\n"}
-                Katakana has 46 basic characters, such as ア (a), イ (i), ウ (u), エ (e), and オ (o). Mastering Katakana is a key step toward understanding written Japanese in contemporary contexts.
-                {"\n\n"}
-                Let’s begin your journey with Katakana!
-              </Text>
-              <CustomButton
-                title="Got it!"
-                onPress={closeModal}
-                buttonStyle={modalStyles.buttonStyle}
-                textStyle={modalStyles.buttonTextStyle}
-              />
-            </View>
-          </View>
-        </Modal>
-
-        {/* Badge Awarding Animation */}
-        {isBadgeVisible && (
-          <Modal transparent={true} animationType="none" visible={isBadgeVisible}>
-            <TouchableWithoutFeedback onPress={handleBadgeDismiss}>
-              <View style={styles.awardModalContainer}>
-                <Animated.View
-                  style={[styles.backdropLight, { transform: [{ scale: badgeScale }] }]} />
-                <Animated.Image
-                  source={require('../assets/kana_badge.png')}
-                  style={[
-                    styles.awardBadge,
-                    { transform: [{ scale: badgeScale }, { rotateY: badgeSpin.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: ['0deg', '360deg']
-                      }) }] }
-                  ]}
-                />
-                <Animated.Text
-                  style={[styles.congratsMessage, { opacity: messageOpacity }]}>
-                  Congratulations on mastering the Japanese characters!
-                </Animated.Text>
-              </View>
-            </TouchableWithoutFeedback>
-          </Modal>
-        )}
-      </View>
-    </ImageBackground>
-  );
+type Progress = {
+  hiragana1: boolean; hiragana2: boolean; hiragana3: boolean;
+  katakana1: boolean; katakana2: boolean; katakana3: boolean; badge1: boolean;
 };
 
-const modalStyles = StyleSheet.create({
-  modalBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContainer: {
-    width: '80%',
-    padding: 20,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 28, // Increased size for emphasis
-    fontWeight: 'bold',
-    marginBottom: 20, // Added space below the title
-    fontFamily: 'Jua', // Consistent font
-    textAlign: 'center', // Center the title
-  },
-  modalText: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: 'center',
-    fontFamily: 'Jua',
-  },
-  buttonStyle: {
-    backgroundColor: '#4CAF50', // Green color matching your app
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  buttonTextStyle: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontFamily: 'Jua',
-  },
-});
+const lessons = [
+  { title: 'Katakana Basics 1', subtitle: 'Vowels, K, and S sounds', route: '/KatakanaSet1', key: 'katakana1', character: 'ア' },
+  { title: 'Katakana Basics 2', subtitle: 'T, N, H, and M sounds', route: '/KatakanaSet2', key: 'katakana2', character: 'タ' },
+  { title: 'Katakana Basics 3', subtitle: 'Y, R, W, and final sounds', route: '/KatakanaSet3', key: 'katakana3', character: 'ヤ' },
+] as const;
 
-export default KatakanaMenu;
+export default function KatakanaMenu() {
+  const router = useRouter();
+  const { fromExercise } = useLocalSearchParams();
+  const { user } = useContext(AuthContext);
+  const [progress, setProgress] = useState<Progress | null>(null);
+  const [showIntroduction, setShowIntroduction] = useState(false);
+  const [showBadge, setShowBadge] = useState(false);
+
+  const loadProgress = useCallback(async () => {
+    if (!user?.email) return;
+    try {
+      const response = await fetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`);
+      if (!response.ok) throw new Error('Could not load Katakana progress.');
+      const data: Progress = await response.json();
+      setProgress(data);
+      if (!data.katakana1) setShowIntroduction(true);
+
+      const kanaComplete = data.hiragana1 && data.hiragana2 && data.hiragana3 && data.katakana1 && data.katakana2 && data.katakana3;
+      if (fromExercise === 'true' && kanaComplete && !data.badge1) {
+        setShowBadge(true);
+        await fetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}/updateField?field=badge1&value=true`, { method: 'PUT' });
+      }
+    } catch (error) {
+      console.error('Could not load Katakana progress:', error);
+    }
+  }, [fromExercise, user?.email]);
+
+  useFocusEffect(useCallback(() => { loadProgress(); }, [loadProgress]));
+
+  const isUnlocked = (index: number) => index === 0 || (index === 1 ? Boolean(progress?.katakana1) : Boolean(progress?.katakana2));
+  const completedCount = [progress?.katakana1, progress?.katakana2, progress?.katakana3].filter(Boolean).length;
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.hero}>
+          <View style={[styles.heroCircle, localStyles.heroCircle]} />
+          <View style={styles.topRow}><Pressable style={styles.backButton} onPress={() => router.push('/KanaMenu')}><Ionicons name="arrow-back" size={21} color="#4B2B59" /></Pressable><Text style={styles.wordmark}>KATAKANA JOURNEY</Text></View>
+          <View style={styles.heroCopy}><Text style={styles.eyebrow}>カタカナ · KATAKANA</Text><Text style={styles.title}>Read the language of modern Japan</Text><Text style={styles.subtitle}>Complete each character set and its practice quest to unlock the next.</Text></View>
+          <Image source={require('../assets/hello.png')} style={styles.mascot} resizeMode="contain" />
+        </View>
+        <View style={styles.body}>
+          <View style={styles.sectionRow}><View><Text style={styles.sectionTitle}>Your Katakana map</Text><Text style={styles.sectionSubtitle}>Progress is saved after every exercise.</Text></View><Text style={styles.count}>{completedCount} / 3</Text></View>
+          {lessons.map((lesson, index) => {
+            const unlocked = isUnlocked(index);
+            const completed = Boolean(progress?.[lesson.key]);
+            return <Pressable key={lesson.key} disabled={!unlocked} style={[styles.card, !unlocked && styles.cardLocked]} onPress={() => router.push(lesson.route)}><View style={[styles.icon, localStyles.katakanaIcon]}><Text style={localStyles.character}>{lesson.character}</Text></View><View style={styles.cardCopy}><Text style={styles.cardLabel}>{completed ? 'COMPLETED · REPLAY ANYTIME' : unlocked ? index === 0 ? 'START HERE' : 'UNLOCKED' : 'LOCKED MILESTONE'}</Text><Text style={styles.cardTitle}>{lesson.title}</Text><Text style={styles.cardText}>{completed ? `${lesson.subtitle} · Tap to practice again` : lesson.subtitle}</Text></View><View style={[styles.action, completed && styles.actionDone]}><Ionicons name={completed ? 'refresh' : unlocked ? 'arrow-forward' : 'lock-closed'} size={20} color="#FFFFFF" /></View></Pressable>;
+          })}
+        </View>
+      </ScrollView>
+
+      <Modal visible={showIntroduction} transparent animationType="slide" statusBarTranslucent>
+        <View style={localStyles.modalBackdrop}><View style={localStyles.modalCard}>
+          <View style={localStyles.modalTop}><View style={localStyles.modalCharacter}><Text style={localStyles.modalCharacterText}>カ</Text></View><View style={localStyles.modalTag}><Text style={localStyles.modalTagText}>KATAKANA PATH</Text></View></View>
+          <Text style={localStyles.modalTitle}>Welcome to Katakana</Text>
+          <Text style={localStyles.modalLead}>The script you see across modern Japanese life.</Text>
+          <View style={localStyles.useList}>
+            <View style={localStyles.useItem}><Ionicons name="earth-outline" size={20} color="#8423D9" /><View><Text style={localStyles.useTitle}>Foreign words</Text><Text style={localStyles.useText}>Recognize words such as コーヒー and テレビ.</Text></View></View>
+            <View style={localStyles.useItem}><Ionicons name="restaurant-outline" size={20} color="#65A936" /><View><Text style={localStyles.useTitle}>Daily Japanese</Text><Text style={localStyles.useText}>Read menus, brands, names, and advertisements.</Text></View></View>
+            <View style={localStyles.useItem}><Ionicons name="volume-high-outline" size={20} color="#D98728" /><View><Text style={localStyles.useTitle}>Sounds and expression</Text><Text style={localStyles.useText}>Understand emphasis and Japanese sound words.</Text></View></View>
+          </View>
+          <View style={localStyles.modalNote}><Text>46 characters · 3 guided sets · 3 practice quests</Text></View>
+          <Pressable style={localStyles.modalButton} onPress={() => setShowIntroduction(false)}><Text style={localStyles.modalButtonText}>Start Katakana Basics 1</Text><Ionicons name="arrow-forward" size={19} color="#FFFFFF" /></Pressable>
+        </View></View>
+      </Modal>
+
+      <Modal visible={showBadge} transparent animationType="fade" statusBarTranslucent>
+        <View style={localStyles.modalBackdrop}><View style={localStyles.badgeCard}><Image source={require('../assets/kana_badge.png')} style={localStyles.badgeImage} resizeMode="contain" /><Text style={localStyles.badgeEyebrow}>KANA MILESTONE COMPLETE</Text><Text style={localStyles.modalTitle}>You mastered both scripts!</Text><Text style={localStyles.modalLead}>Your Kana badge is now part of your JapLearn progress.</Text><Pressable style={localStyles.modalButton} onPress={() => setShowBadge(false)}><Text style={localStyles.modalButtonText}>Continue learning</Text></Pressable></View></View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const localStyles = StyleSheet.create({
+  heroCircle: { backgroundColor: '#E7F3DE' },
+  katakanaIcon: { backgroundColor: '#EAF5E2' },
+  character: { color: '#5EAA34', fontSize: 28, fontFamily: 'Jua' },
+  modalBackdrop: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: 'rgba(39,20,48,0.68)' },
+  modalCard: { maxHeight: '88%', padding: 26, borderRadius: 30, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E7DCEC' },
+  modalTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  modalCharacter: { width: 62, height: 62, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EAF5E2' },
+  modalCharacterText: { color: '#5EAA34', fontFamily: 'Jua', fontSize: 30 },
+  modalTag: { paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F1E7FA' },
+  modalTagText: { color: '#7627CA', fontSize: 8, fontWeight: '900', letterSpacing: 1 },
+  modalTitle: { marginTop: 18, color: '#40244C', fontFamily: 'Jua', fontSize: 28, fontWeight: '400' },
+  modalLead: { marginTop: 7, color: '#7D7082', fontSize: 13, lineHeight: 20 },
+  useList: { marginTop: 20, gap: 10 },
+  useItem: { minHeight: 68, padding: 13, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FAF7FC', borderWidth: 1, borderColor: '#EEE6F1' },
+  useTitle: { color: '#4A3154', fontSize: 12, fontWeight: '800' },
+  useText: { maxWidth: 270, marginTop: 3, color: '#8A7D90', fontSize: 10, lineHeight: 15 },
+  modalNote: { marginTop: 17, padding: 12, borderRadius: 14, backgroundColor: '#F2F8ED', alignItems: 'center' },
+  modalButton: { minHeight: 54, marginTop: 18, paddingHorizontal: 18, borderRadius: 17, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: '#8423D9' },
+  modalButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  badgeCard: { padding: 28, borderRadius: 30, alignItems: 'center', backgroundColor: '#FFFFFF' },
+  badgeImage: { width: 135, height: 135 },
+  badgeEyebrow: { marginTop: 12, color: '#65A936', fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
+});

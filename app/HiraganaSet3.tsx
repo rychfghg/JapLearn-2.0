@@ -76,14 +76,14 @@ const HiraganaSet3 = () => {
 
   return (
     <ImageBackground
-      source={require('../assets/img/MenuBackground.png')}
+      source={require('../assets/img/LessonJourneyBackground.png')}
       style={styles.background}
     >
       <View style={styles.container}>
         <View style={styles.header}>
           <Pressable onPress={handleBackToMenuPress}>
             <View style={styles.backButtonContainer}>
-              <BackIcon width={20} height={20} fill={'white'} />
+              <BackIcon width={20} height={20} fill={'#4B2B59'} />
             </View>
           </Pressable>
         </View>

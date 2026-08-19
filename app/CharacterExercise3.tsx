@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, Text, Image, Pressable } from 'react-native';
+import { View, TouchableOpacity, Text, Image, Pressable, ImageBackground } from 'react-native';
 import { styles } from "../styles/stylesCharacterExercise";
 import BackIcon from '../assets/svg/back-icon.svg';
 import cardBackImage from '../assets/img/card_back.png';
@@ -6,6 +6,9 @@ import { useRouter } from 'expo-router';
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import expoconfig from '../expoconfig';
+import ExerciseCompletionBadge from '../components/ExerciseCompletionBadge';
+import ExerciseGameHeader from '../components/ExerciseGameHeader';
+import ExerciseCompletePanel from '../components/ExerciseCompletePanel';
 
 // Fisher-Yates shuffle algorithm
 const shuffleArray = (array) => {
@@ -164,15 +167,17 @@ const CharacterExercise3 = () => {
     }, [currentSetIndex]);
 
     return (
-        <View style={{ flex: 1 }}>
+        <ImageBackground source={require('../assets/img/LessonJourneyBackground.png')} style={styles.screenBackground}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={handleBackPress}>
                     <View style={styles.backButtonContainer}>
-                        <BackIcon width={20} height={20} fill={'white'} />
+              <BackIcon width={20} height={20} fill={'#4B2B59'} />
                     </View>
                 </TouchableOpacity>
+                <ExerciseCompletionBadge email={user?.email} field="hiragana3" />
             </View>
             <View style={styles.matchGame}>
+                <ExerciseGameHeader currentRound={currentSetIndex + 1} totalRounds={sets.length} previewing={gameState === 'preview'} />
                 <Text style={styles.matchGameText}>
                     {gameState === 'preview'
                         ? 'Memorize the placement!'
@@ -210,16 +215,9 @@ const CharacterExercise3 = () => {
                         );
                     })}
                 </View>
-                {message && (
-                    <View style={styles.messageContainer}>
-                                        <Text style={styles.message}>{message}</Text>
-                                        <Pressable style={styles.nextButton} onPress={handleCompleteExercise}>
-                                            <Text style={styles.nextButtonText}>Done</Text>
-                                        </Pressable>
-                                    </View>
-                )}
+                {message && <ExerciseCompletePanel onDone={handleCompleteExercise} />}
             </View>
-        </View>
+        </ImageBackground>
     );
 };
 

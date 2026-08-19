@@ -1,274 +1,45 @@
-
-import { StyleSheet, Dimensions } from 'react-native';
-
-const { width } = Dimensions.get('window');
-
+import { StyleSheet } from 'react-native';
 export default StyleSheet.create({
-  background: {
-    flex: 1,
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(16, 10, 35, 0.45)',
-  },
-
-  /* LOADING */
-
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#160B2E',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 30,
-  },
-
-  loadingDuck: {
-    width: 180,
-    height: 180,
-    resizeMode: 'contain',
-  },
-
-  loadingBarBackground: {
-    width: '85%',
-    height: 18,
-    backgroundColor: '#3A255E',
-    borderRadius: 30,
-    overflow: 'hidden',
-    marginTop: 20,
-  },
-
-  loadingBarFill: {
-    height: '100%',
-    backgroundColor: '#8ED94D',
-    borderRadius: 30,
-  },
-
-  loadingText: {
-    marginTop: 18,
-    fontSize: 24,
-    fontFamily: 'Jua',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
-
-  loadingPercent: {
-    marginTop: 8,
-    fontSize: 18,
-    fontFamily: 'Jua',
-    color: '#C7B8FF',
-  },
-
-  /* HEADER */
-
-  header: {
-    height: 95,
-    paddingHorizontal: 18,
-    paddingTop: 35,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-
-    backgroundColor: 'rgba(132,35,217,0.92)',
-
-    borderBottomWidth: 3,
-    borderBottomColor: '#D6B4FC',
-  },
-
-  backButtonContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 30,
-    backgroundColor: '#4B256D',
-    justifyContent: 'center',
-    alignItems: 'center',
-
-    shadowColor: '#000',
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-
-  headerTitle: {
-    fontSize: 30,
-    fontFamily: 'Jua',
-    color: '#FFFFFF',
-    letterSpacing: 1,
-  },
-
-  headerDuck: {
-    width: 55,
-    height: 55,
-    resizeMode: 'contain',
-  },
-
-  /* MENU */
-
-  menuContainer: {
-    paddingBottom: 50,
-    paddingHorizontal: 18,
-  },
-
-  heroSection: {
-    alignItems: 'center',
-    marginTop: 18,
-    marginBottom: 20,
-  },
-
-  glowCircle: {
-    position: 'absolute',
-    top: -10,
-    width: 190,
-    height: 190,
-    borderRadius: 100,
-    backgroundColor: 'rgba(174,104,255,0.35)',
-  },
-
-  character: {
-    width: 155,
-    height: 155,
-    resizeMode: 'contain',
-    zIndex: 5,
-  },
-
-  title: {
-    fontSize: 34,
-    fontFamily: 'Jua',
-    color: '#FFFFFF',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-
-  title2: {
-    fontSize: 34,
-    fontFamily: 'Jua',
-    color: '#D6B4FC',
-    textAlign: 'center',
-    marginTop: -5,
-  },
-
-  subtitle: {
-    width: '88%',
-    marginTop: 10,
-    fontSize: 15,
-    lineHeight: 22,
-    fontFamily: 'Jua',
-    color: '#F5F2FF',
-    textAlign: 'center',
-  },
-
-  /* CARDS */
-
-  gameCard: {
-    width: '100%',
-    minHeight: 145,
-
-    marginBottom: 18,
-
-    borderRadius: 28,
-
-    backgroundColor: 'rgba(255,255,255,0.14)',
-
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.22)',
-
-    overflow: 'hidden',
-
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 12,
-  },
-
-  cardGlow1: {
-    position: 'absolute',
-    top: -25,
-    right: -20,
-
-    width: 120,
-    height: 120,
-
-    borderRadius: 60,
-
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  },
-
-  cardGlow2: {
-    position: 'absolute',
-    bottom: -15,
-    left: -15,
-
-    width: 75,
-    height: 75,
-
-    borderRadius: 40,
-
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-
-  cardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 18,
-  },
-
-  iconContainer: {
-    width: 90,
-    height: 90,
-
-    borderRadius: 24,
-
-    backgroundColor: 'rgba(255,255,255,0.18)',
-
-    justifyContent: 'center',
-    alignItems: 'center',
-
-    marginRight: 15,
-
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.15)',
-  },
-
-  gameDuck: {
-    width: 72,
-    height: 72,
-    resizeMode: 'contain',
-  },
-
-  gameInfo: {
-    flex: 1,
-  },
-
-  gameTitle: {
-    fontSize: 23,
-    fontFamily: 'Jua',
-    color: '#FFFFFF',
-    marginBottom: 6,
-  },
-
-  gameDesc: {
-    fontSize: 14,
-    lineHeight: 21,
-    fontFamily: 'Jua',
-    color: '#EFE7FF',
-  },
-
-  badge: {
-    marginTop: 12,
-    alignSelf: 'flex-start',
-
-    backgroundColor: '#8ED94D',
-
-    borderRadius: 12,
-
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-  },
-
-  badgeText: {
-    fontSize: 12,
-    fontFamily: 'Jua',
-    color: '#FFFFFF',
-  },
+ bulletinSafeArea:{flex:1,backgroundColor:'#24152F'},bulletinScreen:{flex:1,overflow:'hidden'},bulletinScrollContent:{paddingBottom:28,backgroundColor:'#2C1933'},bulletinCanvas:{height:1120,width:'100%',position:'relative',overflow:'hidden'},bulletinBackground:{...StyleSheet.absoluteFillObject,width:'100%',height:'100%'},bulletinTint:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(36,18,39,.04)'},bulletinTopBar:{marginHorizontal:14,marginTop:12,backgroundColor:'rgba(255,244,216,.94)',borderWidth:2,borderColor:'#9B6432',borderRadius:18,padding:8,shadowColor:'#32180B',shadowOpacity:.22,shadowRadius:10,shadowOffset:{width:0,height:5},elevation:7},bulletinGuidePanel:{height:205,marginTop:8,justifyContent:'center',paddingLeft:44,paddingRight:'40%'},bulletinDialogue:{backgroundColor:'rgba(255,244,216,.96)',borderWidth:2,borderColor:'#B47B3F',borderRadius:21,paddingHorizontal:14,paddingTop:12,paddingBottom:14,shadowColor:'#3B1D0D',shadowOpacity:.24,shadowRadius:12,shadowOffset:{width:0,height:6},elevation:7},bulletinDialogueTag:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'#EEF7D9',borderWidth:1,borderColor:'#BDD98A',borderRadius:99,paddingHorizontal:8,paddingVertical:5,marginBottom:7},bulletinDialogueTagText:{color:'#568D36',fontSize:6,fontWeight:'900',letterSpacing:.8},bulletinDialogueTitle:{color:'#42253B',fontFamily:'Jua',fontSize:21,lineHeight:25},bulletinDialogueText:{color:'#745E58',fontSize:8,lineHeight:13,marginTop:3},bulletinDialogueTail:{position:'absolute',right:-13,top:57,width:0,height:0,borderTopWidth:12,borderBottomWidth:12,borderLeftWidth:14,borderTopColor:'transparent',borderBottomColor:'transparent',borderLeftColor:'#B47B3F'},bulletinPostedBadge:{position:'absolute',right:23,bottom:7,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'rgba(77,40,22,.94)',borderWidth:2,borderColor:'#D6A351',borderRadius:11,paddingHorizontal:9,paddingVertical:7,shadowColor:'#2C1208',shadowOpacity:.24,shadowRadius:5,elevation:4},bulletinPostedText:{color:'#FFF1C9',fontSize:7,fontWeight:'900',letterSpacing:.7},bulletinMissionLabel:{position:'absolute',top:345,left:'21%',right:'21%',height:38,borderRadius:11,backgroundColor:'rgba(69,35,19,.96)',borderWidth:2,borderColor:'#D3A252',flexDirection:'row',alignItems:'center',gap:7,paddingHorizontal:9,zIndex:8,shadowColor:'#2D1106',shadowOpacity:.26,shadowRadius:6,elevation:5},bulletinMissionLabelText:{color:'#FFF0C3',fontSize:7,fontWeight:'900',letterSpacing:.8},bulletinMissionLabelCount:{marginLeft:'auto',backgroundColor:'#FFF1C9',borderRadius:7,paddingHorizontal:7,paddingVertical:5},bulletinMissionLabelCountText:{color:'#6A4825',fontSize:6,fontWeight:'900'},bulletinMissionSlots:{position:'absolute',top:397,left:'19%',right:'19%',gap:19,zIndex:7},bulletinMissionCard:{height:168,borderRadius:16,borderWidth:2,borderColor:'#E4BD73',shadowColor:'#2B1207',shadowOpacity:.28,shadowRadius:8,shadowOffset:{width:0,height:5},elevation:7},bulletinCardBadge:{borderRadius:9,paddingHorizontal:5,paddingVertical:4,gap:4},bulletinCardBadgeIcon:{width:22,height:22,borderRadius:7},bulletinCardNumber:{borderRadius:8,paddingHorizontal:6,paddingVertical:4},bulletinCardCopy:{width:'62%'},bulletinDifficulty:{paddingHorizontal:6,paddingVertical:3},bulletinCardTitle:{color:'#FFFFFF',fontFamily:'Jua',fontSize:18,lineHeight:21,marginTop:4,textShadowColor:'rgba(18,5,24,.65)',textShadowOffset:{width:0,height:2},textShadowRadius:4},bulletinCardSubtitle:{color:'#FFFFFF',fontSize:8,fontWeight:'800',marginTop:1},bulletinCardFooter:{flexDirection:'row',alignItems:'center',gap:5,marginTop:6},bulletinObjective:{flex:1,flexDirection:'row',alignItems:'center',gap:4,borderTopWidth:1,borderTopColor:'rgba(255,255,255,.32)',paddingTop:6},bulletinObjectiveText:{color:'#FFFFFF',fontSize:6,fontWeight:'700'},bulletinPlayButton:{height:29,borderRadius:9,borderWidth:1,borderColor:'rgba(255,255,255,.74)',flexDirection:'row',alignItems:'center',justifyContent:'center',gap:4,paddingHorizontal:7,shadowColor:'#000',shadowOpacity:.25,shadowRadius:4,elevation:4},bulletinPlayText:{color:'#FFFFFF',fontSize:6,fontWeight:'900',letterSpacing:.5},bulletinFieldNote:{marginHorizontal:14,marginTop:14},
+ questScreenBackground:{width:'100%',height:'100%'},questCover:{height:294,marginHorizontal:-14,marginTop:-10,paddingHorizontal:14,overflow:'hidden',backgroundColor:'transparent'},questBackButton:{borderWidth:0,shadowOpacity:0,elevation:0},questBackInner:{width:32,height:32,borderRadius:11,backgroundColor:'rgba(255,255,255,.88)',alignItems:'center',justifyContent:'center'},questBrand:{marginLeft:11},questBrandOverline:{color:'#8423D9',fontSize:7,fontWeight:'900',letterSpacing:1.25},questBrandRow:{flexDirection:'row',alignItems:'center',gap:5,marginTop:2},questBrandTitle:{color:'#382044',fontFamily:'Jua',fontSize:15},questCounter:{marginLeft:'auto',width:45,height:45,borderRadius:15,backgroundColor:'rgba(255,255,255,.88)',borderWidth:0,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:4},questCounterText:{fontFamily:'Jua',fontSize:14,color:'#382044'},
+ questHero:{height:232,marginTop:5,overflow:'hidden',justifyContent:'center',backgroundColor:'transparent'},questHeroCopy:{width:'100%',paddingHorizontal:19,zIndex:3},questHeroLabel:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'rgba(255,255,255,.82)',borderRadius:99,paddingHorizontal:9,paddingVertical:6},questHeroEyebrow:{color:'#568D36',fontSize:7,fontWeight:'900',letterSpacing:1.05},questHeroTitle:{color:'#2F193D',fontFamily:'Jua',fontSize:26,lineHeight:31,marginTop:9,maxWidth:300,textShadowColor:'rgba(255,255,255,.88)',textShadowOffset:{width:0,height:1},textShadowRadius:5},questHeroText:{color:'#594C61',fontSize:10,lineHeight:15,marginTop:4,maxWidth:300},questHeroRoute:{flexDirection:'row',alignItems:'center',marginTop:13,width:190},questHeroRouteItem:{flexDirection:'row',alignItems:'center',flex:1},questHeroRouteNode:{width:27,height:27,borderRadius:9,alignItems:'center',justifyContent:'center',shadowColor:'#41204F',shadowOpacity:.15,shadowRadius:5,elevation:2},questHeroRouteNumber:{color:'#FFFFFF',fontSize:7,fontWeight:'900'},questHeroRouteLine:{height:2,flex:1,marginHorizontal:4,backgroundColor:'rgba(86,52,104,.25)'},questHeroButton:{alignSelf:'flex-start',marginTop:12,backgroundColor:'rgba(255,255,255,.92)',borderWidth:0,borderRadius:13,flexDirection:'row',alignItems:'center',gap:8,paddingVertical:7,paddingLeft:7,paddingRight:10,shadowColor:'#5A326A',shadowOpacity:.13,shadowRadius:9,elevation:3},questHeroButtonPressed:{opacity:.68,transform:[{scale:.98}]},questHeroButtonOverline:{color:'#8B7B94',fontSize:5,fontWeight:'900',letterSpacing:.75},questHeroButtonText:{color:'#6225A1',fontSize:7,fontWeight:'900',letterSpacing:.45,marginTop:1},questHeroPlay:{width:29,height:29,borderRadius:9,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center'},
+ questSectionHeading:{flexDirection:'row',alignItems:'flex-end',justifyContent:'space-between',marginTop:-12,marginBottom:13,paddingTop:20,zIndex:5},questSectionKicker:{color:'#65A936',fontSize:7,fontWeight:'900',letterSpacing:1.2},questSectionTitle:{color:'#382044',fontFamily:'Jua',fontSize:23,marginTop:2},questSectionSubtitle:{color:'#817586',fontSize:9,lineHeight:13,marginTop:2,maxWidth:285},questReadyPill:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'#EDF7E8',borderRadius:99,paddingHorizontal:9,paddingVertical:7},questReadyText:{color:'#568D36',fontSize:7,fontWeight:'900'},
+ questMissionList:{gap:14},questMissionCard:{height:258,borderRadius:23,overflow:'hidden',backgroundColor:'#29143F',borderWidth:2,borderColor:'rgba(255,255,255,.70)',shadowColor:'#3E2152',shadowOpacity:.22,shadowRadius:15,shadowOffset:{width:0,height:8},elevation:8},questMissionPressed:{opacity:.91,transform:[{scale:.992},{translateY:2}]},questMissionBackground:{flex:1,padding:15,justifyContent:'space-between'},questMissionFullImage:{...StyleSheet.absoluteFillObject,width:'100%',height:'100%'},questMissionImage:{borderRadius:23},questMissionShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(17,9,31,.06)'},questMissionTop:{flexDirection:'row',alignItems:'flex-start',justifyContent:'space-between',zIndex:3},questMissionBadge:{flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'rgba(255,255,255,.96)',borderWidth:1,borderColor:'rgba(255,255,255,.85)',borderRadius:12,paddingHorizontal:7,paddingVertical:6,shadowColor:'#000',shadowOpacity:.12,shadowRadius:6,elevation:3},questMissionBadgeIcon:{width:27,height:27,borderRadius:9,alignItems:'center',justifyContent:'center'},questMissionBadgeText:{fontSize:7,fontWeight:'900',letterSpacing:.8},questMissionNumber:{alignItems:'flex-end',backgroundColor:'rgba(22,12,35,.76)',borderWidth:1,borderColor:'rgba(255,255,255,.32)',borderRadius:12,paddingHorizontal:9,paddingVertical:6},questMissionNumberSmall:{color:'rgba(255,255,255,.68)',fontSize:5,fontWeight:'900',letterSpacing:1},questMissionNumberText:{color:'#FFFFFF',fontFamily:'Jua',fontSize:14,lineHeight:16},questMissionCopy:{width:'59%',zIndex:3},questDifficulty:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:5,borderWidth:1,backgroundColor:'rgba(24,13,36,.72)',borderRadius:99,paddingHorizontal:8,paddingVertical:5},questDifficultyDot:{width:6,height:6,borderRadius:3},questDifficultyText:{color:'#FFFFFF',fontSize:6,fontWeight:'900',letterSpacing:.8},questMissionTitle:{color:'#FFFFFF',fontFamily:'Jua',fontSize:25,lineHeight:30,marginTop:7,textShadowColor:'rgba(20,7,29,.55)',textShadowOffset:{width:0,height:2},textShadowRadius:5},questMissionSubtitle:{color:'#FFFFFF',fontSize:10,fontWeight:'800',marginTop:1},questMissionDescription:{color:'rgba(255,255,255,.86)',fontSize:8,lineHeight:12,marginTop:5},questMissionFooter:{flexDirection:'row',alignItems:'flex-end',gap:8,marginTop:12},questObjective:{flex:1,flexDirection:'row',alignItems:'center',gap:5,borderTopWidth:1,borderTopColor:'rgba(255,255,255,.32)',paddingTop:9},questObjectiveText:{color:'rgba(255,255,255,.92)',fontSize:7,fontWeight:'700'},questPlayButton:{height:40,minWidth:78,borderRadius:13,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,paddingHorizontal:8,borderWidth:2,borderColor:'rgba(255,255,255,.72)',shadowColor:'#000',shadowOpacity:.24,shadowRadius:7,shadowOffset:{width:0,height:4},elevation:5},questPlayText:{color:'#FFFFFF',fontSize:7,fontWeight:'900',letterSpacing:.7},questPlayIcon:{width:25,height:25,borderRadius:9,backgroundColor:'#FFFFFF',alignItems:'center',justifyContent:'center'},
+ questTip:{flexDirection:'row',alignItems:'center',backgroundColor:'#FFF8E9',borderWidth:1,borderColor:'#F1D99B',borderRadius:18,padding:13,marginTop:15},questTipIcon:{width:43,height:43,borderRadius:14,backgroundColor:'#FFF0C9',borderWidth:1,borderColor:'#F1D48B',alignItems:'center',justifyContent:'center',marginRight:11},questTipCopy:{flex:1},questTipTitle:{color:'#5A3B1D',fontFamily:'Jua',fontSize:14},questTipText:{color:'#806A55',fontSize:9,lineHeight:14,marginTop:2},questTipClose:{width:32,height:32,borderRadius:11,backgroundColor:'#FFEBC0',borderWidth:1,borderColor:'#EBCB79',alignItems:'center',justifyContent:'center',marginLeft:8},
+ situateLoadingScreen:{flex:1,alignItems:'center',justifyContent:'center',overflow:'hidden',backgroundColor:'#B495AB'},
+ situateLoadingBackground:{...StyleSheet.absoluteFillObject,width:'100%',height:'100%'},
+ situateLoadingShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(31,18,47,.43)'},
+ situateLoadingBack:{position:'absolute',left:25,top:48,width:58,height:58,borderRadius:19,backgroundColor:'rgba(255,255,255,.94)',alignItems:'center',justifyContent:'center',zIndex:8,shadowColor:'#28122F',shadowOpacity:.22,shadowRadius:12,shadowOffset:{width:0,height:6},elevation:8},
+ situateLoadingContent:{width:'84%',maxWidth:390,alignItems:'center',zIndex:4},
+ situateLoadingBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'rgba(255,255,255,.94)',borderRadius:99,paddingHorizontal:14,paddingVertical:10,marginBottom:19,shadowColor:'#392044',shadowOpacity:.15,shadowRadius:12,elevation:5},
+ situateLoadingBadgeText:{color:'#4A3158',fontSize:8,fontWeight:'900',letterSpacing:1.15},
+ situateLoadingPortal:{width:202,height:202,borderRadius:101,alignItems:'center',justifyContent:'flex-end',backgroundColor:'rgba(250,245,255,.22)',borderWidth:2,borderColor:'rgba(255,255,255,.70)',overflow:'hidden',shadowColor:'#8D4BD0',shadowOpacity:.38,shadowRadius:23,elevation:8},
+ situateLoadingHalo:{position:'absolute',width:166,height:166,borderRadius:83,backgroundColor:'rgba(142,69,206,.22)',top:18},
+ situateLoadingMascot:{width:158,height:183,zIndex:2},
+ situateLoadingTitle:{fontFamily:'Jua',fontSize:39,lineHeight:47,color:'#FFFFFF',marginTop:17,textAlign:'center',textShadowColor:'rgba(45,19,60,.48)',textShadowOffset:{width:0,height:3},textShadowRadius:8},
+ situateLoadingSubtitle:{color:'#FFFFFF',fontSize:11,lineHeight:17,textAlign:'center',marginTop:2,marginBottom:20,textShadowColor:'rgba(38,19,43,.56)',textShadowOffset:{width:0,height:1},textShadowRadius:5},
+ situateLoadingTrack:{width:'100%',height:14,borderRadius:8,backgroundColor:'rgba(255,255,255,.72)',padding:3,overflow:'hidden'},
+ situateLoadingFill:{height:'100%',borderRadius:6,backgroundColor:'#8423D9'},
+ situateLoadingStatus:{color:'#FFFFFF',fontSize:11,fontWeight:'900',letterSpacing:1.1,marginTop:16,textShadowColor:'rgba(39,17,49,.56)',textShadowOffset:{width:0,height:2},textShadowRadius:5},
+ safeArea:{flex:1,backgroundColor:'#121029'},background:{flex:1},overlay:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(17,14,37,.89)'},scrollContent:{paddingHorizontal:14,paddingTop:10,paddingBottom:30},pressed:{opacity:.72},loadingContainer:{flex:1,backgroundColor:'#160F2E',justifyContent:'center',alignItems:'center'},loadingBackground:{...StyleSheet.absoluteFillObject,width:'100%',height:'100%',resizeMode:'cover',opacity:.34},loadingDuck:{width:130,height:130,resizeMode:'contain',marginBottom:13},loadingEyebrow:{color:'#9FE56A',fontSize:9,fontWeight:'900',letterSpacing:1.5},loadingTitle:{fontFamily:'Jua',fontSize:36,color:'#FFF',marginTop:3,marginBottom:18},loadingBarOuter:{width:'72%',height:16,backgroundColor:'rgba(255,255,255,.18)',borderRadius:9,borderWidth:2,borderColor:'#D6B4FC',overflow:'hidden'},loadingBarInner:{height:'100%',backgroundColor:'#7DDA47'},loadingPercent:{marginTop:10,fontSize:11,color:'#FFF',fontWeight:'700'},topBar:{flexDirection:'row',alignItems:'center'},backButton:{width:44,height:44,borderRadius:14,backgroundColor:'#FFF',alignItems:'center',justifyContent:'center'},brand:{flexDirection:'row',alignItems:'center',gap:6,marginLeft:11},brandText:{color:'#E7DFED',fontSize:8,fontWeight:'900',letterSpacing:1},topIcon:{marginLeft:'auto',width:44,height:44,borderRadius:14,backgroundColor:'#FFF',alignItems:'center',justifyContent:'center'},hero:{minHeight:275,marginTop:14,borderRadius:24,overflow:'hidden',borderWidth:1,borderColor:'#514274'},featureBackground:{flex:1,minHeight:275,flexDirection:'row',alignItems:'center',paddingLeft:19},featureBackgroundImage:{opacity:.92},featureShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(20,12,35,.62)'},featureGlow:{position:'absolute',width:240,height:240,borderRadius:120,right:-55,top:25,backgroundColor:'rgba(132,35,217,.23)'},heroCopy:{width:'57%',zIndex:4},livePill:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'#D64B59',borderRadius:7,paddingHorizontal:7,paddingVertical:5,marginBottom:8},liveDot:{width:6,height:6,borderRadius:3,backgroundColor:'#FFF'},liveText:{color:'#FFF',fontSize:7,fontWeight:'900'},heroEyebrow:{color:'#9DE46B',fontSize:8,fontWeight:'900',letterSpacing:1.2},heroTitle:{color:'#FFF',fontFamily:'Jua',fontSize:24,lineHeight:28,marginTop:4},heroText:{color:'#DED2E8',fontSize:10,lineHeight:15,marginTop:5},featurePlay:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'#8423D9',borderRadius:9,paddingHorizontal:10,paddingVertical:8,marginTop:13},featurePlayText:{color:'#FFF',fontSize:8,fontWeight:'900'},featureTitleMark:{position:'absolute',right:11,bottom:10,alignItems:'flex-end'},featureTitleSmall:{color:'#B7A9C6',fontSize:7,fontWeight:'900',letterSpacing:1.5},featureTitleLarge:{color:'#FFF',fontFamily:'Jua',fontSize:16,letterSpacing:1},ahiruStage:{width:'43%',height:235,alignItems:'center',justifyContent:'flex-end',alignSelf:'flex-end'},ahiruHalo:{position:'absolute',width:170,height:170,borderRadius:85,backgroundColor:'rgba(151,92,203,.26)',bottom:15,right:-5},ahiruGround:{position:'absolute',width:142,height:23,borderRadius:12,backgroundColor:'rgba(255,255,255,.12)',bottom:8},ahiru:{width:165,height:205,zIndex:2},coachBubble:{flexDirection:'row',alignItems:'center',backgroundColor:'#201A3A',borderRadius:17,borderWidth:1,borderColor:'#453866',padding:12,marginTop:13},coachAvatar:{width:46,height:46,borderRadius:15,backgroundColor:'#F0E4FA',alignItems:'center',justifyContent:'center',overflow:'hidden',marginRight:11},coachImage:{width:52,height:58},coachCopy:{flex:1},coachName:{color:'#9DE46B',fontSize:7,fontWeight:'900',letterSpacing:1},coachText:{color:'#DDD4E5',fontSize:10,lineHeight:15,marginTop:2},categoryRow:{flexDirection:'row',gap:6,marginTop:15},categoryActive:{backgroundColor:'#8423D9',borderRadius:9,paddingHorizontal:9,paddingVertical:7},categoryActiveText:{color:'#FFF',fontSize:8,fontWeight:'900'},category:{backgroundColor:'#211B3C',borderWidth:1,borderColor:'#41365B',borderRadius:9,paddingHorizontal:8,paddingVertical:7},categoryText:{color:'#9F94AD',fontSize:7,fontWeight:'700'},sectionHeading:{flexDirection:'row',justifyContent:'space-between',alignItems:'flex-end',marginTop:22,marginBottom:12},sectionTitle:{color:'#FFF',fontFamily:'Jua',fontSize:20},sectionSubtitle:{color:'#AAA0B5',fontSize:9,marginTop:2},readyPill:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'#252043',borderRadius:99,paddingHorizontal:8,paddingVertical:5},readyDot:{width:6,height:6,borderRadius:3,backgroundColor:'#65A936'},readyText:{color:'#9DE46B',fontSize:7,fontWeight:'900'},missionList:{gap:12},missionCard:{minHeight:205,borderRadius:20,borderWidth:1,borderColor:'rgba(255,255,255,.23)',padding:15,overflow:'hidden'},cardPressed:{opacity:.86,transform:[{scale:.99}]},cardGlow:{position:'absolute',width:190,height:190,borderRadius:95,right:-35,top:10,backgroundColor:'rgba(255,255,255,.13)'},cardSlash:{position:'absolute',width:260,height:80,right:-90,bottom:5,backgroundColor:'rgba(255,255,255,.08)',transform:[{rotate:'-24deg'}]},missionCharacter:{position:'absolute',right:20,bottom:-28,color:'rgba(255,255,255,.11)',fontFamily:'Jua',fontSize:118},missionTop:{flexDirection:'row',alignItems:'center',justifyContent:'space-between',zIndex:3},gameBadge:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'#FFF',borderRadius:8,paddingHorizontal:8,paddingVertical:6},gameType:{fontSize:7,fontWeight:'900',letterSpacing:.7},missionCount:{color:'rgba(255,255,255,.72)',fontSize:7,fontWeight:'900'},cardBody:{flex:1,flexDirection:'row',alignItems:'flex-end'},missionCopy:{width:'62%',zIndex:3,paddingTop:14},missionTitle:{color:'#FFF',fontFamily:'Jua',fontSize:22,marginTop:4},missionSubtitle:{color:'#FFF',fontSize:10,fontWeight:'800',marginTop:2},missionDescription:{color:'rgba(255,255,255,.78)',fontSize:9,lineHeight:13,marginTop:5},playButton:{alignSelf:'flex-start',height:31,borderRadius:8,backgroundColor:'#FFF',flexDirection:'row',gap:5,paddingHorizontal:10,alignItems:'center',justifyContent:'center',marginTop:11},playText:{fontSize:8,fontWeight:'900'},gameArt:{width:'38%',height:145,alignItems:'center',justifyContent:'flex-end'},gameArtCircle:{position:'absolute',width:125,height:125,borderRadius:63,backgroundColor:'rgba(255,255,255,.13)',bottom:3},gameMascot:{width:125,height:145,zIndex:2},footerTip:{flexDirection:'row',alignItems:'center',backgroundColor:'#201A3A',borderRadius:17,borderWidth:1,borderColor:'#453866',padding:13,marginTop:13},footerIcon:{width:41,height:41,borderRadius:13,backgroundColor:'#3A2E51',alignItems:'center',justifyContent:'center',marginRight:11},footerCopy:{flex:1},footerTitle:{color:'#F5D78C',fontFamily:'Jua',fontSize:14},footerText:{color:'#C6BCCF',fontSize:9,lineHeight:14,marginTop:2}
+ ,safeAreaLight:{backgroundColor:'#FCFAFF'},overlayLight:{backgroundColor:'rgba(252,250,255,.94)'},heroLight:{backgroundColor:'#F8F3FC',borderColor:'#DFD4E7',flexDirection:'row',alignItems:'center',paddingLeft:19},heroSky:{...StyleSheet.absoluteFillObject,backgroundColor:'#F8F3FC'},heroSun:{position:'absolute',width:225,height:225,borderRadius:113,right:-42,top:22,backgroundColor:'#EADAF7'},heroCloudOne:{position:'absolute',width:65,height:20,borderRadius:12,right:188,top:62,backgroundColor:'rgba(255,255,255,.78)'},heroCloudTwo:{position:'absolute',width:45,height:16,borderRadius:10,right:103,top:39,backgroundColor:'rgba(255,255,255,.70)'},heroFuji:{position:'absolute',right:-4,bottom:5,width:0,height:0,borderLeftWidth:100,borderRightWidth:100,borderBottomWidth:135,borderLeftColor:'transparent',borderRightColor:'transparent',borderBottomColor:'rgba(132,35,217,.09)'},heroFujiSnow:{position:'absolute',right:55,bottom:87,width:0,height:0,borderLeftWidth:41,borderRightWidth:41,borderBottomWidth:50,borderLeftColor:'transparent',borderRightColor:'transparent',borderBottomColor:'rgba(255,255,255,.72)'},livePillLight:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'#FFF',borderWidth:1,borderColor:'#DCE9D4',borderRadius:8,paddingHorizontal:8,paddingVertical:6,marginBottom:8},liveTextLight:{color:'#568D36',fontSize:7,fontWeight:'900'},heroEyebrowLight:{color:'#65A936',fontSize:8,fontWeight:'900',letterSpacing:1.2},heroTitleLight:{color:'#2F193D',fontFamily:'Jua',fontSize:24,lineHeight:28,marginTop:4},heroTextLight:{color:'#675C6D',fontSize:10,lineHeight:15,marginTop:5},ahiruHaloLight:{position:'absolute',width:170,height:170,borderRadius:85,backgroundColor:'rgba(219,194,240,.68)',bottom:15,right:-5},ahiruGroundLight:{position:'absolute',width:142,height:23,borderRadius:12,backgroundColor:'rgba(132,35,217,.10)',bottom:8},featureTitleSmallLight:{color:'#917F9D',fontSize:7,fontWeight:'900',letterSpacing:1.5},featureTitleLargeLight:{color:'#4A3158',fontFamily:'Jua',fontSize:16,letterSpacing:1}
+ ,brandTextLight:{color:'#4A3158'},categoryLight:{backgroundColor:'#F1EBF4',borderColor:'#E1D9E5'},categoryTextLight:{color:'#817686'},sectionTitleLight:{color:'#382044'},sectionSubtitleLight:{color:'#817586'},readyPillLight:{backgroundColor:'#EFF8E8'},readyTextLight:{color:'#568D36'}
+ ,loadingShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(18,12,38,.76)'},loadingGlowOne:{position:'absolute',width:310,height:310,borderRadius:155,backgroundColor:'rgba(132,35,217,.22)',right:-105,top:-70},loadingGlowTwo:{position:'absolute',width:230,height:230,borderRadius:115,backgroundColor:'rgba(101,169,54,.12)',left:-95,bottom:-65},loadingContent:{width:'84%',maxWidth:390,alignItems:'center',zIndex:3},loadingBrand:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'rgba(255,255,255,.09)',borderWidth:1,borderColor:'rgba(255,255,255,.15)',borderRadius:99,paddingHorizontal:11,paddingVertical:8,marginBottom:20},loadingBrandText:{color:'#FFF',fontSize:8,fontWeight:'900',letterSpacing:1.2},loadingMascotStage:{width:158,height:158,alignItems:'center',justifyContent:'center'},loadingMascotHalo:{position:'absolute',width:146,height:146,borderRadius:73,backgroundColor:'rgba(214,180,252,.16)',borderWidth:1,borderColor:'rgba(214,180,252,.28)'},loadingSubtitle:{color:'#CFC4D8',fontSize:10,lineHeight:15,textAlign:'center',marginTop:-9,marginBottom:24},loadingProgressTop:{width:'100%',flexDirection:'row',alignItems:'center',justifyContent:'space-between',marginBottom:7},loadingLabel:{color:'#CFC4D8',fontSize:7,fontWeight:'900',letterSpacing:1},loadingValue:{color:'#9FE56A',fontFamily:'Jua',fontSize:12},loadingSteps:{flexDirection:'row',gap:6,marginTop:13},loadingStep:{width:25,height:4,borderRadius:2,backgroundColor:'rgba(255,255,255,.18)'},loadingStepActive:{backgroundColor:'#9FE56A'}
+ ,loadingPanel:{width:'88%',maxWidth:410,borderRadius:30,backgroundColor:'rgba(25,17,48,.72)',borderWidth:1,borderColor:'rgba(220,194,242,.24)',paddingVertical:24,paddingHorizontal:18,alignItems:'center',shadowColor:'#000',shadowOpacity:.35,shadowRadius:24,shadowOffset:{width:0,height:12},elevation:12},loadingParticleOne:{position:'absolute',width:7,height:7,borderRadius:4,backgroundColor:'rgba(159,229,106,.70)',left:'14%',top:'19%'},loadingParticleTwo:{position:'absolute',width:5,height:5,borderRadius:3,backgroundColor:'rgba(214,180,252,.76)',right:'16%',top:'27%'},loadingParticleThree:{position:'absolute',width:9,height:9,borderRadius:5,borderWidth:1,borderColor:'rgba(255,255,255,.45)',right:'12%',bottom:'19%'},loadingMascotRingOuter:{position:'absolute',width:158,height:158,borderRadius:79,borderWidth:1,borderColor:'rgba(159,229,106,.18)'},loadingMascotBase:{position:'absolute',width:104,height:15,borderRadius:8,backgroundColor:'rgba(132,35,217,.24)',bottom:8},loadingJapanese:{color:'#9FE56A',fontFamily:'Jua',fontSize:11,letterSpacing:2,marginTop:1,marginBottom:6},loadingBarShine:{position:'absolute',right:0,top:0,bottom:0,width:22,backgroundColor:'rgba(255,255,255,.24)'},loadingFooter:{flexDirection:'row',alignItems:'center',gap:6,marginTop:17},loadingFooterText:{color:'#BFAFC9',fontSize:8,fontWeight:'700',letterSpacing:.3}
+ ,missionLoadingScreen:{flex:1,alignItems:'center',justifyContent:'center',paddingHorizontal:24,overflow:'hidden'},missionLoadingOrb:{position:'absolute',width:300,height:300,borderRadius:150,opacity:.09},missionLoadingOrbTop:{right:-125,top:-95},missionLoadingOrbBottom:{left:-145,bottom:-100},missionLoadingCard:{width:'100%',maxWidth:390,backgroundColor:'#FFFFFF',borderRadius:30,paddingHorizontal:25,paddingTop:22,paddingBottom:25,alignItems:'center',borderWidth:1,borderColor:'rgba(70,42,94,.09)',shadowColor:'#402253',shadowOpacity:.16,shadowRadius:26,shadowOffset:{width:0,height:13},elevation:12},missionLoadingBadge:{flexDirection:'row',alignItems:'center',gap:7,borderRadius:99,paddingHorizontal:12,paddingVertical:8,alignSelf:'flex-start'},missionLoadingBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1},missionLoadingStage:{width:190,height:190,alignItems:'center',justifyContent:'center',marginTop:2},missionLoadingHalo:{position:'absolute',width:168,height:168,borderRadius:84,borderWidth:1},missionLoadingCharacter:{position:'absolute',fontFamily:'Jua',fontSize:122},missionLoadingMascot:{width:158,height:174},missionLoadingKicker:{color:'#978A9F',fontSize:8,fontWeight:'900',letterSpacing:1.35,marginTop:2},missionLoadingTitle:{color:'#352040',fontFamily:'Jua',fontSize:29,marginTop:5,textAlign:'center'},missionLoadingDescription:{color:'#75697C',fontSize:10,lineHeight:16,textAlign:'center',maxWidth:270,marginTop:5,marginBottom:22},missionLoadingStatus:{width:'100%',flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:8},missionLoadingStatusText:{color:'#5D5064',fontSize:9,fontWeight:'800'},missionLoadingPercent:{fontFamily:'Jua',fontSize:13},missionLoadingTrack:{width:'100%',height:10,borderRadius:6,backgroundColor:'#EEE9F0',overflow:'hidden'},missionLoadingFill:{height:'100%',borderRadius:6},missionLoadingHint:{flexDirection:'row',alignItems:'center',gap:7,marginTop:17,backgroundColor:'#FAF8FB',borderRadius:12,paddingHorizontal:12,paddingVertical:9},missionLoadingHintText:{color:'#6E6275',fontSize:9,fontWeight:'700'}
+ ,missionBadgeStage:{width:205,height:205,alignItems:'center',justifyContent:'center',overflow:'hidden',marginTop:3},missionBadgeGlow:{position:'absolute',width:190,height:190,borderRadius:95},missionBadgeOuter:{width:158,height:158,borderRadius:79,backgroundColor:'#FFF',borderWidth:2,alignItems:'center',justifyContent:'center',shadowColor:'#43204F',shadowOpacity:.16,shadowRadius:17,elevation:8},missionBadgeInner:{width:126,height:126,borderRadius:63,alignItems:'center',justifyContent:'center',borderWidth:5,borderColor:'rgba(255,255,255,.48)'},missionBadgeCharacter:{position:'absolute',fontFamily:'Jua',fontSize:78,color:'rgba(255,255,255,.20)'},missionBadgeSweep:{position:'absolute',width:30,height:205,backgroundColor:'rgba(255,255,255,.46)',zIndex:8},missionBadgeMascot:{position:'absolute',width:68,height:78,right:2,bottom:3,zIndex:9},missionBadgeSparkle:{position:'absolute',fontSize:25,left:8,top:22,zIndex:10}
+ ,mainBadgeStage:{width:190,height:190,alignItems:'center',justifyContent:'center',overflow:'hidden'},mainBadgeGlow:{position:'absolute',width:176,height:176,borderRadius:88,backgroundColor:'rgba(159,229,106,.13)'},mainBadgeOuter:{width:154,height:154,borderRadius:77,backgroundColor:'#352054',borderWidth:2,borderColor:'#B97AF0',alignItems:'center',justifyContent:'center',shadowColor:'#B85CFF',shadowOpacity:.55,shadowRadius:22,elevation:10},mainBadgeInner:{width:122,height:122,borderRadius:61,backgroundColor:'#8423D9',borderWidth:5,borderColor:'rgba(255,255,255,.34)',alignItems:'center',justifyContent:'center'},mainBadgeCharacter:{position:'absolute',fontFamily:'Jua',fontSize:74,color:'rgba(255,255,255,.14)'},mainBadgeSweep:{position:'absolute',width:28,height:190,backgroundColor:'rgba(255,255,255,.42)',zIndex:8},mainBadgeSparkleOne:{position:'absolute',left:7,top:24,color:'#9FE56A',fontSize:24,zIndex:9},mainBadgeSparkleTwo:{position:'absolute',right:8,bottom:25,color:'#F6DB82',fontSize:20,zIndex:9}
+ ,loadingContainer:{flex:1,backgroundColor:'#FBF8FD',justifyContent:'center',alignItems:'center'},loadingPanel:{width:'88%',maxWidth:410,borderRadius:32,backgroundColor:'#FFFFFF',borderWidth:1,borderColor:'#E8DDEF',paddingVertical:26,paddingHorizontal:20,alignItems:'center',shadowColor:'#4A2858',shadowOpacity:.12,shadowRadius:24,shadowOffset:{width:0,height:12},elevation:10},loadingBrand:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#F1E9F6',borderWidth:1,borderColor:'#E4D6EC',borderRadius:99,paddingHorizontal:11,paddingVertical:8,marginBottom:18},loadingBrandText:{color:'#5A4166',fontSize:8,fontWeight:'900',letterSpacing:1.2},loadingJapanese:{color:'#66A83F',fontFamily:'Jua',fontSize:11,letterSpacing:2,marginTop:4,marginBottom:6},loadingEyebrow:{color:'#7A35C5',fontSize:9,fontWeight:'900',letterSpacing:1.5},loadingTitle:{fontFamily:'Jua',fontSize:29,color:'#382044',marginTop:4,marginBottom:8,textAlign:'center'},loadingSubtitle:{color:'#7D7083',fontSize:11,lineHeight:17,textAlign:'center',marginBottom:24},loadingLabel:{color:'#716578',fontSize:8,fontWeight:'900',letterSpacing:1},loadingValue:{color:'#7A35C5',fontFamily:'Jua',fontSize:12},loadingBarOuter:{width:'100%',height:11,backgroundColor:'#EEE7F1',borderRadius:7,borderWidth:0,overflow:'hidden'},loadingBarInner:{height:'100%',backgroundColor:'#7A35C5',borderRadius:7},loadingFooter:{flexDirection:'row',alignItems:'center',gap:7,marginTop:17,backgroundColor:'#F4EEF7',borderRadius:14,paddingHorizontal:12,paddingVertical:9},loadingFooterText:{color:'#67566F',fontSize:9,fontWeight:'700',letterSpacing:.2},mainBadgeGlow:{position:'absolute',width:176,height:176,borderRadius:88,backgroundColor:'rgba(122,53,197,.10)'},mainBadgeOuter:{width:154,height:154,borderRadius:77,backgroundColor:'#F0E5F7',borderWidth:2,borderColor:'#D0AFE6',alignItems:'center',justifyContent:'center',shadowColor:'#7A35C5',shadowOpacity:.22,shadowRadius:20,elevation:8},mainBadgeInner:{width:122,height:122,borderRadius:61,backgroundColor:'#7A35C5',borderWidth:5,borderColor:'#E4CFF1',alignItems:'center',justifyContent:'center'},mainBadgeSparkleOne:{position:'absolute',left:7,top:24,color:'#69AD43',fontSize:24,zIndex:9},mainBadgeSparkleTwo:{position:'absolute',right:8,bottom:25,color:'#D39C3F',fontSize:20,zIndex:9},missionLoadingCard:{width:'100%',maxWidth:390,backgroundColor:'#FFFEFF',borderRadius:30,paddingHorizontal:25,paddingTop:22,paddingBottom:25,alignItems:'center',borderWidth:1,borderColor:'#E5D9EB',shadowColor:'#4A2858',shadowOpacity:.12,shadowRadius:24,shadowOffset:{width:0,height:12},elevation:10},missionLoadingKicker:{color:'#66A83F',fontSize:8,fontWeight:'900',letterSpacing:1.35,marginTop:5},missionLoadingTitle:{color:'#382044',fontFamily:'Jua',fontSize:29,marginTop:5,textAlign:'center'},missionLoadingDescription:{color:'#776A7D',fontSize:11,lineHeight:17,textAlign:'center',maxWidth:285,marginTop:5,marginBottom:22},missionLoadingStatusText:{color:'#65586C',fontSize:9,fontWeight:'800'},missionLoadingTrack:{width:'100%',height:9,borderRadius:6,backgroundColor:'#EEE8F1',overflow:'hidden'},missionLoadingHint:{flexDirection:'row',alignItems:'center',gap:7,marginTop:17,backgroundColor:'#F7F3F9',borderRadius:13,paddingHorizontal:13,paddingVertical:10},missionLoadingHintText:{color:'#675A6D',fontSize:9,fontWeight:'700'}
+ ,questScreen:{flex:1,backgroundColor:'#FBF8FF',overflow:'hidden'},questScreenCircle:{position:'absolute',width:360,height:360,borderRadius:180,right:-150,top:75,backgroundColor:'rgba(231,216,247,.62)'},questScreenCircleSmall:{position:'absolute',width:190,height:190,borderRadius:95,left:-110,top:390,backgroundColor:'rgba(226,242,216,.42)'},questHeroJapanese:{position:'absolute',right:16,top:27,color:'rgba(132,35,217,.09)',fontFamily:'Jua',fontSize:90,letterSpacing:-8},questHeroTorii:{position:'absolute',width:102,height:110,right:28,bottom:13,opacity:.50},questHeroToriiRoof:{position:'absolute',width:100,height:9,borderRadius:6,backgroundColor:'rgba(101,45,151,.15)',top:12,left:1,transform:[{rotate:'-2deg'}]},questHeroToriiBeam:{position:'absolute',width:82,height:7,borderRadius:3,backgroundColor:'rgba(101,45,151,.15)',top:28,left:10},questHeroToriiPostLeft:{position:'absolute',width:8,height:76,borderRadius:4,backgroundColor:'rgba(101,45,151,.15)',top:25,left:23,transform:[{rotate:'3deg'}]},questHeroToriiPostRight:{position:'absolute',width:8,height:76,borderRadius:4,backgroundColor:'rgba(101,45,151,.15)',top:25,right:23,transform:[{rotate:'-3deg'}]}
+ ,questScrollBackdrop:{position:'absolute',left:-14,right:-14,top:-10,height:1550,overflow:'hidden'},questScreenCircle:{position:'absolute',width:360,height:360,borderRadius:180,right:-150,top:75,backgroundColor:'rgba(231,216,247,.62)'},questScreenCircleSmall:{position:'absolute',width:230,height:230,borderRadius:115,left:-135,top:430,backgroundColor:'rgba(226,242,216,.40)'},questScrollWaveOne:{position:'absolute',width:420,height:160,borderRadius:210,left:-170,top:760,backgroundColor:'rgba(238,226,249,.35)',transform:[{rotate:'18deg'}]},questScrollWaveTwo:{position:'absolute',width:360,height:140,borderRadius:180,right:-170,top:1110,backgroundColor:'rgba(229,242,219,.28)',transform:[{rotate:'-16deg'}]}
+ ,questCoverSpacing:{height:312,marginTop:0,paddingTop:15,paddingHorizontal:20,marginHorizontal:-14}
+ ,questHero:{height:232,marginTop:5,overflow:'visible',flexDirection:'row',alignItems:'center',backgroundColor:'transparent'},questHeroCopy:{width:'59%',paddingLeft:8,paddingRight:5,zIndex:5},questHeroTitle:{color:'#2F193D',fontFamily:'Jua',fontSize:22,lineHeight:27,marginTop:8,maxWidth:245},questHeroText:{color:'#594C61',fontSize:9,lineHeight:14,marginTop:4,maxWidth:235},questHeroRoute:{flexDirection:'row',alignItems:'center',marginTop:11,width:150},questHeroRouteNode:{width:25,height:25,borderRadius:8,alignItems:'center',justifyContent:'center',shadowColor:'#41204F',shadowOpacity:.15,shadowRadius:5,elevation:2},questHeroButton:{alignSelf:'flex-start',marginTop:10,backgroundColor:'rgba(255,255,255,.94)',borderWidth:0,borderRadius:12,flexDirection:'row',alignItems:'center',gap:7,paddingVertical:6,paddingLeft:6,paddingRight:8,shadowColor:'#5A326A',shadowOpacity:.12,shadowRadius:8,elevation:3},questSceneDeck:{width:'41%',height:205,position:'relative',alignItems:'center',justifyContent:'center'},questSceneCard:{position:'absolute',width:102,height:132,borderRadius:18,padding:11,overflow:'hidden',shadowColor:'#3B2149',shadowOpacity:.18,shadowRadius:9,shadowOffset:{width:0,height:5},elevation:5},questSceneCardBack:{backgroundColor:'#5DA638',right:-4,top:20,transform:[{rotate:'9deg'}],opacity:.82},questSceneCardMiddle:{backgroundColor:'#D98222',right:18,top:25,transform:[{rotate:'-8deg'}],opacity:.90},questSceneCardFront:{backgroundColor:'#7D25D1',right:6,top:42,transform:[{rotate:'2deg'}]},questSceneKana:{position:'absolute',right:7,bottom:19,color:'rgba(255,255,255,.18)',fontFamily:'Jua',fontSize:63},questSceneName:{position:'absolute',left:11,bottom:10,color:'#FFFFFF',fontSize:6,fontWeight:'900',letterSpacing:.8},questSceneLive:{position:'absolute',left:8,top:8,flexDirection:'row',alignItems:'center',gap:3,backgroundColor:'rgba(45,16,70,.42)',borderRadius:99,paddingHorizontal:5,paddingVertical:3},questSceneLiveDot:{width:4,height:4,borderRadius:2,backgroundColor:'#A5EB72'},questSceneLiveText:{color:'#FFFFFF',fontSize:4,fontWeight:'900',letterSpacing:.5},questSceneCount:{position:'absolute',right:6,bottom:5,flexDirection:'row',alignItems:'center',gap:4,backgroundColor:'#FFFFFF',borderRadius:99,paddingHorizontal:7,paddingVertical:5,shadowColor:'#4B285A',shadowOpacity:.12,shadowRadius:6,elevation:3},questSceneCountText:{color:'#5E376E',fontSize:5,fontWeight:'900',letterSpacing:.6}
+ ,questBriefingTop:{flexDirection:'row',alignItems:'center',gap:8},questBriefingIcon:{width:32,height:32,borderRadius:10,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center',shadowColor:'#6A20AE',shadowOpacity:.18,shadowRadius:6,elevation:3},questBriefingOverline:{color:'#65A936',fontSize:6,fontWeight:'900',letterSpacing:1},questBriefingStage:{color:'#62536A',fontSize:7,fontWeight:'700',marginTop:2},questHeroTitle:{color:'#2F193D',fontFamily:'Jua',fontSize:25,lineHeight:30,marginTop:12,maxWidth:245},questHeroText:{color:'#594C61',fontSize:9,lineHeight:14,marginTop:4,maxWidth:245},questSkillRow:{flexDirection:'row',alignItems:'center',gap:4,marginTop:11},questSkill:{flexDirection:'row',alignItems:'center',gap:3,backgroundColor:'rgba(255,255,255,.78)',borderRadius:7,paddingHorizontal:5,paddingVertical:4},questSkillText:{color:'#5D5064',fontSize:4,fontWeight:'900',letterSpacing:.4},questBriefingAction:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:7,marginTop:11},questBriefingActionText:{color:'#6B28AC',fontSize:7,fontWeight:'900',letterSpacing:.55},questBriefingActionIcon:{width:24,height:24,borderRadius:8,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center'}
+ ,questHero:{height:232,marginTop:10,overflow:'hidden',justifyContent:'flex-end',backgroundColor:'#30203E',borderRadius:22},questHeroFeatureImage:{...StyleSheet.absoluteFillObject,width:'100%',height:'100%'},questHeroFeatureShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(39,18,53,.50)'},questHeroFeatureFade:{position:'absolute',left:0,top:0,bottom:0,width:'72%',backgroundColor:'rgba(43,20,58,.46)'},questHeroCopy:{width:'64%',paddingLeft:18,paddingRight:8,paddingBottom:20,zIndex:4},questFeatureTag:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'rgba(30,14,43,.60)',borderRadius:99,paddingHorizontal:8,paddingVertical:5,marginBottom:6},questFeatureTagDot:{width:6,height:6,borderRadius:3,backgroundColor:'#9FE56A'},questFeatureTagText:{color:'#FFFFFF',fontSize:6,fontWeight:'900',letterSpacing:.8},questFeatureEyebrow:{color:'#A8EB79',fontSize:7,fontWeight:'900',letterSpacing:1.1},questFeatureTitle:{color:'#FFFFFF',fontFamily:'Jua',fontSize:22,lineHeight:26,marginTop:4,textShadowColor:'rgba(27,9,36,.46)',textShadowOffset:{width:0,height:1},textShadowRadius:4},questFeatureText:{color:'rgba(255,255,255,.88)',fontSize:8,lineHeight:12,marginTop:4,maxWidth:230},questFeatureButton:{alignSelf:'flex-start',marginTop:10,backgroundColor:'#FFFFFF',borderRadius:11,flexDirection:'row',alignItems:'center',gap:7,paddingVertical:6,paddingLeft:6,paddingRight:10},questFeaturePlay:{width:25,height:25,borderRadius:8,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center'},questFeatureButtonText:{color:'#5C246E',fontSize:7,fontWeight:'900',letterSpacing:.45},questFeatureStatus:{position:'absolute',right:10,top:10,flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'rgba(39,17,54,.62)',borderRadius:99,paddingHorizontal:8,paddingVertical:6,zIndex:5},questFeatureStatusText:{color:'#FFFFFF',fontSize:5,fontWeight:'900',letterSpacing:.55}
+ ,questHero:{height:232,marginTop:5,overflow:'hidden',flexDirection:'row',alignItems:'center',backgroundColor:'transparent',borderRadius:0},questHeroCopy:{width:'57%',paddingLeft:8,paddingRight:4,zIndex:4},questClassicSun:{position:'absolute',width:205,height:205,borderRadius:103,right:-28,top:18,backgroundColor:'rgba(227,209,245,.70)'},questClassicCloudOne:{position:'absolute',width:58,height:17,borderRadius:10,right:175,top:56,backgroundColor:'rgba(255,255,255,.78)'},questClassicCloudTwo:{position:'absolute',width:40,height:14,borderRadius:9,right:105,top:34,backgroundColor:'rgba(255,255,255,.70)'},questClassicTorii:{position:'absolute',width:94,height:102,right:145,bottom:8,opacity:.60},questClassicToriiRoof:{position:'absolute',width:92,height:8,borderRadius:5,backgroundColor:'rgba(105,54,151,.15)',top:11,left:1},questClassicToriiBeam:{position:'absolute',width:76,height:7,borderRadius:3,backgroundColor:'rgba(105,54,151,.15)',top:26,left:9},questClassicToriiPostLeft:{position:'absolute',width:8,height:70,borderRadius:4,backgroundColor:'rgba(105,54,151,.15)',top:25,left:21},questClassicToriiPostRight:{position:'absolute',width:8,height:70,borderRadius:4,backgroundColor:'rgba(105,54,151,.15)',top:25,right:21},questClassicTag:{alignSelf:'flex-start',flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'#FFFFFF',borderRadius:99,paddingHorizontal:8,paddingVertical:5,marginBottom:6},questClassicTagDot:{width:6,height:6,borderRadius:3,backgroundColor:'#65A936'},questClassicTagText:{color:'#568D36',fontSize:6,fontWeight:'900',letterSpacing:.8},questClassicEyebrow:{color:'#65A936',fontSize:7,fontWeight:'900',letterSpacing:1.05},questClassicTitle:{color:'#2F193D',fontFamily:'Jua',fontSize:21,lineHeight:25,marginTop:4},questClassicText:{color:'#675C6D',fontSize:8,lineHeight:13,marginTop:4,maxWidth:215},questClassicButton:{alignSelf:'flex-start',marginTop:10,backgroundColor:'#FFFFFF',borderRadius:11,flexDirection:'row',alignItems:'center',gap:6,paddingVertical:6,paddingLeft:6,paddingRight:9,shadowColor:'#5A326A',shadowOpacity:.10,shadowRadius:7,elevation:2},questClassicPlay:{width:25,height:25,borderRadius:8,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center'},questClassicButtonText:{color:'#5C246E',fontSize:6,fontWeight:'900',letterSpacing:.4},questClassicMascotStage:{width:'43%',height:207,alignItems:'center',justifyContent:'flex-end',alignSelf:'flex-end',zIndex:3},questClassicMascotHalo:{position:'absolute',width:162,height:162,borderRadius:81,backgroundColor:'rgba(218,193,240,.62)',bottom:16,right:-7},questClassicMascotGround:{position:'absolute',width:136,height:21,borderRadius:11,backgroundColor:'rgba(132,35,217,.10)',bottom:7},questClassicMascot:{width:144,height:184,zIndex:2}
+ ,questCoverSpacing:{height:74,marginTop:0,paddingTop:15,paddingHorizontal:20,marginHorizontal:-14}
+ ,questScrollBackdrop:{position:'absolute',left:-14,right:-14,top:-10,bottom:-10,overflow:'hidden'},scrollContent:{paddingHorizontal:14,paddingTop:10,paddingBottom:14}
+ ,questCoverSpacing:{height:82,marginTop:0,paddingTop:15,paddingHorizontal:20,marginHorizontal:-14},questBrandTitle:{color:'#382044',fontFamily:'Jua',fontSize:14},questCounter:{marginLeft:'auto',minWidth:49,height:45,borderRadius:15,backgroundColor:'#FFFFFF',borderWidth:0,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:6,paddingHorizontal:8,shadowColor:'#4A2858',shadowOpacity:.07,shadowRadius:6,elevation:2},questCounterText:{fontFamily:'Jua',fontSize:13,lineHeight:14,color:'#382044'},questCounterLabel:{color:'#9A8DA2',fontSize:4,fontWeight:'900',letterSpacing:.55},questSectionHeading:{position:'relative',minHeight:126,flexDirection:'row',alignItems:'center',marginTop:10,marginBottom:14,paddingHorizontal:15,paddingVertical:16,borderRadius:22,backgroundColor:'#F1E7FA',overflow:'hidden',shadowColor:'#4A2858',shadowOpacity:.07,shadowRadius:10,shadowOffset:{width:0,height:5},elevation:2},questSectionGlow:{position:'absolute',width:150,height:150,borderRadius:75,right:-43,top:-50,backgroundColor:'rgba(255,255,255,.48)'},questSectionMark:{position:'absolute',right:13,bottom:-22,color:'rgba(132,35,217,.08)',fontFamily:'Jua',fontSize:91},questSectionIcon:{width:43,height:43,borderRadius:14,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center',marginRight:12,shadowColor:'#6D20B5',shadowOpacity:.20,shadowRadius:7,elevation:4},questSectionCopy:{flex:1,paddingRight:68},questSectionKicker:{color:'#65A936',fontSize:7,fontWeight:'900',letterSpacing:1.05},questSectionTitle:{color:'#382044',fontFamily:'Jua',fontSize:20,lineHeight:24,marginTop:3},questSectionSubtitle:{color:'#776A7D',fontSize:8,lineHeight:12,marginTop:3},questReadyPill:{position:'absolute',right:12,top:12,flexDirection:'row',alignItems:'center',gap:4,backgroundColor:'#FFFFFF',borderRadius:99,paddingHorizontal:7,paddingVertical:5},questReadyDot:{width:6,height:6,borderRadius:3,backgroundColor:'#65A936'},questReadyText:{color:'#568D36',fontSize:5,fontWeight:'900',letterSpacing:.55}
+ ,questCoverSpacing:{height:74,marginTop:0,paddingTop:15,paddingHorizontal:20,marginHorizontal:-14},questBrandTitle:{color:'#382044',fontFamily:'Jua',fontSize:15},questCounter:{marginLeft:'auto',width:45,height:45,borderRadius:15,backgroundColor:'#F4EBFA',borderWidth:0,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:4},questCounterText:{fontFamily:'Jua',fontSize:14,color:'#382044'},questSectionHeading:{flexDirection:'row',alignItems:'flex-end',justifyContent:'space-between',marginTop:-12,marginBottom:13,paddingTop:20,zIndex:5},questSectionKicker:{color:'#65A936',fontSize:7,fontWeight:'900',letterSpacing:1.2},questSectionTitle:{color:'#382044',fontFamily:'Jua',fontSize:23,marginTop:2},questSectionSubtitle:{color:'#817586',fontSize:9,lineHeight:13,marginTop:2,maxWidth:285},questReadyPill:{flexDirection:'row',alignItems:'center',gap:5,backgroundColor:'#EDF7E8',borderRadius:99,paddingHorizontal:9,paddingVertical:7},questReadyText:{color:'#568D36',fontSize:7,fontWeight:'900'}
+ ,questBrand:{flex:1,marginLeft:13,justifyContent:'center'},questBrandOverline:{color:'#8423D9',fontFamily:'Jua',fontSize:14,fontWeight:'400',letterSpacing:.7},questBrandRow:{display:'none'}
 });
-

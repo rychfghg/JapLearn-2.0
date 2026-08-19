@@ -5,88 +5,93 @@ const styles = StyleSheet.create({
         backgroundColor: '#8ED94D',
         padding: 10,
         width: '100%',
-        borderRadius: 5,
+        borderRadius: 16,
         borderColor: '#8AC25A',
         borderBottomWidth: 6,
-        height: 70,
+        height: 60,
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9,
     },
+    buttonPressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
 
     buttonText: {
         color: '#fff',
-        fontSize: 40,
+        fontSize: 21,
+        fontFamily: 'Jua',
     },
 
     buttonContainer: {
         alignItems: 'center',
-        marginTop: 20,
-        paddingTop: 20,
+        marginTop: 8,
     },
 
     container: {
         flex: 1,
-        justifyContent: 'center', // Center vertically
-        alignItems: 'center', // Center horizontally
-        paddingHorizontal: 30,
-        paddingVertical: 20, // Add some vertical padding
-        backgroundColor: '#ffffff',
+        backgroundColor: '#FBF9FD',
+        overflow: 'hidden',
+    },
+    scrollContent: { flexGrow: 1, paddingHorizontal: 22, paddingVertical: 34 },
+    contentWrapper: { width: '100%', maxWidth: 520, alignSelf: 'center' },
+    backgroundOrbTop: {
+        position: 'absolute', width: 250, height: 250, borderRadius: 125,
+        backgroundColor: '#F0E4FA', top: -120, right: -75,
+    },
+    backgroundOrbBottom: {
+        position: 'absolute', width: 210, height: 210, borderRadius: 105,
+        backgroundColor: '#EAF7DF', bottom: -110, left: -75,
+    },
+    formCard: {
+        backgroundColor: '#FFFFFF', borderRadius: 24, padding: 20,
+        shadowColor: '#462A5E', shadowOpacity: 0.12, shadowRadius: 20,
+        shadowOffset: { width: 0, height: 8 }, elevation: 6,
+    },
+    inputShell: {
+        flexDirection: 'row', alignItems: 'center', gap: 2,
+        backgroundColor: '#F6F3F8', borderWidth: 1, borderColor: '#E8E0ED',
+        borderRadius: 15, paddingHorizontal: 15, marginBottom: 12,
     },
 
     input: {
-        backgroundColor: '#ececec',
-        color: '#777676',
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10,
-        height: 60,
-        borderColor: 'red',
-        width: '100%', // Ensure inputs stretch the full container width
+        flex: 1, color: '#462A5E', paddingHorizontal: 10, height: 56,
+        fontSize: 16, outlineStyle: 'none', outlineWidth: 0,
     },
 
     imageContainer: {
-        paddingTop: '20%',
         alignItems: 'center',
-        marginBottom: 45,
+        marginBottom: 24,
     },
+    brandText: { color: '#8ED94D', fontSize: 20, fontFamily: 'Jua', marginTop: 8 },
+    subtitleText: { color: '#817586', fontSize: 14, marginTop: 5, textAlign: 'center' },
 
     linkContainer: {
-        marginTop: 40,
+        marginTop: 20,
         alignItems: 'center',
     },
 
     linkText: {
-        color: '#B6B5B5',
-        textDecorationLine: 'underline',
-        fontSize: 16,
+        color: '#8423D9',
+        fontWeight: '700',
+        fontSize: 14,
     },
+    linkPrompt: { color: '#817586', fontSize: 14 },
 
     errorInput: {
         borderWidth: 1,
-        borderColor: 'red',
+        borderColor: '#D84343',
     },
 
     errorText: {
-        color: 'white',
+        color: '#B3261E',
         marginLeft: 5,
         marginBottom: 18,
-        borderWidth: 1,
-        borderColor: 'red',
-        backgroundColor: 'red',
-        padding: 5,
-        borderRadius: 5,
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
+        fontSize: 12,
     },
     passwordContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         position: 'relative',
         width: '100%',
+        backgroundColor: '#F6F3F8', borderWidth: 1, borderColor: '#E8E0ED',
+        borderRadius: 15, paddingLeft: 15, marginBottom: 12,
     },
     passwordInput: {
         flex: 1,
@@ -94,15 +99,16 @@ const styles = StyleSheet.create({
     },
     insideInputButton: {
         position: 'absolute',
-        right: 10,
+        right: 8,
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
     },
     titleText: {
-        fontSize: 24,
+        fontSize: 25,
         fontFamily: 'Jua',
-        marginBottom: 20,
+        color: '#462A5E',
+        marginTop: 8,
         textAlign: 'center',
     },
 

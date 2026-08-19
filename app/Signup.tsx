@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TextInput, View, Pressable, Modal } from 'react-native';
-import CustomButton from '../components/CustomButton';
 import CustomModal from '../components/CustomModal';
 import PrivacyModal from '../components/PrivacyModal';
 import styles from '../styles/stylesSignup';
@@ -8,6 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import expoconfig from '../expoconfig';
 import PrivacyPolicyModal from '../components/PrivacyPolicyModal';
+import Logo from '../assets/svg/jpLogo.svg';
 
 const Signup = () => {
     const params = useLocalSearchParams();
@@ -150,12 +150,19 @@ const Signup = () => {
 
     return (
         <View style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <View>
+            <View style={styles.backgroundOrbTop} />
+            <View style={styles.backgroundOrbBottom} />
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+                <View style={styles.contentWrapper}>
                     <View style={styles.imageContainer}>
-                        <Text style={styles.titleText}>Please fill out the necessary fields.</Text>
+                        <Logo width={88} height={88} />
+                        <Text style={styles.brandText}>JAPLEARN 2.0</Text>
+                        <Text style={styles.titleText}>Create your account</Text>
+                        <Text style={styles.subtitleText}>Start your Japanese learning journey today.</Text>
                     </View>
-
+                    <View style={styles.formCard}>
+                    <View style={styles.inputShell}>
+                    <Ionicons name="person-outline" size={21} color="#8423D9" />
                     <TextInput
                         style={[styles.input, errors.fname ? styles.errorInput : null]}
                         value={fname}
@@ -174,7 +181,10 @@ const Signup = () => {
                         }}
                         onBlur={() => setFname(fname.trimEnd())}
                     />
+                    </View>
 
+                    <View style={styles.inputShell}>
+                    <Ionicons name="person-outline" size={21} color="#8423D9" />
                     <TextInput
                         style={[styles.input, errors.lname ? styles.errorInput : null]}
                         value={lname}
@@ -193,13 +203,16 @@ const Signup = () => {
                         }}
                         onBlur={() => setLname(lname.trimEnd())}
                     />
+                    </View>
 
+                    <View style={[styles.inputShell, errors.email ? styles.errorInput : null]}>
+                    <Ionicons name="mail-outline" size={21} color="#8423D9" />
                     <TextInput
-                        style={[styles.input, errors.email ? styles.errorInput : null]}
+                        style={styles.input}
                         value={email}
                         placeholder="Email"
                         autoCapitalize="none"
-                        keyboardType="email-address"
+                        inputMode="email"
                         maxLength={50}
                         onChangeText={(text) => {
                             const formattedText = text.replace(/\s/g, '').toLowerCase();
@@ -210,10 +223,12 @@ const Signup = () => {
                             }
                         }}
                     />
+                    </View>
 
                     {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
                     <View style={styles.passwordContainer}>
+                        <Ionicons name="lock-closed-outline" size={21} color="#8423D9" />
                         <TextInput
                             style={[styles.input, styles.passwordInput, errors.password ? styles.errorInput : null]}
                             secureTextEntry={!showPassword}
@@ -245,6 +260,7 @@ const Signup = () => {
                     {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
                     <View style={styles.passwordContainer}>
+                        <Ionicons name="shield-checkmark-outline" size={21} color="#8423D9" />
                         <TextInput
                             style={[styles.input, styles.passwordInput, errors.cpassword ? styles.errorInput : null]}
                             secureTextEntry={!showCPassword}
@@ -277,16 +293,20 @@ const Signup = () => {
 
                     <View style={styles.buttonContainer}>
                         {loading ? (
-                            <ActivityIndicator size="large" color="#0000ff" />
+                            <View style={styles.button}><ActivityIndicator size="small" color="#FFFFFF" /></View>
                         ) : (
-                            <CustomButton title="Sign Up" onPress={signup2} buttonStyle={styles.button} textStyle={styles.buttonText} />
+                            <Pressable onPress={signup2} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
+                                <Ionicons name="person-add-outline" size={21} color="#FFFFFF" />
+                                <Text style={styles.buttonText}>Create account</Text>
+                            </Pressable>
                         )}
                     </View>
 
                     <View style={styles.linkContainer}>
                         <Pressable onPress={() => router.push('/Login')}>
-                            <Text style={styles.linkText}>Already have an account? Sign In</Text>
+                            <Text style={styles.linkPrompt}>Already have an account? <Text style={styles.linkText}>Sign in</Text></Text>
                         </Pressable>
+                    </View>
                     </View>
                 </View>
 

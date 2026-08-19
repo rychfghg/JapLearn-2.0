@@ -12,34 +12,55 @@ const styles = StyleSheet.create({
   },
   header: {
     position: 'absolute',
-    top: 50,
-    left: 20,
+    top: 52,
+    left: 24,
+    zIndex: 5,
   },
   backButtonContainer: {
-    padding: 10,
-    backgroundColor: '#6200EE',
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    shadowColor: '#4A2859',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 4,
   },
   contentContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    width: '86%',
+    maxWidth: 480,
+    paddingVertical: 38,
+    paddingHorizontal: 24,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderWidth: 1,
+    borderColor: '#E7DDEF',
+    shadowColor: '#4A2859',
+    shadowOpacity: 0.1,
+    shadowRadius: 22,
+    elevation: 5,
   },
   character: {
-    fontSize: 80,
-    fontWeight: 'bold',
-    color: '#000',
+    fontSize: 96,
+    fontFamily: 'Jua',
+    color: '#442451',
     marginBottom: 20,
   },
   romaji: {
-    fontSize: 40,
-    color: '#333',
+    fontSize: 31,
+    fontFamily: 'Jua',
+    color: '#7A6B81',
     marginBottom: 40,
   },
   nextButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#6200EE',
-    borderRadius: 10,
+    backgroundColor: '#8423D9',
+    borderRadius: 15,
   },
   nextButtonText: {
     fontSize: 18,
@@ -48,8 +69,8 @@ const styles = StyleSheet.create({
   backButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: '#6200EE', // Keep original color
-    borderRadius: 10,  // Match the Next button's border radius
+    backgroundColor: '#F0E6F8',
+    borderRadius: 15,
     marginRight: 10,
   },
   buttonContainer: {
@@ -59,7 +80,7 @@ const styles = StyleSheet.create({
     
   },
   buttonText: {
-    color: 'white',
+    color: '#6321AD',
     textAlign: 'center',
     fontSize: 16,
   },
@@ -67,7 +88,8 @@ const styles = StyleSheet.create({
   audioButton: {
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 18,
+    backgroundColor: '#F1E7FA',
     marginHorizontal: 10,
   },
   audioButtonText: {

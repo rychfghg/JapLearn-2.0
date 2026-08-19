@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
+import AhiruMissionExit from '../components/AhiruMissionExit';
 import styles from '../styles/stylesQuackResponseGuided';
 
 import bgClassroom from '../assets/img/background/classroom a st2 day.png';
@@ -227,6 +228,7 @@ const QuackResponseGuided = () => {
   const [correctCount, setCorrectCount] = useState(0);
   const [mistakeCount, setMistakeCount] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   const zoomAnim = useRef(new Animated.Value(1)).current;
   const sumiFloat = useRef(new Animated.Value(0)).current;
@@ -342,7 +344,7 @@ const QuackResponseGuided = () => {
   const backToMenu = () => {
     setResultVisible(false);
     setFinished(false);
-    router.replace('/QuackResponse');
+    setIsExiting(true);
   };
 
   const sumiSprite =
@@ -354,6 +356,8 @@ const QuackResponseGuided = () => {
     resultVisible && isCorrect ? boySmile :
     resultVisible && !isCorrect ? boyFrown :
     current.boy;
+
+  if (isExiting) return <AhiruMissionExit color="#6E4BC6" tint="#EEE8FC" icon="chatbubble-ellipses-outline" eyebrow="GUIDED SESSION COMPLETE" title="A stronger reply!" message="You practiced building natural Japanese responses with clear, helpful guidance." footer="Good responses begin with confident small steps." mascot={require('../assets/hello.png')} onComplete={() => router.replace({ pathname:'/QuackResponse', params:{skipLoading:'1'} })} />;
 
   return (
     <ImageBackground source={currentScenario.background} style={styles.background} resizeMode="cover">

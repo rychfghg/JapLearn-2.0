@@ -1,301 +1,142 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    container: { flex: 1, backgroundColor: '#FBF9FD' },
+    darkContainer: { backgroundColor: '#17111D' },
+    scrollContent: { paddingBottom: 112 },
+    hero: {
+        backgroundColor: '#8423D9', minHeight: 310, alignItems: 'center',
+        paddingHorizontal: 20, paddingBottom: 34, overflow: 'hidden',
+        borderBottomLeftRadius: 34, borderBottomRightRadius: 34,
+    },
+    heroCircleOne: {
+        position: 'absolute', width: 230, height: 230, borderRadius: 115,
+        backgroundColor: 'rgba(255,255,255,0.07)', top: -100, right: -60,
+    },
+    heroCircleTwo: {
+        position: 'absolute', width: 155, height: 155, borderRadius: 80,
+        backgroundColor: 'rgba(142,217,77,0.10)', bottom: -70, left: -45,
     },
     header: {
-        height: 90,
-        justifyContent: 'center',
-        paddingLeft: '5%',
-        paddingTop: 30,
+        width: '100%', height: 68, flexDirection: 'row', alignItems: 'center',
+        justifyContent: 'space-between', marginBottom: 10,
     },
-    cover: {
-        backgroundColor: '#8423D9',
-        height: 180,
-        justifyContent: 'center',
-        alignItems: 'center',
-        
+    iconButton: {
+        width: 42, height: 42, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.15)',
+        alignItems: 'center', justifyContent: 'center',
     },
-    coverStudent: {
-        backgroundColor: '#8423D9',
-        height: 180,
-        justifyContent: 'center',
-        alignItems: 'center',
-        alignItems: 'flex-end', // Align content to the right 
-        paddingBottom:40,
-        paddingRight:10
+    headerTitle: { color: '#FFFFFF', fontFamily: 'Jua', fontSize: 21 },
+    headerSpacer: { width: 42 },
+    avatarShell: {
+        width: 112, height: 112, borderRadius: 34, backgroundColor: '#FFFFFF',
+        padding: 5, alignItems: 'center', justifyContent: 'center',
+        shadowColor: '#30143F', shadowOpacity: 0.28, shadowRadius: 16,
+        shadowOffset: { width: 0, height: 8 }, elevation: 8,
     },
-    profilePicture: {
-        width: 120,
-        height: 120,
-        borderRadius: 50,
-        borderWidth: 3,
-        borderColor: 'white',
+    profilePicture: { width: 100, height: 100, borderRadius: 29, resizeMode: 'cover' },
+    studentBadge: {
+        position: 'absolute', right: -7, bottom: -7, width: 34, height: 34,
+        borderRadius: 12, backgroundColor: '#8ED94D', borderWidth: 3, borderColor: '#8423D9',
+        alignItems: 'center', justifyContent: 'center',
     },
-    profileContainer: {
-        width: 150,
-        height: 150,
-        borderRadius: 75,
-        backgroundColor: 'white',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'absolute',
-        top: 110,
-        marginLeft: 10,
-        shadowColor: 'light-grey',
+    profileName: { color: '#FFFFFF', fontFamily: 'Jua', fontSize: 24, marginTop: 15 },
+    rolePill: {
+        backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 99,
+        paddingHorizontal: 12, paddingVertical: 6, marginTop: 7,
     },
-    description: {
-        padding: 20,
-        borderBottomColor: '#E1E1E1',
-        borderBottomWidth: 5,
-        borderTopWidth: 0,
-        borderLeftWidth: 0,
-        borderRightWidth: 0,
+    roleText: { color: '#F2E7FA', fontSize: 10, fontWeight: '800', letterSpacing: 1.1 },
+
+    pageContent: { paddingHorizontal: 20, marginTop: 20 },
+    infoCard: {
+        backgroundColor: '#FFFFFF', borderRadius: 23, padding: 18,
+        borderWidth: 1, borderColor: '#EEE7F1',
+        shadowColor: '#462A5E', shadowOpacity: 0.09, shadowRadius: 14,
+        shadowOffset: { width: 0, height: 5 }, elevation: 4,
     },
-    descText: {
-        fontFamily: 'Jua',
-        fontSize: 20,
-        marginTop: 10,
+    sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 },
+    sectionTitle: { color: '#462A5E', fontFamily: 'Jua', fontSize: 19 },
+    sectionSubtitle: { color: '#8B808F', fontSize: 11, marginTop: 2 },
+    verifiedPill: {
+        flexDirection: 'row', alignItems: 'center', gap: 4,
+        backgroundColor: '#EDF8E5', paddingHorizontal: 9, paddingVertical: 6, borderRadius: 99,
     },
-    descTextContainer: {
-        justifyContent: 'center',
+    verifiedText: { color: '#4C8C20', fontWeight: '700', fontSize: 10 },
+    infoRow: {
+        flexDirection: 'row', alignItems: 'center', paddingVertical: 12,
+        borderBottomWidth: 1, borderBottomColor: '#F1EDF3',
     },
-    descTextContainerStudent: {
-        justifyContent: 'center',
-        marginTop:-40
+    lastInfoRow: { borderBottomWidth: 0, paddingBottom: 2 },
+    infoIcon: {
+        width: 42, height: 42, borderRadius: 14, backgroundColor: '#F0E4FA',
+        alignItems: 'center', justifyContent: 'center', marginRight: 12,
     },
-    actionContainer: {
-        alignItems: 'flex-end', // Center items horizontally
-        marginTop: 5, // Adjust spacing above
-        marginRight: 10
-      },
-    whiteSpace: {
-        height: 75,
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        paddingRight: '5%',
+    infoCopy: { flex: 1 },
+    infoLabel: { color: '#9B929F', fontSize: 11, fontWeight: '600' },
+    infoValue: { color: '#4C3B55', fontSize: 14, fontWeight: '700', marginTop: 3 },
+
+    achievementsCard: {
+        backgroundColor: '#FFFFFF', borderRadius: 23, padding: 18, marginTop: 15,
+        borderWidth: 1, borderColor: '#EEE7F1',
+        shadowColor: '#462A5E', shadowOpacity: 0.07, shadowRadius: 12,
+        shadowOffset: { width: 0, height: 5 }, elevation: 3,
     },
-    whiteSpaceStudent: {
-        flexDirection: 'row',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        paddingRight: '10%',
+    badgeContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+    badgeWrapper: { width: '31%', alignItems: 'center' },
+    badgeImageShell: {
+        width: 82, height: 82, borderRadius: 23, backgroundColor: '#F4F1F5',
+        alignItems: 'center', justifyContent: 'center', position: 'relative',
     },
-    buttonContainer: {
-        height: 50,
-        backgroundColor: '#bababa',
-        borderRadius: 40,
-        overflow: 'hidden',
-        justifyContent: 'center',
+    badgeAcquired: { backgroundColor: '#F1F9EA', borderWidth: 1, borderColor: '#D7EDC6' },
+    badgeImage: { width: 74, height: 68, resizeMode: 'contain' },
+    badgeStatus: {
+        position: 'absolute', right: -4, bottom: -4, width: 23, height: 23,
+        borderRadius: 8, alignItems: 'center', justifyContent: 'center',
+        borderWidth: 2, borderColor: '#FFFFFF',
     },
-    buttonContainerStudent: {
-        height: 50,
-        backgroundColor: '#bababa',
-        borderRadius: 20,
-        overflow: 'hidden',
-        justifyContent: 'center',
-        marginVertical: 5,
-        width: 100,
-        marginBottom: 20, // Increased space below Logout button
+    badgeStatusUnlocked: { backgroundColor: '#73BE3E' },
+    badgeStatusLocked: { backgroundColor: '#9F969F' },
+    badgeName: { color: '#62546A', fontSize: 11, fontWeight: '700', textAlign: 'center', marginTop: 9 },
+
+    settingsTitle: { color: '#462A5E', fontFamily: 'Jua', fontSize: 18, marginTop: 22, marginBottom: 10 },
+    settingsCard: {
+        backgroundColor: '#FFFFFF', borderRadius: 21, paddingHorizontal: 16,
+        borderWidth: 1, borderColor: '#EEE7F1', overflow: 'hidden',
     },
-    buttonText: {
-        color: 'white',
-        fontFamily: 'Jua',
-        fontSize: 16,
-        textAlign: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 10,
+    settingRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F0EBF2' },
+    logoutRow: { borderBottomWidth: 0 },
+    settingIcon: {
+        width: 42, height: 42, borderRadius: 14, backgroundColor: '#F0E4FA',
+        alignItems: 'center', justifyContent: 'center', marginRight: 12,
     },
-    buttonTextStudent: {
-        color: 'white',
-        fontFamily: 'Jua',
-        fontSize: 16,
-        textAlign: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 10,
-    },
-    clickableTextStudent: {
-        color: '#6200EE',
-        fontSize: 16,
-        textDecorationLine: 'underline',
-        marginTop: 10, // Space between the Logout button and the clickable text
-      },
-    button: {
-        backgroundColor: '#6200EE', // Purple button
-        borderRadius: 5,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        alignItems: 'center',
-        marginTop: 10,
-    },
-    categoryContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 20,
-        marginBottom: 20,
-    },
-    categoryButton: {
-        backgroundColor: '#8ED94D',
-        paddingVertical: 20,
-        paddingHorizontal: 10,
-        borderRadius: 35,
-        marginHorizontal: 5,
-    },
-    categoryButtonText: {
-        color: 'white',
-        fontFamily: 'Jua',
-        fontSize: 14,
-    },
-    contentScrollContainer: {
-        paddingHorizontal: 20,
-    },
-    contentContainer: {
-        paddingBottom: 20,
-    },
-    scoresContainer: {
-        marginTop: 20,
-    },
-    gameTitle: {
-        fontSize: 22,
-        fontFamily: 'Jua',
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    scoreCard: {
-        backgroundColor: '#E1E1E1',
-        padding: 15,
-        borderRadius: 10,
-        marginBottom: 10,
-    },
-    scoreText: {
-        fontSize: 16,
-        fontFamily: 'Jua',
-        marginBottom: 5,
-    },
-    noScoresText: {
-        fontSize: 18,
-        fontFamily: 'Jua',
-        textAlign: 'center',
-        marginTop: 20,
-        color: 'grey',
-    },
-    // Modal Styles
+    logoutIcon: { backgroundColor: '#FCEBED' },
+    settingCopy: { flex: 1 },
+    settingLabel: { color: '#4C3B55', fontSize: 14, fontWeight: '700' },
+    logoutLabel: { color: '#B73540', fontSize: 14, fontWeight: '700' },
+    settingDescription: { color: '#978D9B', fontSize: 11, marginTop: 3 },
+
     modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dim the background
+        flex: 1, justifyContent: 'center', alignItems: 'center',
+        backgroundColor: 'rgba(38,22,50,0.58)', paddingHorizontal: 24,
     },
     modalContent: {
-        width: '80%', // Adjust width to a narrower size
-        maxWidth: 300, // Limit maximum width for better UI
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
-        alignItems: 'center',
-        shadowColor: '#000', // Add shadow for better focus
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5, // For Android
+        width: '100%', maxWidth: 380, backgroundColor: '#FFFFFF', borderRadius: 24,
+        padding: 25, alignItems: 'center',
+        shadowColor: '#24152F', shadowOpacity: 0.25, shadowRadius: 22,
+        shadowOffset: { width: 0, height: 10 }, elevation: 10,
     },
-    modalTitle: {
-        fontSize: 18, // Slightly smaller title font
-        fontFamily: 'Jua',
-        marginBottom: 10,
-        fontWeight: 'bold',
+    modalIcon: {
+        width: 58, height: 58, borderRadius: 19, backgroundColor: '#F0E4FA',
+        alignItems: 'center', justifyContent: 'center', marginBottom: 14,
     },
-    modalMessage: {
-        fontSize: 16,
-        color: '#555',
-        textAlign: 'center',
-        marginVertical: 10,
-        lineHeight: 22, // Better readability
-    },
+    modalTitle: { color: '#462A5E', fontFamily: 'Jua', fontSize: 21, textAlign: 'center' },
+    modalMessage: { color: '#756A7B', fontSize: 14, lineHeight: 21, textAlign: 'center', marginVertical: 12 },
     buttonContainer: {
-        backgroundColor: '#bababa', // Light gray for buttons
-        borderRadius: 20,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        marginTop: 15,
-        marginRight: 10,
+        width: '100%', height: 52, backgroundColor: '#8ED94D', borderRadius: 15,
+        justifyContent: 'center', marginTop: 8, borderBottomWidth: 5, borderBottomColor: '#73B83B',
     },
-    
-    input: {
-        width: '100%',
-        borderWidth: 1,
-        borderColor: '#E1E1E1',
-        borderRadius: 5,
-        padding: 10,
-        marginBottom: 10,
-    },
-    errorInput: {
-        borderColor: 'red',
-    },
-    errorText: {
-        color: 'red',
-        fontSize: 14,
-        marginBottom: 10,
-        fontFamily: 'Jua',
-    },
-    modalButton: {
-        backgroundColor: '#8ED94D',
-        borderRadius: 5,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        marginTop: 10,
-    },
-    modalButtonText: {
-        color: 'white',
-        fontSize: 16,
-        textAlign: 'center',
-        fontFamily: 'Jua',
-    },
-    badgeContainer: {
-        flexDirection: "row",
-        justifyContent: "center", // Closer alignment
-        alignItems: "center",
-        marginTop: 10, // Slight margin for balance
-        // paddingHorizontal: 400, // Reduced padding
-    },
-    badgeWrapper: {
-        alignItems: "center",
-        marginHorizontal: 0,
-    },
-    badgeImage: {
-        width: 110,
-        height: 100,
-        resizeMode: "contain",
-    },
-    badgeText: {
-        marginTop: 10,
-        fontSize: 14,
-        fontWeight: "bold",
-        textAlign: "center",
-    },
-
-    badgesTitle: {
-        fontSize: 22,
-        fontWeight: "bold",
-        textAlign: "center",
-        marginVertical: 20,
-        fontFamily: "Jua", // Keep consistent with your app's font style
-      },
-      
-      lockedBadgeWrapper: {
-        backgroundColor: "#E1E1E1", // Light gray background
-        borderRadius: 75, // Rounded container for consistency
-        padding: 5, // Inner padding for better spacing
-        alignItems: "center",
-        justifyContent: "center",
-      },
-      
-      lockedBadgeImage: {
-        opacity: 0.5, // Make the badge image semi-transparent
-      },
-      
-      
+    buttonText: { color: '#FFFFFF', fontFamily: 'Jua', fontSize: 16, textAlign: 'center' },
+    darkCard: { backgroundColor: '#281E30', borderColor: '#3D3046' },
+    darkTitle: { color: '#F5EDF9' },
+    darkText: { color: '#EDE4F1' },
+    darkMuted: { color: '#B6A9BC' },
 });

@@ -26,7 +26,7 @@ const QuackslateHost = () => {
 
     const fetchContent = async () => {
         try {
-            const response = await fetch(`${expoconfig.API_URL}/api/quackslateContent/getAllQuackslateContent`);
+            const response = await fetch(`${expoconfig.API_URL}/api/quackslateContent/getByGameCode/${gameCode}`);
             if (response.ok) {
                 const data = await response.json();
                 setContent(data);

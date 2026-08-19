@@ -1,190 +1,53 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  Animated,
-  ImageBackground,
-} from 'react-native';
-import { router } from 'expo-router';
+import { Animated, Image, ImageBackground, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackResponse';
 
-const QuackResponse = () => {
-  const [progress, setProgress] = useState(0);
-  const [loaded, setLoaded] = useState(false);
+const games = [
+  { title:'Guided Response', subtitle:'Build the right reply', description:'Follow helpful cues and learn how natural Japanese responses are formed.', route:'/QuackResponseGuided', icon:'chatbubble-ellipses-outline', label:'GUIDED MODE', color:'#6E4BC6', tint:'#EEE8FC', mascot:require('../assets/talk.png') },
+  { title:'Timed Challenge', subtitle:'Think fast, answer naturally', description:'Race the clock and strengthen your instinct for everyday Japanese replies.', route:'/QuackResponseTimed', icon:'timer-outline', label:'SPEED MODE', color:'#E58B2A', tint:'#FFF0DE', mascot:require('../assets/Surprised.png') },
+  { title:'Multi-Step', subtitle:'Keep the conversation moving', description:'Choose connected responses across a complete conversation sequence.', route:'/QuackResponseMultiStep', icon:'git-branch-outline', label:'CHAIN MODE', color:'#D84F83', tint:'#FCE7EF', mascot:require('../assets/thinking.png') },
+] as const;
 
-  const floatAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+export default function QuackResponse() {
+  const { skipLoading } = useLocalSearchParams<{skipLoading?:string}>();
+  const [progress,setProgress]=useState(0);
+  const [loaded,setLoaded]=useState(skipLoading==='1');
+  const [launching,setLaunching]=useState<(typeof games)[number]|null>(null);
+  const [launchProgress,setLaunchProgress]=useState(0);
+  const [sampleFrame,setSampleFrame]=useState(0);
+  const pulse=useRef(new Animated.Value(1)).current;
+  const shine=useRef(new Animated.Value(-1)).current;
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setLoaded(true);
-          return 100;
-        }
+  useEffect(()=>{
+    if(skipLoading==='1'){setLoaded(true);return;}
+    const timer=setInterval(()=>setProgress(value=>{if(value>=100){clearInterval(timer);setLoaded(true);return 100;}return value+10;}),110);
+    Animated.loop(Animated.sequence([Animated.timing(pulse,{toValue:1.07,duration:800,useNativeDriver:true}),Animated.timing(pulse,{toValue:1,duration:800,useNativeDriver:true})])).start();
+    Animated.loop(Animated.timing(shine,{toValue:1,duration:1450,useNativeDriver:true})).start();
+    return()=>clearInterval(timer);
+  },[skipLoading]);
 
-        return prev + 10;
-      });
-    }, 110);
+  useEffect(()=>{
+    const frameTimer=setInterval(()=>setSampleFrame(frame=>(frame+1)%4),620);
+    return()=>clearInterval(frameTimer);
+  },[]);
 
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(floatAnim, {
-          toValue: -10,
-          duration: 750,
-          useNativeDriver: true,
-        }),
-        Animated.timing(floatAnim, {
-          toValue: 0,
-          duration: 750,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+  const launch=(game:(typeof games)[number])=>{
+    if(launching)return;
+    setLaunching(game);setLaunchProgress(8);let value=8;
+    const timer=setInterval(()=>{value=Math.min(value+12,100);setLaunchProgress(value);if(value>=100){clearInterval(timer);router.push(game.route);setTimeout(()=>{setLaunching(null);setLaunchProgress(0);},350);}},55);
+  };
 
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.08,
-          duration: 850,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 850,
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+  if(!loaded)return <View style={styles.premiumLoading}><View style={styles.loadOrbOne}/><View style={styles.loadOrbTwo}/><View style={styles.loadCard}><View style={styles.loadContent}><View style={styles.loadBrand}><Ionicons name="chatbubbles-outline" size={15} color="#7542BA"/><Text style={styles.loadBrandText}>AHIRU RESPONSE PRACTICE</Text></View><View style={styles.responseBadgeStage}><Animated.View style={[styles.responseBadgeGlow,{transform:[{scale:pulse}]}]}/><View style={styles.responseBadgeOuter}><View style={styles.responseBadgeInner}><Text style={styles.responseBadgeCharacter}>応</Text><Ionicons name="chatbubbles" size={38} color="#FFF"/></View></View><Animated.View style={[styles.responseBadgeSweep,{transform:[{translateX:shine.interpolate({inputRange:[-1,1],outputRange:[-110,110]})},{rotate:'-18deg'}]}]}/><Text style={styles.responseSparkleOne}>✦</Text><Text style={styles.responseSparkleTwo}>✧</Text></View><Text style={styles.loadJapanese}>会話で学ぶ</Text><Text style={styles.loadKicker}>NATURAL JAPANESE REPLIES</Text><Text style={styles.loadTitle}>Preparing response practice</Text><Text style={styles.loadCopy}>Setting up your guided, timed, and conversation activities.</Text><View style={styles.loadStatus}><Text style={styles.loadStatusText}>GETTING THINGS READY</Text><Text style={styles.loadValue}>{progress}%</Text></View><View style={styles.loadTrack}><View style={[styles.loadFill,{width:`${progress}%`}]}/></View><View style={styles.loadSteps}><View style={[styles.loadStep,progress>=25&&styles.loadStepActive]}/><View style={[styles.loadStep,progress>=50&&styles.loadStepActive]}/><View style={[styles.loadStep,progress>=75&&styles.loadStepActive]}/><View style={[styles.loadStep,progress>=100&&styles.loadStepActive]}/></View><View style={styles.loadFooter}><Ionicons name="sparkles" size={13} color="#7542BA"/><Text style={styles.loadFooterText}>{progress<50?'Preparing your practice':progress<90?'Almost ready':'Ready to begin'}</Text></View></View></View></View>;
 
-    return () => clearInterval(interval);
-  }, []);
+  if(launching)return <View style={[styles.gameLoading,{backgroundColor:launching.tint}]}><View style={[styles.gameLoadOrb,styles.gameLoadOrbTop,{backgroundColor:launching.color}]}/><View style={[styles.gameLoadOrb,styles.gameLoadOrbBottom,{backgroundColor:launching.color}]}/><View style={styles.gameLoadCard}><View style={[styles.gameLoadBadge,{backgroundColor:launching.tint}]}><Ionicons name={launching.icon} size={16} color={launching.color}/><Text style={[styles.gameLoadBadgeText,{color:launching.color}]}>{launching.label}</Text></View><View style={styles.gameBadgeStage}><Animated.View style={[styles.gameBadgeGlow,{backgroundColor:`${launching.color}24`,transform:[{scale:pulse}]}]}/><View style={[styles.gameBadgeOuter,{borderColor:`${launching.color}50`}]}><View style={[styles.gameBadgeInner,{backgroundColor:launching.color}]}><Text style={styles.gameBadgeCharacter}>{launching.title==='Guided Response'?'導':launching.title==='Timed Challenge'?'速':'会'}</Text><Ionicons name={launching.icon} size={28} color="#FFF"/></View></View><Animated.View style={[styles.gameBadgeSweep,{transform:[{translateX:shine.interpolate({inputRange:[-1,1],outputRange:[-110,110]})},{rotate:'-18deg'}]}]}/><Image source={launching.mascot} style={styles.gameBadgeMascot} resizeMode="contain"/><Text style={[styles.gameBadgeSparkle,{color:launching.color}]}>✦</Text></View><Text style={styles.gameLoadKicker}>YOUR NEXT PRACTICE</Text><Text style={styles.gameLoadTitle}>{launching.title}</Text><Text style={styles.gameLoadCopy}>{launching.description}</Text><View style={styles.gameLoadStatus}><Text style={styles.gameLoadStatusText}>{launchProgress<45?'Preparing your mission':launchProgress<85?'Setting the challenge':'Mission ready!'}</Text><Text style={[styles.gameLoadValue,{color:launching.color}]}>{launchProgress}%</Text></View><View style={styles.gameLoadTrack}><View style={[styles.gameLoadFill,{width:`${launchProgress}%`,backgroundColor:launching.color}]}/></View><View style={styles.gameLoadNote}><Ionicons name="sparkles" size={14} color={launching.color}/><Text style={styles.gameLoadNoteText}>{launchProgress<45?'Preparing the activity':launchProgress<90?'Loading your challenge':'Ready to start'}</Text></View></View></View>;
 
-  if (!loaded) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Image
-          source={require('../assets/quackman_loadingscreen.png')}
-          style={styles.loadingBackground}
-        />
-
-        <Animated.Image
-          source={require('../assets/flipload.gif')}
-          style={[
-            styles.loadingDuck,
-            {
-              transform: [{ scale: pulseAnim }],
-            },
-          ]}
-        />
-
-        <Text style={styles.loadingTitle}>QuackResponse</Text>
-
-        <View style={styles.loadingBarOuter}>
-          <View style={[styles.loadingBarInner, { width: `${progress}%` }]} />
-        </View>
-
-        <Text style={styles.loadingPercent}>{progress}%</Text>
-      </View>
-    );
-  }
-
-  return (
-    <ImageBackground
-      source={require('../assets/forest2.png')}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <View style={styles.overlay} />
-
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/Exercises')}>
-          <View style={styles.backButtonContainer}>
-            <BackIcon width={22} height={22} fill="white" />
-          </View>
-        </TouchableOpacity>
-
-        <View style={styles.headerTitleBox}>
-          <Text style={styles.headerSmall}>RESPONSE TRAINING</Text>
-          <Text style={styles.headerTitle}>QuackResponse</Text>
-        </View>
-
-        <Image
-          source={require('../assets/talk.png')}
-          style={styles.headerDuck}
-        />
-      </View>
-
-      <View style={styles.stage}>
-        <Text style={styles.stageTitle}>Choose a Mission</Text>
-        <Text style={styles.stageSubtitle}>
-          Train fast, natural Japanese responses.
-        </Text>
-
-        <Animated.Image
-          source={require('../assets/Idle_TrapDoor.png')}
-          style={[
-            styles.centerDuck,
-            {
-              transform: [{ translateY: floatAnim }],
-            },
-          ]}
-        />
-
-        <View style={styles.pathLine} />
-
-        <TouchableOpacity
-          activeOpacity={0.9}
-          style={[styles.missionNode, styles.nodeOne]}
-          onPress={() => router.push('/QuackResponseGuided')}
-        >
-          <View style={styles.nodeCircleActive}>
-            <Text style={styles.nodeNumber}>2.1</Text>
-          </View>
-          <Text style={styles.nodeTitle}>Guided Response</Text>
-          <Text style={styles.nodeDesc}>Beginner scenarios</Text>
-          <Text style={styles.nodeStatusReady}>PLAY</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.9}
-          style={[styles.missionNode, styles.nodeTwo]}
-          onPress={() => router.push('/QuackResponseTimed')}
-        >
-          <View style={styles.nodeCircleTimer}>
-            <Text style={styles.nodeNumber}>2.2</Text>
-          </View>
-          <Text style={styles.nodeTitle}>Timed Challenge</Text>
-          <Text style={styles.nodeDesc}>Answer quickly</Text>
-          <Text style={styles.nodeStatusTimer}>SPEED</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.9}
-          style={[styles.missionNode, styles.nodeThree]}
-          onPress={() => router.push('/QuackResponseMultiStep')}
-        >
-          <View style={styles.nodeCircleLocked}>
-            <Text style={styles.nodeNumber}>2.3</Text>
-          </View>
-          <Text style={styles.nodeTitle}>Multi-Step</Text>
-          <Text style={styles.nodeDesc}>Conversation chain</Text>
-          <Text style={styles.nodeStatusLocked}>SOON</Text>
-        </TouchableOpacity>
-
-        <View style={styles.coachBubble}>
-          <Text style={styles.coachName}>Ahiru Coach</Text>
-          <Text style={styles.coachText}>
-            Start with 2.1, then challenge your speed in 2.2.
-          </Text>
-        </View>
-      </View>
-    </ImageBackground>
-  );
-};
-
-export default QuackResponse;
+  return <SafeAreaView style={styles.safeArea}><ImageBackground source={require('../assets/forest2.png')} style={styles.background} resizeMode="cover"><View style={styles.lightOverlay}/><ScrollView contentContainerStyle={styles.menuScroll} showsVerticalScrollIndicator={false}>
+    <View style={styles.topBar}><Pressable onPress={()=>router.push('/Exercises')} style={styles.menuBack}><BackIcon width={18} height={18} fill="#47295A"/></Pressable><View style={styles.menuBrand}><Ionicons name="flash-outline" size={15} color="#D84F83"/><Text style={styles.menuBrandText}>AHIRU RESPONSE LAB</Text></View><View style={styles.menuTopIcon}><Ionicons name="chatbubbles-outline" size={22} color="#6E4BC6"/></View></View>
+    <View style={styles.responseHero}><View style={styles.heroBurstOne}/><View style={styles.heroBurstTwo}/><View style={styles.heroCopy}><View style={styles.heroPill}><Ionicons name="sparkles" size={12} color="#D84F83"/><Text style={styles.heroPillText}>QUICK RESPONSE</Text></View><Text style={styles.responseHeroTitle}>Find the words.{`\n`}Keep it flowing.</Text><Text style={styles.responseHeroText}>Train faster, more natural Japanese responses through three interactive missions.</Text><Pressable onPress={()=>launch(games[0])} style={styles.heroButton}><Ionicons name="play" size={13} color="#FFF"/><Text style={styles.heroButtonText}>Start guided mode</Text></Pressable></View><View style={styles.heroMascotStage}><View style={styles.heroMascotHalo}/><View style={styles.sampleLabel}><Ionicons name="chatbubbles-outline" size={11} color="#6E4BC6"/><Text style={styles.sampleLabelText}>SAMPLE RESPONSE</Text></View><Image source={sampleFrame===1?require('../assets/hello.png'):require('../assets/idle.png')} style={styles.responseMascotLeft} resizeMode="contain"/><Image source={sampleFrame===3?require('../assets/talk.png'):require('../assets/idle.png')} style={styles.responseMascotRight} resizeMode="contain"/><View style={styles.promptChip}><Text style={styles.promptChipText}>{sampleFrame<2?'こんにちは!':'...'}</Text></View><View style={styles.speechChip}><Text style={styles.speechChipText}>{sampleFrame>=2?'こんにちは!':'...'}</Text></View></View></View>
+    <View style={styles.responseHeading}><View><Text style={styles.responseSectionTitle}>Choose a response game</Text><Text style={styles.responseSectionText}>Practice with support, speed, or conversation chains.</Text></View><View style={styles.responseCount}><Text style={styles.responseCountText}>3 GAMES</Text></View></View>
+    <View style={styles.responseList}>{games.map((game,index)=>{const kanji=index===0?'導':index===1?'速':'会';const reading=index===0?'みちびく':index===1?'はやい':'かいわ';return <Pressable key={game.title} onPress={()=>launch(game)} style={({pressed})=>[styles.responseCard,{backgroundColor:game.color},pressed&&styles.responsePressed]}><View style={styles.responseGlow}/><View style={styles.responseCardTop}><View style={styles.responseBadge}><Ionicons name={game.icon} size={15} color={game.color}/><Text style={[styles.responseBadgeText,{color:game.color}]}>{game.label}</Text></View><Text style={styles.responseGameNumber}>GAME 0{index+1}</Text></View><View style={styles.responseCardBody}><View style={styles.responseCardCopy}><Text style={styles.responseCardTitle}>{game.title}</Text><Text style={styles.responseCardSubtitle}>{game.subtitle}</Text><Text style={styles.responseCardDescription}>{game.description}</Text><View style={styles.responsePlay}><Text style={[styles.responsePlayText,{color:game.color}]}>PLAY</Text><Ionicons name="arrow-forward" size={15} color={game.color}/></View></View><View style={styles.responseArt}><View style={styles.responseArtCircle}/><View style={styles.responseArtCircleInner}/><View style={styles.japanSun}/><Text style={styles.kanjiText}>{kanji}</Text><View style={styles.readingPill}><Text style={styles.kanjiReading}>{reading}</Text></View></View></View></Pressable>})}</View>
+  </ScrollView></ImageBackground></SafeAreaView>;
+}

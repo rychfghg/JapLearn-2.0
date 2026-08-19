@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, Text, Image, Pressable } from 'react-native';
+import { View, TouchableOpacity, Text, Image, Pressable, ImageBackground } from 'react-native';
 import { styles } from "../styles/stylesCharacterExercise";
 import BackIcon from '../assets/svg/back-icon.svg';
 import cardBackImage from '../assets/img/card_back.png';
@@ -6,6 +6,9 @@ import { useRouter } from 'expo-router';
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import expoconfig from '../expoconfig';
+import ExerciseCompletionBadge from '../components/ExerciseCompletionBadge';
+import ExerciseGameHeader from '../components/ExerciseGameHeader';
+import ExerciseCompletePanel from '../components/ExerciseCompletePanel';
 
 // Fisher-Yates shuffle algorithm
 const shuffleArray = (array) => {
@@ -122,40 +125,16 @@ const CharacterExercise1 = () => {
     const handleCompleteExercise = async () => {
         if (user && user.email) {
             try {
-                // Fetch the current progress for the user
-                const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}`);
-                
-                if (response.ok) {
-                    const progress = await response.json();
-    
-                    // Check if hiragana1 is already true
-                    if (progress.hiragana1) {
-                        console.log("Progress already completed for hiragana1. Skipping update.");
-                        router.push("/HiraganaMenu");
-                        return; // Exit if already true
-                    }
-    
-                    // If not true, update progress
-                    const updateResponse = await fetch(
-                        `${expoconfig.API_URL}/api/progress/${user.email}`,
-                        {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({ email: user.email }) // Send the email in the body
-                        }
-                    );
-    
-                    if (updateResponse.ok) {
-                        console.log("Progress saved successfully!");
-                    } else {
-                        const error = await updateResponse.json();
-                        console.log(error.message || "An error occurred while updating progress.");
-                    }
-                } else {
-                    console.log("Failed to fetch user progress.");
+                const updateResponse = await fetch(
+                    `${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}/updateField?field=hiragana1&value=true`,
+                    { method: 'PUT', headers: { 'Content-Type': 'application/json' } }
+                );
+
+                if (!updateResponse.ok) {
+                    throw new Error('Could not save Hiragana Basics 1 progress.');
                 }
+
+                console.log('Hiragana Basics 1 recorded successfully.');
             } catch (error) {
                 console.log(`Error: ${error.message}`);
             }
@@ -180,15 +159,17 @@ const CharacterExercise1 = () => {
     }, [currentSetIndex]);
 
     return (
-        <View style={{ flex: 1 }}>
+        <ImageBackground source={require('../assets/img/LessonJourneyBackground.png')} style={styles.screenBackground}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={handleBackPress}>
                     <View style={styles.backButtonContainer}>
-                        <BackIcon width={20} height={20} fill={'white'} />
+              <BackIcon width={20} height={20} fill={'#4B2B59'} />
                     </View>
                 </TouchableOpacity>
+                <ExerciseCompletionBadge email={user?.email} field="hiragana1" />
             </View>
             <View style={styles.matchGame}>
+                <ExerciseGameHeader currentRound={currentSetIndex + 1} totalRounds={sets.length} previewing={gameState === 'preview'} />
                 <Text style={styles.matchGameText}>
                     {gameState === 'preview'
                         ? 'Memorize the placement!'
@@ -226,17 +207,9 @@ const CharacterExercise1 = () => {
                         );
                     })}
                 </View>
-                {message && (
-                    <View style={styles.messageContainer}>
-                    <Text style={styles.message}>{message}</Text>
-                    <Pressable style={styles.nextButton} onPress={handleCompleteExercise}>
-                        <Text style={styles.nextButtonText}>Done</Text>
-                    </Pressable>
-                </View>
-                
-                )}
+                {message && <ExerciseCompletePanel onDone={handleCompleteExercise} />}
             </View>
-        </View>
+        </ImageBackground>
     );
 };
 

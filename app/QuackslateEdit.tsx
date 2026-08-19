@@ -114,9 +114,11 @@ const QuackslateEdit = () => {
                     translatedWord: wordToTranslate, // The English translation of the word
                     level: title, // The level title (this is passed from the frontend)
                     classCode: classCode, // The class code (this is passed from the frontend)
+                    gameCode: gameCode,
                     options: options, // Array of options (answers)
                     correctAnswer: correctAnswer,  // Correct answer is the full sentence made up of the options
                     wrongAnswer: wrongAnswer.trim() !== '' ? wrongAnswer : null, // Only set if provided
+                    gameCode: gameCode,
                 }),
             });
     
