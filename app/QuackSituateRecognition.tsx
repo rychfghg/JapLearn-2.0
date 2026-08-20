@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, ImageBackground, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import BackIcon from '../assets/svg/back-icon.svg';
 import AhiruMissionExit from '../components/AhiruMissionExit';
 import { AuthContext } from '../context/AuthContext';
@@ -94,7 +94,24 @@ export default function QuackSituateRecognition() {
       <View style={styles.statusRow}><View style={[styles.levelPill, question.difficulty === 'HARD' && styles.hardPill]}><Ionicons name={question.difficulty === 'HARD' ? 'flame' : 'leaf'} size={13} color={question.difficulty === 'HARD' ? '#D87D19' : '#65A936'} /><Text style={[styles.levelPillText, question.difficulty === 'HARD' && styles.hardPillText]}>{question.difficulty}</Text></View><Text style={styles.phaseText}>{phaseNumber} / {phaseTotal}</Text><View style={styles.scorePill}><Ionicons name="star" size={14} color="#E29A17" /><Text style={styles.scoreText}>{correctCount * 10}</Text></View></View>
       <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%` }]} /></View>
       <View style={styles.introCopy}><Text style={styles.introTitle}>Pick the best phrase</Text><Text style={styles.introText}>Read the situation and choose the Japanese expression that feels natural.</Text></View>
-      <View style={styles.sceneCard}><ImageBackground source={sceneImage} style={styles.sceneImage} imageStyle={styles.sceneImageStyle} resizeMode="cover"><View style={styles.sceneShade} /><View style={styles.locationPill}><Ionicons name="location" size={14} color="#FFFFFF" /><Text style={styles.locationText}>{question.location}</Text></View></ImageBackground><View style={styles.scenarioCopy}><Text style={styles.scenarioLabel}>WHAT WOULD YOU SAY?</Text><Text style={styles.scenarioText}>{question.scenario}</Text></View></View>
+      <View style={styles.sceneCard}>
+        <View style={styles.sceneMedia}>
+          <Image source={sceneImage} style={styles.sceneBackdrop} resizeMode="cover" blurRadius={12} />
+          <View style={styles.sceneBackdropTint} />
+          <Image source={sceneImage} style={styles.scenePicture} resizeMode="contain" />
+          <View style={styles.locationPill}>
+            <Ionicons name="location" size={14} color="#FFFFFF" />
+            <Text style={styles.locationText}>{question.location}</Text>
+          </View>
+        </View>
+        <View style={styles.scenarioCopy}>
+          <View style={styles.scenarioHeading}>
+            <View style={styles.scenarioMarker}><Ionicons name="chatbubble-ellipses" size={14} color="#65A936" /></View>
+            <Text style={styles.scenarioLabel}>WHAT WOULD YOU SAY?</Text>
+          </View>
+          <Text style={styles.scenarioText}>{question.scenario}</Text>
+        </View>
+      </View>
       <View style={styles.answerHeader}><View><Text style={styles.answerTitle}>Choose your response</Text><Text style={styles.answerSubtitle}>Japanese phrase with reading support</Text></View><Pressable style={styles.hintButton} onPress={() => setHintVisible(true)}><Ionicons name="information-circle-outline" size={20} color="#8423D9" /><Text style={styles.hintButtonText}>Hint</Text></Pressable></View>
       <View style={styles.choices}>{question.choices.map((choice, choiceIndex) => { const active = selected?.japanese === choice.japanese; return <Pressable key={`${choice.japanese}-${choiceIndex}`} style={[styles.choiceCard, active && styles.choiceCardActive]} onPress={() => setSelected(choice)}><View style={[styles.choiceMarker, active && styles.choiceMarkerActive]}><Text style={[styles.choiceMarkerText, active && styles.choiceMarkerTextActive]}>{String.fromCharCode(65 + choiceIndex)}</Text></View><View style={styles.choiceCopy}><Text style={styles.choiceJapanese}>{choice.japanese}</Text><Text style={styles.choiceRomaji}>{choice.romaji}</Text></View><Ionicons name={active ? 'checkmark-circle' : 'ellipse-outline'} size={23} color={active ? '#8423D9' : '#D7CBDB'} /></Pressable>; })}</View>
       <Pressable disabled={!selected} style={[styles.submitButton, !selected && styles.submitButtonDisabled]} onPress={submit}><Text style={styles.submitText}>LOCK IN ANSWER</Text><Ionicons name="arrow-forward" size={19} color="#FFFFFF" /></Pressable>
