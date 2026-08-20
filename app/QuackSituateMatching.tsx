@@ -277,13 +277,27 @@ export default function QuackSituateMatching() {
               {ropePaths.map(path => {
                 const startY = 112 + path.left * cardHeight + (cardHeight - 28) / 2;
                 const endY = 112 + path.right * cardHeight + (cardHeight - 28) / 2;
-                return <Path key={path.left} d={`M ${boardWidth * 0.395} ${startY} C ${boardWidth * 0.48} ${startY}, ${boardWidth * 0.52} ${endY}, ${boardWidth * 0.605} ${endY}`} stroke={path.color} strokeWidth="6" strokeLinecap="round" fill="none" />;
+                const rope = `M ${boardWidth * 0.395} ${startY} C ${boardWidth * 0.48} ${startY}, ${boardWidth * 0.52} ${endY}, ${boardWidth * 0.605} ${endY}`;
+                return (
+                  <React.Fragment key={path.left}>
+                    <Path d={rope} stroke="#4A2C42" strokeWidth="10" strokeLinecap="round" fill="none" opacity="0.16" />
+                    <Path d={rope} stroke={path.color} strokeWidth="7" strokeLinecap="round" fill="none" />
+                    <Path d={rope} stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="5 9" fill="none" opacity="0.5" />
+                  </React.Fragment>
+                );
               })}
               {dragRope && (() => {
                 const startX = boardWidth * 0.395;
                 const startY = 112 + dragRope.expressionIndex * cardHeight + (cardHeight - 28) / 2;
                 const controlX = Math.max(startX + 22, (startX + dragRope.x) / 2);
-                return <Path d={`M ${startX} ${startY} C ${controlX} ${startY}, ${controlX} ${dragRope.y}, ${dragRope.x} ${dragRope.y}`} stroke={ropeColors[dragRope.expressionIndex % ropeColors.length]} strokeWidth="7" strokeLinecap="round" fill="none" />;
+                const liveRope = `M ${startX} ${startY} C ${controlX} ${startY}, ${controlX} ${dragRope.y}, ${dragRope.x} ${dragRope.y}`;
+                return (
+                  <React.Fragment>
+                    <Path d={liveRope} stroke="#4A2C42" strokeWidth="11" strokeLinecap="round" fill="none" opacity="0.18" />
+                    <Path d={liveRope} stroke={ropeColors[dragRope.expressionIndex % ropeColors.length]} strokeWidth="8" strokeLinecap="round" fill="none" />
+                    <Path d={liveRope} stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="5 9" fill="none" opacity="0.55" />
+                  </React.Fragment>
+                );
               })()}
             </Svg>
 

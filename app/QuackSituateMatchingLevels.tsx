@@ -72,10 +72,25 @@ export default function QuackSituateMatchingLevels() {
               <Svg pointerEvents="none" style={StyleSheet.absoluteFill} viewBox="0 0 400 850">
                 <Path
                   d="M 115 80 C 320 120, 320 245, 275 280 S 40 370, 115 445 S 345 525, 275 610 S 70 700, 120 785"
-                  stroke="#DAC5E8"
-                  strokeWidth="14"
+                  stroke="#6B422D"
+                  strokeWidth="18"
                   strokeLinecap="round"
-                  strokeDasharray="2 28"
+                  fill="none"
+                  opacity="0.24"
+                />
+                <Path
+                  d="M 115 80 C 320 120, 320 245, 275 280 S 40 370, 115 445 S 345 525, 275 610 S 70 700, 120 785"
+                  stroke="#C89B72"
+                  strokeWidth="11"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+                <Path
+                  d="M 115 80 C 320 120, 320 245, 275 280 S 40 370, 115 445 S 345 525, 275 610 S 70 700, 120 785"
+                  stroke="#F6DFC2"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeDasharray="5 12"
                   fill="none"
                 />
               </Svg>
