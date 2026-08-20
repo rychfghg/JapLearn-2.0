@@ -27,6 +27,7 @@ export default function QuackProgress() {
   const [guide, setGuide] = useState(0);
   const [quackamoleBest, setQuackamoleBest] = useState(0);
   const [recognitionBest, setRecognitionBest] = useState(0);
+  const [expressionBest, setExpressionBest] = useState(0);
 
   useEffect(() => {
     fetchProgressSummary();
@@ -54,6 +55,10 @@ export default function QuackProgress() {
       .then((response) => response.status === 204 ? null : response.json())
       .then((record) => record && setRecognitionBest(record.score || 0))
       .catch((error) => console.log('Recognition score fetch error:', error.message));
+    fetch(`${expoconfig.API_URL}/api/situational/best?email=${encodeURIComponent(email)}&gameType=EXPRESSION_MATCH`)
+      .then((response) => response.status === 204 ? null : response.json())
+      .then((record) => record && setExpressionBest(record.score || 0))
+      .catch((error) => console.log('Expression Match score fetch error:', error.message));
 
     try {
       setLoading(true);
@@ -100,6 +105,7 @@ export default function QuackProgress() {
         </View>
         <View style={styles.arcadeBestCard}><Ionicons name="trophy" size={25} color="#D59A2A" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>ARCADE PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Quack-a-Mole</Text></View><Text style={styles.arcadeBestValue}>{quackamoleBest}</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="eye" size={25} color="#65A936" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>SITUATIONAL PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Recognition</Text></View><Text style={styles.arcadeBestValue}>{recognitionBest}</Text></View>
+        <View style={styles.arcadeBestCard}><Ionicons name="git-compare" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>MATCHING PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Expression Match</Text></View><Text style={styles.arcadeBestValue}>{expressionBest}</Text></View>
         <Text style={styles.actionsTitle}>Explore your progress</Text>
         <Pressable style={styles.featureGreen} onPress={() => router.push('/QuackProgressProgression')}><View style={styles.featureIcon}><Ionicons name="trending-up-outline" size={25} color="#FFFFFF" /></View><View style={styles.featureCopy}><Text style={styles.featureTitle}>Progression & Reinforcement</Text><Text style={styles.featureText}>View mastery stages, repeated mistakes, and retry activities.</Text></View><Ionicons name="arrow-forward-circle" size={27} color="#65A936" /></Pressable>
         <Pressable style={styles.featurePurple} onPress={() => router.push('/QuackProgressAnalytics')}><View style={styles.featureIcon}><Ionicons name="bar-chart-outline" size={25} color="#FFFFFF" /></View><View style={styles.featureCopy}><Text style={styles.featureTitle}>Analytics & Progress Reports</Text><Text style={styles.featureText}>View accuracy, weak areas, completion progress, and summaries.</Text></View><Ionicons name="arrow-forward-circle" size={27} color="#8423D9" /></Pressable>

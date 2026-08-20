@@ -35,6 +35,7 @@ const routeAccessConfig = {
     'Words2', 'Words3', 'WordsPractice', 'QuackSituate', 'QuackSituate',
 'QuackSituateRecognition',
 'QuackSituateMatching',
+'QuackSituateMatchingLevels',
 'QuackSituateFormal',
 'QuackSituateFeedback',
 'QuackTalk', 'QuackTalkConversation',
@@ -187,6 +188,7 @@ const { user, setUser, authLoading } = useContext(AuthContext);
 
         <Stack.Screen name="QuackSituateRecognition" />
         <Stack.Screen name="QuackSituateMatching" />
+        <Stack.Screen name="QuackSituateMatchingLevels" />
         <Stack.Screen name="QuackSituateFormal" />
         <Stack.Screen name="QuackSituateFeedback" />
         <Stack.Screen name="QuackTalk" />
