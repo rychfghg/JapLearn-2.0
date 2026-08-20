@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router'; // Updated to useLocalSearchParams
 import CustomButton from '../components/CustomButton';
@@ -6,13 +6,16 @@ import stylesReset from '../styles/stylesResetPassword'; // New styles for Reset
 import expoconfig from '../expoconfig';
 
 const ResetPassword = () => {
-    const { token } = useLocalSearchParams(); // Use useLocalSearchParams instead
+    const params = useLocalSearchParams<{ token?: string | string[] }>();
+    const token = useMemo(() => Array.isArray(params.token) ? params.token[0] : params.token, [params.token]);
     const router = useRouter();
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
     const [errors, setErrors] = useState({ newPassword: '', confirmPassword: '' });
+    const [resetSucceeded, setResetSucceeded] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     const validatePassword = () => {
         let validationErrors = { newPassword: '', confirmPassword: '' };
@@ -34,7 +37,9 @@ const ResetPassword = () => {
             }
         }
 
-        if (confirmPassword !== newPassword) {
+        if (!confirmPassword) {
+            validationErrors.confirmPassword = 'Please confirm your new password';
+        } else if (confirmPassword !== newPassword) {
             validationErrors.confirmPassword = 'Passwords do not match';
         }
 
@@ -44,6 +49,12 @@ const ResetPassword = () => {
     };
 
     const handleResetPassword = async () => {
+        if (!token) {
+            setModalMessage('This password reset link is incomplete or invalid. Please request a new link from the login page.');
+            setModalVisible(true);
+            return;
+        }
+
         if (!validatePassword()) {
             setModalMessage('Please correct the highlighted fields.');
             setModalVisible(true);
@@ -51,7 +62,8 @@ const ResetPassword = () => {
         }
 
         try {
-            const response = await fetch(`${expoconfig.API_URL}/api/users/reset-password?token=${token}`, {
+            setSubmitting(true);
+            const response = await fetch(`${expoconfig.API_URL}/api/users/reset-password?token=${encodeURIComponent(token)}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -62,31 +74,35 @@ const ResetPassword = () => {
             const data = await response.json();
 
             if (response.ok) {
-                setModalMessage('Password has been reset successfully.');
+                setResetSucceeded(true);
+                setModalMessage('Password has been reset successfully. You can now sign in with your new password.');
                 setModalVisible(true);
-                setTimeout(() => {
-                    setModalVisible(false);
-                    router.push('/login'); // Redirect to login page after success
-                }, 2000);
             } else {
-                setModalMessage(data.error || 'An error occurred.');
+                setModalMessage(data.error || data.message || 'This reset link is invalid or has already been used.');
                 setModalVisible(true);
             }
         } catch (error) {
-            setModalMessage(`Error: ${error.message}`);
+            setModalMessage(error instanceof Error ? `Error: ${error.message}` : 'Unable to reset your password. Please try again.');
             setModalVisible(true);
+        } finally {
+            setSubmitting(false);
         }
+    };
+
+    const closeNotice = () => {
+        setModalVisible(false);
+        if (resetSucceeded) router.replace('/Login');
     };
 
     return (
         <View style={stylesReset.container}>
-            <Text style={stylesReset.title}>Reset Account Password</Text>
-            <Text style={stylesReset.subtitle}>Enter a new password for your account</Text>
+            <Text style={stylesReset.title}>Create a new password</Text>
+            <Text style={stylesReset.subtitle}>Enter and confirm the new password for your JapLearn account.</Text>
             
             <TextInput
                 style={[stylesReset.input, errors.newPassword ? stylesReset.errorInput : null]}
                 value={newPassword}
-                placeholder="New Password"
+                placeholder="New password"
                 secureTextEntry={true}
                 onChangeText={(text) => setNewPassword(text)}
             />
@@ -95,7 +111,7 @@ const ResetPassword = () => {
             <TextInput
                 style={[stylesReset.input, errors.confirmPassword ? stylesReset.errorInput : null]}
                 value={confirmPassword}
-                placeholder="Confirm Password"
+                placeholder="Confirm new password"
                 secureTextEntry={true}
                 onChangeText={(text) => setConfirmPassword(text)}
             />
@@ -103,21 +119,21 @@ const ResetPassword = () => {
             
             <View style={stylesReset.buttonContainer}>
                 <CustomButton
-                    title="Reset Password"
-                    onPress={handleResetPassword}
+                    title={submitting ? 'Updating password...' : 'Update password'}
+                    onPress={submitting ? () => undefined : handleResetPassword}
                     buttonStyle={stylesReset.button}
                     textStyle={stylesReset.buttonText}
                 />
             </View>
 
-            <Modal visible={modalVisible} transparent animationType="slide">
+            <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={closeNotice}>
                 <View style={stylesReset.modalContainer}>
                     <View style={stylesReset.modalContent}>
-                        <Text style={stylesReset.modalTitle}>Notice</Text>
+                        <Text style={stylesReset.modalTitle}>{resetSucceeded ? 'Password updated' : 'Please check'}</Text>
                         <Text style={stylesReset.modalMessage}>{modalMessage}</Text>
                         <CustomButton
-                            title="Close"
-                            onPress={() => setModalVisible(false)}
+                            title={resetSucceeded ? 'Continue to Login' : 'Close'}
+                            onPress={closeNotice}
                             buttonStyle={stylesReset.modalButton}
                             textStyle={stylesReset.modalButtonText}
                         />

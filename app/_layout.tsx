@@ -28,7 +28,7 @@ void preloadQuackamoleAssets();
 
 const routeAccessConfig = {
   student: [
-    'Menu', 'ResetButton','ResetPassword', 'Quackamole', 'Quackslate', 'QuackslateWait', 'QuackslateMenu', 'NewMenu', 'Words1', 'KanaMenu', 'HiraganaMenu', 'KatakanaMenu', 'HiraganaSet1',
+    'Menu', 'ResetButton', 'Quackamole', 'Quackslate', 'QuackslateWait', 'QuackslateMenu', 'NewMenu', 'Words1', 'KanaMenu', 'HiraganaMenu', 'KatakanaMenu', 'HiraganaSet1',
     'HiraganaSet2', 'HiraganaSet3', 'KatakanaSet1', 'KatakanaSet2', 'KatakanaSet3', 'Quackman', 'StartMenu',
     'Profile', 'Lessons', 'LessonKanaGame', 'LearnMenu', 'Exercises', 'Content3', 'Game3', 'CharacterExercise1',
     'CharacterExercise2', 'CharacterExercise3', 'CharacterExercise4', 'CharacterExercise5', 'CharacterExercise6', 'WordsMenu', 
@@ -146,6 +146,8 @@ const { user, setUser, authLoading } = useContext(AuthContext);
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" />
         <Stack.Screen name="Signup" />
+        <Stack.Screen name="ResetPassword" />
+        <Stack.Screen name="ConfirmEmail" />
         <Stack.Screen name="Menu" />
         <Stack.Screen name="StartMenu" />
         <Stack.Screen name="Profile" />
