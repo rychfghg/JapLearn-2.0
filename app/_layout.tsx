@@ -26,7 +26,7 @@ const getFonts = async () => {
 void preloadQuackamoleAssets();
 
 
-const routeAccessConfig = {
+const routeAccessConfig: Record<string, string[]> = {
   student: [
     'Menu', 'ResetButton', 'Quackamole', 'Quackslate', 'QuackslateWait', 'QuackslateMenu', 'NewMenu', 'Words1', 'KanaMenu', 'HiraganaMenu', 'KatakanaMenu', 'HiraganaSet1',
     'HiraganaSet2', 'HiraganaSet3', 'KatakanaSet1', 'KatakanaSet2', 'KatakanaSet3', 'Quackman', 'StartMenu',
@@ -52,7 +52,7 @@ const routeAccessConfig = {
   ],
 };
 
-const defaultRouteByRole = {
+const defaultRouteByRole: Record<string, string> = {
   student: '/Menu',
   teacher: '/TeacherDashboard',
 };
@@ -121,9 +121,10 @@ const { user, setUser, authLoading } = useContext(AuthContext);
     return;
   }
 
-  if (user) {
-    const allowedRoutes = routeAccessConfig[user.role] || [];
-    const defaultRoute = defaultRouteByRole[user.role] || '/Login';
+  if (user && currentSegment) {
+    const normalizedRole = String(user.role || '').toLowerCase();
+    const allowedRoutes = routeAccessConfig[normalizedRole] || [];
+    const defaultRoute = defaultRouteByRole[normalizedRole] || '/Login';
 
     if (!allowedRoutes.includes(currentSegment)) {
       if (currentSegment !== defaultRoute.slice(1)) {

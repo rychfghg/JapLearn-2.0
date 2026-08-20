@@ -1,45 +1,947 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
-import { router,useLocalSearchParams } from 'expo-router';
-import React,{useEffect,useRef,useState} from 'react';
-import { Image,ImageBackground,Modal,Pressable,SafeAreaView,ScrollView,StyleSheet,Text,View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Image,
+  ImageBackground,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import QuackSituateExit from '../components/QuackSituateExit';
 import { POLITENESS_SCENARIOS } from '../data/politenessScenarios';
 import expoconfig from '../expoconfig';
-import QuackSituateExit from '../components/QuackSituateExit';
 
-const scenes=[require('../assets/img/background/school a hallway st2 day.png'),require('../assets/img/background/classroom a st2 day.png'),require('../assets/img/background/clubroom a st2 day.png'),require('../assets/img/background/train_scene day.png'),require('../assets/img/background/student council room a st2 evening.png')];
-const people={male:[require('../assets/img/Sprite Male Dark Hair Neu01.png'),require('../assets/img/Sprite Male Dark Hair Smi01.png')],female:[require('../assets/img/Sumi_PoseB_WinterUni_Smile.png'),require('../assets/img/Sumi_PoseB_WinterUni_Open.png')]};
-const npcRomaji=['Ohayou gozaimasu.','Kochira no hon desu ne.','Dou shimashita ka.','Fukuro wa goriyou desu ka.','Tsugi no densha wa sanbansen desu.','Repooto o misete kudasai.','Kyou mo ganbarimashou.','Nanmei-sama desu ka.','Kore, douzo.','Shoushou omachi kudasai.','Ashita wa kuji ni kite kudasai.','Kono basu wa eki ni ikimasu ka.','Haitte mo ii desu ka.','Hokenshou o onegaishimasu.','Raishuu, mendan o shimashou.','Onamae o onegai itashimasu.','Kono shiryou o kakunin shite moraemasu ka.','Oryouri wa ikaga desu ka.','Kekka wa gojitsu gorenraku shimasu.','Oheya made goannai itashimasu.','Gohappyou, omoshirokatta desu.','Yotei o henkou dekimasu ka.','Nochihodo watashi no heya ni kite kudasai.','Tanaka-sensei wa irasshaimasu ka.','Goshitsumon wa arimasu ka.','Jushou omedetou gozaimasu.','Douzo, oagari kudasai.','Nankai desu ka.','Kochira de wa shashin o goenryo kudasai.','Honjitsu no mensetsu wa ijou desu.'];
+const scenes = [
+  require('../assets/img/background/school a hallway st2 day.png'),
+  require('../assets/img/background/classroom a st2 day.png'),
+  require('../assets/img/background/clubroom a st2 day.png'),
+  require('../assets/img/background/train_scene day.png'),
+  require('../assets/img/background/student council room a st2 evening.png'),
+];
 
-const npcVoices=[
- require('../assets/audio/politeness/npc-01.mp3'),require('../assets/audio/politeness/npc-02.mp3'),require('../assets/audio/politeness/npc-03.mp3'),require('../assets/audio/politeness/npc-04.mp3'),require('../assets/audio/politeness/npc-05.mp3'),require('../assets/audio/politeness/npc-06.mp3'),require('../assets/audio/politeness/npc-07.mp3'),require('../assets/audio/politeness/npc-08.mp3'),require('../assets/audio/politeness/npc-09.mp3'),require('../assets/audio/politeness/npc-10.mp3'),
- require('../assets/audio/politeness/npc-11.mp3'),require('../assets/audio/politeness/npc-12.mp3'),require('../assets/audio/politeness/npc-13.mp3'),require('../assets/audio/politeness/npc-14.mp3'),require('../assets/audio/politeness/npc-15.mp3'),require('../assets/audio/politeness/npc-16.mp3'),require('../assets/audio/politeness/npc-17.mp3'),require('../assets/audio/politeness/npc-18.mp3'),require('../assets/audio/politeness/npc-19.mp3'),require('../assets/audio/politeness/npc-20.mp3'),
- require('../assets/audio/politeness/npc-21.mp3'),require('../assets/audio/politeness/npc-22.mp3'),require('../assets/audio/politeness/npc-23.mp3'),require('../assets/audio/politeness/npc-24.mp3'),require('../assets/audio/politeness/npc-25.mp3'),require('../assets/audio/politeness/npc-26.mp3'),require('../assets/audio/politeness/npc-27.mp3'),require('../assets/audio/politeness/npc-28.mp3'),require('../assets/audio/politeness/npc-29.mp3'),require('../assets/audio/politeness/npc-30.mp3')];
+const people = {
+  male: {
+    neutral: require('../assets/img/Sprite Male Dark Hair Neu01.png'),
+    speaking: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
+    correct: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
+    wrong: require('../assets/img/Sprite Male Dark Hair Sad01.png'),
+  },
+  female: {
+    neutral: require('../assets/img/Sumi_PoseB_WinterUni_Smile.png'),
+    speaking: require('../assets/img/Sumi_PoseB_WinterUni_Open.png'),
+    correct: require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png'),
+    wrong: require('../assets/img/Sumi_PoseB_WinterUni_Frown.png'),
+  },
+};
 
-export default function QuackSituateFormal(){
- const {level:raw}=useLocalSearchParams<{level?:string}>(); const level=Math.min(3,Math.max(1,Number(raw)||1)) as 1|2|3;
- const list=POLITENESS_SCENARIOS.filter(q=>q.level===level); const [at,setAt]=useState(0),[selected,setSelected]=useState<number|null>(null),[score,setScore]=useState(0),[result,setResult]=useState(false),[done,setDone]=useState(false),[exit,setExit]=useState(false),[leaving,setLeaving]=useState(false),[frame,setFrame]=useState(0); const sound=useRef<Audio.Sound|null>(null); const q=list[at];
- useEffect(()=>{const timer=setInterval(()=>setFrame(v=>1-v),650);return()=>{clearInterval(timer);sound.current?.unloadAsync();};},[]);
- const sfx=async(ok:boolean)=>{try{await sound.current?.unloadAsync();sound.current=(await Audio.Sound.createAsync(ok?require('../assets/audio/sfx/correct_sfx.mp3'):require('../assets/audio/sfx/incorrect_sfx.mp3'),{shouldPlay:true})).sound;}catch{}};
- const playNpc=async()=>{try{await sound.current?.stopAsync();await sound.current?.unloadAsync();sound.current=(await Audio.Sound.createAsync(npcVoices[q.id-1],{shouldPlay:true,volume:1})).sound;}catch{}};
- const check=async()=>{if(selected===null)return;const ok=q.choices[selected].correct;if(ok)setScore(v=>v+1);await sfx(ok);setResult(true);};
- const next=async()=>{if(at<list.length-1){setAt(v=>v+1);setSelected(null);setResult(false);return;}setResult(false);setDone(true);try{const u=JSON.parse((await AsyncStorage.getItem('user'))||'{}');const final=score+(q.choices[selected!].correct?1:0);await fetch(`${expoconfig.API_URL}/api/situational/attempts`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:u.email,name:`${u.fname||''} ${u.lname||''}`.trim(),gameType:'POLITENESS',difficulty:['','EASY','MEDIUM','HARD'][level],score:final*10,totalQuestions:list.length,correctAnswers:final,completed:true})});}catch{}};
- const leave=()=>{sound.current?.stopAsync();setExit(false);setDone(false);setLeaving(true);}; const ok=selected!==null&&q.choices[selected].correct;
- if(leaving)return <QuackSituateExit color="#8423D9" icon="people-outline" title="A respectful goodbye" subtitle="You practiced choosing the right Japanese tone for each person and place." status="CLOSING THE COURTESY TRAIL" onComplete={()=>router.replace('/QuackSituateFormalLevels')}/>;
- return <SafeAreaView style={s.safe}><ImageBackground source={scenes[at%scenes.length]} style={s.bg} resizeMode="cover"><View style={s.tint}/><ScrollView contentContainerStyle={s.content}>
-  <View style={s.top}><Pressable style={s.icon} onPress={()=>setExit(true)}><Ionicons name="arrow-back" size={24} color="#452452"/></Pressable><View style={s.progress}><Text style={s.kicker}>TONE QUEST · LEVEL {level}</Text><View style={s.track}><View style={[s.fill,{width:`${((at+1)/list.length)*100}%`}]} /></View></View><Text style={s.count}>{at+1}/{list.length}</Text></View>
-  <View style={s.location}><Ionicons name="location" size={15} color="#65A936"/><Text style={s.locationText}>{q.location}</Text></View>
-  <View style={s.narration}><Text style={s.narrationTag}>SCENE {at+1}</Text><Text style={s.narrationText}>{q.prompt}</Text></View>
-  <View style={s.scene}><View style={s.bubble}><View style={s.speakerRow}><Text style={s.speaker}>{q.speaker}</Text><Pressable style={s.voice} onPress={playNpc}><Ionicons name="volume-medium" size={18} color="#8423D9"/></Pressable></View><Text style={s.japanese}>{q.npcLine}</Text><Text style={s.npcRomaji}>{npcRomaji[q.id-1]}</Text><Text style={s.translation}>{q.translation}</Text></View><Image source={people[q.gender][frame]} style={s.person}/><View style={s.duckBubble}><Image source={require('../assets/thinking.png')} style={s.duck}/><View style={{flex:1}}><Text style={s.duckLabel}>AHIRU ASKS</Text><Text style={s.prompt}>Which response has the right level of politeness?</Text></View></View></View>
-  <View style={s.heading}><Text style={s.answerKicker}>CHOOSE THE RIGHT TONE</Text><Text style={s.answerTitle}>What would you say?</Text><View style={s.hint}><Ionicons name="bulb" size={17} color="#E58B2A"/><Text style={s.hintText}>{q.hint}</Text></View></View>
-  <View style={s.choices}>{q.choices.map((c,i)=><Pressable key={c.jp} onPress={()=>!result&&setSelected(i)} style={[s.choice,selected===i&&s.selected,result&&c.correct&&s.correct,result&&selected===i&&!c.correct&&s.wrong]}><Text style={s.letter}>{String.fromCharCode(65+i)}</Text><View style={{flex:1}}><Text style={s.choiceJp}>{c.jp}</Text><Text style={s.romaji}>{c.romaji}</Text></View><Text style={s.tone}>{c.tone}</Text></Pressable>)}</View>
-  <Pressable disabled={selected===null||result} style={[s.check,selected===null&&s.disabled]} onPress={check}><Text style={s.checkText}>CHECK MY TONE</Text><Ionicons name="arrow-forward" size={20} color="#FFF"/></Pressable>
- </ScrollView></ImageBackground>
- <Modal visible={result} transparent animationType="fade"><View style={s.shade}><View style={s.modal}><Image source={ok?require('../assets/hello.png'):require('../assets/thinking.png')} style={s.mascot}/><Text style={s.modalTag}>{ok?'TONE MATCHED':'TRY A BETTER TONE'}</Text><Text style={s.modalTitle}>{ok?'That fits the moment!':'Not quite right yet'}</Text><Text style={s.modalText}>{q.explanation}</Text><Pressable style={s.primary} onPress={next}><Text style={s.primaryText}>{at===list.length-1?'FINISH LEVEL':'NEXT MOMENT'}</Text></Pressable></View></View></Modal>
- <Modal visible={done} transparent><View style={s.shade}><View style={s.modal}><View style={s.trophy}><Ionicons name="ribbon" size={38} color="#FFF"/></View><Text style={s.modalTag}>LEVEL {level} COMPLETE</Text><Text style={s.modalTitle}>Courtesy trail cleared</Text><Text style={s.score}>{score}/{list.length}</Text><Text style={s.modalText}>Your result was saved to communication progress.</Text><Pressable style={s.primary} onPress={leave}><Text style={s.primaryText}>RETURN TO TRAILS</Text></Pressable></View></View></Modal>
- <Modal visible={exit} transparent><View style={s.shade}><View style={s.modal}><Text style={s.modalTitle}>Leave this tone quest?</Text><Text style={s.modalText}>This unfinished round will not be recorded.</Text><View style={s.actions}><Pressable style={s.primarySmall} onPress={()=>setExit(false)}><Text style={s.primaryText}>KEEP PLAYING</Text></Pressable><Pressable style={s.secondary} onPress={leave}><Text style={s.secondaryText}>LEAVE</Text></Pressable></View></View></View></Modal>
- </SafeAreaView>;
+const npcRomaji = [
+  'Ohayou gozaimasu.',
+  'Kochira no hon desu ne.',
+  'Dou shimashita ka.',
+  'Fukuro wa goriyou desu ka.',
+  'Tsugi no densha wa sanbansen desu.',
+  'Repooto o misete kudasai.',
+  'Kyou mo ganbarimashou.',
+  'Nanmei-sama desu ka.',
+  'Kore, douzo.',
+  'Shoushou omachi kudasai.',
+  'Ashita wa kuji ni kite kudasai.',
+  'Kono basu wa eki ni ikimasu ka.',
+  'Haitte mo ii desu ka.',
+  'Hokenshou o onegaishimasu.',
+  'Raishuu, mendan o shimashou.',
+  'Onamae o onegai itashimasu.',
+  'Kono shiryou o kakunin shite moraemasu ka.',
+  'Oryouri wa ikaga desu ka.',
+  'Kekka wa gojitsu gorenraku shimasu.',
+  'Oheya made goannai itashimasu.',
+  'Gohappyou, omoshirokatta desu.',
+  'Yotei o henkou dekimasu ka.',
+  'Nochihodo watashi no heya ni kite kudasai.',
+  'Tanaka-sensei wa irasshaimasu ka.',
+  'Goshitsumon wa arimasu ka.',
+  'Jushou omedetou gozaimasu.',
+  'Douzo, oagari kudasai.',
+  'Nankai desu ka.',
+  'Kochira de wa shashin o goenryo kudasai.',
+  'Honjitsu no mensetsu wa ijou desu.',
+];
+
+const npcVoices = [
+  require('../assets/audio/politeness/npc-01.mp3'),
+  require('../assets/audio/politeness/npc-02.mp3'),
+  require('../assets/audio/politeness/npc-03.mp3'),
+  require('../assets/audio/politeness/npc-04.mp3'),
+  require('../assets/audio/politeness/npc-05.mp3'),
+  require('../assets/audio/politeness/npc-06.mp3'),
+  require('../assets/audio/politeness/npc-07.mp3'),
+  require('../assets/audio/politeness/npc-08.mp3'),
+  require('../assets/audio/politeness/npc-09.mp3'),
+  require('../assets/audio/politeness/npc-10.mp3'),
+  require('../assets/audio/politeness/npc-11.mp3'),
+  require('../assets/audio/politeness/npc-12.mp3'),
+  require('../assets/audio/politeness/npc-13.mp3'),
+  require('../assets/audio/politeness/npc-14.mp3'),
+  require('../assets/audio/politeness/npc-15.mp3'),
+  require('../assets/audio/politeness/npc-16.mp3'),
+  require('../assets/audio/politeness/npc-17.mp3'),
+  require('../assets/audio/politeness/npc-18.mp3'),
+  require('../assets/audio/politeness/npc-19.mp3'),
+  require('../assets/audio/politeness/npc-20.mp3'),
+  require('../assets/audio/politeness/npc-21.mp3'),
+  require('../assets/audio/politeness/npc-22.mp3'),
+  require('../assets/audio/politeness/npc-23.mp3'),
+  require('../assets/audio/politeness/npc-24.mp3'),
+  require('../assets/audio/politeness/npc-25.mp3'),
+  require('../assets/audio/politeness/npc-26.mp3'),
+  require('../assets/audio/politeness/npc-27.mp3'),
+  require('../assets/audio/politeness/npc-28.mp3'),
+  require('../assets/audio/politeness/npc-29.mp3'),
+  require('../assets/audio/politeness/npc-30.mp3'),
+];
+
+type StoryPhase = 'speaking' | 'choosing' | 'reaction';
+
+export default function QuackSituateFormal() {
+  const params = useLocalSearchParams<{ level?: string }>();
+  const level = Math.min(3, Math.max(1, Number(params.level) || 1)) as 1 | 2 | 3;
+  const questions = useMemo(
+    () => POLITENESS_SCENARIOS.filter((question) => question.level === level),
+    [level],
+  );
+
+  const [index, setIndex] = useState(0);
+  const [score, setScore] = useState(0);
+  const [phase, setPhase] = useState<StoryPhase>('speaking');
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [showExit, setShowExit] = useState(false);
+  const [showComplete, setShowComplete] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [mouthFrame, setMouthFrame] = useState(0);
+  const sound = useRef<Audio.Sound | null>(null);
+  const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const question = questions[index];
+  const selectedChoice = selectedIndex === null ? null : question.choices[selectedIndex];
+  const answeredCorrectly = selectedChoice?.correct === true;
+
+  const stopSound = async () => {
+    if (fallbackTimer.current) {
+      clearTimeout(fallbackTimer.current);
+      fallbackTimer.current = null;
+    }
+
+    if (!sound.current) return;
+
+    try {
+      await sound.current.stopAsync();
+      await sound.current.unloadAsync();
+    } catch {}
+
+    sound.current = null;
+  };
+
+  const revealChoices = () => {
+    setMouthFrame(0);
+    setPhase((current) => current === 'speaking' ? 'choosing' : current);
+  };
+
+  const playNpc = async () => {
+    await stopSound();
+    setPhase('speaking');
+    setMouthFrame(1);
+
+    fallbackTimer.current = setTimeout(revealChoices, 3200);
+
+    try {
+      const loaded = await Audio.Sound.createAsync(
+        npcVoices[question.id - 1],
+        {
+          shouldPlay: true,
+          volume: 1,
+        },
+        (status) => {
+          if (status.isLoaded && status.didJustFinish) {
+            revealChoices();
+          }
+        },
+      );
+
+      sound.current = loaded.sound;
+    } catch {
+      revealChoices();
+    }
+  };
+
+  useEffect(() => {
+    void playNpc();
+
+    return () => {
+      void stopSound();
+    };
+  }, [index]);
+
+  useEffect(() => {
+    if (phase !== 'speaking') return;
+
+    const animation = setInterval(() => {
+      setMouthFrame((current) => current === 0 ? 1 : 0);
+    }, 420);
+
+    return () => clearInterval(animation);
+  }, [phase]);
+
+  const selectResponse = async (choiceIndex: number) => {
+    if (phase !== 'choosing') return;
+
+    await stopSound();
+    setSelectedIndex(choiceIndex);
+    setPhase('reaction');
+
+    const correct = question.choices[choiceIndex].correct;
+
+    if (correct) {
+      setScore((current) => current + 1);
+    }
+
+    try {
+      const loaded = await Audio.Sound.createAsync(
+        correct
+          ? require('../assets/audio/sfx/correct_sfx.mp3')
+          : require('../assets/audio/sfx/incorrect_sfx.mp3'),
+        {
+          shouldPlay: true,
+        },
+      );
+
+      sound.current = loaded.sound;
+    } catch {}
+  };
+
+  const saveAttempt = async (finalScore: number) => {
+    try {
+      const storedUser = JSON.parse((await AsyncStorage.getItem('user')) || '{}');
+
+      await fetch(`${expoconfig.API_URL}/api/situational/attempts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: storedUser.email,
+          name: `${storedUser.fname || ''} ${storedUser.lname || ''}`.trim(),
+          gameType: 'POLITENESS',
+          difficulty: ['', 'EASY', 'MEDIUM', 'HARD'][level],
+          score: finalScore * 10,
+          totalQuestions: questions.length,
+          correctAnswers: finalScore,
+          completed: true,
+        }),
+      });
+    } catch {}
+  };
+
+  const continueStory = async () => {
+    await stopSound();
+
+    if (index < questions.length - 1) {
+      setSelectedIndex(null);
+      setPhase('speaking');
+      setIndex((current) => current + 1);
+      return;
+    }
+
+    await saveAttempt(score);
+    setShowComplete(true);
+  };
+
+  const leaveGame = async () => {
+    await stopSound();
+    setShowExit(false);
+    setShowComplete(false);
+    setLeaving(true);
+  };
+
+  const characterMood = phase === 'reaction'
+    ? answeredCorrectly
+      ? 'correct'
+      : 'wrong'
+    : mouthFrame === 1
+      ? 'speaking'
+      : 'neutral';
+
+  const reactionTitle = answeredCorrectly
+    ? 'That response feels respectful.'
+    : 'That tone feels uncomfortable here.';
+
+  const reactionText = answeredCorrectly
+    ? question.explanation
+    : `That answer sounds ${selectedChoice?.tone.toLowerCase()}. ${question.explanation}`;
+
+  if (leaving) {
+    return (
+      <QuackSituateExit
+        color="#8423D9"
+        icon="people-outline"
+        title="Politeness practice closed"
+        subtitle="Your tone journey is ready whenever you want to continue."
+        status="CLOSING THE TONE QUEST"
+        onComplete={() => router.replace('/QuackSituateFormalLevels')}
+      />
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ImageBackground
+        source={scenes[index % scenes.length]}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.backgroundShade} />
+
+        <View style={styles.topBar}>
+          <Pressable style={styles.topButton} onPress={() => setShowExit(true)}>
+            <Ionicons name="arrow-back" size={24} color="#432750" />
+          </Pressable>
+
+          <View style={styles.progressBlock}>
+            <Text style={styles.progressLabel}>TONE QUEST · LEVEL {level}</Text>
+            <View style={styles.progressTrack}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${((index + 1) / questions.length) * 100}%`,
+                  },
+                ]}
+              />
+            </View>
+          </View>
+
+          <View style={styles.counter}>
+            <Text style={styles.counterText}>{index + 1}/{questions.length}</Text>
+          </View>
+        </View>
+
+        <View style={styles.promptCard}>
+          <View style={styles.locationRow}>
+            <Ionicons name="location" size={14} color="#65A936" />
+            <Text style={styles.locationText}>{question.location}</Text>
+          </View>
+          <Text style={styles.promptLabel}>YOUR ROLE IN THIS MOMENT</Text>
+          <Text style={styles.promptText}>{question.prompt}</Text>
+        </View>
+
+        <Image
+          source={people[question.gender][characterMood]}
+          style={styles.character}
+          resizeMode="contain"
+        />
+
+        <View style={styles.storyPanel}>
+          <View style={styles.speakerRow}>
+            <View>
+              <Text style={styles.speakerLabel}>{question.speaker}</Text>
+              <Text style={styles.speakerStatus}>
+                {phase === 'speaking'
+                  ? 'SPEAKING'
+                  : phase === 'choosing'
+                    ? 'WAITING FOR YOUR RESPONSE'
+                    : 'REACTING TO YOUR TONE'}
+              </Text>
+            </View>
+            <Pressable style={styles.voiceButton} onPress={playNpc}>
+              <Ionicons name="volume-high" size={20} color="#8423D9" />
+            </Pressable>
+          </View>
+
+          {phase !== 'reaction' ? (
+            <>
+              <Text style={styles.npcJapanese}>{question.npcLine}</Text>
+              <Text style={styles.npcRomaji}>{npcRomaji[question.id - 1]}</Text>
+              <Text style={styles.translation}>{question.translation}</Text>
+            </>
+          ) : (
+            <View style={styles.reactionCopy}>
+              <Text
+                style={[
+                  styles.reactionTitle,
+                  !answeredCorrectly && styles.reactionTitleWrong,
+                ]}
+              >
+                {reactionTitle}
+              </Text>
+              <Text style={styles.reactionText}>{reactionText}</Text>
+              {!answeredCorrectly && (
+                <View style={styles.betterAnswer}>
+                  <Text style={styles.betterAnswerLabel}>A BETTER RESPONSE</Text>
+                  <Text style={styles.betterAnswerJapanese}>
+                    {question.choices.find((choice) => choice.correct)?.jp}
+                  </Text>
+                  <Text style={styles.betterAnswerRomaji}>
+                    {question.choices.find((choice) => choice.correct)?.romaji}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+
+        {phase === 'speaking' && (
+          <View style={styles.listeningPill}>
+            <View style={styles.listeningDot} />
+            <Text style={styles.listeningText}>Listen to the speaker first...</Text>
+          </View>
+        )}
+
+        {phase === 'choosing' && (
+          <View style={styles.choiceDrawer}>
+            <View style={styles.drawerHandle} />
+            <View style={styles.choiceHeadingRow}>
+              <View>
+                <Text style={styles.choiceKicker}>CHOOSE YOUR RESPONSE</Text>
+                <Text style={styles.choiceTitle}>What would you say?</Text>
+              </View>
+              <View style={styles.hintPill}>
+                <Ionicons name="bulb" size={15} color="#D88727" />
+                <Text style={styles.hintText}>{question.hint}</Text>
+              </View>
+            </View>
+
+            <ScrollView
+              style={styles.choiceScroll}
+              contentContainerStyle={styles.choiceList}
+              showsVerticalScrollIndicator={false}
+            >
+              {question.choices.map((choice, choiceIndex) => (
+                <Pressable
+                  key={`${question.id}-${choice.jp}`}
+                  style={({ pressed }) => [
+                    styles.choiceButton,
+                    pressed && styles.choiceButtonPressed,
+                  ]}
+                  onPress={() => void selectResponse(choiceIndex)}
+                >
+                  <View style={styles.choiceLetter}>
+                    <Text style={styles.choiceLetterText}>
+                      {String.fromCharCode(65 + choiceIndex)}
+                    </Text>
+                  </View>
+                  <View style={styles.choiceCopy}>
+                    <Text style={styles.choiceJapanese}>{choice.jp}</Text>
+                    <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={19} color="#9B8CA0" />
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {phase === 'reaction' && (
+          <Pressable style={styles.continueButton} onPress={() => void continueStory()}>
+            <Text style={styles.continueText}>
+              {index === questions.length - 1 ? 'FINISH THIS LEVEL' : 'CONTINUE THE STORY'}
+            </Text>
+            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+          </Pressable>
+        )}
+      </ImageBackground>
+
+      <Modal visible={showComplete} transparent animationType="fade">
+        <View style={styles.modalShade}>
+          <View style={styles.modalCard}>
+            <View style={styles.trophyIcon}>
+              <Ionicons name="ribbon" size={38} color="#FFFFFF" />
+            </View>
+            <Text style={styles.modalKicker}>LEVEL {level} COMPLETE</Text>
+            <Text style={styles.modalTitle}>Courtesy story cleared</Text>
+            <Text style={styles.finalScore}>{score}/{questions.length}</Text>
+            <Text style={styles.modalText}>
+              Your tone choices were saved to communication progress.
+            </Text>
+            <Pressable style={styles.modalPrimary} onPress={() => void leaveGame()}>
+              <Text style={styles.modalPrimaryText}>RETURN TO TONE TRAILS</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showExit}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowExit(false)}
+      >
+        <View style={styles.modalShade}>
+          <View style={styles.modalCard}>
+            <View style={styles.exitIcon}>
+              <Ionicons name="flag-outline" size={31} color="#8423D9" />
+            </View>
+            <Text style={styles.modalKicker}>LEAVE THIS STORY?</Text>
+            <Text style={styles.modalTitle}>End the current tone quest?</Text>
+            <Text style={styles.modalText}>
+              This unfinished level will not be submitted as a completed score.
+            </Text>
+            <Pressable style={styles.modalPrimary} onPress={() => setShowExit(false)}>
+              <Text style={styles.modalPrimaryText}>CONTINUE THE STORY</Text>
+            </Pressable>
+            <Pressable style={styles.modalSecondary} onPress={() => void leaveGame()}>
+              <Text style={styles.modalSecondaryText}>Exit this level</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
 }
 
-const s=StyleSheet.create({safe:{flex:1,backgroundColor:'#F8F4FA'},bg:{flex:1},tint:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(249,246,251,.72)'},content:{padding:18,paddingBottom:38},top:{flexDirection:'row',alignItems:'center',gap:12},icon:{width:52,height:52,borderRadius:18,backgroundColor:'#FFF',alignItems:'center',justifyContent:'center',elevation:5},progress:{flex:1},kicker:{fontSize:9,fontWeight:'900',letterSpacing:1.3,color:'#65A936'},track:{height:7,borderRadius:8,backgroundColor:'#E6DCE9',marginTop:7,overflow:'hidden'},fill:{height:'100%',borderRadius:8,backgroundColor:'#8423D9'},count:{fontFamily:'Jua',color:'#FFF',backgroundColor:'#8423D9',padding:11,borderRadius:16},location:{alignSelf:'center',flexDirection:'row',gap:6,alignItems:'center',backgroundColor:'#FFF',paddingHorizontal:13,paddingVertical:8,borderRadius:20,marginTop:14},locationText:{fontSize:10,fontWeight:'900',color:'#493252'},narration:{backgroundColor:'rgba(63,36,77,.93)',borderRadius:18,padding:13,marginTop:10},narrationTag:{fontSize:8,fontWeight:'900',letterSpacing:1.2,color:'#B7E69A'},narrationText:{fontSize:12,lineHeight:18,color:'#FFF',marginTop:3},scene:{height:370,borderRadius:29,backgroundColor:'rgba(255,255,255,.88)',borderWidth:1.5,borderColor:'#E4D6E7',marginTop:10,overflow:'hidden'},bubble:{position:'absolute',top:16,left:16,right:16,zIndex:3,backgroundColor:'#FFF',borderRadius:22,padding:15,elevation:4},speakerRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},speaker:{fontSize:9,fontWeight:'900',letterSpacing:1.2,color:'#65A936'},voice:{width:34,height:34,borderRadius:12,backgroundColor:'#F1E6F9',alignItems:'center',justifyContent:'center'},japanese:{fontSize:20,color:'#41244D'},npcRomaji:{fontSize:11,color:'#8423D9',marginTop:3},translation:{fontSize:10,color:'#897C8D',marginTop:2},person:{position:'absolute',left:4,bottom:65,width:215,height:240,resizeMode:'contain'},duckBubble:{position:'absolute',left:16,right:16,bottom:16,minHeight:90,borderRadius:21,backgroundColor:'#3F244D',padding:11,flexDirection:'row',alignItems:'center',zIndex:4},duck:{width:62,height:66,resizeMode:'contain',marginRight:9},duckLabel:{fontSize:8,fontWeight:'900',letterSpacing:1.1,color:'#B5E397'},prompt:{fontFamily:'Jua',fontSize:15,lineHeight:20,color:'#FFF'},heading:{marginTop:19},answerKicker:{fontSize:9,fontWeight:'900',letterSpacing:1.2,color:'#65A936'},answerTitle:{fontFamily:'Jua',fontSize:24,color:'#432750'},hint:{marginTop:7,borderRadius:15,backgroundColor:'#FFF5E3',padding:10,flexDirection:'row',gap:7},hintText:{flex:1,fontSize:10,lineHeight:15,color:'#806A4D'},choices:{gap:9,marginTop:11},choice:{minHeight:76,borderRadius:20,backgroundColor:'#FFF',borderWidth:1.5,borderColor:'#E5D9E8',padding:11,flexDirection:'row',alignItems:'center'},selected:{borderColor:'#8423D9',backgroundColor:'#FBF7FE'},correct:{borderColor:'#65A936',backgroundColor:'#F1F9EC'},wrong:{borderColor:'#D65C73',backgroundColor:'#FFF0F3'},letter:{width:40,height:40,textAlign:'center',textAlignVertical:'center',borderRadius:13,backgroundColor:'#F0E5F7',fontFamily:'Jua',color:'#70417F',marginRight:11},choiceJp:{fontSize:16,color:'#40264A'},romaji:{fontSize:10,color:'#897B8D',marginTop:2},tone:{fontSize:8,fontWeight:'900',color:'#705A76',backgroundColor:'#F4EFF5',padding:7,borderRadius:12},check:{height:57,borderRadius:18,backgroundColor:'#8423D9',marginTop:16,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8},disabled:{backgroundColor:'#CFC5D2'},checkText:{fontSize:12,fontWeight:'900',letterSpacing:.8,color:'#FFF'},shade:{flex:1,backgroundColor:'rgba(40,22,49,.63)',alignItems:'center',justifyContent:'center',padding:22},modal:{width:'100%',maxWidth:450,borderRadius:29,backgroundColor:'#FFF',padding:25,alignItems:'center'},mascot:{width:100,height:108,resizeMode:'contain'},modalTag:{fontSize:9,fontWeight:'900',letterSpacing:1.2,color:'#65A936'},modalTitle:{fontFamily:'Jua',fontSize:27,color:'#432750',textAlign:'center',marginTop:5},modalText:{fontSize:13,lineHeight:20,color:'#7E7182',textAlign:'center',marginTop:8},primary:{height:54,width:'100%',borderRadius:17,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center',marginTop:19},primaryText:{fontSize:11,fontWeight:'900',letterSpacing:.7,color:'#FFF'},trophy:{width:70,height:70,borderRadius:23,backgroundColor:'#65A936',alignItems:'center',justifyContent:'center',marginBottom:12},score:{fontFamily:'Jua',fontSize:48,color:'#8423D9'},actions:{flexDirection:'row',gap:10,width:'100%',marginTop:18},primarySmall:{flex:1,height:52,borderRadius:17,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center'},secondary:{height:52,borderRadius:17,backgroundColor:'#F0E7F2',paddingHorizontal:22,alignItems:'center',justifyContent:'center'},secondaryText:{fontSize:11,fontWeight:'900',color:'#684A70'}});
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#24142D',
+  },
+  background: {
+    flex: 1,
+  },
+  backgroundShade: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(30, 16, 37, 0.20)',
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    paddingHorizontal: 17,
+    paddingTop: 12,
+  },
+  topButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  progressBlock: {
+    flex: 1,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  progressLabel: {
+    color: '#65A936',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+  },
+  progressTrack: {
+    height: 6,
+    borderRadius: 6,
+    backgroundColor: '#E7DFE9',
+    overflow: 'hidden',
+    marginTop: 6,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 6,
+    backgroundColor: '#8423D9',
+  },
+  counter: {
+    minWidth: 50,
+    height: 50,
+    borderRadius: 18,
+    backgroundColor: '#8423D9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  counterText: {
+    color: '#FFFFFF',
+    fontFamily: 'Jua',
+    fontSize: 14,
+  },
+  promptCard: {
+    marginHorizontal: 17,
+    marginTop: 12,
+    borderRadius: 20,
+    backgroundColor: 'rgba(55, 31, 67, 0.94)',
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    zIndex: 4,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  locationText: {
+    color: '#D7F1C4',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  promptLabel: {
+    color: '#B6E697',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+    marginTop: 7,
+  },
+  promptText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    lineHeight: 18,
+    marginTop: 3,
+  },
+  character: {
+    position: 'absolute',
+    left: '8%',
+    right: '8%',
+    bottom: 154,
+    width: '84%',
+    height: '65%',
+  },
+  storyPanel: {
+    position: 'absolute',
+    left: 17,
+    right: 17,
+    bottom: 24,
+    minHeight: 132,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.97)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.75)',
+    padding: 16,
+    shadowColor: '#27142F',
+    shadowOpacity: 0.24,
+    shadowRadius: 18,
+    elevation: 8,
+  },
+  speakerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  speakerLabel: {
+    color: '#432750',
+    fontFamily: 'Jua',
+    fontSize: 17,
+  },
+  speakerStatus: {
+    color: '#65A936',
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+    marginTop: 1,
+  },
+  voiceButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    backgroundColor: '#F1E5FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  npcJapanese: {
+    color: '#3F2649',
+    fontSize: 22,
+    marginTop: 10,
+  },
+  npcRomaji: {
+    color: '#8423D9',
+    fontSize: 11,
+    marginTop: 3,
+  },
+  translation: {
+    color: '#8A7C8D',
+    fontSize: 10,
+    marginTop: 2,
+  },
+  listeningPill: {
+    position: 'absolute',
+    alignSelf: 'center',
+    bottom: 172,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    borderRadius: 999,
+    backgroundColor: 'rgba(42,24,51,0.88)',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+  },
+  listeningDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#76CC46',
+  },
+  listeningText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  choiceDrawer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    maxHeight: '54%',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    backgroundColor: '#FBF8FC',
+    paddingHorizontal: 17,
+    paddingTop: 9,
+    paddingBottom: 18,
+    shadowColor: '#281531',
+    shadowOpacity: 0.24,
+    shadowRadius: 22,
+    elevation: 12,
+  },
+  drawerHandle: {
+    alignSelf: 'center',
+    width: 42,
+    height: 5,
+    borderRadius: 5,
+    backgroundColor: '#D8CFDA',
+  },
+  choiceHeadingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    gap: 10,
+    marginTop: 10,
+  },
+  choiceKicker: {
+    color: '#65A936',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+  },
+  choiceTitle: {
+    color: '#432750',
+    fontFamily: 'Jua',
+    fontSize: 22,
+  },
+  hintPill: {
+    flex: 1,
+    maxWidth: 210,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 14,
+    backgroundColor: '#FFF3DD',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  hintText: {
+    flex: 1,
+    color: '#796242',
+    fontSize: 8,
+    lineHeight: 12,
+  },
+  choiceScroll: {
+    marginTop: 10,
+  },
+  choiceList: {
+    gap: 8,
+    paddingBottom: 4,
+  },
+  choiceButton: {
+    minHeight: 66,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#E5D8E9',
+    paddingHorizontal: 11,
+    paddingVertical: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  choiceButtonPressed: {
+    borderColor: '#8423D9',
+    backgroundColor: '#F7EFFD',
+    transform: [{ scale: 0.99 }],
+  },
+  choiceLetter: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    backgroundColor: '#F0E3F8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 11,
+  },
+  choiceLetterText: {
+    color: '#77408A',
+    fontFamily: 'Jua',
+    fontSize: 16,
+  },
+  choiceCopy: {
+    flex: 1,
+  },
+  choiceJapanese: {
+    color: '#40254A',
+    fontSize: 16,
+  },
+  choiceRomaji: {
+    color: '#8C7D90',
+    fontSize: 10,
+    marginTop: 2,
+  },
+  reactionCopy: {
+    marginTop: 10,
+  },
+  reactionTitle: {
+    color: '#55A42C',
+    fontFamily: 'Jua',
+    fontSize: 20,
+  },
+  reactionTitleWrong: {
+    color: '#D65570',
+  },
+  reactionText: {
+    color: '#776979',
+    fontSize: 11,
+    lineHeight: 17,
+    marginTop: 4,
+  },
+  betterAnswer: {
+    borderRadius: 14,
+    backgroundColor: '#F1F8EC',
+    paddingHorizontal: 11,
+    paddingVertical: 8,
+    marginTop: 8,
+  },
+  betterAnswerLabel: {
+    color: '#65A936',
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  betterAnswerJapanese: {
+    color: '#40254A',
+    fontSize: 15,
+    marginTop: 2,
+  },
+  betterAnswerRomaji: {
+    color: '#847688',
+    fontSize: 9,
+  },
+  continueButton: {
+    position: 'absolute',
+    right: 17,
+    bottom: 174,
+    height: 51,
+    borderRadius: 17,
+    backgroundColor: '#8423D9',
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    shadowColor: '#32183D',
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  continueText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.7,
+  },
+  modalShade: {
+    flex: 1,
+    backgroundColor: 'rgba(37,20,45,0.68)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 22,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 430,
+    borderRadius: 29,
+    backgroundColor: '#FFFFFF',
+    padding: 25,
+    alignItems: 'center',
+  },
+  trophyIcon: {
+    width: 70,
+    height: 70,
+    borderRadius: 23,
+    backgroundColor: '#65A936',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  exitIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 21,
+    backgroundColor: '#F0E4FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  modalKicker: {
+    color: '#65A936',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+  modalTitle: {
+    color: '#432750',
+    fontFamily: 'Jua',
+    fontSize: 27,
+    textAlign: 'center',
+    marginTop: 5,
+  },
+  finalScore: {
+    color: '#8423D9',
+    fontFamily: 'Jua',
+    fontSize: 48,
+    marginTop: 8,
+  },
+  modalText: {
+    color: '#7E7182',
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  modalPrimary: {
+    width: '100%',
+    height: 54,
+    borderRadius: 17,
+    backgroundColor: '#8423D9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 19,
+  },
+  modalPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.7,
+  },
+  modalSecondary: {
+    width: '100%',
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 7,
+  },
+  modalSecondaryText: {
+    color: '#6D5774',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+});

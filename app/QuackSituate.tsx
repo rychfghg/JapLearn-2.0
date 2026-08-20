@@ -11,6 +11,8 @@ const missions = [
   { title: 'Politeness', subtitle: 'Choose the right tone', description: 'Decide which level of politeness fits the person and the moment.', objective: 'Read the relationship and tone', difficulty: 'SOCIAL', route: '/QuackSituateFormalLevels', icon: 'people-outline', action: 'TONE QUEST', color: '#8423D9', tint: '#F0E4FA', character: '礼', image: require('../assets/quacksituate/cards/politeness-mission.png') },
 ] as const;
 
+const POLITENESS_LEVEL_ROUTE = '/QuackSituateFormalLevels' as const;
+
 export default function QuackSituate() {
   const { skipLoading } = useLocalSearchParams<{ skipLoading?: string }>();
   const [progress, setProgress] = useState(0);
@@ -48,7 +50,13 @@ export default function QuackSituate() {
       setLaunchProgress(currentProgress);
       if (currentProgress >= 100) {
         clearInterval(interval);
-        router.push(mission.route);
+
+        if (mission.title === 'Politeness') {
+          router.navigate(POLITENESS_LEVEL_ROUTE);
+        } else {
+          router.navigate(mission.route);
+        }
+
         setTimeout(() => {
           setLaunchingMission(null);
           setLaunchProgress(0);
