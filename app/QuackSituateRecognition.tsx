@@ -12,7 +12,7 @@ type Choice = { japanese: string; romaji: string };
 type Question = { id: string; difficulty: 'STARTER' | 'HARD'; order: number; location: string; sceneKey: string; scenario: string; hint: string; choices: Choice[]; correctAnswer: string; explanation: string };
 
 const sceneImages: Record<string, any> = {
-  school: require('../assets/img/background/school a hallway st2 day.png'),
+  school: require('../assets/quacksituate/recognition-school-hallway-v2.png'),
   classroom: require('../assets/img/background/classroom a st2 day.png'),
   station: require('../assets/img/background/train_scene day.png'),
   office: require('../assets/content/office.png'),
