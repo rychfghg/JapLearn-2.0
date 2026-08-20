@@ -69,9 +69,9 @@ export default function QuackSituateMatchingLevels() {
             <ActivityIndicator size="large" color="#8A20E8" style={styles.loader} />
           ) : (
             <View style={styles.map}>
-              <Svg pointerEvents="none" style={StyleSheet.absoluteFill} viewBox="0 0 400 850">
+              <Svg pointerEvents="none" style={StyleSheet.absoluteFill} viewBox="0 0 400 850" preserveAspectRatio="none">
                 <Path
-                  d="M 115 80 C 320 120, 320 245, 275 280 S 40 370, 115 445 S 345 525, 275 610 S 70 700, 120 785"
+                  d="M 46 94 C 175 94, 225 261, 354 261 S 175 428, 46 428 S 225 595, 354 595 S 175 762, 46 762"
                   stroke="#6B422D"
                   strokeWidth="18"
                   strokeLinecap="round"
@@ -79,14 +79,14 @@ export default function QuackSituateMatchingLevels() {
                   opacity="0.24"
                 />
                 <Path
-                  d="M 115 80 C 320 120, 320 245, 275 280 S 40 370, 115 445 S 345 525, 275 610 S 70 700, 120 785"
+                  d="M 46 94 C 175 94, 225 261, 354 261 S 175 428, 46 428 S 225 595, 354 595 S 175 762, 46 762"
                   stroke="#C89B72"
                   strokeWidth="11"
                   strokeLinecap="round"
                   fill="none"
                 />
                 <Path
-                  d="M 115 80 C 320 120, 320 245, 275 280 S 40 370, 115 445 S 345 525, 275 610 S 70 700, 120 785"
+                  d="M 46 94 C 175 94, 225 261, 354 261 S 175 428, 46 428 S 225 595, 354 595 S 175 762, 46 762"
                   stroke="#F6DFC2"
                   strokeWidth="3"
                   strokeLinecap="round"
@@ -109,7 +109,11 @@ export default function QuackSituateMatchingLevels() {
                       <Text style={styles.levelNumber}>{item.level}</Text>
                     </View>
 
-                    <View style={[styles.levelCard, locked && styles.lockedCard]}>
+                    <View style={styles.nodeBridge}>
+                      <View style={styles.nodeBridgeCore} />
+                    </View>
+
+                    <View style={[styles.levelCard, { borderColor: locked ? '#DED7E1' : `${item.color}55` }, locked && styles.lockedCard]}>
                       <View style={styles.cardTop}>
                         <View>
                           <Text style={[styles.levelLabel, { color: locked ? '#8D858F' : item.color }]}>LEVEL {item.level}</Text>
@@ -169,13 +173,15 @@ const styles = StyleSheet.create({
   heroTitle: { fontFamily: 'Jua', fontSize: 26, color: '#432750', marginTop: 12 },
   heroText: { fontSize: 13, lineHeight: 20, color: '#7B7080', marginTop: 4 },
   loader: { marginTop: 60 },
-  map: { minHeight: 850, paddingVertical: 14 },
-  stopRow: { position: 'relative', minHeight: 160, width: '100%', flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
+  map: { minHeight: 850, width: '100%', maxWidth: 520, alignSelf: 'center', paddingVertical: 14 },
+  stopRow: { position: 'relative', minHeight: 160, width: '100%', paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
   stopLeft: { justifyContent: 'flex-start' },
-  stopRight: { justifyContent: 'flex-end', flexDirection: 'row-reverse' },
-  levelNode: { width: 64, height: 64, borderRadius: 32, borderWidth: 6, borderColor: '#FFF', alignItems: 'center', justifyContent: 'center', zIndex: 3, shadowColor: '#422451', shadowOpacity: 0.2, shadowRadius: 10 },
+  stopRight: { justifyContent: 'flex-start', flexDirection: 'row-reverse' },
+  levelNode: { width: 64, height: 64, borderRadius: 32, borderWidth: 6, borderColor: '#FFF', alignItems: 'center', justifyContent: 'center', zIndex: 4, shadowColor: '#422451', shadowOpacity: 0.22, shadowRadius: 11, elevation: 5 },
   levelNumber: { position: 'absolute', bottom: 5, right: 8, fontFamily: 'Jua', color: '#FFF', fontSize: 12 },
-  levelCard: { width: '76%', backgroundColor: 'rgba(255,255,255,.97)', borderRadius: 25, padding: 17, marginHorizontal: -5, borderWidth: 1, borderColor: '#E6D9E9', shadowColor: '#422451', shadowOpacity: 0.09, shadowRadius: 14 },
+  nodeBridge: { width: 20, height: 16, marginHorizontal: -3, zIndex: 2, backgroundColor: '#C89B72', borderTopWidth: 3, borderBottomWidth: 3, borderColor: '#8B6046', justifyContent: 'center' },
+  nodeBridgeCore: { height: 2, backgroundColor: '#F6DFC2', opacity: 0.9 },
+  levelCard: { width: '72%', minHeight: 126, backgroundColor: 'rgba(255,255,255,.97)', borderRadius: 25, padding: 17, borderWidth: 1.5, shadowColor: '#422451', shadowOpacity: 0.11, shadowRadius: 15, shadowOffset: { width: 0, height: 7 }, elevation: 3 },
   lockedCard: { opacity: 0.72 },
   cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   levelLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.3 },
