@@ -29,8 +29,8 @@ const scenes = [
 const people = {
   male: {
     neutral: require('../assets/img/Sprite Male Dark Hair Neu01.png'),
-    speaking: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
-    speakingAlt: require('../assets/img/Sprite Male Dark Hair Neu01.png'),
+    speaking: require('../assets/img/Sprite Male Dark Hair Smi02.png'),
+    speakingAlt: require('../assets/img/Sprite Male Dark Hair Smi02.png'),
     blink: require('../assets/img/Sprite Male Dark Hair Ann01.png'),
     correct: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
     wrong: require('../assets/img/Sprite Male Dark Hair Sad01.png'),
