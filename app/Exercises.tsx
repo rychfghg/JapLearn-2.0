@@ -10,11 +10,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { preloadGameAssets } from '../utils/gameAssetPreloader';
 
 const activities = [
-  { key: 'KANA', title: 'Quack-a-Mole', subtitle: 'Match kana before time runs out.', description: 'Test your recognition of Hiragana and Katakana characters.', icon: 'hammer-outline', color: '#8423D9', tint: '#F0E4FA', cardColor: '#24123F', mode: 'CHARACTERS', tag: 'KANA HUNT', image: require('../assets/exercise-covers/quack-a-mole-official-v2.webp') },
-  { key: 'WORDS', title: 'Quackman', subtitle: 'Solve clues and protect Ahiru.', description: 'Strengthen your understanding of basic Japanese vocabulary.', icon: 'key-outline', color: '#65A936', tint: '#ECF7E4', cardColor: '#061D47', mode: 'WORDS', tag: 'WORD SURVIVAL', image: require('../assets/exercise-covers/quackman-official-v2.webp') },
-  { key: 'GRAMMAR', title: 'QuackSlate', subtitle: 'Build Japanese sentences in order.', description: 'Join a teacher-hosted grammar session or build sentences in system practice.', icon: 'create-outline', color: '#E18A27', tint: '#FFF2DF', cardColor: '#180917', mode: 'GRAMMAR', tag: 'SENTENCE QUEST', image: require('../assets/exercise-covers/quackslate-official-v2.webp') },
-  { key: 'SITUATIONAL', title: 'QuackSituate', subtitle: 'Choose naturally in real-life scenes.', description: 'Practice Japanese communication in everyday situations.', icon: 'map-outline', color: '#347FC4', tint: '#E5F2FC', cardColor: '#17275C', mode: 'SITUATIONAL', tag: 'STORY CHALLENGE', image: require('../assets/exercise-covers/quacksituate-official-v2.webp') },
-  { key: 'INTERACTIVE RESPONSE', title: 'QuackResponse', subtitle: 'Think fast and choose your reply.', description: 'Practice selecting appropriate responses in Japanese.', icon: 'chatbubbles-outline', color: '#D65686', tint: '#FCE8F0', cardColor: '#5A2455', mode: 'RESPONSE', tag: 'RESPONSE RALLY', image: require('../assets/exercise-covers/quackresponse-official-v3-dialogue.webp') },
+  { key: 'KANA', title: 'Quack-a-Mole', subtitle: 'Match kana before time runs out.', description: 'Test your recognition of Hiragana and Katakana characters.', icon: 'hammer-outline', color: '#8423D9', tint: '#F0E4FA', cardColor: '#24123F', mode: 'CHARACTERS', tag: 'KANA HUNT', image: require('../assets/exercise-covers/quack-a-mole-official-v2.png') },
+  { key: 'WORDS', title: 'Quackman', subtitle: 'Solve clues and protect Ahiru.', description: 'Strengthen your understanding of basic Japanese vocabulary.', icon: 'key-outline', color: '#65A936', tint: '#ECF7E4', cardColor: '#061D47', mode: 'WORDS', tag: 'WORD SURVIVAL', image: require('../assets/exercise-covers/quackman-official-v2.png') },
+  { key: 'GRAMMAR', title: 'QuackSlate', subtitle: 'Build Japanese sentences in order.', description: 'Join a teacher-hosted grammar session or build sentences in system practice.', icon: 'create-outline', color: '#E18A27', tint: '#FFF2DF', cardColor: '#180917', mode: 'GRAMMAR', tag: 'SENTENCE QUEST', image: require('../assets/exercise-covers/quackslate-official-v2.png') },
+  { key: 'SITUATIONAL', title: 'QuackSituate', subtitle: 'Choose naturally in real-life scenes.', description: 'Practice Japanese communication in everyday situations.', icon: 'map-outline', color: '#347FC4', tint: '#E5F2FC', cardColor: '#17275C', mode: 'SITUATIONAL', tag: 'STORY CHALLENGE', image: require('../assets/exercise-covers/quacksituate-official-v2.png') },
+  { key: 'INTERACTIVE RESPONSE', title: 'QuackResponse', subtitle: 'Think fast and choose your reply.', description: 'Practice selecting appropriate responses in Japanese.', icon: 'chatbubbles-outline', color: '#D65686', tint: '#FCE8F0', cardColor: '#5A2455', mode: 'RESPONSE', tag: 'RESPONSE RALLY', image: require('../assets/exercise-covers/quackresponse-official-v3-dialogue.png') },
 ] as const;
 
 const mascotGuides = [
@@ -51,13 +51,8 @@ const Exercises = () => {
     router.push('/Menu');
   };
 
-  const handleButtonPress = async (buttonTitle: (typeof activities)[number]['key']) => {
+  const handleButtonPress = (buttonTitle: (typeof activities)[number]['key']) => {
     console.log(`${buttonTitle} button pressed`);
-
-    // This normally resolves from the cache because preloading begins as soon
-    // as the Exercises screen opens. Awaiting it prevents a blank game scene
-    // when a user taps a game immediately on a slower connection.
-    await preloadGameAssets();
 
     switch (buttonTitle) {
       case 'KANA':

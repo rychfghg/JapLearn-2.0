@@ -74,7 +74,10 @@ const { user, setUser, authLoading } = useContext(AuthContext);
   useEffect(() => {
     const loadResources = async () => {
       try {
-        await Promise.all([getFonts(), checkUserAuth(), preloadExerciseCovers()]);
+        // Cache original artwork in the background. Never block app startup or
+        // navigation while large game images are still downloading.
+        preloadExerciseCovers();
+        await Promise.all([getFonts(), checkUserAuth()]);
       } catch (error) {
         console.error('Error loading resources', error);
       } finally {

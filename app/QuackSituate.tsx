@@ -6,9 +6,9 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackSituate';
 
 const missions = [
-  { title: 'Recognition', subtitle: 'Pick the best phrase', description: 'Read the situation and choose the Japanese expression that feels natural.', objective: 'Choose what you would say', difficulty: 'STARTER', route: '/QuackSituateRecognition', icon: 'eye-outline', action: 'QUICK CHOICE', color: '#65A936', tint: '#EAF5E3', character: '見', image: require('../assets/quacksituate/cards/recognition-mission.webp') },
-  { title: 'Expression Match', subtitle: 'Connect phrase to scene', description: 'Match useful Japanese expressions with the situation where they belong.', objective: 'Connect each scene and phrase', difficulty: 'MATCH', route: '/QuackSituateMatching', icon: 'git-compare-outline', action: 'MATCH GAME', color: '#D88727', tint: '#FFF0DC', character: '合', image: require('../assets/quacksituate/cards/expression-match-mission.webp') },
-  { title: 'Politeness', subtitle: 'Choose the right tone', description: 'Decide which level of politeness fits the person and the moment.', objective: 'Read the relationship and tone', difficulty: 'SOCIAL', route: '/QuackSituateFormal', icon: 'people-outline', action: 'TONE QUEST', color: '#8423D9', tint: '#F0E4FA', character: '礼', image: require('../assets/quacksituate/cards/politeness-mission.webp') },
+  { title: 'Recognition', subtitle: 'Pick the best phrase', description: 'Read the situation and choose the Japanese expression that feels natural.', objective: 'Choose what you would say', difficulty: 'STARTER', route: '/QuackSituateRecognition', icon: 'eye-outline', action: 'QUICK CHOICE', color: '#65A936', tint: '#EAF5E3', character: '見', image: require('../assets/quacksituate/cards/recognition-mission.png') },
+  { title: 'Expression Match', subtitle: 'Connect phrase to scene', description: 'Match useful Japanese expressions with the situation where they belong.', objective: 'Connect each scene and phrase', difficulty: 'MATCH', route: '/QuackSituateMatching', icon: 'git-compare-outline', action: 'MATCH GAME', color: '#D88727', tint: '#FFF0DC', character: '合', image: require('../assets/quacksituate/cards/expression-match-mission.png') },
+  { title: 'Politeness', subtitle: 'Choose the right tone', description: 'Decide which level of politeness fits the person and the moment.', objective: 'Read the relationship and tone', difficulty: 'SOCIAL', route: '/QuackSituateFormal', icon: 'people-outline', action: 'TONE QUEST', color: '#8423D9', tint: '#F0E4FA', character: '礼', image: require('../assets/quacksituate/cards/politeness-mission.png') },
 ] as const;
 
 export default function QuackSituate() {
@@ -59,7 +59,7 @@ export default function QuackSituate() {
 
   if (!loaded) return <View style={styles.situateLoadingScreen}>
     <Image
-      source={require('../assets/quacksituate/quacksituate-loading-v2.webp')}
+      source={require('../assets/quacksituate/quacksituate-loading-v2.png')}
       style={styles.situateLoadingBackground}
       resizeMode="stretch"
     />

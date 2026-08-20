@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import expoconfig from '../expoconfig';
 
-const scene = require('../assets/quackslate-twilight-workshop-v4.webp');
+const scene = require('../assets/quackslate-twilight-workshop-v4.png');
 const idle = require('../assets/idle.png');
 const talk = require('../assets/talk.png');
 const loadingMascotImage = require('../assets/hello.png');
