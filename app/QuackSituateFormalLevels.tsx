@@ -329,7 +329,8 @@ const styles = StyleSheet.create({
   },
   map: {
     position: 'relative',
-    paddingVertical: 8,
+    paddingTop: 28,
+    paddingBottom: 8,
   },
   mapRope: {
     position: 'absolute',

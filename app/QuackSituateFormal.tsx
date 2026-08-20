@@ -29,13 +29,17 @@ const scenes = [
 const people = {
   male: {
     neutral: require('../assets/img/Sprite Male Dark Hair Neu01.png'),
-    speaking: require('../assets/img/Sprite Male Dark Hair Speaking01.png'),
+    speaking: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
+    speakingAlt: require('../assets/img/Sprite Male Dark Hair Neu01.png'),
+    blink: require('../assets/img/Sprite Male Dark Hair Ann01.png'),
     correct: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
     wrong: require('../assets/img/Sprite Male Dark Hair Sad01.png'),
   },
   female: {
     neutral: require('../assets/img/Sumi_PoseB_WinterUni_Smile.png'),
     speaking: require('../assets/img/Sumi_PoseB_WinterUni_Open.png'),
+    speakingAlt: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Open.png'),
+    blink: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png'),
     correct: require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png'),
     wrong: require('../assets/img/Sumi_PoseB_WinterUni_Frown.png'),
   },
@@ -136,6 +140,7 @@ export default function QuackSituateFormal() {
   const [showComplete, setShowComplete] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [npcFrame, setNpcFrame] = useState(false);
   const sound = useRef<Audio.Sound | null>(null);
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const question = questions[index];
@@ -195,6 +200,31 @@ export default function QuackSituateFormal() {
       void stopSound();
     };
   }, [index]);
+
+  useEffect(() => {
+    setNpcFrame(false);
+
+    if (phase === 'speaking') {
+      const speakingTimer = setInterval(() => {
+        setNpcFrame((current) => !current);
+      }, 260);
+
+      return () => clearInterval(speakingTimer);
+    }
+
+    if (phase === 'choosing') {
+      let blinkCloseTimer: ReturnType<typeof setTimeout> | null = null;
+      const blinkTimer = setInterval(() => {
+        setNpcFrame(true);
+        blinkCloseTimer = setTimeout(() => setNpcFrame(false), 140);
+      }, 2400);
+
+      return () => {
+        clearInterval(blinkTimer);
+        if (blinkCloseTimer) clearTimeout(blinkCloseTimer);
+      };
+    }
+  }, [phase, index]);
 
   const selectResponse = async (choiceIndex: number) => {
     if (phase !== 'choosing') return;
@@ -287,6 +317,12 @@ export default function QuackSituateFormal() {
       ? 'speaking'
       : 'neutral';
 
+  const characterSource = phase === 'speaking'
+    ? people[question.gender][npcFrame ? 'speakingAlt' : 'speaking']
+    : phase === 'choosing' && npcFrame
+      ? people[question.gender].blink
+      : people[question.gender][characterMood];
+
   const reactionTitle = answeredCorrectly
     ? 'That response feels respectful.'
     : 'That tone feels uncomfortable here.';
@@ -352,7 +388,7 @@ export default function QuackSituateFormal() {
 
         <View style={styles.characterGround} />
         <Image
-          source={people[question.gender][characterMood]}
+          source={characterSource}
           style={styles.character}
           resizeMode="contain"
         />
