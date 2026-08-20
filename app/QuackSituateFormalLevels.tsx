@@ -1,45 +1,556 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import React from 'react';
-import { ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import {
+  ImageBackground,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { AuthContext } from '../context/AuthContext';
 import { POLITENESS_LEVELS } from '../data/politenessScenarios';
+import expoconfig from '../expoconfig';
+
+type Attempt = {
+  id: string;
+  completed: boolean;
+  correctAnswers: number;
+  level: number;
+  setNumber: number;
+  score: number;
+};
+
+type PublishedQuestion = {
+  active: boolean;
+  level: number;
+};
 
 export default function QuackSituateFormalLevels() {
+  const { user } = useContext(AuthContext);
+  const [attempts, setAttempts] = useState<Attempt[]>([]);
+  const [publishedLevels, setPublishedLevels] = useState<Set<number> | null>(null);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  useEffect(() => {
+    if (!user?.email) return;
+
+    fetch(
+      `${expoconfig.API_URL}/api/situational/attempts?email=${encodeURIComponent(user.email)}&gameType=POLITENESS`,
+    )
+      .then((response) => response.ok ? response.json() : [])
+      .then((records: Attempt[]) => setAttempts(records))
+      .catch(() => setAttempts([]));
+  }, [user?.email]);
+
+  useEffect(() => {
+    fetch(
+      `${expoconfig.API_URL}/api/situational/questions?gameType=POLITENESS&activeOnly=false`,
+    )
+      .then((response) => response.ok ? response.json() : [])
+      .then((questions: PublishedQuestion[]) => {
+        if (!questions.length) {
+          setPublishedLevels(null);
+          return;
+        }
+
+        setPublishedLevels(
+          new Set(
+            questions
+              .filter((question) => question.active)
+              .map((question) => question.level || 1),
+          ),
+        );
+      })
+      .catch(() => setPublishedLevels(null));
+  }, []);
+
+  const completedLevels = useMemo(
+    () => new Set(
+      attempts
+        .filter((attempt) => attempt.completed && attempt.level > 0)
+        .map((attempt) => attempt.level),
+    ),
+    [attempts],
+  );
+
+  const unlockedLevel = completedLevels.has(1)
+    ? completedLevels.has(2)
+      ? 3
+      : 2
+    : 1;
+
+  const resumeForLevel = (level: number) => attempts.find(
+    (attempt) => !attempt.completed && attempt.level === level,
+  );
+
+  const openLevel = (level: number) => {
+    const unpublished = publishedLevels !== null && !publishedLevels.has(level);
+
+    if (level > unlockedLevel || unpublished) return;
+
+    const resume = completedLevels.has(level)
+      ? undefined
+      : resumeForLevel(level);
+
+    router.push({
+      pathname: '/QuackSituateFormal',
+      params: {
+        level: String(level),
+        resumeIndex: String(resume?.setNumber || 0),
+        resumeScore: String(resume?.correctAnswers || 0),
+      },
+    });
+  };
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <ImageBackground source={require('../assets/quacksituate/quacksituate-menu-background-v3.png')} style={styles.bg} imageStyle={styles.bgImage}>
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.topbar}>
-            <Pressable style={styles.iconButton} onPress={() => router.replace('/QuackSituate')}><Ionicons name="arrow-back" size={24} color="#452452" /></Pressable>
-            <View style={styles.brand}><Text style={styles.kicker}>TONE QUEST</Text><Text style={styles.title}>Politeness trails</Text></View>
-            <View style={styles.iconButton}><Ionicons name="chatbubbles" size={23} color="#8423D9" /></View>
+    <SafeAreaView style={styles.safeArea}>
+      <ImageBackground
+        source={require('../assets/quacksituate/quacksituate-menu-background-v3.png')}
+        style={styles.background}
+        imageStyle={styles.backgroundImage}
+      >
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.topBar}>
+            <Pressable style={styles.iconButton} onPress={() => router.replace('/QuackSituate')}>
+              <Ionicons name="arrow-back" size={24} color="#452452" />
+            </Pressable>
+
+            <View style={styles.brand}>
+              <Text style={styles.kicker}>TONE QUEST</Text>
+              <Text style={styles.title}>Politeness journey</Text>
+            </View>
+
+            <Pressable style={styles.helpButton} onPress={() => setShowTutorial(true)}>
+              <Ionicons name="help" size={24} color="#8423D9" />
+            </Pressable>
           </View>
 
-          <View style={styles.hero}>
-            <View style={styles.heroSeal}><Text style={styles.heroKanji}>礼</Text></View>
-            <View style={styles.heroCopy}><Text style={styles.heroEyebrow}>SOCIAL JAPANESE</Text><Text style={styles.heroTitle}>Choose the tone that fits.</Text><Text style={styles.heroText}>Travel from everyday courtesy to formal Japanese. Every gate tests a new relationship.</Text></View>
+          <View style={styles.journeyHeading}>
+            <View>
+              <Text style={styles.journeyKicker}>YOUR COURTESY PATH</Text>
+              <Text style={styles.journeyTitle}>Follow the gates in order</Text>
+              <Text style={styles.journeyText}>
+                Complete a tone trail to unlock the next. Cleared trails can be replayed anytime.
+              </Text>
+            </View>
+            <View style={styles.progressSeal}>
+              <Text style={styles.progressValue}>{completedLevels.size}/3</Text>
+              <Text style={styles.progressLabel}>CLEARED</Text>
+            </View>
           </View>
 
-          <View style={styles.path}>
-            <View style={styles.pathRope} />
-            {POLITENESS_LEVELS.map((item, index) => (
-              <View key={item.level} style={styles.stageRow}>
-                <View style={[styles.stagePin,{backgroundColor:item.color}]}><Text style={styles.stageNumber}>{item.level}</Text></View>
-                <Pressable style={[styles.stageCard,{borderColor:`${item.color}55`}]} onPress={() => router.push({pathname:'/QuackSituateFormal',params:{level:String(item.level)}})}>
-                  <View style={[styles.stageIcon,{backgroundColor:`${item.color}18`}]}><Ionicons name={item.icon as any} size={25} color={item.color}/></View>
-                  <View style={styles.stageCopy}><Text style={[styles.difficulty,{color:item.color}]}>{item.difficulty} · {item.count} MOMENTS</Text><Text style={styles.stageTitle}>{item.name}</Text><Text style={styles.stageText}>{index===0?'Greetings and everyday courtesy':index===1?'School, service, and workplace tone':'Honorific and humble language trials'}</Text></View>
-                  <View style={[styles.play,{backgroundColor:item.color}]}><Ionicons name="arrow-forward" size={21} color="#FFF"/></View>
-                </Pressable>
-              </View>
-            ))}
+          <View style={styles.map}>
+            <View style={styles.mapRope} />
+
+            {POLITENESS_LEVELS.map((item, index) => {
+              const locked = item.level > unlockedLevel;
+              const unpublished = publishedLevels !== null && !publishedLevels.has(item.level);
+              const unavailable = locked || unpublished;
+              const completed = completedLevels.has(item.level);
+              const resume = resumeForLevel(item.level);
+
+              return (
+                <View
+                  key={item.level}
+                  style={[
+                    styles.stageRow,
+                    index % 2 === 1 && styles.stageRowRight,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.stageNode,
+                      {
+                        backgroundColor: unavailable ? '#BDB4C0' : item.color,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={unavailable ? 'lock-closed' : completed ? 'checkmark' : item.icon as any}
+                      size={24}
+                      color="#FFFFFF"
+                    />
+                  </View>
+
+                  <Pressable
+                    disabled={unavailable}
+                    style={({ pressed }) => [
+                      styles.stageCard,
+                      unavailable && styles.stageCardLocked,
+                      pressed && !unavailable && styles.stageCardPressed,
+                    ]}
+                    onPress={() => openLevel(item.level)}
+                  >
+                    <View style={styles.stageTopRow}>
+                      <View
+                        style={[
+                          styles.levelTag,
+                          {
+                            backgroundColor: unavailable ? '#EEE9EF' : `${item.color}18`,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.levelTagText,
+                            {
+                              color: unavailable ? '#8D838F' : item.color,
+                            },
+                          ]}
+                        >
+                          LEVEL {item.level} · {item.difficulty}
+                        </Text>
+                      </View>
+                      <Ionicons
+                        name={unavailable ? 'lock-closed-outline' : 'arrow-forward-circle'}
+                        size={25}
+                        color={unavailable ? '#A99FAB' : item.color}
+                      />
+                    </View>
+
+                    <Text style={[styles.stageTitle, unavailable && styles.mutedText]}>
+                      {item.name}
+                    </Text>
+                    <Text style={[styles.stageDescription, unavailable && styles.mutedText]}>
+                      {index === 0
+                        ? 'Everyday greetings and respectful courtesy'
+                        : index === 1
+                          ? 'School, service, and workplace relationships'
+                          : 'Formal, honorific, and humble language'}
+                    </Text>
+
+                    <View style={styles.stageFooter}>
+                      <Text style={[styles.momentCount, unavailable && styles.mutedText]}>
+                        {item.count} story moments
+                      </Text>
+                      <Text
+                        style={[
+                          styles.stageState,
+                          {
+                            color: unavailable ? '#8D838F' : item.color,
+                          },
+                        ]}
+                      >
+                        {unpublished
+                          ? 'UNPUBLISHED'
+                          : locked
+                            ? 'LOCKED'
+                          : completed
+                            ? 'REPLAY'
+                            : resume
+                              ? `CONTINUE ${resume.setNumber + 1}/${item.count}`
+                              : 'START'}
+                      </Text>
+                    </View>
+                  </Pressable>
+                </View>
+              );
+            })}
           </View>
-          <View style={styles.tip}><Ionicons name="sparkles" size={20} color="#E58B2A"/><View><Text style={styles.tipTitle}>Tone matters</Text><Text style={styles.tipText}>The same meaning can sound warm, distant, respectful, or rude.</Text></View></View>
         </ScrollView>
+
+        <Modal
+          visible={showTutorial}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowTutorial(false)}
+        >
+          <View style={styles.modalShade}>
+            <View style={styles.tutorialCard}>
+              <View style={styles.tutorialIcon}>
+                <Ionicons name="chatbubbles" size={30} color="#8423D9" />
+              </View>
+              <Text style={styles.tutorialKicker}>HOW TONE QUEST WORKS</Text>
+              <Text style={styles.tutorialTitle}>Listen before you answer</Text>
+              <Text style={styles.tutorialText}>
+                Read the situation, listen to the NPC, then choose the response that fits your relationship and setting. The NPC reacts to your tone and explains a better response when needed.
+              </Text>
+              <View style={styles.tutorialSteps}>
+                <Text>1 · Listen to the full Japanese line</Text>
+                <Text>2 · Open the hint only when needed</Text>
+                <Text>3 · Complete each level to unlock the next</Text>
+              </View>
+              <Pressable style={styles.tutorialButton} onPress={() => setShowTutorial(false)}>
+                <Text style={styles.tutorialButtonText}>UNDERSTOOD</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       </ImageBackground>
     </SafeAreaView>
   );
 }
 
-const styles=StyleSheet.create({
-  safe:{flex:1,backgroundColor:'#FAF7FC'},bg:{flex:1},bgImage:{opacity:.12},content:{padding:19,paddingBottom:46},topbar:{flexDirection:'row',alignItems:'center',gap:13,marginBottom:18},iconButton:{width:52,height:52,borderRadius:18,backgroundColor:'#FFF',alignItems:'center',justifyContent:'center',elevation:4,shadowColor:'#432750',shadowOpacity:.1,shadowRadius:10},brand:{flex:1},kicker:{fontSize:9,fontWeight:'900',letterSpacing:1.5,color:'#65A936'},title:{fontFamily:'Jua',fontSize:27,color:'#432750'},hero:{minHeight:184,borderRadius:30,backgroundColor:'#FFF',borderWidth:1,borderColor:'#E7DAEA',padding:20,flexDirection:'row',alignItems:'center',overflow:'hidden'},heroSeal:{width:104,height:126,borderRadius:50,backgroundColor:'#F1E4FC',alignItems:'center',justifyContent:'center',marginRight:17},heroKanji:{fontSize:65,color:'#8423D9'},heroCopy:{flex:1},heroEyebrow:{fontSize:9,fontWeight:'900',letterSpacing:1.3,color:'#65A936'},heroTitle:{fontFamily:'Jua',fontSize:24,lineHeight:29,color:'#432750',marginTop:5},heroText:{fontSize:12,lineHeight:18,color:'#807383',marginTop:6},path:{marginTop:24,position:'relative'},pathRope:{position:'absolute',left:30,top:24,bottom:24,width:8,borderRadius:8,backgroundColor:'#C99D75',borderWidth:2,borderColor:'#8D6649'},stageRow:{minHeight:150,flexDirection:'row',alignItems:'center'},stagePin:{width:60,height:60,borderRadius:30,borderWidth:5,borderColor:'#FFF',alignItems:'center',justifyContent:'center',zIndex:3,elevation:5},stageNumber:{fontFamily:'Jua',fontSize:23,color:'#FFF'},stageCard:{flex:1,minHeight:126,marginLeft:12,borderRadius:25,backgroundColor:'rgba(255,255,255,.97)',borderWidth:1.5,padding:15,flexDirection:'row',alignItems:'center',elevation:4,shadowColor:'#432750',shadowOpacity:.09,shadowRadius:12},stageIcon:{width:48,height:48,borderRadius:16,alignItems:'center',justifyContent:'center',marginRight:12},stageCopy:{flex:1},difficulty:{fontSize:8,fontWeight:'900',letterSpacing:1.2},stageTitle:{fontFamily:'Jua',fontSize:20,color:'#432750',marginTop:2},stageText:{fontSize:10,lineHeight:15,color:'#87798A',marginTop:3},play:{width:40,height:40,borderRadius:14,alignItems:'center',justifyContent:'center',marginLeft:8},tip:{marginTop:15,borderRadius:22,backgroundColor:'#FFF7E8',borderWidth:1,borderColor:'#F2D79F',padding:16,flexDirection:'row',gap:12,alignItems:'center'},tipTitle:{fontFamily:'Jua',fontSize:16,color:'#604223'},tipText:{fontSize:10,color:'#897256',marginTop:2}
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FAF7FC',
+  },
+  background: {
+    flex: 1,
+  },
+  backgroundImage: {
+    opacity: 0.1,
+  },
+  content: {
+    padding: 19,
+    paddingBottom: 45,
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 13,
+  },
+  iconButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+  },
+  helpButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    backgroundColor: '#F0E4FA',
+    borderWidth: 1,
+    borderColor: '#DEC8EF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  brand: {
+    flex: 1,
+  },
+  kicker: {
+    color: '#65A936',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1.4,
+  },
+  title: {
+    color: '#432750',
+    fontFamily: 'Jua',
+    fontSize: 27,
+  },
+  journeyHeading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 25,
+    marginBottom: 14,
+  },
+  journeyKicker: {
+    color: '#8423D9',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+  journeyTitle: {
+    color: '#432750',
+    fontFamily: 'Jua',
+    fontSize: 24,
+    marginTop: 3,
+  },
+  journeyText: {
+    maxWidth: 335,
+    color: '#827585',
+    fontSize: 11,
+    lineHeight: 17,
+    marginTop: 3,
+  },
+  progressSeal: {
+    width: 67,
+    height: 67,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+  },
+  progressValue: {
+    color: '#8423D9',
+    fontFamily: 'Jua',
+    fontSize: 19,
+  },
+  progressLabel: {
+    color: '#8D7F90',
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+  map: {
+    position: 'relative',
+    paddingVertical: 8,
+  },
+  mapRope: {
+    position: 'absolute',
+    left: 29,
+    top: 42,
+    bottom: 42,
+    width: 8,
+    borderRadius: 8,
+    backgroundColor: '#C9A47E',
+    borderWidth: 2,
+    borderColor: '#8E694D',
+  },
+  stageRow: {
+    minHeight: 166,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  stageRowRight: {},
+  stageNode: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 5,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 3,
+    elevation: 5,
+  },
+  stageCard: {
+    flex: 1,
+    minHeight: 140,
+    marginLeft: 13,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255,255,255,0.98)',
+    borderWidth: 1.5,
+    borderColor: '#E5D8E8',
+    padding: 16,
+    elevation: 4,
+  },
+  stageCardLocked: {
+    backgroundColor: 'rgba(246,243,247,0.96)',
+    borderColor: '#E2DCE3',
+  },
+  stageCardPressed: {
+    transform: [{ scale: 0.985 }],
+  },
+  stageTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  levelTag: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  levelTagText: {
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  stageTitle: {
+    color: '#432750',
+    fontFamily: 'Jua',
+    fontSize: 22,
+    marginTop: 10,
+  },
+  stageDescription: {
+    color: '#827585',
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 3,
+  },
+  stageFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#EEE7EF',
+    marginTop: 11,
+    paddingTop: 9,
+  },
+  momentCount: {
+    color: '#8B7E8E',
+    fontSize: 8,
+    fontWeight: '700',
+  },
+  stageState: {
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 0.9,
+  },
+  mutedText: {
+    color: '#A59CA7',
+  },
+  modalShade: {
+    flex: 1,
+    backgroundColor: 'rgba(42,23,51,0.66)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 22,
+  },
+  tutorialCard: {
+    width: '100%',
+    maxWidth: 430,
+    borderRadius: 29,
+    backgroundColor: '#FFFFFF',
+    padding: 25,
+    alignItems: 'center',
+  },
+  tutorialIcon: {
+    width: 66,
+    height: 66,
+    borderRadius: 22,
+    backgroundColor: '#F0E4FA',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 13,
+  },
+  tutorialKicker: {
+    color: '#65A936',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+  tutorialTitle: {
+    color: '#432750',
+    fontFamily: 'Jua',
+    fontSize: 27,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  tutorialText: {
+    color: '#7E7182',
+    fontSize: 12,
+    lineHeight: 19,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  tutorialSteps: {
+    width: '100%',
+    gap: 8,
+    borderRadius: 18,
+    backgroundColor: '#F8F3FA',
+    padding: 15,
+    marginTop: 16,
+  },
+  tutorialButton: {
+    width: '100%',
+    height: 53,
+    borderRadius: 17,
+    backgroundColor: '#8423D9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 17,
+  },
+  tutorialButtonText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
 });

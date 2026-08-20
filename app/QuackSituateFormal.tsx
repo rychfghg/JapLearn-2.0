@@ -29,7 +29,7 @@ const scenes = [
 const people = {
   male: {
     neutral: require('../assets/img/Sprite Male Dark Hair Neu01.png'),
-    speaking: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
+    speaking: require('../assets/img/Sprite Male Dark Hair Speaking01.png'),
     correct: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
     wrong: require('../assets/img/Sprite Male Dark Hair Sad01.png'),
   },
@@ -110,21 +110,32 @@ const npcVoices = [
 type StoryPhase = 'speaking' | 'choosing' | 'reaction';
 
 export default function QuackSituateFormal() {
-  const params = useLocalSearchParams<{ level?: string }>();
+  const params = useLocalSearchParams<{
+    level?: string;
+    resumeIndex?: string;
+    resumeScore?: string;
+  }>();
   const level = Math.min(3, Math.max(1, Number(params.level) || 1)) as 1 | 2 | 3;
   const questions = useMemo(
     () => POLITENESS_SCENARIOS.filter((question) => question.level === level),
     [level],
   );
 
-  const [index, setIndex] = useState(0);
-  const [score, setScore] = useState(0);
+  const [index, setIndex] = useState(
+    Math.min(
+      Math.max(questions.length - 1, 0),
+      Math.max(0, Number(params.resumeIndex) || 0),
+    ),
+  );
+  const [score, setScore] = useState(
+    Math.max(0, Number(params.resumeScore) || 0),
+  );
   const [phase, setPhase] = useState<StoryPhase>('speaking');
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [showExit, setShowExit] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
+  const [showHint, setShowHint] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [mouthFrame, setMouthFrame] = useState(0);
   const sound = useRef<Audio.Sound | null>(null);
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const question = questions[index];
@@ -148,14 +159,12 @@ export default function QuackSituateFormal() {
   };
 
   const revealChoices = () => {
-    setMouthFrame(0);
     setPhase((current) => current === 'speaking' ? 'choosing' : current);
   };
 
   const playNpc = async () => {
     await stopSound();
     setPhase('speaking');
-    setMouthFrame(1);
 
     fallbackTimer.current = setTimeout(revealChoices, 3200);
 
@@ -187,16 +196,6 @@ export default function QuackSituateFormal() {
     };
   }, [index]);
 
-  useEffect(() => {
-    if (phase !== 'speaking') return;
-
-    const animation = setInterval(() => {
-      setMouthFrame((current) => current === 0 ? 1 : 0);
-    }, 420);
-
-    return () => clearInterval(animation);
-  }, [phase]);
-
   const selectResponse = async (choiceIndex: number) => {
     if (phase !== 'choosing') return;
 
@@ -224,7 +223,11 @@ export default function QuackSituateFormal() {
     } catch {}
   };
 
-  const saveAttempt = async (finalScore: number) => {
+  const saveAttempt = async (
+    finalScore: number,
+    completed: boolean,
+    resumeIndex: number,
+  ) => {
     try {
       const storedUser = JSON.parse((await AsyncStorage.getItem('user')) || '{}');
 
@@ -241,7 +244,10 @@ export default function QuackSituateFormal() {
           score: finalScore * 10,
           totalQuestions: questions.length,
           correctAnswers: finalScore,
-          completed: true,
+          completed,
+          level,
+          setNumber: resumeIndex,
+          topic: questions[0]?.location || 'Politeness and social tone',
         }),
       });
     } catch {}
@@ -257,12 +263,17 @@ export default function QuackSituateFormal() {
       return;
     }
 
-    await saveAttempt(score);
+    await saveAttempt(score, true, questions.length);
     setShowComplete(true);
   };
 
-  const leaveGame = async () => {
+  const leaveGame = async (saveResume = true) => {
     await stopSound();
+
+    if (saveResume && !showComplete) {
+      await saveAttempt(score, false, index);
+    }
+
     setShowExit(false);
     setShowComplete(false);
     setLeaving(true);
@@ -272,7 +283,7 @@ export default function QuackSituateFormal() {
     ? answeredCorrectly
       ? 'correct'
       : 'wrong'
-    : mouthFrame === 1
+    : phase === 'speaking'
       ? 'speaking'
       : 'neutral';
 
@@ -339,6 +350,7 @@ export default function QuackSituateFormal() {
           <Text style={styles.promptText}>{question.prompt}</Text>
         </View>
 
+        <View style={styles.characterGround} />
         <Image
           source={people[question.gender][characterMood]}
           style={styles.character}
@@ -409,10 +421,12 @@ export default function QuackSituateFormal() {
                 <Text style={styles.choiceKicker}>CHOOSE YOUR RESPONSE</Text>
                 <Text style={styles.choiceTitle}>What would you say?</Text>
               </View>
-              <View style={styles.hintPill}>
-                <Ionicons name="bulb" size={15} color="#D88727" />
-                <Text style={styles.hintText}>{question.hint}</Text>
-              </View>
+              <Pressable
+                style={styles.hintButton}
+                onPress={() => setShowHint(true)}
+              >
+                <Ionicons name="bulb-outline" size={21} color="#D88727" />
+              </Pressable>
             </View>
 
             <ScrollView
@@ -467,7 +481,7 @@ export default function QuackSituateFormal() {
             <Text style={styles.modalText}>
               Your tone choices were saved to communication progress.
             </Text>
-            <Pressable style={styles.modalPrimary} onPress={() => void leaveGame()}>
+            <Pressable style={styles.modalPrimary} onPress={() => void leaveGame(false)}>
               <Text style={styles.modalPrimaryText}>RETURN TO TONE TRAILS</Text>
             </Pressable>
           </View>
@@ -495,6 +509,27 @@ export default function QuackSituateFormal() {
             </Pressable>
             <Pressable style={styles.modalSecondary} onPress={() => void leaveGame()}>
               <Text style={styles.modalSecondaryText}>Exit this level</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showHint}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowHint(false)}
+      >
+        <View style={styles.modalShade}>
+          <View style={styles.hintModalCard}>
+            <View style={styles.hintModalIcon}>
+              <Ionicons name="bulb-outline" size={31} color="#D88727" />
+            </View>
+            <Text style={styles.modalKicker}>TONE HINT</Text>
+            <Text style={styles.modalTitle}>Notice the relationship</Text>
+            <Text style={styles.modalText}>{question.hint}</Text>
+            <Pressable style={styles.modalPrimary} onPress={() => setShowHint(false)}>
+              <Text style={styles.modalPrimaryText}>BACK TO THE STORY</Text>
             </Pressable>
           </View>
         </View>
@@ -604,9 +639,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: '8%',
     right: '8%',
-    bottom: 154,
+    bottom: 146,
     width: '84%',
-    height: '65%',
+    height: '61%',
+  },
+  characterGround: {
+    position: 'absolute',
+    alignSelf: 'center',
+    bottom: 151,
+    width: '48%',
+    height: 28,
+    borderRadius: 999,
+    backgroundColor: 'rgba(48, 28, 58, 0.22)',
+    transform: [{ scaleY: 0.45 }],
   },
   storyPanel: {
     position: 'absolute',
@@ -729,22 +774,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Jua',
     fontSize: 22,
   },
-  hintPill: {
-    flex: 1,
-    maxWidth: 210,
-    flexDirection: 'row',
+  hintButton: {
+    width: 46,
+    height: 46,
     alignItems: 'center',
-    gap: 6,
-    borderRadius: 14,
+    justifyContent: 'center',
+    borderRadius: 15,
     backgroundColor: '#FFF3DD',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  hintText: {
-    flex: 1,
-    color: '#796242',
-    fontSize: 8,
-    lineHeight: 12,
+    borderWidth: 1,
+    borderColor: '#F0D29A',
   },
   choiceScroll: {
     marginTop: 10,
@@ -871,6 +909,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     padding: 25,
     alignItems: 'center',
+  },
+  hintModalCard: {
+    width: '100%',
+    maxWidth: 410,
+    borderRadius: 29,
+    backgroundColor: '#FFFFFF',
+    padding: 25,
+    alignItems: 'center',
+  },
+  hintModalIcon: {
+    width: 66,
+    height: 66,
+    borderRadius: 22,
+    backgroundColor: '#FFF3DD',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 13,
   },
   trophyIcon: {
     width: 70,

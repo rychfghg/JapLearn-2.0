@@ -28,6 +28,7 @@ export default function QuackProgress() {
   const [quackamoleBest, setQuackamoleBest] = useState(0);
   const [recognitionBest, setRecognitionBest] = useState(0);
   const [expressionBest, setExpressionBest] = useState(0);
+  const [politenessBest, setPolitenessBest] = useState(0);
 
   useEffect(() => {
     fetchProgressSummary();
@@ -59,13 +60,39 @@ export default function QuackProgress() {
       .then((response) => response.status === 204 ? null : response.json())
       .then((record) => record && setExpressionBest(record.score || 0))
       .catch((error) => console.log('Expression Match score fetch error:', error.message));
+    fetch(`${expoconfig.API_URL}/api/situational/best?email=${encodeURIComponent(email)}&gameType=POLITENESS`)
+      .then((response) => response.status === 204 ? null : response.json())
+      .then((record) => record && setPolitenessBest(record.score || 0))
+      .catch((error) => console.log('Politeness score fetch error:', error.message));
 
     try {
       setLoading(true);
-      const response = await fetch(`${expoconfig.API_URL}/api/quackProgress/summary?email=${email}`);
+      const response = await fetch(
+        `${expoconfig.API_URL}/api/communicationAnalytics/getStudentAnalytics?email=${encodeURIComponent(email)}`,
+      );
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to fetch QuackProgress summary.');
-      setSummary(data);
+      if (!response.ok) throw new Error(data.message || 'Failed to fetch communication mastery.');
+
+      const masteryItems = [
+        { name: 'Recognition', percentage: data.recognitionAccuracy || 0 },
+        { name: 'Expression Match', percentage: data.expressionMatchAccuracy || 0 },
+        { name: 'Politeness', percentage: data.politenessAccuracy || 0 },
+      ];
+      const activeMastery = masteryItems.filter((item) => item.percentage > 0);
+      const overallMastery = activeMastery.length
+        ? Math.round(
+            activeMastery.reduce((total, item) => total + item.percentage, 0)
+              / activeMastery.length,
+          )
+        : 0;
+
+      setSummary({
+        overallMastery,
+        completedActivities: data.completedActivities || 0,
+        weakAreaCount: data.weakAreaCount || 0,
+        recommendation: data.recommendation,
+        masteryItems,
+      });
     } catch (error: any) {
       console.log('QuackProgress fetch error:', error.message);
       setSummary({ overallMastery: 0, completedActivities: 0, weakAreaCount: 0, recommendation: 'No progress data found yet. Complete communication activities to generate recommendations.', masteryItems: [] });
@@ -106,6 +133,7 @@ export default function QuackProgress() {
         <View style={styles.arcadeBestCard}><Ionicons name="trophy" size={25} color="#D59A2A" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>ARCADE PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Quack-a-Mole</Text></View><Text style={styles.arcadeBestValue}>{quackamoleBest}</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="eye" size={25} color="#65A936" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>SITUATIONAL PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Recognition</Text></View><Text style={styles.arcadeBestValue}>{recognitionBest}</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="git-compare" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>MATCHING PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Expression Match</Text></View><Text style={styles.arcadeBestValue}>{expressionBest}</Text></View>
+        <View style={styles.arcadeBestCard}><Ionicons name="people" size={25} color="#D88727" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>TONE QUEST PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Politeness</Text></View><Text style={styles.arcadeBestValue}>{politenessBest}</Text></View>
         <Text style={styles.actionsTitle}>Explore your progress</Text>
         <Pressable style={styles.featureGreen} onPress={() => router.push('/QuackProgressProgression')}><View style={styles.featureIcon}><Ionicons name="trending-up-outline" size={25} color="#FFFFFF" /></View><View style={styles.featureCopy}><Text style={styles.featureTitle}>Progression & Reinforcement</Text><Text style={styles.featureText}>View mastery stages, repeated mistakes, and retry activities.</Text></View><Ionicons name="arrow-forward-circle" size={27} color="#65A936" /></Pressable>
         <Pressable style={styles.featurePurple} onPress={() => router.push('/QuackProgressAnalytics')}><View style={styles.featureIcon}><Ionicons name="bar-chart-outline" size={25} color="#FFFFFF" /></View><View style={styles.featureCopy}><Text style={styles.featureTitle}>Analytics & Progress Reports</Text><Text style={styles.featureText}>View accuracy, weak areas, completion progress, and summaries.</Text></View><Ionicons name="arrow-forward-circle" size={27} color="#8423D9" /></Pressable>

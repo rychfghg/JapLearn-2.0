@@ -3,6 +3,7 @@ import { Animated, Image, ImageBackground, Pressable, SafeAreaView, ScrollView, 
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import BackIcon from '../assets/svg/back-icon.svg';
+import QuackSituateMissionLoader from '../components/QuackSituateMissionLoader';
 import styles from '../styles/stylesQuackSituate';
 
 const missions = [
@@ -18,10 +19,8 @@ export default function QuackSituate() {
   const [progress, setProgress] = useState(0);
   const [loaded, setLoaded] = useState(skipLoading === '1');
   const [launchingMission, setLaunchingMission] = useState<(typeof missions)[number] | null>(null);
-  const [launchProgress, setLaunchProgress] = useState(0);
   const [showFieldNote, setShowFieldNote] = useState(true);
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const shineAnim = useRef(new Animated.Value(-1)).current;
 
   useEffect(() => {
     if (skipLoading === '1') {
@@ -36,33 +35,23 @@ export default function QuackSituate() {
       Animated.timing(pulseAnim, { toValue: 1.08, duration: 850, useNativeDriver: true }),
       Animated.timing(pulseAnim, { toValue: 1, duration: 850, useNativeDriver: true }),
     ])).start();
-    Animated.loop(Animated.timing(shineAnim, { toValue: 1, duration: 1450, useNativeDriver: true })).start();
     return () => clearInterval(interval);
   }, [skipLoading]);
 
   const launchMission = (mission: (typeof missions)[number]) => {
     if (launchingMission) return;
     setLaunchingMission(mission);
-    setLaunchProgress(8);
-    let currentProgress = 8;
-    const interval = setInterval(() => {
-      currentProgress = Math.min(currentProgress + 12, 100);
-      setLaunchProgress(currentProgress);
-      if (currentProgress >= 100) {
-        clearInterval(interval);
+  };
 
-        if (mission.title === 'Politeness') {
-          router.navigate(POLITENESS_LEVEL_ROUTE);
-        } else {
-          router.navigate(mission.route);
-        }
+  const openLaunchingMission = () => {
+    if (!launchingMission) return;
 
-        setTimeout(() => {
-          setLaunchingMission(null);
-          setLaunchProgress(0);
-        }, 350);
-      }
-    }, 55);
+    const destination = launchingMission.title === 'Politeness'
+      ? POLITENESS_LEVEL_ROUTE
+      : launchingMission.route;
+
+    router.navigate(destination);
+    setLaunchingMission(null);
   };
 
   if (!loaded) return <View style={styles.situateLoadingScreen}>
@@ -96,17 +85,18 @@ export default function QuackSituate() {
   if (launchingMission) {
     const missionIndex = missions.findIndex((mission) => mission.title === launchingMission.title);
     const mascot = missionIndex === 0 ? require('../assets/hello.png') : missionIndex === 1 ? require('../assets/thinking.png') : require('../assets/talk.png');
-    return <View style={[styles.missionLoadingScreen, { backgroundColor: launchingMission.tint }]}>
-      <View style={[styles.missionLoadingOrb, styles.missionLoadingOrbTop, { backgroundColor: launchingMission.color }]} /><View style={[styles.missionLoadingOrb, styles.missionLoadingOrbBottom, { backgroundColor: launchingMission.color }]} />
-      <View style={styles.missionLoadingCard}>
-        <View style={[styles.missionLoadingBadge, { backgroundColor: launchingMission.tint }]}><Ionicons name={launchingMission.icon} size={16} color={launchingMission.color} /><Text style={[styles.missionLoadingBadgeText, { color: launchingMission.color }]}>{launchingMission.action}</Text></View>
-        <View style={styles.missionBadgeStage}><Animated.View style={[styles.missionBadgeGlow,{backgroundColor:`${launchingMission.color}24`,transform:[{scale:pulseAnim}]}]}/><View style={[styles.missionBadgeOuter,{borderColor:`${launchingMission.color}50`}]}><View style={[styles.missionBadgeInner,{backgroundColor:launchingMission.color}]}><Text style={styles.missionBadgeCharacter}>{launchingMission.character}</Text><Ionicons name={launchingMission.icon} size={28} color="#FFF"/></View></View><Animated.View style={[styles.missionBadgeSweep,{transform:[{translateX:shineAnim.interpolate({inputRange:[-1,1],outputRange:[-110,110]})},{rotate:'-18deg'}]}]}/><Image source={mascot} style={styles.missionBadgeMascot} resizeMode="contain"/><Text style={[styles.missionBadgeSparkle,{color:launchingMission.color}]}>✦</Text></View>
-        <Text style={styles.missionLoadingKicker}>YOUR NEXT PRACTICE</Text><Text style={styles.missionLoadingTitle}>{launchingMission.title}</Text><Text style={styles.missionLoadingDescription}>{launchingMission.description}</Text>
-        <View style={styles.missionLoadingStatus}><Text style={styles.missionLoadingStatusText}>{launchProgress < 45 ? 'Preparing your mission' : launchProgress < 85 ? 'Setting the challenge' : 'Mission ready!'}</Text><Text style={[styles.missionLoadingPercent, { color: launchingMission.color }]}>{launchProgress}%</Text></View>
-        <View style={styles.missionLoadingTrack}><View style={[styles.missionLoadingFill, { width: `${launchProgress}%`, backgroundColor: launchingMission.color }]} /></View>
-        <View style={styles.missionLoadingHint}><Ionicons name="sparkles" size={14} color={launchingMission.color} /><Text style={styles.missionLoadingHintText}>{launchProgress<45?'Preparing the activity':launchProgress<90?'Loading your challenge':'Ready to start'}</Text></View>
-      </View>
-    </View>;
+    return (
+      <QuackSituateMissionLoader
+        action={launchingMission.action}
+        color={launchingMission.color}
+        description={launchingMission.description}
+        icon={launchingMission.icon}
+        mascot={mascot}
+        mode="enter"
+        title={launchingMission.title}
+        onComplete={openLaunchingMission}
+      />
+    );
   }
 
   return <SafeAreaView style={[styles.safeArea,styles.safeAreaLight]}><View style={styles.questScreen}>

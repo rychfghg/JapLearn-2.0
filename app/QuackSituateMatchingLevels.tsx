@@ -2,7 +2,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ImageBackground,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import expoconfig from '../expoconfig';
 
@@ -18,6 +28,7 @@ export default function QuackSituateMatchingLevels() {
   const [unlocked, setUnlocked] = useState(1);
   const [completedSets, setCompletedSets] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     AsyncStorage.getItem('user').then(async value => {
@@ -51,18 +62,12 @@ export default function QuackSituateMatchingLevels() {
               <Text style={styles.eyebrow}>EXPRESSION MATCH</Text>
               <Text style={styles.title}>Journey map</Text>
             </View>
-            <View style={styles.mapIcon}>
-              <Ionicons name="map" size={24} color="#8A20E8" />
-            </View>
-          </View>
-
-          <View style={styles.heroPanel}>
-            <View style={styles.heroBadge}>
-              <Ionicons name="git-compare" size={16} color="#65A936" />
-              <Text style={styles.heroBadgeText}>MATCHING TRAIL</Text>
-            </View>
-            <Text style={styles.heroTitle}>Follow the ropes through Japan</Text>
-            <Text style={styles.heroText}>Clear every set at each stop to open the next destination.</Text>
+            <Pressable
+              style={styles.mapIcon}
+              onPress={() => setShowTutorial(true)}
+            >
+              <Ionicons name="help" size={24} color="#8A20E8" />
+            </Pressable>
           </View>
 
           {loading ? (
@@ -151,6 +156,33 @@ export default function QuackSituateMatchingLevels() {
             </View>
           )}
         </ScrollView>
+
+        <Modal
+          visible={showTutorial}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowTutorial(false)}
+        >
+          <View style={styles.modalShade}>
+            <View style={styles.tutorialCard}>
+              <View style={styles.tutorialIcon}>
+                <Ionicons name="git-compare" size={27} color="#FFFFFF" />
+              </View>
+              <Text style={styles.tutorialKicker}>HOW EXPRESSION MATCH WORKS</Text>
+              <Text style={styles.tutorialTitle}>Connect every scene</Text>
+              <Text style={styles.tutorialText}>
+                Drag a rope from each Japanese expression to the scene where it naturally belongs.
+                Complete every connection before checking your answer.
+              </Text>
+              <Pressable
+                style={styles.tutorialButton}
+                onPress={() => setShowTutorial(false)}
+              >
+                <Text style={styles.tutorialButtonText}>START THE TRAIL</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       </ImageBackground>
     </SafeAreaView>
   );
@@ -167,11 +199,6 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 10, fontWeight: '800', letterSpacing: 1.5, color: '#65A936' },
   title: { fontFamily: 'Jua', fontSize: 28, color: '#40254E' },
   mapIcon: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#F1E4FC', alignItems: 'center', justifyContent: 'center' },
-  heroPanel: { backgroundColor: 'rgba(255,255,255,.94)', borderRadius: 28, padding: 22, borderWidth: 1, borderColor: '#E9DCEB', marginBottom: 18 },
-  heroBadge: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: '#EFF8E9', paddingHorizontal: 11, paddingVertical: 7, borderRadius: 14 },
-  heroBadgeText: { fontSize: 9, fontWeight: '900', letterSpacing: 1.2, color: '#568D37' },
-  heroTitle: { fontFamily: 'Jua', fontSize: 26, color: '#432750', marginTop: 12 },
-  heroText: { fontSize: 13, lineHeight: 20, color: '#7B7080', marginTop: 4 },
   loader: { marginTop: 60 },
   map: { minHeight: 850, width: '100%', maxWidth: 520, alignSelf: 'center', paddingVertical: 14 },
   stopRow: { position: 'relative', minHeight: 160, width: '100%', paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
@@ -193,4 +220,65 @@ const styles = StyleSheet.create({
   setNodeText: { fontFamily: 'Jua', fontSize: 12, color: '#4B3157' },
   setNodeTextDone: { color: '#FFF' },
   lockText: { fontSize: 9, color: '#8C838E', marginTop: 10 },
+  modalShade: {
+    flex: 1,
+    backgroundColor: 'rgba(35, 18, 44, 0.58)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  tutorialCard: {
+    width: '100%',
+    maxWidth: 430,
+    borderRadius: 30,
+    backgroundColor: '#FFFDF9',
+    padding: 26,
+    alignItems: 'center',
+    shadowColor: '#291533',
+    shadowOpacity: 0.25,
+    shadowRadius: 22,
+  },
+  tutorialIcon: {
+    width: 58,
+    height: 58,
+    borderRadius: 20,
+    backgroundColor: '#8A20E8',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  tutorialKicker: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+    color: '#65A936',
+  },
+  tutorialTitle: {
+    fontFamily: 'Jua',
+    fontSize: 27,
+    color: '#432750',
+    marginTop: 7,
+  },
+  tutorialText: {
+    marginTop: 10,
+    color: '#776A7C',
+    fontSize: 14,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
+  tutorialButton: {
+    width: '100%',
+    marginTop: 22,
+    minHeight: 54,
+    borderRadius: 18,
+    backgroundColor: '#8A20E8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tutorialButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
 });
