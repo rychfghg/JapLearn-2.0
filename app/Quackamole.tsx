@@ -3,7 +3,16 @@ import { Animated, Image, ImageBackground, Modal, Pressable, Text, View } from '
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { useRouter } from 'expo-router';
-import Mole from '../assets/svg/mole.svg';
+// Use the bundled PNG on every platform. The SVG component does not render
+// reliably in mobile Safari, which left only the romaji labels above empty holes.
+const Mole = ({ width, height }: { width: number; height: number }) => (
+  <Image
+    source={require('../assets/svg/Mole.png')}
+    style={{ width, height }}
+    resizeMode="contain"
+    fadeDuration={0}
+  />
+);
 import expoconfig from '../expoconfig';
 import { styles } from '../styles/stylesMole';
 import { AuthContext } from '../context/AuthContext';
