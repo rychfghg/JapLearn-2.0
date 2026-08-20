@@ -10,7 +10,7 @@ import {
 import React, { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Profile from '../assets/svg/user_pf.svg';
-const Background = require('../assets/quackslate-twilight-workshop-v4.png');
+const Background = require('../assets/quackslate-twilight-workshop-v4.webp');
 import BackIcon from '../assets/svg/back-icon.svg';
 import HourglassGIF from '../assets/gif/loading.gif'; // Add your hourglass gif in assets
 import DuckExplorer from '../assets/img/Duck_Explorer.png'; // Add the Duck_Explorer image

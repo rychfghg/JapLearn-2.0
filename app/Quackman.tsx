@@ -440,7 +440,7 @@ const Quackman = () => {
                 onPress={handleUserInteraction}
                 disabled={progress < 100}
             >
-                <Image source={require('../assets/quackman/quackman-sky-temple.png')} style={stylesQuackman.loadingBackgroundImage} resizeMode="cover" />
+                <Image source={require('../assets/quackman/quackman-sky-temple.webp')} style={stylesQuackman.loadingBackgroundImage} resizeMode="cover" />
                 <View style={stylesQuackman.loadingShade} />
                 {renderExitModal()}
                 <TouchableOpacity
@@ -479,7 +479,7 @@ const Quackman = () => {
 
     if (gameOver) {
         return (
-            <ImageBackground source={require('../assets/quackman/quackman-sky-temple.png')} style={stylesQuackman.gameOverContainer}>
+            <ImageBackground source={require('../assets/quackman/quackman-sky-temple.webp')} style={stylesQuackman.gameOverContainer}>
                 <View style={stylesQuackman.screenShade} />
                 <Text style={stylesQuackman.gameOverText}>Game Over!</Text>
                 <Text style={stylesQuackman.scoreText}>
@@ -505,7 +505,7 @@ const Quackman = () => {
     
 
     return (
-        <ImageBackground source={require('../assets/quackman/quackman-sky-temple.png')} style={stylesQuackman.gameScreen} resizeMode="cover">
+        <ImageBackground source={require('../assets/quackman/quackman-sky-temple.webp')} style={stylesQuackman.gameScreen} resizeMode="cover">
             <View style={stylesQuackman.screenShade} />
             {renderIntroModal()}
             {renderExitModal()}

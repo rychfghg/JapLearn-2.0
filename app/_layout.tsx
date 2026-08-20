@@ -7,6 +7,7 @@ import { AuthContext, AuthProvider } from '../context/AuthContext';
 import { ClassCodeProvider } from '../context/ClassCodeContext';
 import { LessonProgressProvider, useLessonProgress } from '../context/LessonProgressContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { preloadExerciseCovers } from '../utils/gameAssetPreloader';
 // import { createDrawerNavigator, DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
 
 
@@ -73,7 +74,7 @@ const { user, setUser, authLoading } = useContext(AuthContext);
   useEffect(() => {
     const loadResources = async () => {
       try {
-        await Promise.all([getFonts(), checkUserAuth()]);
+        await Promise.all([getFonts(), checkUserAuth(), preloadExerciseCovers()]);
       } catch (error) {
         console.error('Error loading resources', error);
       } finally {

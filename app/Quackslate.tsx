@@ -1,7 +1,7 @@
 import { SafeAreaView, TouchableOpacity, Text, View, ImageBackground, Modal, Animated } from 'react-native';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-const Background = require('../assets/quackslate-twilight-workshop-v4.png');
+const Background = require('../assets/quackslate-twilight-workshop-v4.webp');
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesMenu';
 import stylesSlate from '../styles/StylesSlate';
