@@ -2,12 +2,12 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Font from 'expo-font';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Image } from 'react-native';
 import { AuthContext, AuthProvider } from '../context/AuthContext';
 import { ClassCodeProvider } from '../context/ClassCodeContext';
 import { LessonProgressProvider, useLessonProgress } from '../context/LessonProgressContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { preloadExerciseCovers } from '../utils/gameAssetPreloader';
+import { preloadExerciseCovers, preloadQuackamoleAssets } from '../utils/gameAssetPreloader';
 // import { createDrawerNavigator, DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
 
 
@@ -19,6 +19,11 @@ const getFonts = async () => {
     console.error('Error loading Jua font:', error);
   }
 };
+
+// Start downloading Quack-a-Mole's original artwork as soon as the app bundle
+// is evaluated. This promise is deliberately not awaited, so startup and every
+// game button remain immediately responsive.
+void preloadQuackamoleAssets();
 
 
 const routeAccessConfig = {
@@ -131,8 +136,13 @@ const { user, setUser, authLoading } = useContext(AuthContext);
   }
 
   return (
-    <GestureHandlerRootView>
-      
+    <GestureHandlerRootView style={styles.root}>
+      <View pointerEvents="none" accessibilityElementsHidden style={styles.assetWarmup}>
+        <Image source={require('../assets/quackamole/quackamole-arena.png')} style={styles.warmupImage} fadeDuration={0} />
+        <Image source={require('../assets/svg/Mole.png')} style={styles.warmupImage} fadeDuration={0} />
+        <Image source={require('../assets/hammer.png')} style={styles.warmupImage} fadeDuration={0} />
+        <Image source={require('../assets/whack.png')} style={styles.warmupImage} fadeDuration={0} />
+      </View>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" />
         <Stack.Screen name="Signup" />
@@ -193,6 +203,21 @@ const { user, setUser, authLoading } = useContext(AuthContext);
 };
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  assetWarmup: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0.001,
+    overflow: 'hidden',
+  },
+  warmupImage: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+  },
   whiteScreen: {
     flex: 1,
     backgroundColor: 'white',

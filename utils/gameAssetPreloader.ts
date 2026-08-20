@@ -1,4 +1,5 @@
 import { Image, ImageSourcePropType } from 'react-native';
+import { Asset } from 'expo-asset';
 
 const exerciseCoverAssets: ImageSourcePropType[] = [
   require('../assets/exercise-covers/quack-a-mole-official-v2.png'),
@@ -37,12 +38,15 @@ const otherGameAssets: ImageSourcePropType[] = [
 ];
 
 const preloadImages = async (sources: ImageSourcePropType[]) => {
-  await Promise.allSettled(
-    sources.map((source) => {
+  // Asset.loadAsync persists bundled files for native builds. Image.prefetch
+  // warms the browser image cache. Run both without tying either to navigation.
+  await Promise.allSettled([
+    Asset.loadAsync(sources as number[]),
+    ...sources.map((source) => {
       const uri = Image.resolveAssetSource(source)?.uri;
       return uri ? Image.prefetch(uri) : Promise.resolve(false);
     }),
-  );
+  ]);
 };
 
 let exerciseCoverPromise: Promise<void> | null = null;
