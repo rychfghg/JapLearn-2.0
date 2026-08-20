@@ -1,318 +1,35 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ImageBackground,
-  Image,
-  Animated,
-  Modal,
-} from 'react-native';
-import { router } from 'expo-router';
-import BackIcon from '../assets/svg/back-icon.svg';
-import AhiruMissionExit from '../components/AhiruMissionExit';
-import styles from '../styles/stylesQuackSituateFormal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import { router,useLocalSearchParams } from 'expo-router';
+import React,{useEffect,useRef,useState} from 'react';
+import { Image,ImageBackground,Modal,Pressable,SafeAreaView,ScrollView,StyleSheet,Text,View } from 'react-native';
+import { POLITENESS_SCENARIOS } from '../data/politenessScenarios';
+import expoconfig from '../expoconfig';
 
-import background from '../assets/forest.jpg';
+const scenes=[require('../assets/img/background/school a hallway st2 day.png'),require('../assets/img/background/classroom a st2 day.png'),require('../assets/img/background/clubroom a st2 day.png'),require('../assets/img/background/train_scene day.png'),require('../assets/img/background/student council room a st2 evening.png')];
+const people={male:[require('../assets/img/Sprite Male Dark Hair Neu01.png'),require('../assets/img/Sprite Male Dark Hair Smi01.png')],female:[require('../assets/img/Sumi_PoseB_WinterUni_Smile.png'),require('../assets/img/Sumi_PoseB_WinterUni_Open.png')]};
 
-import duckIdle from '../assets/idle.png';
-import duckHappy from '../assets/hello.png';
-import duckThinking from '../assets/thinking.png';
-import duckTalk from '../assets/talk.png';
-import duckSad from '../assets/Crying.png';
+export default function QuackSituateFormal(){
+ const {level:raw}=useLocalSearchParams<{level?:string}>(); const level=Math.min(3,Math.max(1,Number(raw)||1)) as 1|2|3;
+ const list=POLITENESS_SCENARIOS.filter(q=>q.level===level); const [at,setAt]=useState(0),[selected,setSelected]=useState<number|null>(null),[score,setScore]=useState(0),[result,setResult]=useState(false),[done,setDone]=useState(false),[exit,setExit]=useState(false),[frame,setFrame]=useState(0); const sound=useRef<Audio.Sound|null>(null); const q=list[at];
+ useEffect(()=>{const timer=setInterval(()=>setFrame(v=>1-v),650);return()=>{clearInterval(timer);sound.current?.unloadAsync();};},[]);
+ const sfx=async(ok:boolean)=>{try{await sound.current?.unloadAsync();sound.current=(await Audio.Sound.createAsync(ok?require('../assets/audio/sfx/correct_sfx.mp3'):require('../assets/audio/sfx/incorrect_sfx.mp3'),{shouldPlay:true})).sound;}catch{}};
+ const check=async()=>{if(selected===null)return;const ok=q.choices[selected].correct;if(ok)setScore(v=>v+1);await sfx(ok);setResult(true);};
+ const next=async()=>{if(at<list.length-1){setAt(v=>v+1);setSelected(null);setResult(false);return;}setResult(false);setDone(true);try{const u=JSON.parse((await AsyncStorage.getItem('user'))||'{}');const final=score+(q.choices[selected!].correct?1:0);await fetch(`${expoconfig.API_URL}/api/situational/attempts`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:u.email,name:`${u.fname||''} ${u.lname||''}`.trim(),gameType:'POLITENESS',difficulty:['','EASY','MEDIUM','HARD'][level],score:final*10,totalQuestions:list.length,correctAnswers:final,completed:true})});}catch{}};
+ const leave=()=>{sound.current?.stopAsync();router.replace('/QuackSituateFormalLevels');}; const ok=selected!==null&&q.choices[selected].correct;
+ return <SafeAreaView style={s.safe}><ImageBackground source={scenes[at%scenes.length]} style={s.bg} resizeMode="cover"><View style={s.tint}/><ScrollView contentContainerStyle={s.content}>
+  <View style={s.top}><Pressable style={s.icon} onPress={()=>setExit(true)}><Ionicons name="arrow-back" size={24} color="#452452"/></Pressable><View style={s.progress}><Text style={s.kicker}>TONE QUEST · LEVEL {level}</Text><View style={s.track}><View style={[s.fill,{width:`${((at+1)/list.length)*100}%`}]} /></View></View><Text style={s.count}>{at+1}/{list.length}</Text></View>
+  <View style={s.location}><Ionicons name="location" size={15} color="#65A936"/><Text style={s.locationText}>{q.location}</Text></View>
+  <View style={s.scene}><View style={s.bubble}><View style={s.speakerRow}><Text style={s.speaker}>{q.speaker}</Text><View style={s.voice}><Ionicons name="volume-medium" size={18} color="#8423D9"/></View></View><Text style={s.japanese}>{q.npcLine}</Text><Text style={s.translation}>{q.translation}</Text></View><Image source={people[q.gender][frame]} style={s.person}/><View style={s.duckBubble}><Image source={require('../assets/thinking.png')} style={s.duck}/><View style={{flex:1}}><Text style={s.duckLabel}>AHIRU ASKS</Text><Text style={s.prompt}>{q.prompt}</Text></View></View></View>
+  <View style={s.heading}><Text style={s.answerKicker}>CHOOSE THE RIGHT TONE</Text><Text style={s.answerTitle}>What would you say?</Text><View style={s.hint}><Ionicons name="bulb" size={17} color="#E58B2A"/><Text style={s.hintText}>{q.hint}</Text></View></View>
+  <View style={s.choices}>{q.choices.map((c,i)=><Pressable key={c.jp} onPress={()=>!result&&setSelected(i)} style={[s.choice,selected===i&&s.selected,result&&c.correct&&s.correct,result&&selected===i&&!c.correct&&s.wrong]}><Text style={s.letter}>{String.fromCharCode(65+i)}</Text><View style={{flex:1}}><Text style={s.choiceJp}>{c.jp}</Text><Text style={s.romaji}>{c.romaji}</Text></View><Text style={s.tone}>{c.tone}</Text></Pressable>)}</View>
+  <Pressable disabled={selected===null||result} style={[s.check,selected===null&&s.disabled]} onPress={check}><Text style={s.checkText}>CHECK MY TONE</Text><Ionicons name="arrow-forward" size={20} color="#FFF"/></Pressable>
+ </ScrollView></ImageBackground>
+ <Modal visible={result} transparent animationType="fade"><View style={s.shade}><View style={s.modal}><Image source={ok?require('../assets/hello.png'):require('../assets/thinking.png')} style={s.mascot}/><Text style={s.modalTag}>{ok?'TONE MATCHED':'TRY A BETTER TONE'}</Text><Text style={s.modalTitle}>{ok?'That fits the moment!':'Not quite right yet'}</Text><Text style={s.modalText}>{q.explanation}</Text><Pressable style={s.primary} onPress={next}><Text style={s.primaryText}>{at===list.length-1?'FINISH LEVEL':'NEXT MOMENT'}</Text></Pressable></View></View></Modal>
+ <Modal visible={done} transparent><View style={s.shade}><View style={s.modal}><View style={s.trophy}><Ionicons name="ribbon" size={38} color="#FFF"/></View><Text style={s.modalTag}>LEVEL {level} COMPLETE</Text><Text style={s.modalTitle}>Courtesy trail cleared</Text><Text style={s.score}>{score}/{list.length}</Text><Text style={s.modalText}>Your result was saved to communication progress.</Text><Pressable style={s.primary} onPress={leave}><Text style={s.primaryText}>RETURN TO TRAILS</Text></Pressable></View></View></Modal>
+ <Modal visible={exit} transparent><View style={s.shade}><View style={s.modal}><Text style={s.modalTitle}>Leave this tone quest?</Text><Text style={s.modalText}>This unfinished round will not be recorded.</Text><View style={s.actions}><Pressable style={s.primarySmall} onPress={()=>setExit(false)}><Text style={s.primaryText}>KEEP PLAYING</Text></Pressable><Pressable style={s.secondary} onPress={leave}><Text style={s.secondaryText}>LEAVE</Text></Pressable></View></View></View></Modal>
+ </SafeAreaView>;
+}
 
-import professorNeutral from '../assets/img/Sprite Male Dark Hair Neu01.png';
-import professorHappy from '../assets/img/Sprite Male Dark Hair Smi01.png';
-import professorAngry from '../assets/img/Sprite Male Dark Hair Ang01.png';
-
-const scenario = {
-  chapter: 'Situational Politeness',
-  place: '📍 Professor’s Office',
-  npcName: 'Professor Tanaka',
-  npcLine: 'You missed class yesterday. What would you like to say?',
-  question: 'Choose the best Japanese response for this situation.',
-  hint: 'Think about who you are speaking to. Is this someone close, or someone you should speak to respectfully?',
-  choices: [
-    {
-      jp: 'すみませんでした',
-      romaji: 'sumimasen deshita',
-      correct: true,
-    },
-    {
-      jp: 'ごめんね',
-      romaji: 'gomen ne',
-      correct: false,
-    },
-  ],
-};
-
-const QuackSituateFormal = () => {
-  const [selected, setSelected] = useState<any>(null);
-  const [character, setCharacter] = useState(duckIdle);
-  const [npcSprite, setNpcSprite] = useState(professorNeutral);
-  const [message, setMessage] = useState('Read the situation and choose the best response.');
-  const [hintVisible, setHintVisible] = useState(false);
-  const [resultVisible, setResultVisible] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
-
-  const duckFloat = useRef(new Animated.Value(0)).current;
-  const npcFloat = useRef(new Animated.Value(0)).current;
-  const shakeAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const bubbleAnim = useRef(new Animated.Value(0)).current;
-  const glowAnim = useRef(new Animated.Value(0.7)).current;
-  const fireflyAnim = useRef(new Animated.Value(0.4)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(duckFloat, { toValue: -8, duration: 750, useNativeDriver: true }),
-        Animated.timing(duckFloat, { toValue: 0, duration: 750, useNativeDriver: true }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(npcFloat, { toValue: -5, duration: 950, useNativeDriver: true }),
-        Animated.timing(npcFloat, { toValue: 0, duration: 950, useNativeDriver: true }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
-        Animated.timing(glowAnim, { toValue: 0.65, duration: 1000, useNativeDriver: true }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(fireflyAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
-        Animated.timing(fireflyAnim, { toValue: 0.35, duration: 900, useNativeDriver: true }),
-      ])
-    ).start();
-
-    Animated.timing(bubbleAnim, {
-      toValue: 1,
-      duration: 450,
-      useNativeDriver: true,
-    }).start();
-  }, []);
-
-  const shake = () => {
-    Animated.sequence([
-      Animated.timing(shakeAnim, { toValue: -8, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 8, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: -5, duration: 50, useNativeDriver: true }),
-      Animated.timing(shakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
-    ]).start();
-  };
-
-  const pulse = () => {
-    Animated.sequence([
-      Animated.timing(pulseAnim, { toValue: 1.04, duration: 120, useNativeDriver: true }),
-      Animated.timing(pulseAnim, { toValue: 1, duration: 120, useNativeDriver: true }),
-    ]).start();
-  };
-
-  const handleSelect = (choice: any) => {
-    setSelected(choice);
-    setCharacter(duckTalk);
-    setMessage(`You chose: ${choice.romaji}`);
-    pulse();
-  };
-
-  const handleSubmit = () => {
-    if (!selected) {
-      setCharacter(duckThinking);
-      setMessage('Pick one response first.');
-      shake();
-      return;
-    }
-
-    if (selected.correct) {
-      setIsCorrect(true);
-      setNpcSprite(professorHappy);
-      setCharacter(duckHappy);
-      setMessage('Great! That response fits the situation.');
-    } else {
-      setIsCorrect(false);
-      setNpcSprite(professorAngry);
-      setCharacter(duckSad);
-      setMessage('That sounds too casual for this situation.');
-      shake();
-    }
-
-    setResultVisible(true);
-  };
-
-  const resetGame = () => {
-    setSelected(null);
-    setCharacter(duckIdle);
-    setNpcSprite(professorNeutral);
-    setMessage('Read the situation and choose the best response.');
-    setHintVisible(false);
-    setResultVisible(false);
-    setIsCorrect(false);
-  };
-
-  const goBack = () => {
-    setHintVisible(false);
-    setResultVisible(false);
-    setIsExiting(true);
-  };
-
-  if (isExiting) return <AhiruMissionExit color="#8423D9" tint="#F0E4FA" icon="people-outline" eyebrow="TONE QUEST CLOSED" title="A thoughtful farewell" message="You practiced choosing respectful Japanese for the person, place, and moment." footer="The right tone turns words into good communication." mascot={duckTalk} onComplete={() => router.push({ pathname: '/QuackSituate', params: { skipLoading: '1' } })} />;
-
-  return (
-    <ImageBackground source={background} style={styles.background} resizeMode="cover">
-      <View style={styles.overlay} />
-
-      <TouchableOpacity style={styles.backButton} onPress={goBack}>
-        <BackIcon width={20} height={20} fill="white" />
-      </TouchableOpacity>
-
-      <View style={styles.headerBoard}>
-        <Text style={styles.chapterText}>{scenario.chapter}</Text>
-        <Text style={styles.headerTitle}>Choose the Right Response</Text>
-      </View>
-
-      <View style={styles.sceneCard}>
-        <Animated.View style={[styles.fireflyOne, { opacity: fireflyAnim }]} />
-        <Animated.View style={[styles.fireflyTwo, { opacity: fireflyAnim }]} />
-        <Animated.View style={[styles.fireflyThree, { opacity: fireflyAnim }]} />
-
-        <Text style={styles.placeText}>{scenario.place}</Text>
-
-        <Animated.View
-          style={[
-            styles.npcBubble,
-            {
-              opacity: bubbleAnim,
-              transform: [{ scale: bubbleAnim }],
-            },
-          ]}
-        >
-          <Text style={styles.speakerName}>{scenario.npcName}</Text>
-          <Text style={styles.npcText}>{scenario.npcLine}</Text>
-        </Animated.View>
-
-        <Animated.Image
-          source={npcSprite}
-          style={[styles.npcSprite, { transform: [{ translateY: npcFloat }] }]}
-        />
-
-        <Animated.View
-          style={[
-            styles.duckWrap,
-            {
-              transform: [{ translateY: duckFloat }, { translateX: shakeAnim }],
-            },
-          ]}
-        >
-          <Animated.View
-            style={[
-              styles.duckGlow,
-              {
-                opacity: glowAnim,
-                transform: [{ scale: glowAnim }],
-              },
-            ]}
-          />
-          <Image source={character} style={styles.duckImage} />
-        </Animated.View>
-
-        <View style={styles.duckBubble}>
-          <Text style={styles.duckName}>Quacky</Text>
-          <Text style={styles.duckText}>{scenario.question}</Text>
-        </View>
-      </View>
-
-      <TouchableOpacity style={styles.hintButton} onPress={() => setHintVisible(true)}>
-        <Text style={styles.hintButtonText}>💡 Need a hint?</Text>
-      </TouchableOpacity>
-
-      <View style={styles.choiceContainer}>
-        {scenario.choices.map((choice) => (
-          <Animated.View
-            key={choice.jp}
-            style={selected?.jp === choice.jp ? { transform: [{ scale: pulseAnim }] } : null}
-          >
-            <TouchableOpacity
-              activeOpacity={0.9}
-              style={[
-                styles.choiceCard,
-                selected?.jp === choice.jp && styles.selectedChoice,
-              ]}
-              onPress={() => handleSelect(choice)}
-            >
-              <Text style={styles.choiceJP}>{choice.jp}</Text>
-              <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
-              <Text style={styles.choiceMeaning}>{choice.meaning}</Text>
-            </TouchableOpacity>
-          </Animated.View>
-        ))}
-      </View>
-
-      <View style={styles.dialogueBox}>
-        <Text style={styles.dialogueText}>{message}</Text>
-      </View>
-
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Submit</Text>
-      </TouchableOpacity>
-
-      <Modal visible={hintVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setHintVisible(false)}>
-              <Text style={styles.closeButtonText}>X</Text>
-            </TouchableOpacity>
-
-            <Image source={duckThinking} style={styles.modalDuck} />
-            <Text style={styles.modalTitle}>Hint 💡</Text>
-            <Text style={styles.modalText}>{scenario.hint}</Text>
-
-            <TouchableOpacity style={styles.modalButton} onPress={() => setHintVisible(false)}>
-              <Text style={styles.modalButtonText}>Got it</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={resultVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setResultVisible(false)}>
-              <Text style={styles.closeButtonText}>X</Text>
-            </TouchableOpacity>
-
-            <Image source={isCorrect ? duckHappy : duckThinking} style={styles.modalDuck} />
-
-            <Text style={styles.modalTitle}>
-              {isCorrect ? 'Good Response!' : 'Try Again!'}
-            </Text>
-
-            <Text style={styles.modalText}>
-              {isCorrect
-                ? 'Correct! This response is suitable for talking to your professor.'
-                : 'This answer does not fit the relationship in the situation. Think about who you are talking to.'}
-            </Text>
-
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={isCorrect ? goBack : resetGame}
-            >
-              <Text style={styles.modalButtonText}>
-                {isCorrect ? 'Back' : 'Try Again'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </ImageBackground>
-  );
-};
-
-export default QuackSituateFormal;
+const s=StyleSheet.create({safe:{flex:1,backgroundColor:'#F8F4FA'},bg:{flex:1},tint:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(249,246,251,.72)'},content:{padding:18,paddingBottom:38},top:{flexDirection:'row',alignItems:'center',gap:12},icon:{width:52,height:52,borderRadius:18,backgroundColor:'#FFF',alignItems:'center',justifyContent:'center',elevation:5},progress:{flex:1},kicker:{fontSize:9,fontWeight:'900',letterSpacing:1.3,color:'#65A936'},track:{height:7,borderRadius:8,backgroundColor:'#E6DCE9',marginTop:7,overflow:'hidden'},fill:{height:'100%',borderRadius:8,backgroundColor:'#8423D9'},count:{fontFamily:'Jua',color:'#FFF',backgroundColor:'#8423D9',padding:11,borderRadius:16},location:{alignSelf:'center',flexDirection:'row',gap:6,alignItems:'center',backgroundColor:'#FFF',paddingHorizontal:13,paddingVertical:8,borderRadius:20,marginTop:14},locationText:{fontSize:10,fontWeight:'900',color:'#493252'},scene:{height:370,borderRadius:29,backgroundColor:'rgba(255,255,255,.88)',borderWidth:1.5,borderColor:'#E4D6E7',marginTop:10,overflow:'hidden'},bubble:{position:'absolute',top:16,left:16,right:16,zIndex:3,backgroundColor:'#FFF',borderRadius:22,padding:15,elevation:4},speakerRow:{flexDirection:'row',justifyContent:'space-between',alignItems:'center'},speaker:{fontSize:9,fontWeight:'900',letterSpacing:1.2,color:'#65A936'},voice:{width:34,height:34,borderRadius:12,backgroundColor:'#F1E6F9',alignItems:'center',justifyContent:'center'},japanese:{fontSize:20,color:'#41244D'},translation:{fontSize:11,color:'#897C8D',marginTop:3},person:{position:'absolute',left:4,bottom:65,width:215,height:240,resizeMode:'contain'},duckBubble:{position:'absolute',left:16,right:16,bottom:16,minHeight:90,borderRadius:21,backgroundColor:'#3F244D',padding:11,flexDirection:'row',alignItems:'center',zIndex:4},duck:{width:62,height:66,resizeMode:'contain',marginRight:9},duckLabel:{fontSize:8,fontWeight:'900',letterSpacing:1.1,color:'#B5E397'},prompt:{fontFamily:'Jua',fontSize:15,lineHeight:20,color:'#FFF'},heading:{marginTop:19},answerKicker:{fontSize:9,fontWeight:'900',letterSpacing:1.2,color:'#65A936'},answerTitle:{fontFamily:'Jua',fontSize:24,color:'#432750'},hint:{marginTop:7,borderRadius:15,backgroundColor:'#FFF5E3',padding:10,flexDirection:'row',gap:7},hintText:{flex:1,fontSize:10,lineHeight:15,color:'#806A4D'},choices:{gap:9,marginTop:11},choice:{minHeight:76,borderRadius:20,backgroundColor:'#FFF',borderWidth:1.5,borderColor:'#E5D9E8',padding:11,flexDirection:'row',alignItems:'center'},selected:{borderColor:'#8423D9',backgroundColor:'#FBF7FE'},correct:{borderColor:'#65A936',backgroundColor:'#F1F9EC'},wrong:{borderColor:'#D65C73',backgroundColor:'#FFF0F3'},letter:{width:40,height:40,textAlign:'center',textAlignVertical:'center',borderRadius:13,backgroundColor:'#F0E5F7',fontFamily:'Jua',color:'#70417F',marginRight:11},choiceJp:{fontSize:16,color:'#40264A'},romaji:{fontSize:10,color:'#897B8D',marginTop:2},tone:{fontSize:8,fontWeight:'900',color:'#705A76',backgroundColor:'#F4EFF5',padding:7,borderRadius:12},check:{height:57,borderRadius:18,backgroundColor:'#8423D9',marginTop:16,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8},disabled:{backgroundColor:'#CFC5D2'},checkText:{fontSize:12,fontWeight:'900',letterSpacing:.8,color:'#FFF'},shade:{flex:1,backgroundColor:'rgba(40,22,49,.63)',alignItems:'center',justifyContent:'center',padding:22},modal:{width:'100%',maxWidth:450,borderRadius:29,backgroundColor:'#FFF',padding:25,alignItems:'center'},mascot:{width:100,height:108,resizeMode:'contain'},modalTag:{fontSize:9,fontWeight:'900',letterSpacing:1.2,color:'#65A936'},modalTitle:{fontFamily:'Jua',fontSize:27,color:'#432750',textAlign:'center',marginTop:5},modalText:{fontSize:13,lineHeight:20,color:'#7E7182',textAlign:'center',marginTop:8},primary:{height:54,width:'100%',borderRadius:17,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center',marginTop:19},primaryText:{fontSize:11,fontWeight:'900',letterSpacing:.7,color:'#FFF'},trophy:{width:70,height:70,borderRadius:23,backgroundColor:'#65A936',alignItems:'center',justifyContent:'center',marginBottom:12},score:{fontFamily:'Jua',fontSize:48,color:'#8423D9'},actions:{flexDirection:'row',gap:10,width:'100%',marginTop:18},primarySmall:{flex:1,height:52,borderRadius:17,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center'},secondary:{height:52,borderRadius:17,backgroundColor:'#F0E7F2',paddingHorizontal:22,alignItems:'center',justifyContent:'center'},secondaryText:{fontSize:11,fontWeight:'900',color:'#684A70'}});
