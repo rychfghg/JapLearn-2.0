@@ -126,21 +126,20 @@ const styles = StyleSheet.create({
   },
 
   policyTextContainer: {
-    flexDirection: 'row',  // Aligns the child elements horizontally (side by side)
-    justifyContent: 'center', // Centers the content horizontally (optional)
-    alignItems: 'center',  // Aligns vertically in the center (optional)
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexWrap: 'wrap',
     marginTop: 20,
   },
   policyText: {
     fontSize: 12,
     color: '#777076',
     textAlign: 'center',
-    marginLeft:10
   },
   linkText2: {
     fontSize: 12,
     color: '#8423D9',
-    marginLeft: 5,  // Space between the two texts (optional)
   },
   modalContainer: {
     flex: 1,

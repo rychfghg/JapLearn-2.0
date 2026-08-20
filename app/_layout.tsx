@@ -145,6 +145,7 @@ const { user, setUser, authLoading } = useContext(AuthContext);
         <Stack.Screen name="QuackslateLevels" />
         <Stack.Screen name="ClassDashboard" />
         <Stack.Screen name="PrivacyPolicyPage" />
+        <Stack.Screen name="TermsOfServicePage" />
         <Stack.Screen name="LearnMenu" />
         <Stack.Screen name="Exercises" />
         <Stack.Screen name="Lessons" />

@@ -48,11 +48,13 @@ const sections = [
 
 export default function PrivacyPolicyPage() {
   const router = useRouter();
-  const { fromSignup, fromProfile } = useLocalSearchParams();
+  const { fromSignup, fromProfile, fromLogin } = useLocalSearchParams();
 
   const handleClose = () => {
     if (fromSignup === 'true') {
       router.push({ pathname: '/Signup', params: { showPrivacyModal: 'true' } });
+    } else if (fromLogin === 'true') {
+      router.replace('/Login');
     } else if (fromProfile === 'true') {
       router.replace('/Profile');
     } else {

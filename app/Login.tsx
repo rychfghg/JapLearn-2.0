@@ -262,12 +262,14 @@ const Login = () => {
                 </View>
 
                 <View style={styles.policyTextContainer}>
-                <Text style={styles.policyText}>
-                    By continuing, you agree with{' '}
-                    <Text onPress={() => router.push('/PrivacyPolicyPage')} style={styles.linkText2}>
-                        Japlearn's Terms of Service and Privacy Policy
-                    </Text>
-                </Text>
+                    <Text style={styles.policyText}>By continuing, you agree with JapLearn&apos;s </Text>
+                    <Pressable onPress={() => router.push({ pathname: '/TermsOfServicePage', params: { fromLogin: 'true' } })} hitSlop={8} accessibilityRole="link">
+                        <Text style={styles.linkText2}>Terms of Service</Text>
+                    </Pressable>
+                    <Text style={styles.policyText}> and </Text>
+                    <Pressable onPress={() => router.push({ pathname: '/PrivacyPolicyPage', params: { fromLogin: 'true' } })} hitSlop={8} accessibilityRole="link">
+                        <Text style={styles.linkText2}>Privacy Policy</Text>
+                    </Pressable>
                 </View>
                 </ScrollView>
             </KeyboardAvoidingView>

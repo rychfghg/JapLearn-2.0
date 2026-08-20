@@ -94,11 +94,11 @@ const Profile = () => {
   };
 
   const contactSupport = async () => {
-    const mailUrl = "mailto:japlearn.official@gmail.com?subject=JapLearn%20Support%20Request";
+    const mailUrl = "mailto:japlearnofficial@gmail.com?subject=JapLearn%20Support%20Request";
     try {
       await Linking.openURL(mailUrl);
     } catch {
-      setModalMessage("Please email japlearn.official@gmail.com for support.");
+      setModalMessage("Please email japlearnofficial@gmail.com for support.");
       setModalVisible(true);
     }
   };
@@ -227,7 +227,7 @@ const Profile = () => {
             </TouchableOpacity>
             <TouchableOpacity onPress={contactSupport} style={styles.settingRow}>
               <View style={styles.settingIcon}><Ionicons name="headset-outline" size={21} color="#8423D9" /></View>
-              <View style={styles.settingCopy}><Text style={[styles.settingLabel, darkMode && styles.darkText]}>Contact support</Text><Text style={[styles.settingDescription, darkMode && styles.darkMuted]}>japlearn.official@gmail.com</Text></View>
+              <View style={styles.settingCopy}><Text style={[styles.settingLabel, darkMode && styles.darkText]}>Contact support</Text><Text style={[styles.settingDescription, darkMode && styles.darkMuted]}>japlearnofficial@gmail.com</Text></View>
               <Ionicons name="open-outline" size={19} color="#A89EAD" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setForgetPasswordVisible(true)} style={styles.settingRow}>
