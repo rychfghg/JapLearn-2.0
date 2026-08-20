@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Image, ImageBackground, Modal, PanResponder, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import expoconfig from '../expoconfig';
+import QuackSituateExit from '../components/QuackSituateExit';
 
 type Choice = { japanese: string; romaji: string };
 type Pair = {
@@ -85,6 +86,7 @@ export default function QuackSituateMatching() {
   const [showReview, setShowReview] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   const music = useRef<Audio.Sound | null>(null);
   const correctSound = useRef<Audio.Sound | null>(null);
@@ -210,7 +212,7 @@ export default function QuackSituateMatching() {
         }),
       });
       await stopAudio(true);
-      router.replace('/QuackSituateMatchingLevels');
+      setIsExiting(true);
     } finally {
       setSaving(false);
     }
@@ -219,7 +221,7 @@ export default function QuackSituateMatching() {
   const confirmExit = async () => {
     await stopAudio(true);
     setShowExit(false);
-    router.replace('/QuackSituateMatchingLevels');
+    setIsExiting(true);
   };
 
   const resetBoard = () => {
@@ -237,6 +239,8 @@ export default function QuackSituateMatching() {
     right,
     color: ropeColors[Number(left) % ropeColors.length],
   })), [matches]);
+
+  if (isExiting) return <QuackSituateExit color="#D88727" icon="git-compare-outline" title="Ropes safely tied" subtitle="Your expression matches are ready in your journey record." status="ROLLING UP THE MATCHING ROPES" onComplete={() => router.replace('/QuackSituateMatchingLevels')} />;
 
   if (loading) {
     return <SafeAreaView style={styles.loading}><ActivityIndicator size="large" color="#8A20E8" /><Text style={styles.loadingText}>Preparing the matching trail…</Text></SafeAreaView>;

@@ -37,6 +37,7 @@ const routeAccessConfig = {
 'QuackSituateMatching',
 'QuackSituateMatchingLevels',
 'QuackSituateFormal',
+'QuackSituateFormalLevels',
 'QuackSituateFeedback',
 'QuackTalk', 'QuackTalkConversation',
 'QuackResponse', 'QuackResponseGuided', 'QuackResponseTimed', 'QuackResponseMultiStep', 'QuackTalkSpeech', 'QuackTalkFeedback', 'QuackProgress', 'QuackProgressProgression',
@@ -190,6 +191,7 @@ const { user, setUser, authLoading } = useContext(AuthContext);
         <Stack.Screen name="QuackSituateMatching" />
         <Stack.Screen name="QuackSituateMatchingLevels" />
         <Stack.Screen name="QuackSituateFormal" />
+        <Stack.Screen name="QuackSituateFormalLevels" />
         <Stack.Screen name="QuackSituateFeedback" />
         <Stack.Screen name="QuackTalk" />
         <Stack.Screen name="QuackTalkConversation" /> 
