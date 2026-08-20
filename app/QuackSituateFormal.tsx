@@ -140,7 +140,7 @@ export default function QuackSituateFormal() {
   const [showComplete, setShowComplete] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [leaving, setLeaving] = useState(false);
-  const [npcFrame, setNpcFrame] = useState(false);
+  const [npcFrame, setNpcFrame] = useState(0);
   const sound = useRef<Audio.Sound | null>(null);
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const question = questions[index];
@@ -170,7 +170,7 @@ export default function QuackSituateFormal() {
   const playNpc = async () => {
     await stopSound();
     setPhase('speaking');
-    setNpcFrame(false);
+    setNpcFrame(0);
 
     const speechStartedAt = Date.now();
     const minimumSpeakingTime = question.gender === 'female'
@@ -219,25 +219,12 @@ export default function QuackSituateFormal() {
   }, [index]);
 
   useEffect(() => {
-    setNpcFrame(false);
+    setNpcFrame(0);
 
     if (phase === 'speaking') {
-      if (question.gender === 'female') {
-        let eyeCloseTimer: ReturnType<typeof setTimeout> | null = null;
-        const speakingBlinkTimer = setInterval(() => {
-          setNpcFrame(true);
-          eyeCloseTimer = setTimeout(() => setNpcFrame(false), 140);
-        }, 900);
-
-        return () => {
-          clearInterval(speakingBlinkTimer);
-          if (eyeCloseTimer) clearTimeout(eyeCloseTimer);
-        };
-      }
-
       const speakingTimer = setInterval(() => {
-        setNpcFrame((current) => !current);
-      }, 340);
+        setNpcFrame((current) => (current + 1) % 4);
+      }, 280);
 
       return () => clearInterval(speakingTimer);
     }
@@ -245,8 +232,8 @@ export default function QuackSituateFormal() {
     if (phase === 'choosing') {
       let blinkCloseTimer: ReturnType<typeof setTimeout> | null = null;
       const blinkTimer = setInterval(() => {
-        setNpcFrame(true);
-        blinkCloseTimer = setTimeout(() => setNpcFrame(false), 140);
+        setNpcFrame(1);
+        blinkCloseTimer = setTimeout(() => setNpcFrame(0), 140);
       }, 2400);
 
       return () => {
@@ -347,11 +334,24 @@ export default function QuackSituateFormal() {
       ? 'speaking'
       : 'neutral';
 
-  const characterSource = phase === 'speaking'
-    ? people[question.gender][npcFrame ? 'speakingAlt' : 'speaking']
-    : phase === 'choosing' && npcFrame
-      ? people[question.gender].blink
-      : people[question.gender][characterMood];
+  const activeCharacterFrame = phase === 'speaking'
+    ? npcFrame === 1
+      ? 'speaking'
+      : npcFrame === 3
+        ? 'speakingAlt'
+        : 'neutral'
+    : phase === 'choosing' && npcFrame === 1
+      ? 'blink'
+      : characterMood;
+
+  const characterFrames = [
+    'neutral',
+    'speaking',
+    'speakingAlt',
+    'blink',
+    'correct',
+    'wrong',
+  ] as const;
 
   const reactionTitle = answeredCorrectly
     ? 'That response feels respectful.'
@@ -417,11 +417,21 @@ export default function QuackSituateFormal() {
         </View>
 
         <View style={styles.characterGround} />
-        <Image
-          source={characterSource}
-          style={styles.character}
-          resizeMode="contain"
-        />
+        <View pointerEvents="none" style={styles.characterStage}>
+          {characterFrames.map((frame) => (
+            <Image
+              key={`${question.gender}-${frame}`}
+              source={people[question.gender][frame]}
+              style={[
+                styles.characterFrame,
+                frame === activeCharacterFrame
+                  ? styles.characterFrameVisible
+                  : styles.characterFrameHidden,
+              ]}
+              resizeMode="contain"
+            />
+          ))}
+        </View>
 
         <View style={styles.storyPanel}>
           <View style={styles.speakerRow}>
@@ -701,13 +711,24 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 3,
   },
-  character: {
+  characterStage: {
     position: 'absolute',
     left: '8%',
     right: '8%',
     bottom: 146,
     width: '84%',
     height: '61%',
+  },
+  characterFrame: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+  characterFrameVisible: {
+    opacity: 1,
+  },
+  characterFrameHidden: {
+    opacity: 0,
   },
   characterGround: {
     position: 'absolute',
