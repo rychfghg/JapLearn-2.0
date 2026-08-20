@@ -170,8 +170,25 @@ export default function QuackSituateFormal() {
   const playNpc = async () => {
     await stopSound();
     setPhase('speaking');
+    setNpcFrame(false);
 
-    fallbackTimer.current = setTimeout(revealChoices, 3200);
+    const speechStartedAt = Date.now();
+    const minimumSpeakingTime = question.gender === 'female'
+      ? 2400
+      : 1800;
+
+    const finishSpeaking = () => {
+      const elapsed = Date.now() - speechStartedAt;
+      const remaining = Math.max(0, minimumSpeakingTime - elapsed);
+
+      if (fallbackTimer.current) {
+        clearTimeout(fallbackTimer.current);
+      }
+
+      fallbackTimer.current = setTimeout(revealChoices, remaining);
+    };
+
+    fallbackTimer.current = setTimeout(revealChoices, 4200);
 
     try {
       const loaded = await Audio.Sound.createAsync(
@@ -182,14 +199,14 @@ export default function QuackSituateFormal() {
         },
         (status) => {
           if (status.isLoaded && status.didJustFinish) {
-            revealChoices();
+            finishSpeaking();
           }
         },
       );
 
       sound.current = loaded.sound;
     } catch {
-      revealChoices();
+      finishSpeaking();
     }
   };
 
