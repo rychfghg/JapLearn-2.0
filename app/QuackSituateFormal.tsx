@@ -205,9 +205,22 @@ export default function QuackSituateFormal() {
     setNpcFrame(false);
 
     if (phase === 'speaking') {
+      if (question.gender === 'female') {
+        let eyeCloseTimer: ReturnType<typeof setTimeout> | null = null;
+        const speakingBlinkTimer = setInterval(() => {
+          setNpcFrame(true);
+          eyeCloseTimer = setTimeout(() => setNpcFrame(false), 140);
+        }, 900);
+
+        return () => {
+          clearInterval(speakingBlinkTimer);
+          if (eyeCloseTimer) clearTimeout(eyeCloseTimer);
+        };
+      }
+
       const speakingTimer = setInterval(() => {
         setNpcFrame((current) => !current);
-      }, 260);
+      }, 340);
 
       return () => clearInterval(speakingTimer);
     }
@@ -224,7 +237,7 @@ export default function QuackSituateFormal() {
         if (blinkCloseTimer) clearTimeout(blinkCloseTimer);
       };
     }
-  }, [phase, index]);
+  }, [phase, index, question.gender]);
 
   const selectResponse = async (choiceIndex: number) => {
     if (phase !== 'choosing') return;
