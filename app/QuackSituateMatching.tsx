@@ -1,38 +1,443 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Image, ImageBackground, Modal, PanResponder, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import expoconfig from '../expoconfig';
 
-type Choice={japanese:string;romaji:string};
-type Pair={id:string;level:number;setNumber:number;topic:string;sceneKey:string;scenario:string;correctAnswer:string;explanation:string;choices:Choice[]};
-const sceneImages:Record<string,any>={school:require('../assets/img/background/school a hallway st2 day.png'),classroom:require('../assets/img/background/classroom a st2 day.png'),station:require('../assets/img/background/train_scene day.png'),office:require('../assets/img/background/student council room a st2 evening.png'),meal:require('../assets/img/background/kitchen dining day.png'),home:require('../assets/img/background/house a day.png')};
-const colors=['#D65373','#7651B8','#3694A2','#DE862D','#789A45'];
-const shuffle=<T,>(items:T[])=>[...items].sort(()=>Math.random()-.5);
+type Choice = { japanese: string; romaji: string };
+type Pair = {
+  id: string;
+  level: number;
+  setNumber: number;
+  topic: string;
+  sceneKey: string;
+  scenario: string;
+  correctAnswer: string;
+  explanation: string;
+  choices: Choice[];
+};
 
-export default function QuackSituateMatching(){
- const params=useLocalSearchParams<{level?:string;set?:string}>(); const level=Math.max(1,Number(params.level)||1),setNumber=Math.max(1,Number(params.set)||1); const {width}=useWindowDimensions();
- const [pairs,setPairs]=useState<Pair[]>([]),[scenes,setScenes]=useState<Pair[]>([]); const [selected,setSelected]=useState<number|null>(null); const [matches,setMatches]=useState<Record<number,number>>({}); const [misses,setMisses]=useState(0); const [loading,setLoading]=useState(true),[result,setResult]=useState(false),[saving,setSaving]=useState(false);
- const music=useRef<Audio.Sound|null>(null),correct=useRef<Audio.Sound|null>(null),incorrect=useRef<Audio.Sound|null>(null);
- useEffect(()=>{let active=true;(async()=>{try{const response=await fetch(`${expoconfig.API_URL}/api/situational/questions?gameType=EXPRESSION_MATCH`);if(!response.ok)throw new Error();const all:Pair[]=await response.json();const current=all.filter(x=>x.level===level&&x.setNumber===setNumber);if(active){setPairs(current);setScenes(shuffle(current));}const sounds=await Promise.all([Audio.Sound.createAsync(require('../assets/audio/sfx/quiz.mp3'),{isLooping:true,volume:.14,shouldPlay:true}),Audio.Sound.createAsync(require('../assets/audio/sfx/correct_sfx.mp3')),Audio.Sound.createAsync(require('../assets/audio/sfx/incorrect_sfx.mp3'))]);music.current=sounds[0].sound;correct.current=sounds[1].sound;incorrect.current=sounds[2].sound;}catch{Alert.alert('Mission unavailable','Expression Match could not load. Please check your connection.');}finally{if(active)setLoading(false);}})();return()=>{active=false;[music.current,correct.current,incorrect.current].forEach(x=>x?.unloadAsync());};},[level,setNumber]);
- const boardWidth=Math.min(720,width-28),rowHeight=width<430?138:126;
- const connect=(sceneIndex:number)=>{if(selected===null||matches[selected]!==undefined)return;if(pairs[selected]?.id!==scenes[sceneIndex]?.id){setMisses(x=>x+1);incorrect.current?.replayAsync();Alert.alert('Not this scene yet','Read who is speaking and what is happening, then try another connection.');return;}correct.current?.replayAsync();const next={...matches,[selected]:sceneIndex};setMatches(next);setSelected(null);if(Object.keys(next).length===pairs.length)setTimeout(()=>setResult(true),400);};
- const score=Math.max(0,pairs.length*20-misses*5);
- const save=async()=>{setSaving(true);try{const raw=await AsyncStorage.getItem('user'),user=raw?JSON.parse(raw):{};await fetch(`${expoconfig.API_URL}/api/situational/attempts`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email,name:[user.fname,user.lname].filter(Boolean).join(' '),gameType:'EXPRESSION_MATCH',difficulty:level===5?'HARD':level>=3?'INTERMEDIATE':'STARTER',level,setNumber,topic:pairs[0]?.topic,score,totalQuestions:pairs.length,correctAnswers:pairs.length,completed:true})});router.replace('/QuackSituateMatchingLevels');}finally{setSaving(false);}};
- const exit=()=>Alert.alert('Leave this match?','Your unfinished ropes will not be saved.',[{text:'Keep playing',style:'cancel'},{text:'Exit match',style:'destructive',onPress:()=>router.replace('/QuackSituateMatchingLevels')}]);
- const paths=useMemo(()=>Object.entries(matches).map(([left,right])=>({left:+left,right,color:colors[+left%colors.length]})),[matches]);
- if(loading)return <SafeAreaView style={s.loading}><ActivityIndicator size="large" color="#8A20E8"/><Text style={s.loadingText}>Preparing the matching board…</Text></SafeAreaView>;
- return <SafeAreaView style={s.safe}><ImageBackground source={require('../assets/quacksituate/quacksituate-menu-background-v3.png')} style={s.bg} imageStyle={{opacity:.12}}><ScrollView contentContainerStyle={s.scroll}>
-  <View style={s.header}><Pressable style={s.back} onPress={exit}><Ionicons name="arrow-back" size={24} color="#442454"/></Pressable><View style={s.titleBoard}><Text style={s.title}>Expression Match</Text><Text style={s.subtitle}>Connect each expression to its scene</Text></View><View style={s.level}><Text style={s.levelSmall}>LEVEL</Text><Text style={s.levelBig}>{level}</Text><Text style={s.levelSet}>SET {setNumber}</Text></View></View>
-  <View style={s.scoreRow}><View style={s.scorePill}><Ionicons name="star" size={17} color="#D99A2B"/><Text style={s.scoreText}>{score}</Text></View><Text style={s.topic}>{pairs[0]?.topic||'Situational expressions'}</Text><Pressable style={s.help} onPress={()=>Alert.alert('How to play','Tap one expression, then tap the scene where it belongs. A rope appears after a correct match.')}><Ionicons name="help" size={20} color="#8A20E8"/></Pressable></View>
-  <View style={[s.board,{width:boardWidth,minHeight:pairs.length*rowHeight+58}]}><View style={s.columnHeading}><Text style={s.columnTitle}>Expressions</Text><Text style={s.columnTitle}>Scenes</Text></View><Svg pointerEvents="none" style={StyleSheet.absoluteFill} width={boardWidth} height={pairs.length*rowHeight+58}>{paths.map(p=><Path key={p.left} d={`M ${boardWidth*.43} ${70+p.left*rowHeight+rowHeight/2} C ${boardWidth*.49} ${70+p.left*rowHeight+rowHeight/2}, ${boardWidth*.51} ${70+p.right*rowHeight+rowHeight/2}, ${boardWidth*.57} ${70+p.right*rowHeight+rowHeight/2}`} stroke={p.color} strokeWidth="5" strokeLinecap="round" fill="none"/>)}</Svg>
-   <View style={s.columns}><View style={s.column}>{pairs.map((p,i)=>{const done=matches[i]!==undefined;return <Pressable key={p.id} onPress={()=>!done&&setSelected(i)} style={[s.phraseCard,{height:rowHeight-12},selected===i&&s.selected,done&&{borderColor:colors[i%colors.length]}]}><View style={[s.number,{backgroundColor:colors[i%colors.length]}]}><Text style={s.numberText}>{i+1}</Text></View><Text lang="ja" numberOfLines={2} adjustsFontSizeToFit style={s.japanese}>{p.correctAnswer}</Text><Text numberOfLines={1} style={s.romaji}>{p.choices?.[0]?.romaji}</Text><Text style={[s.meaning,{color:colors[i%colors.length]}]}>{p.explanation}</Text><View style={[s.socket,{backgroundColor:done?colors[i%colors.length]:'#FFF'}]}/></Pressable>})}</View>
-   <View style={s.column}>{scenes.map((p,i)=><Pressable key={p.id} onPress={()=>connect(i)} style={[s.sceneCard,{height:rowHeight-12},Object.values(matches).includes(i)&&s.sceneDone]}><Image source={sceneImages[p.sceneKey]||sceneImages.school} style={s.sceneImage} resizeMode="cover"/><View style={s.sceneShade}/><Text numberOfLines={3} style={s.sceneText}>{p.scenario}</Text><View style={s.sceneLetter}><Text style={s.sceneLetterText}>{String.fromCharCode(65+i)}</Text></View><View style={s.sceneSocket}/></Pressable>)}</View></View>
-  </View><View style={s.actions}><Pressable style={s.reset} onPress={()=>{setMatches({});setSelected(null);setMisses(0);setScenes(shuffle(pairs));}}><Ionicons name="refresh" size={20} color="#D65373"/><Text style={s.resetText}>Reset ropes</Text></Pressable><View style={s.progressPill}><Ionicons name="link" size={18} color="#65A936"/><Text style={s.progressText}>{Object.keys(matches).length} / {pairs.length} connected</Text></View></View>
- </ScrollView></ImageBackground><Modal visible={result} transparent animationType="fade"><View style={s.modalShade}><View style={s.modal}><View style={s.trophy}><Ionicons name="ribbon" size={38} color="#FFF"/></View><Text style={s.modalKicker}>SET CLEARED</Text><Text style={s.modalTitle}>Every rope found its moment!</Text><Text style={s.modalScore}>{score} points</Text><Text style={s.modalText}>This result will update mastery, analytics, and your teacher’s record.</Text><Pressable disabled={saving} onPress={save} style={s.continue}><Text style={s.continueText}>{saving?'Saving progress…':'Continue journey'}</Text><Ionicons name="arrow-forward" size={20} color="#FFF"/></Pressable></View></View></Modal></SafeAreaView>;
+const sceneImages: Record<string, any> = {
+  school: require('../assets/img/background/school a hallway st2 day.png'),
+  classroom: require('../assets/img/background/classroom a st2 day.png'),
+  station: require('../assets/img/background/train_scene day.png'),
+  office: require('../assets/img/background/student council room a st2 evening.png'),
+  meal: require('../assets/img/background/kitchen dining day.png'),
+  home: require('../assets/img/background/house a day.png'),
+};
+const ropeColors = ['#D95476', '#7652BA', '#3197A3', '#E08A2C', '#729A43'];
+const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
+
+type DragSocketProps = {
+  color: string;
+  connected: boolean;
+  startX: number;
+  startY: number;
+  onStart: () => void;
+  onMove: (x: number, y: number) => void;
+  onRelease: (x: number, y: number) => void;
+};
+
+function DragSocket({ color, connected, startX, startY, onStart, onMove, onRelease }: DragSocketProps) {
+  const responder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 2 || Math.abs(gesture.dy) > 2,
+    onPanResponderGrant: onStart,
+    onPanResponderMove: (_, gesture) => onMove(startX + gesture.dx, startY + gesture.dy),
+    onPanResponderRelease: (_, gesture) => onRelease(startX + gesture.dx, startY + gesture.dy),
+    onPanResponderTerminate: (_, gesture) => onRelease(startX + gesture.dx, startY + gesture.dy),
+  }), [onMove, onRelease, onStart, startX, startY]);
+
+  return (
+    <View
+      {...responder.panHandlers}
+      hitSlop={14}
+      style={[styles.leftSocket, { borderColor: color }, connected && { backgroundColor: color }]}
+    >
+      <View style={[styles.socketCore, { backgroundColor: color }]} />
+    </View>
+  );
 }
 
-const s=StyleSheet.create({safe:{flex:1,backgroundColor:'#FAF7FC'},bg:{flex:1},scroll:{padding:14,paddingBottom:38,alignItems:'center'},loading:{flex:1,alignItems:'center',justifyContent:'center',backgroundColor:'#FAF7FC'},loadingText:{fontFamily:'Jua',fontSize:17,color:'#4B2D59',marginTop:14},header:{width:'100%',maxWidth:720,flexDirection:'row',alignItems:'center',gap:10},back:{width:54,height:54,borderRadius:20,backgroundColor:'#FFF',alignItems:'center',justifyContent:'center'},titleBoard:{flex:1,backgroundColor:'#FFF9F1',borderRadius:20,padding:12,borderWidth:1,borderColor:'#E9D4C5'},title:{fontFamily:'Jua',fontSize:24,color:'#482750',textAlign:'center'},subtitle:{fontSize:11,color:'#786A7E',textAlign:'center'},level:{width:65,borderRadius:18,backgroundColor:'#FFF',padding:8,alignItems:'center'},levelSmall:{fontSize:8,fontWeight:'800',color:'#8A20E8'},levelBig:{fontFamily:'Jua',fontSize:22,color:'#4B2B58'},levelSet:{fontSize:8,color:'#847489'},scoreRow:{width:'100%',maxWidth:720,flexDirection:'row',alignItems:'center',marginVertical:13,gap:8},scorePill:{flexDirection:'row',gap:6,alignItems:'center',backgroundColor:'#FFF',padding:10,borderRadius:16},scoreText:{fontFamily:'Jua',fontSize:17,color:'#4B2B58'},topic:{flex:1,textAlign:'center',fontFamily:'Jua',fontSize:14,color:'#674074'},help:{width:42,height:42,borderRadius:15,backgroundColor:'#FFF',alignItems:'center',justifyContent:'center'},board:{backgroundColor:'rgba(255,252,247,.97)',borderRadius:28,padding:12,borderWidth:1,borderColor:'#E9D8E8',overflow:'hidden'},columnHeading:{height:48,flexDirection:'row',justifyContent:'space-between',paddingHorizontal:'7%',alignItems:'center'},columnTitle:{fontFamily:'Jua',fontSize:18,color:'#62416F'},columns:{flexDirection:'row',justifyContent:'space-between',gap:'14%'},column:{width:'43%',gap:12},phraseCard:{backgroundColor:'#FFF',borderRadius:19,borderWidth:2,borderColor:'#F0E2ED',padding:9,justifyContent:'center',alignItems:'center'},selected:{borderColor:'#8A20E8',backgroundColor:'#F8EEFF'},number:{position:'absolute',left:6,top:6,width:23,height:23,borderRadius:12,alignItems:'center',justifyContent:'center'},numberText:{fontFamily:'Jua',fontSize:12,color:'#FFF'},japanese:{fontSize:17,color:'#3E2947',textAlign:'center',fontWeight:'600'},romaji:{fontSize:10,color:'#6F626F',marginTop:3},meaning:{fontSize:9,fontWeight:'700',textAlign:'center',marginTop:3},socket:{position:'absolute',right:-8,width:16,height:16,borderRadius:8,borderWidth:4,borderColor:'#FFF'},sceneCard:{borderRadius:19,overflow:'hidden',backgroundColor:'#DDD',justifyContent:'flex-end',borderWidth:2,borderColor:'#D8D6EA'},sceneDone:{borderColor:'#65A936'},sceneImage:{...StyleSheet.absoluteFillObject,width:'100%',height:'100%'},sceneShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(28,17,39,.18)'},sceneText:{backgroundColor:'rgba(255,255,255,.93)',padding:6,fontSize:9,lineHeight:12,color:'#392B3D',textAlign:'center'},sceneLetter:{position:'absolute',left:6,top:6,width:27,height:27,borderRadius:14,backgroundColor:'#6657A3',alignItems:'center',justifyContent:'center'},sceneLetterText:{fontFamily:'Jua',fontSize:14,color:'#FFF'},sceneSocket:{position:'absolute',left:-8,top:'47%',width:16,height:16,borderRadius:8,backgroundColor:'#FFF',borderWidth:4,borderColor:'#7B70B7'},actions:{width:'100%',maxWidth:720,flexDirection:'row',justifyContent:'space-between',marginTop:13},reset:{flexDirection:'row',gap:7,backgroundColor:'#FFF',padding:12,borderRadius:16,alignItems:'center'},resetText:{fontFamily:'Jua',fontSize:13,color:'#D65373'},progressPill:{flexDirection:'row',gap:7,backgroundColor:'#EEF8E8',padding:12,borderRadius:16,alignItems:'center'},progressText:{fontFamily:'Jua',fontSize:13,color:'#548F31'},modalShade:{flex:1,backgroundColor:'rgba(39,20,47,.58)',alignItems:'center',justifyContent:'center',padding:24},modal:{width:'100%',maxWidth:430,backgroundColor:'#FFF',borderRadius:32,padding:26,alignItems:'center'},trophy:{width:74,height:74,borderRadius:24,backgroundColor:'#8A20E8',alignItems:'center',justifyContent:'center'},modalKicker:{fontSize:11,fontWeight:'800',letterSpacing:1.4,color:'#65A936',marginTop:18},modalTitle:{fontFamily:'Jua',fontSize:27,color:'#432550',textAlign:'center',marginTop:5},modalScore:{fontFamily:'Jua',fontSize:21,color:'#D88727',marginTop:8},modalText:{fontSize:13,lineHeight:20,color:'#7A6E7E',textAlign:'center',marginVertical:12},continue:{width:'100%',borderRadius:18,backgroundColor:'#8A20E8',padding:15,flexDirection:'row',justifyContent:'center',gap:8},continueText:{fontFamily:'Jua',fontSize:16,color:'#FFF'}});
+export default function QuackSituateMatching() {
+  const params = useLocalSearchParams<{ level?: string; set?: string }>();
+  const level = Math.max(1, Number(params.level) || 1);
+  const setNumber = Math.max(1, Number(params.set) || 1);
+  const { width } = useWindowDimensions();
+  const compact = width < 430;
+
+  const [pairs, setPairs] = useState<Pair[]>([]);
+  const [scenes, setScenes] = useState<Pair[]>([]);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [matches, setMatches] = useState<Record<number, number>>({});
+  const [dragRope, setDragRope] = useState<{ expressionIndex: number; x: number; y: number } | null>(null);
+  const [incorrectLinks, setIncorrectLinks] = useState<number[]>([]);
+  const [mistakes, setMistakes] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showExit, setShowExit] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const [showResult, setShowResult] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const music = useRef<Audio.Sound | null>(null);
+  const correctSound = useRef<Audio.Sound | null>(null);
+  const incorrectSound = useRef<Audio.Sound | null>(null);
+
+  const stopAudio = useCallback(async (unload = false) => {
+    const sounds = [music.current, correctSound.current, incorrectSound.current];
+    await Promise.all(sounds.map(async sound => {
+      if (!sound) return;
+      try {
+        await sound.stopAsync();
+        if (unload) await sound.unloadAsync();
+      } catch {}
+    }));
+    if (unload) {
+      music.current = null;
+      correctSound.current = null;
+      incorrectSound.current = null;
+    }
+  }, []);
+
+  useFocusEffect(useCallback(() => () => { void stopAudio(true); }, [stopAudio]));
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const response = await fetch(`${expoconfig.API_URL}/api/situational/questions?gameType=EXPRESSION_MATCH`);
+        if (!response.ok) throw new Error('Expression Match could not load.');
+        const all: Pair[] = await response.json();
+        const current = all.filter(item => item.level === level && item.setNumber === setNumber);
+        if (active) {
+          setPairs(current);
+          setScenes(shuffle(current));
+        }
+        const loaded = await Promise.all([
+          Audio.Sound.createAsync(require('../assets/audio/sfx/quiz.mp3'), { isLooping: true, volume: 0.13, shouldPlay: true }),
+          Audio.Sound.createAsync(require('../assets/audio/sfx/correct_sfx.mp3')),
+          Audio.Sound.createAsync(require('../assets/audio/sfx/incorrect_sfx.mp3')),
+        ]);
+        music.current = loaded[0].sound;
+        correctSound.current = loaded[1].sound;
+        incorrectSound.current = loaded[2].sound;
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+      void stopAudio(true);
+    };
+  }, [level, setNumber, stopAudio]);
+
+  const makeConnection = (sceneIndex: number) => {
+    if (selected === null) return;
+    setMatches(current => {
+      const next = { ...current };
+      Object.keys(next).forEach(key => {
+        if (next[Number(key)] === sceneIndex) delete next[Number(key)];
+      });
+      next[selected] = sceneIndex;
+      return next;
+    });
+    setIncorrectLinks(current => current.filter(index => index !== selected));
+    setSelected(null);
+  };
+
+  const connectDraggedRope = (expressionIndex: number, x: number, y: number, boardWidth: number, cardHeight: number) => {
+    setDragRope(null);
+    const firstCenter = 112 + (cardHeight - 18) / 2;
+    const sceneIndex = Math.round((y - firstCenter) / cardHeight);
+    const reachedSceneColumn = x >= boardWidth * 0.53;
+    if (!reachedSceneColumn || sceneIndex < 0 || sceneIndex >= scenes.length) return;
+
+    setMatches(current => {
+      const next = { ...current };
+      Object.keys(next).forEach(key => {
+        if (next[Number(key)] === sceneIndex) delete next[Number(key)];
+      });
+      next[expressionIndex] = sceneIndex;
+      return next;
+    });
+    setIncorrectLinks(current => current.filter(index => index !== expressionIndex));
+    setSelected(null);
+  };
+
+  const checkMatches = async () => {
+    if (Object.keys(matches).length < pairs.length) return;
+    const wrong = pairs.map((pair, index) => pair.id === scenes[matches[index]]?.id ? -1 : index).filter(index => index >= 0);
+    if (wrong.length) {
+      setMistakes(value => value + wrong.length);
+      setIncorrectLinks(wrong);
+      setShowReview(true);
+      await incorrectSound.current?.replayAsync();
+      return;
+    }
+    setIncorrectLinks([]);
+    await correctSound.current?.replayAsync();
+    setShowResult(true);
+  };
+
+  const score = Math.max(0, pairs.length * 20 - mistakes * 5);
+  const saveAndLeave = async () => {
+    setSaving(true);
+    try {
+      const stored = await AsyncStorage.getItem('user');
+      const user = stored ? JSON.parse(stored) : {};
+      await fetch(`${expoconfig.API_URL}/api/situational/attempts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          name: [user.fname, user.lname].filter(Boolean).join(' '),
+          gameType: 'EXPRESSION_MATCH',
+          difficulty: level === 5 ? 'HARD' : level >= 3 ? 'INTERMEDIATE' : 'STARTER',
+          level,
+          setNumber,
+          topic: pairs[0]?.topic,
+          score,
+          totalQuestions: pairs.length,
+          correctAnswers: pairs.length,
+          completed: true,
+        }),
+      });
+      await stopAudio(true);
+      router.replace('/QuackSituateMatchingLevels');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const confirmExit = async () => {
+    await stopAudio(true);
+    setShowExit(false);
+    router.replace('/QuackSituateMatchingLevels');
+  };
+
+  const resetBoard = () => {
+    setMatches({});
+    setSelected(null);
+    setIncorrectLinks([]);
+    setMistakes(0);
+    setScenes(shuffle(pairs));
+  };
+
+  const cardHeight = compact ? 150 : 142;
+  const boardWidth = Math.min(760, width - 22);
+  const ropePaths = useMemo(() => Object.entries(matches).map(([left, right]) => ({
+    left: Number(left),
+    right,
+    color: ropeColors[Number(left) % ropeColors.length],
+  })), [matches]);
+
+  if (loading) {
+    return <SafeAreaView style={styles.loading}><ActivityIndicator size="large" color="#8A20E8" /><Text style={styles.loadingText}>Preparing the matching trail…</Text></SafeAreaView>;
+  }
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ImageBackground source={require('../assets/quacksituate/quacksituate-menu-background-v3.png')} style={styles.background} imageStyle={styles.backgroundImage}>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <View style={styles.topBar}>
+            <Pressable style={styles.iconButton} onPress={() => setShowExit(true)}>
+              <Ionicons name="arrow-back" size={24} color="#442454" />
+            </Pressable>
+            <View style={styles.headerCopy}>
+              <Text style={styles.headerKicker}>ROPE QUEST · {pairs[0]?.topic || 'EXPRESSION MATCH'}</Text>
+              <Text style={styles.headerTitle}>Expression Match</Text>
+              <Text style={styles.headerSubtitle}>Build every connection, then check your board.</Text>
+            </View>
+            <Pressable style={styles.helpButton} onPress={() => setShowHelp(true)}>
+              <Ionicons name="help-circle" size={26} color="#8A20E8" />
+            </Pressable>
+          </View>
+
+          <View style={styles.statusRow}>
+            <View style={styles.levelBadge}><Text style={styles.levelLabel}>LEVEL</Text><Text style={styles.levelValue}>{level}</Text><Text style={styles.levelSet}>SET {setNumber}</Text></View>
+            <View style={styles.missionStatus}><View style={styles.statusDot} /><View><Text style={styles.statusKicker}>MATCHING BOARD</Text><Text style={styles.statusText}>{Object.keys(matches).length} of {pairs.length} ropes placed</Text></View></View>
+            <View style={styles.scoreBadge}><Ionicons name="star" size={18} color="#D99A2B" /><Text style={styles.scoreText}>{score}</Text></View>
+          </View>
+
+          <View style={[styles.board, { width: boardWidth, minHeight: pairs.length * cardHeight + 84 }]}>
+            <View style={styles.boardHeader}>
+              <View><Text style={styles.boardKicker}>CONNECT THE MOMENT</Text><Text style={styles.boardTitle}>Phrase to scene</Text></View>
+              <Ionicons name="git-compare" size={25} color="#8A20E8" />
+            </View>
+            <View style={styles.columnLabels}><Text style={styles.columnLabel}>EXPRESSIONS</Text><Text style={styles.columnLabel}>SCENES</Text></View>
+
+            <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width={boardWidth} height={pairs.length * cardHeight + 84}>
+              {ropePaths.map(path => {
+                const startY = 112 + path.left * cardHeight + (cardHeight - 18) / 2;
+                const endY = 112 + path.right * cardHeight + (cardHeight - 18) / 2;
+                return <Path key={path.left} d={`M ${boardWidth * 0.43} ${startY} C ${boardWidth * 0.49} ${startY}, ${boardWidth * 0.51} ${endY}, ${boardWidth * 0.57} ${endY}`} stroke={path.color} strokeWidth="6" strokeLinecap="round" fill="none" />;
+              })}
+              {dragRope && (() => {
+                const startX = boardWidth * 0.43;
+                const startY = 112 + dragRope.expressionIndex * cardHeight + (cardHeight - 18) / 2;
+                const controlX = Math.max(startX + 22, (startX + dragRope.x) / 2);
+                return <Path d={`M ${startX} ${startY} C ${controlX} ${startY}, ${controlX} ${dragRope.y}, ${dragRope.x} ${dragRope.y}`} stroke={ropeColors[dragRope.expressionIndex % ropeColors.length]} strokeWidth="7" strokeLinecap="round" fill="none" />;
+              })()}
+            </Svg>
+
+            <View style={styles.columns}>
+              <View style={styles.column}>
+                {pairs.map((pair, index) => {
+                  const connected = matches[index] !== undefined;
+                  const wrong = incorrectLinks.includes(index);
+                  return (
+                    <Pressable
+                      key={pair.id}
+                      onPress={() => setSelected(index)}
+                      style={[
+                        styles.phraseCard,
+                        { height: cardHeight - 18 },
+                        selected === index && styles.selectedCard,
+                        connected && { borderColor: ropeColors[index % ropeColors.length] },
+                        wrong && styles.wrongCard,
+                      ]}
+                    >
+                      <View style={[styles.numberBadge, { backgroundColor: ropeColors[index % ropeColors.length] }]}><Text style={styles.numberText}>{index + 1}</Text></View>
+                      <Text numberOfLines={2} adjustsFontSizeToFit style={styles.japanese}>{pair.correctAnswer}</Text>
+                      <Text numberOfLines={1} style={styles.romaji}>{pair.choices?.[0]?.romaji}</Text>
+                      <Text style={styles.tapLabel}>{connected ? 'Tap to reconnect' : selected === index ? 'Choose a scene' : 'Tap to connect'}</Text>
+                      <DragSocket
+                        color={ropeColors[index % ropeColors.length]}
+                        connected={connected}
+                        startX={boardWidth * 0.43}
+                        startY={112 + index * cardHeight + (cardHeight - 18) / 2}
+                        onStart={() => {
+                          setSelected(index);
+                          setDragRope({ expressionIndex: index, x: boardWidth * 0.43, y: 112 + index * cardHeight + (cardHeight - 18) / 2 });
+                        }}
+                        onMove={(x, y) => setDragRope({ expressionIndex: index, x, y })}
+                        onRelease={(x, y) => connectDraggedRope(index, x, y, boardWidth, cardHeight)}
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              <View style={styles.column}>
+                {scenes.map((scene, index) => {
+                  const occupied = Object.values(matches).includes(index);
+                  return (
+                    <Pressable key={scene.id} onPress={() => makeConnection(index)} style={[styles.sceneCard, { height: cardHeight - 18 }, occupied && styles.sceneOccupied]}>
+                      <Image source={sceneImages[scene.sceneKey] || sceneImages.school} style={styles.sceneImage} resizeMode="cover" />
+                      <View style={styles.sceneShade} />
+                      <View style={styles.sceneLetter}><Text style={styles.sceneLetterText}>{String.fromCharCode(65 + index)}</Text></View>
+                      <View style={styles.sceneCaption}><Text numberOfLines={3} style={styles.sceneText}>{scene.scenario}</Text></View>
+                      <View style={styles.rightSocket} />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.bottomActions}>
+            <Pressable style={styles.resetButton} onPress={resetBoard}><Ionicons name="refresh" size={21} color="#D65373" /><Text style={styles.resetText}>Reset</Text></Pressable>
+            <Pressable disabled={Object.keys(matches).length < pairs.length} style={[styles.checkButton, Object.keys(matches).length < pairs.length && styles.checkDisabled]} onPress={checkMatches}>
+              <Ionicons name="checkmark-circle" size={22} color="#FFF" />
+              <View><Text style={styles.checkText}>CHECK MATCHES</Text><Text style={styles.checkSubtext}>{Object.keys(matches).length < pairs.length ? `${pairs.length - Object.keys(matches).length} rope${pairs.length - Object.keys(matches).length === 1 ? '' : 's'} remaining` : 'Board ready'}</Text></View>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </ImageBackground>
+
+      <Modal visible={showHelp} transparent animationType="fade" onRequestClose={() => setShowHelp(false)}>
+        <View style={styles.modalShade}><View style={styles.modalCard}><View style={styles.modalIcon}><Ionicons name="git-compare" size={31} color="#FFF" /></View><Text style={styles.modalKicker}>HOW TO PLAY</Text><Text style={styles.modalTitle}>Build the whole rope board</Text><Text style={styles.modalText}>1. Hold the colored rope socket beside an expression.{`\n`}2. Drag the live rope to any scene and release it.{`\n`}3. Drag again whenever you want to reconnect it.{`\n`}4. Connect everything before checking.{`\n\n`}You can also tap a phrase and then a scene.</Text><Pressable style={styles.modalPrimary} onPress={() => setShowHelp(false)}><Text style={styles.modalPrimaryText}>Got it</Text></Pressable></View></View>
+      </Modal>
+
+      <Modal visible={showExit} transparent animationType="fade" onRequestClose={() => setShowExit(false)}>
+        <View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIcon, styles.exitIcon]}><Ionicons name="pause" size={31} color="#FFF" /></View><Text style={styles.modalKicker}>MISSION PAUSED</Text><Text style={styles.modalTitle}>Leave this matching set?</Text><Text style={styles.modalText}>Your unfinished ropes will not be saved. The game music will stop immediately when you exit.</Text><Pressable style={styles.modalPrimary} onPress={() => setShowExit(false)}><Text style={styles.modalPrimaryText}>Continue matching</Text></Pressable><Pressable style={styles.modalSecondary} onPress={confirmExit}><Text style={styles.modalSecondaryText}>Exit to level map</Text></Pressable></View></View>
+      </Modal>
+
+      <Modal visible={showReview} transparent animationType="fade" onRequestClose={() => setShowReview(false)}>
+        <View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIcon, styles.reviewIcon]}><Ionicons name="trail-sign" size={31} color="#FFF" /></View><Text style={styles.modalKicker}>ROPE CHECK</Text><Text style={styles.modalTitle}>A few ropes need another look</Text><Text style={styles.modalText}>The incorrect phrase cards are marked in rose. Close this message, tap each marked phrase, and reconnect it to another scene.</Text><Pressable style={styles.modalPrimary} onPress={() => setShowReview(false)}><Text style={styles.modalPrimaryText}>Repair my ropes</Text></Pressable></View></View>
+      </Modal>
+
+      <Modal visible={showResult} transparent animationType="fade">
+        <View style={styles.modalShade}><View style={styles.modalCard}><View style={styles.modalIcon}><Ionicons name="trophy" size={34} color="#FFF" /></View><Text style={styles.modalKicker}>SET CLEARED</Text><Text style={styles.modalTitle}>Every phrase found its moment!</Text><Text style={styles.resultScore}>{score} points</Text><Text style={styles.modalText}>Your result will update Expression Match mastery, QuackProgress analytics, and your teacher’s record.</Text><Pressable disabled={saving} style={styles.modalPrimary} onPress={saveAndLeave}><Text style={styles.modalPrimaryText}>{saving ? 'Saving progress…' : 'Continue journey'}</Text></Pressable></View></View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: '#FAF7FC' },
+  background: { flex: 1 },
+  backgroundImage: { opacity: 0.12 },
+  scroll: { padding: 11, paddingBottom: 44, alignItems: 'center' },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF7FC' },
+  loadingText: { fontFamily: 'Jua', fontSize: 17, color: '#4B2D59', marginTop: 14 },
+  topBar: { width: '100%', maxWidth: 760, flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(255,255,255,.95)', borderRadius: 25, padding: 11, borderWidth: 1, borderColor: '#E9DDEB' },
+  iconButton: { width: 53, height: 53, borderRadius: 18, backgroundColor: '#F7F1F9', alignItems: 'center', justifyContent: 'center' },
+  headerCopy: { flex: 1 },
+  headerKicker: { fontSize: 8, fontWeight: '900', letterSpacing: 1.2, color: '#65A936' },
+  headerTitle: { fontFamily: 'Jua', fontSize: 25, color: '#42264F' },
+  headerSubtitle: { fontSize: 10, color: '#837687' },
+  helpButton: { width: 49, height: 49, borderRadius: 17, backgroundColor: '#F1E3FC', alignItems: 'center', justifyContent: 'center' },
+  statusRow: { width: '100%', maxWidth: 760, flexDirection: 'row', gap: 8, marginVertical: 11, alignItems: 'stretch' },
+  levelBadge: { width: 65, borderRadius: 19, backgroundColor: '#552E68', alignItems: 'center', justifyContent: 'center', padding: 7 },
+  levelLabel: { fontSize: 7, fontWeight: '900', color: '#DDBEF1', letterSpacing: 1 },
+  levelValue: { fontFamily: 'Jua', fontSize: 23, color: '#FFF' },
+  levelSet: { fontSize: 8, color: '#FFF' },
+  missionStatus: { flex: 1, borderRadius: 19, backgroundColor: '#FFF', flexDirection: 'row', gap: 9, alignItems: 'center', paddingHorizontal: 13 },
+  statusDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: '#65A936' },
+  statusKicker: { fontSize: 8, fontWeight: '900', color: '#8A20E8', letterSpacing: 1 },
+  statusText: { fontFamily: 'Jua', fontSize: 13, color: '#4A3056' },
+  scoreBadge: { minWidth: 68, borderRadius: 19, backgroundColor: '#FFF4D9', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 5 },
+  scoreText: { fontFamily: 'Jua', fontSize: 19, color: '#5C3B61' },
+  board: { backgroundColor: 'rgba(255,252,248,.98)', borderRadius: 30, padding: 12, borderWidth: 1, borderColor: '#E7D9E8', overflow: 'hidden', shadowColor: '#3C2346', shadowOpacity: 0.09, shadowRadius: 16 },
+  boardHeader: { height: 47, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 7 },
+  boardKicker: { fontSize: 8, fontWeight: '900', letterSpacing: 1.2, color: '#65A936' },
+  boardTitle: { fontFamily: 'Jua', fontSize: 19, color: '#482B54' },
+  columnLabels: { height: 40, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: '8%', alignItems: 'center' },
+  columnLabel: { fontSize: 10, fontWeight: '900', letterSpacing: 1.1, color: '#75647C' },
+  columns: { flexDirection: 'row', justifyContent: 'space-between', gap: '16%' },
+  column: { width: '42%', gap: 18 },
+  phraseCard: { backgroundColor: '#FFF', borderRadius: 22, borderWidth: 2, borderColor: '#EBDDEA', padding: 10, justifyContent: 'center', alignItems: 'center', shadowColor: '#482A54', shadowOpacity: 0.06, shadowRadius: 8 },
+  selectedCard: { borderColor: '#8A20E8', backgroundColor: '#F8EEFF', transform: [{ scale: 1.025 }] },
+  wrongCard: { borderColor: '#D95372', backgroundColor: '#FFF1F4' },
+  numberBadge: { position: 'absolute', left: 7, top: 7, width: 25, height: 25, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  numberText: { fontFamily: 'Jua', fontSize: 12, color: '#FFF' },
+  japanese: { fontSize: 18, lineHeight: 25, color: '#3D2845', textAlign: 'center', fontWeight: '600', maxWidth: '94%' },
+  romaji: { fontSize: 11, color: '#756978', marginTop: 4 },
+  tapLabel: { position: 'absolute', bottom: 7, fontSize: 8, fontWeight: '800', color: '#9B8DA0', letterSpacing: 0.4 },
+  leftSocket: { position: 'absolute', right: -13, width: 26, height: 26, borderRadius: 13, borderWidth: 4, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', zIndex: 8 },
+  socketCore: { width: 7, height: 7, borderRadius: 4 },
+  sceneCard: { borderRadius: 22, overflow: 'hidden', backgroundColor: '#DDD', justifyContent: 'flex-end', borderWidth: 2, borderColor: '#DCD4E6', shadowColor: '#482A54', shadowOpacity: 0.08, shadowRadius: 8 },
+  sceneOccupied: { borderColor: '#65A936' },
+  sceneImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+  sceneShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(27,16,35,.12)' },
+  sceneLetter: { position: 'absolute', left: 7, top: 7, width: 29, height: 29, borderRadius: 15, backgroundColor: '#6653A5', alignItems: 'center', justifyContent: 'center' },
+  sceneLetterText: { fontFamily: 'Jua', fontSize: 15, color: '#FFF' },
+  sceneCaption: { backgroundColor: 'rgba(255,255,255,.95)', minHeight: 45, justifyContent: 'center', padding: 6 },
+  sceneText: { fontSize: 9, lineHeight: 12, color: '#3C303F', textAlign: 'center' },
+  rightSocket: { position: 'absolute', left: -10, top: '44%', width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFF', borderWidth: 4, borderColor: '#7767B2' },
+  bottomActions: { width: '100%', maxWidth: 760, flexDirection: 'row', gap: 10, marginTop: 13 },
+  resetButton: { width: 96, borderRadius: 18, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderWidth: 1, borderColor: '#E9DDEB' },
+  resetText: { fontFamily: 'Jua', fontSize: 14, color: '#D65373' },
+  checkButton: { flex: 1, minHeight: 61, borderRadius: 18, backgroundColor: '#8A20E8', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, shadowColor: '#8A20E8', shadowOpacity: 0.24, shadowRadius: 12 },
+  checkDisabled: { backgroundColor: '#BDB3C3', shadowOpacity: 0 },
+  checkText: { fontFamily: 'Jua', fontSize: 15, color: '#FFF' },
+  checkSubtext: { fontSize: 9, color: '#F4E9FA' },
+  modalShade: { flex: 1, backgroundColor: 'rgba(38,20,46,.62)', alignItems: 'center', justifyContent: 'center', padding: 23 },
+  modalCard: { width: '100%', maxWidth: 420, borderRadius: 31, backgroundColor: '#FFF', padding: 25, alignItems: 'center' },
+  modalIcon: { width: 68, height: 68, borderRadius: 23, backgroundColor: '#8A20E8', alignItems: 'center', justifyContent: 'center' },
+  exitIcon: { backgroundColor: '#D88727' },
+  reviewIcon: { backgroundColor: '#D95372' },
+  modalKicker: { fontSize: 10, fontWeight: '900', letterSpacing: 1.4, color: '#65A936', marginTop: 16 },
+  modalTitle: { fontFamily: 'Jua', fontSize: 25, color: '#42264F', textAlign: 'center', marginTop: 5 },
+  modalText: { fontSize: 13, lineHeight: 21, color: '#786D7C', textAlign: 'center', marginVertical: 13 },
+  resultScore: { fontFamily: 'Jua', fontSize: 22, color: '#D88727', marginTop: 8 },
+  modalPrimary: { width: '100%', borderRadius: 17, backgroundColor: '#8A20E8', padding: 15, alignItems: 'center', marginTop: 4 },
+  modalPrimaryText: { fontFamily: 'Jua', fontSize: 15, color: '#FFF' },
+  modalSecondary: { width: '100%', padding: 14, alignItems: 'center', marginTop: 4 },
+  modalSecondaryText: { fontFamily: 'Jua', fontSize: 14, color: '#D65373' },
+});
