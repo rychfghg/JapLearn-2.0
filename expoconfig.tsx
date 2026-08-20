@@ -50,12 +50,23 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 const LOCAL_BACKEND_PORT = 8080;
+const LOCAL_WEB_URL = `http://localhost:${LOCAL_BACKEND_PORT}`;
+const RENDER_BACKEND_URL = 'https://japlearn2-0.onrender.com';
 
 const ANDROID_EMULATOR_URL = `http://10.0.2.2:${LOCAL_BACKEND_PORT}`;
 
 const LAN_IP_URL = `http://192.168.1.9:${LOCAL_BACKEND_PORT}`;
 
 const getApiUrl = () => {
+  // Web development on this computer uses the local Spring Boot backend.
+  // A deployed web build (such as Vercel) uses the Render backend.
+  if (Platform.OS === 'web') {
+    const hostname = globalThis.location?.hostname;
+    const isLocalWeb = hostname === 'localhost' || hostname === '127.0.0.1';
+
+    return isLocalWeb ? LOCAL_WEB_URL : RENDER_BACKEND_URL;
+  }
+
   if (__DEV__) {
     if (Platform.OS === 'android' && !Constants.expoConfig?.hostUri) {
       return ANDROID_EMULATOR_URL;
@@ -71,7 +82,10 @@ const getApiUrl = () => {
     return LAN_IP_URL;
   }
 
-  return LAN_IP_URL;
+  return RENDER_BACKEND_URL;
+
+  // Previous production setting kept for quick rollback:
+  // return LAN_IP_URL;
 };
 
 const expoconfig = {
