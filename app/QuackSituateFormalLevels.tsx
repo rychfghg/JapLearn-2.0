@@ -132,20 +132,6 @@ export default function QuackSituateFormalLevels() {
             </Pressable>
           </View>
 
-          <View style={styles.journeyHeading}>
-            <View>
-              <Text style={styles.journeyKicker}>YOUR COURTESY PATH</Text>
-              <Text style={styles.journeyTitle}>Follow the gates in order</Text>
-              <Text style={styles.journeyText}>
-                Complete a tone trail to unlock the next. Cleared trails can be replayed anytime.
-              </Text>
-            </View>
-            <View style={styles.progressSeal}>
-              <Text style={styles.progressValue}>{completedLevels.size}/3</Text>
-              <Text style={styles.progressLabel}>CLEARED</Text>
-            </View>
-          </View>
-
           <View style={styles.map}>
             <View style={styles.mapRope} />
 
@@ -340,52 +326,6 @@ const styles = StyleSheet.create({
     color: '#432750',
     fontFamily: 'Jua',
     fontSize: 27,
-  },
-  journeyHeading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginTop: 25,
-    marginBottom: 14,
-  },
-  journeyKicker: {
-    color: '#8423D9',
-    fontSize: 8,
-    fontWeight: '900',
-    letterSpacing: 1.2,
-  },
-  journeyTitle: {
-    color: '#432750',
-    fontFamily: 'Jua',
-    fontSize: 24,
-    marginTop: 3,
-  },
-  journeyText: {
-    maxWidth: 335,
-    color: '#827585',
-    fontSize: 11,
-    lineHeight: 17,
-    marginTop: 3,
-  },
-  progressSeal: {
-    width: 67,
-    height: 67,
-    borderRadius: 22,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-  },
-  progressValue: {
-    color: '#8423D9',
-    fontFamily: 'Jua',
-    fontSize: 19,
-  },
-  progressLabel: {
-    color: '#8D7F90',
-    fontSize: 7,
-    fontWeight: '900',
-    letterSpacing: 0.8,
   },
   map: {
     position: 'relative',
