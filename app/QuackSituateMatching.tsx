@@ -44,7 +44,10 @@ type DragSocketProps = {
 function DragSocket({ color, connected, startX, startY, onStart, onMove, onRelease }: DragSocketProps) {
   const responder = useMemo(() => PanResponder.create({
     onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 2 || Math.abs(gesture.dy) > 2,
+    onStartShouldSetPanResponderCapture: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponderCapture: () => true,
+    onShouldBlockNativeResponder: () => true,
     onPanResponderGrant: onStart,
     onPanResponderMove: (_, gesture) => onMove(startX + gesture.dx, startY + gesture.dy),
     onPanResponderRelease: (_, gesture) => onRelease(startX + gesture.dx, startY + gesture.dy),
@@ -55,7 +58,7 @@ function DragSocket({ color, connected, startX, startY, onStart, onMove, onRelea
     <View
       {...responder.panHandlers}
       hitSlop={14}
-      style={[styles.leftSocket, { borderColor: color }, connected && { backgroundColor: color }]}
+      style={[styles.leftSocket, styles.dragSurface, { borderColor: color }, connected && { backgroundColor: color }]}
     >
       <View style={[styles.socketCore, { backgroundColor: color }]} />
     </View>
@@ -151,9 +154,9 @@ export default function QuackSituateMatching() {
 
   const connectDraggedRope = (expressionIndex: number, x: number, y: number, boardWidth: number, cardHeight: number) => {
     setDragRope(null);
-    const firstCenter = 112 + (cardHeight - 18) / 2;
+    const firstCenter = 112 + (cardHeight - 28) / 2;
     const sceneIndex = Math.round((y - firstCenter) / cardHeight);
-    const reachedSceneColumn = x >= boardWidth * 0.53;
+    const reachedSceneColumn = x >= boardWidth * 0.56;
     if (!reachedSceneColumn || sceneIndex < 0 || sceneIndex >= scenes.length) return;
 
     setMatches(current => {
@@ -227,7 +230,7 @@ export default function QuackSituateMatching() {
     setScenes(shuffle(pairs));
   };
 
-  const cardHeight = compact ? 150 : 142;
+  const cardHeight = compact ? 132 : 128;
   const boardWidth = Math.min(760, width - 22);
   const ropePaths = useMemo(() => Object.entries(matches).map(([left, right]) => ({
     left: Number(left),
@@ -242,7 +245,7 @@ export default function QuackSituateMatching() {
   return (
     <SafeAreaView style={styles.safe}>
       <ImageBackground source={require('../assets/quacksituate/quacksituate-menu-background-v3.png')} style={styles.background} imageStyle={styles.backgroundImage}>
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} scrollEnabled={!dragRope}>
           <View style={styles.topBar}>
             <Pressable style={styles.iconButton} onPress={() => setShowExit(true)}>
               <Ionicons name="arrow-back" size={24} color="#442454" />
@@ -272,13 +275,13 @@ export default function QuackSituateMatching() {
 
             <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width={boardWidth} height={pairs.length * cardHeight + 84}>
               {ropePaths.map(path => {
-                const startY = 112 + path.left * cardHeight + (cardHeight - 18) / 2;
-                const endY = 112 + path.right * cardHeight + (cardHeight - 18) / 2;
-                return <Path key={path.left} d={`M ${boardWidth * 0.43} ${startY} C ${boardWidth * 0.49} ${startY}, ${boardWidth * 0.51} ${endY}, ${boardWidth * 0.57} ${endY}`} stroke={path.color} strokeWidth="6" strokeLinecap="round" fill="none" />;
+                const startY = 112 + path.left * cardHeight + (cardHeight - 28) / 2;
+                const endY = 112 + path.right * cardHeight + (cardHeight - 28) / 2;
+                return <Path key={path.left} d={`M ${boardWidth * 0.395} ${startY} C ${boardWidth * 0.48} ${startY}, ${boardWidth * 0.52} ${endY}, ${boardWidth * 0.605} ${endY}`} stroke={path.color} strokeWidth="6" strokeLinecap="round" fill="none" />;
               })}
               {dragRope && (() => {
-                const startX = boardWidth * 0.43;
-                const startY = 112 + dragRope.expressionIndex * cardHeight + (cardHeight - 18) / 2;
+                const startX = boardWidth * 0.395;
+                const startY = 112 + dragRope.expressionIndex * cardHeight + (cardHeight - 28) / 2;
                 const controlX = Math.max(startX + 22, (startX + dragRope.x) / 2);
                 return <Path d={`M ${startX} ${startY} C ${controlX} ${startY}, ${controlX} ${dragRope.y}, ${dragRope.x} ${dragRope.y}`} stroke={ropeColors[dragRope.expressionIndex % ropeColors.length]} strokeWidth="7" strokeLinecap="round" fill="none" />;
               })()}
@@ -295,7 +298,7 @@ export default function QuackSituateMatching() {
                       onPress={() => setSelected(index)}
                       style={[
                         styles.phraseCard,
-                        { height: cardHeight - 18 },
+                        { height: cardHeight - 28 },
                         selected === index && styles.selectedCard,
                         connected && { borderColor: ropeColors[index % ropeColors.length] },
                         wrong && styles.wrongCard,
@@ -308,11 +311,11 @@ export default function QuackSituateMatching() {
                       <DragSocket
                         color={ropeColors[index % ropeColors.length]}
                         connected={connected}
-                        startX={boardWidth * 0.43}
-                        startY={112 + index * cardHeight + (cardHeight - 18) / 2}
+                        startX={boardWidth * 0.395}
+                        startY={112 + index * cardHeight + (cardHeight - 28) / 2}
                         onStart={() => {
                           setSelected(index);
-                          setDragRope({ expressionIndex: index, x: boardWidth * 0.43, y: 112 + index * cardHeight + (cardHeight - 18) / 2 });
+                          setDragRope({ expressionIndex: index, x: boardWidth * 0.395, y: 112 + index * cardHeight + (cardHeight - 28) / 2 });
                         }}
                         onMove={(x, y) => setDragRope({ expressionIndex: index, x, y })}
                         onRelease={(x, y) => connectDraggedRope(index, x, y, boardWidth, cardHeight)}
@@ -326,7 +329,7 @@ export default function QuackSituateMatching() {
                 {scenes.map((scene, index) => {
                   const occupied = Object.values(matches).includes(index);
                   return (
-                    <Pressable key={scene.id} onPress={() => makeConnection(index)} style={[styles.sceneCard, { height: cardHeight - 18 }, occupied && styles.sceneOccupied]}>
+                    <Pressable key={scene.id} onPress={() => makeConnection(index)} style={[styles.sceneCard, { height: cardHeight - 28 }, occupied && styles.sceneOccupied]}>
                       <Image source={sceneImages[scene.sceneKey] || sceneImages.school} style={styles.sceneImage} resizeMode="cover" />
                       <View style={styles.sceneShade} />
                       <View style={styles.sceneLetter}><Text style={styles.sceneLetterText}>{String.fromCharCode(65 + index)}</Text></View>
@@ -399,8 +402,8 @@ const styles = StyleSheet.create({
   boardTitle: { fontFamily: 'Jua', fontSize: 19, color: '#482B54' },
   columnLabels: { height: 40, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: '8%', alignItems: 'center' },
   columnLabel: { fontSize: 10, fontWeight: '900', letterSpacing: 1.1, color: '#75647C' },
-  columns: { flexDirection: 'row', justifyContent: 'space-between', gap: '16%' },
-  column: { width: '42%', gap: 18 },
+  columns: { flexDirection: 'row', justifyContent: 'space-between', gap: '23%' },
+  column: { width: '38.5%', gap: 28 },
   phraseCard: { backgroundColor: '#FFF', borderRadius: 22, borderWidth: 2, borderColor: '#EBDDEA', padding: 10, justifyContent: 'center', alignItems: 'center', shadowColor: '#482A54', shadowOpacity: 0.06, shadowRadius: 8 },
   selectedCard: { borderColor: '#8A20E8', backgroundColor: '#F8EEFF', transform: [{ scale: 1.025 }] },
   wrongCard: { borderColor: '#D95372', backgroundColor: '#FFF1F4' },
@@ -410,6 +413,7 @@ const styles = StyleSheet.create({
   romaji: { fontSize: 11, color: '#756978', marginTop: 4 },
   tapLabel: { position: 'absolute', bottom: 7, fontSize: 8, fontWeight: '800', color: '#9B8DA0', letterSpacing: 0.4 },
   leftSocket: { position: 'absolute', right: -13, width: 26, height: 26, borderRadius: 13, borderWidth: 4, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', zIndex: 8 },
+  dragSurface: { cursor: 'grab', touchAction: 'none', userSelect: 'none' } as any,
   socketCore: { width: 7, height: 7, borderRadius: 4 },
   sceneCard: { borderRadius: 22, overflow: 'hidden', backgroundColor: '#DDD', justifyContent: 'flex-end', borderWidth: 2, borderColor: '#DCD4E6', shadowColor: '#482A54', shadowOpacity: 0.08, shadowRadius: 8 },
   sceneOccupied: { borderColor: '#65A936' },
