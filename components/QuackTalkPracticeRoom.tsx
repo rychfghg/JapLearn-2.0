@@ -19,7 +19,6 @@ import { SUMI_VOICE_PROFILE } from '../config/sumiVoiceProfile';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackTalkPracticeRoom';
-import SmoothSprite from './SmoothSprite';
 
 type PracticeRoomProps = {
   variant: 'conversation' | 'speaking';
@@ -34,15 +33,6 @@ const sumiSpeaking = require('../assets/img/Sumi_PoseB_WinterUni_Open.png');
 const sumiSpeakingBlink = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Open.png');
 const sumiListening = require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png');
 const sumiListeningBlink = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile_Blush.png');
-
-const sumiRoomFrames = [
-  sumiSmile,
-  sumiBlink,
-  sumiSpeaking,
-  sumiSpeakingBlink,
-  sumiListening,
-  sumiListeningBlink,
-] as const;
 
 const roomContent = {
   conversation: {
@@ -358,22 +348,6 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
         ['3', 'Record your voice', 'Tap the microphone, practice, then tap again to stop.'],
       ];
 
-  const sumiFrameIndex = isSumiSpeaking
-    ? isBlinking
-      ? speakingMouthOpen
-        ? 3
-        : 1
-      : speakingMouthOpen
-        ? 2
-        : 0
-    : recorderState === 'recording'
-      ? isBlinking
-        ? 5
-        : 4
-      : isBlinking
-        ? 1
-        : 0;
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <ImageBackground
@@ -466,12 +440,27 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
             ))}
           </View>
 
-          <SmoothSprite
-            frames={sumiRoomFrames}
-            activeIndex={sumiFrameIndex}
+          <Image
+            source={
+              isSumiSpeaking
+                ? isBlinking
+                  ? speakingMouthOpen
+                    ? sumiSpeakingBlink
+                    : sumiBlink
+                  : speakingMouthOpen
+                    ? sumiSpeaking
+                    : sumiSmile
+                : recorderState === 'recording'
+                  ? isBlinking
+                    ? sumiListeningBlink
+                    : sumiListening
+                  : isBlinking
+                    ? sumiBlink
+                    : sumiSmile
+            }
             style={styles.sumi}
             resizeMode="contain"
-            transitionDuration={75}
+            fadeDuration={0}
           />
           <View style={[styles.floorShadow, { backgroundColor: `${content.accent}38` }]} />
           <View style={[styles.floorLine, { backgroundColor: `${content.glow}66` }]} />

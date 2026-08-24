@@ -8,7 +8,6 @@ import expoconfig from '../expoconfig';
 import { AuthContext } from '../context/AuthContext';
 import StudentBottomNav from '../components/StudentBottomNav';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SmoothSprite from '../components/SmoothSprite';
 
 type MasteryItem = { name: string; percentage: number };
 type ProgressSummary = { overallMastery: number; completedActivities: number; weakAreaCount: number; recommendation: string; masteryItems: MasteryItem[] };
@@ -130,13 +129,7 @@ export default function QuackProgress() {
           <View style={styles.mascotStage}>
             <View style={styles.mascotSun} />
             <View style={styles.mascotGround} />
-            <SmoothSprite
-              frames={guides.map((item) => item.image)}
-              activeIndex={guide}
-              style={styles.mascot}
-              resizeMode="contain"
-              transitionDuration={160}
-            />
+            <Image source={guides[guide].image} style={styles.mascot} resizeMode="contain" fadeDuration={0} />
           </View>
         </View>
       </View>

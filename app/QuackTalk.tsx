@@ -7,13 +7,10 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackTalk';
 import StudentBottomNav from '../components/StudentBottomNav';
 import { AuthContext } from '../context/AuthContext';
-import SmoothSprite from '../components/SmoothSprite';
 
 import sumiSmile from '../assets/img/Sumi_PoseB_WinterUni_Smile.png';
 import sumiOpen from '../assets/img/Sumi_PoseB_WinterUni_Open.png';
 import sumiEyesClosedOpen from '../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Open.png';
-
-const sumiInterviewFrames = [sumiSmile, sumiOpen, sumiEyesClosedOpen] as const;
 
 export default function QuackTalk(){
   const { user }=useContext(AuthContext);
@@ -93,11 +90,6 @@ export default function QuackTalk(){
       : speechFrame===3
         ? sumiEyesClosedOpen
         : sumiSmile;
-  const sumiSpriteIndex = sumiSprite === sumiOpen
-    ? 1
-    : sumiSprite === sumiEyesClosedOpen
-      ? 2
-      : 0;
   const spokenDialogue=language==='ja'?japaneseGreeting:englishGreeting;
   const playbackSpeeds=[1,1.5,2] as const;
 
@@ -118,7 +110,7 @@ export default function QuackTalk(){
   return <SafeAreaView style={styles.safeArea}><ImageBackground source={require('../assets/img/background/classroom a st2 day.png')} style={styles.background} resizeMode="cover"><View style={styles.sceneShade}/>
     <View style={styles.topBar}><Pressable onPress={()=>leaveFor('/Exercises')} style={styles.backButton}><BackIcon width={18} height={18} fill="#47295A"/></Pressable><View style={styles.brand}><Ionicons name="mic-outline" size={16} color="#7552C8"/><View><Text style={styles.brandEyebrow}>SUMI'S SPEAKING ROOM</Text><Text style={styles.brandTitle}>QuackTalk Interview</Text></View></View><Pressable onPress={()=>leaveFor('/QuackTalkFeedback')} style={styles.feedbackButton}><Ionicons name="analytics-outline" size={18} color="#7552C8"/><Text style={styles.feedbackButtonText}>Feedback</Text></Pressable></View>
 
-    <View style={styles.interviewStage}><View style={styles.windowGlow}/><View style={styles.coachNameTag}><View style={styles.coachOnline}/><Text style={styles.coachName}>SUMI · COACHING {firstName.toUpperCase()}</Text></View><SmoothSprite frames={sumiInterviewFrames} activeIndex={sumiSpriteIndex} style={styles.sumiInterview} transitionDuration={75}/><View style={styles.deskShadow}/>
+    <View style={styles.interviewStage}><View style={styles.windowGlow}/><View style={styles.coachNameTag}><View style={styles.coachOnline}/><Text style={styles.coachName}>SUMI · COACHING {firstName.toUpperCase()}</Text></View><Image source={sumiSprite} style={styles.sumiInterview} resizeMode="contain" fadeDuration={0}/><View style={styles.deskShadow}/>
       {speaking&&<View style={styles.sceneDialogue}><View style={styles.sceneDialogueTail}/><View style={styles.sceneDialogueTop}><Ionicons name="volume-high" size={14} color="#7552C8"/><Text style={styles.sceneSpeaker}>SUMI</Text><View style={styles.speakingBars}>{[10,17,13].map((height,index)=><View key={index} style={[styles.speakingBar,{height}]}/>)}</View></View><Text style={styles.sceneDialogueText}>{spokenDialogue}</Text></View>}
       <View style={styles.liveIndicator}><View style={[styles.liveDot,speaking&&styles.liveDotSpeaking]}/><Text style={styles.liveText}>{speaking?'SUMI IS SPEAKING':'VOICE SESSION READY'}</Text></View>
       <View style={styles.sceneActions}>

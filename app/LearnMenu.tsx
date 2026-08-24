@@ -20,7 +20,6 @@ import { AuthContext } from '../context/AuthContext';
 import StudentBottomNav from '../components/StudentBottomNav';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import SmoothSprite from '../components/SmoothSprite';
 
 const learnMascotGuides = [
   { image: require('../assets/idle.png'), label: 'Ready to learn?', text: 'Follow the learning map and build your Japanese one step at a time.' },
@@ -269,7 +268,7 @@ const LearnMenu = () => {
                 <View style={styles.mascotStage}>
                   <View style={styles.mascotSun} />
                   <View style={styles.mascotGround} />
-                  <SmoothSprite frames={learnMascotGuides.map((guide) => guide.image)} activeIndex={mascotGuide} style={styles.mascotImage} transitionDuration={180} />
+                  <Image source={learnMascotGuides[mascotGuide].image} style={styles.mascotImage} resizeMode="contain" fadeDuration={0} />
                 </View>
               </View>
             </View>

@@ -8,7 +8,6 @@ import StudentBottomNav from '../components/StudentBottomNav';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { preloadGameAssets } from '../utils/gameAssetPreloader';
-import SmoothSprite from '../components/SmoothSprite';
 
 const activities = [
   { key: 'KANA', title: 'Quack-a-Mole', subtitle: 'Match kana before time runs out.', description: 'Test your recognition of Hiragana and Katakana characters.', icon: 'hammer-outline', color: '#8423D9', tint: '#F0E4FA', cardColor: '#24123F', mode: 'CHARACTERS', tag: 'KANA HUNT', image: require('../assets/exercise-covers/quack-a-mole-official-v2.png') },
@@ -115,7 +114,7 @@ const Exercises = () => {
               <View style={styles.mascotStage}>
                 <View style={styles.mascotSun} />
                 <View style={styles.mascotGround} />
-                <SmoothSprite frames={mascotGuides.map((guide) => guide.image)} activeIndex={mascotGuide} style={styles.mascotImage} transitionDuration={180} />
+                <Image source={mascotGuides[mascotGuide].image} style={styles.mascotImage} resizeMode="contain" fadeDuration={0} />
               </View>
             </View>
           </View>
