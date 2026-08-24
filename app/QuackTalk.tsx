@@ -17,6 +17,7 @@ export default function QuackTalk(){
   const firstName=user?.fname?.trim()||'learner';
   const [choicesVisible,setChoicesVisible]=useState(false);
   const [language,setLanguage]=useState<'ja'|'en'>('ja');
+  const [playbackSpeed,setPlaybackSpeed]=useState<1|1.5|2>(1);
   const [speaking,setSpeaking]=useState(false);
   const [speechFrame,setSpeechFrame]=useState(0);
   const activeSound=useRef<Audio.Sound|null>(null);
@@ -46,7 +47,15 @@ export default function QuackTalk(){
     try{
       await Audio.setAudioModeAsync({playsInSilentModeIOS:true,shouldDuckAndroid:true});
       const source=selectedLanguage==='ja'?require('../assets/audio/sumi-welcome-ja.mp3'):require('../assets/audio/sumi-welcome-en.mp3');
-      const {sound}=await Audio.Sound.createAsync(source,{shouldPlay:true,volume:1});
+      const {sound}=await Audio.Sound.createAsync(
+        source,
+        {
+          shouldPlay:true,
+          volume:1,
+          rate:playbackSpeed,
+          shouldCorrectPitch:true,
+        },
+      );
       if(session!==playbackSession.current){await sound.unloadAsync().catch(()=>{});return;}
       activeSound.current=sound;
       sound.setOnPlaybackStatusUpdate(status=>{
@@ -81,6 +90,18 @@ export default function QuackTalk(){
         ? sumiEyesClosedOpen
         : sumiSmile;
   const spokenDialogue=language==='ja'?japaneseGreeting:englishGreeting;
+  const playbackSpeeds=[1,1.5,2] as const;
+
+  const changePlaybackSpeed=async(speed:1|1.5|2)=>{
+    setPlaybackSpeed(speed);
+
+    if(activeSound.current){
+      await activeSound.current
+        .setRateAsync(speed,true)
+        .catch(error=>console.warn('Unable to change Sumi voice speed.',error));
+    }
+  };
+
   const leaveFor=(route:'/Exercises'|'/QuackTalkFeedback'|'/QuackTalkConversation'|'/QuackTalkSpeech')=>{stopSumiImmediately();setChoicesVisible(false);router.push(route);};
   const openPractice=(route:'/QuackTalkConversation'|'/QuackTalkSpeech')=>leaveFor(route);
 
@@ -90,7 +111,76 @@ export default function QuackTalk(){
     <View style={styles.interviewStage}><View style={styles.windowGlow}/><View style={styles.coachNameTag}><View style={styles.coachOnline}/><Text style={styles.coachName}>SUMI · COACHING {firstName.toUpperCase()}</Text></View><Image source={sumiSprite} style={styles.sumiInterview} resizeMode="contain"/><View style={styles.deskShadow}/>
       {speaking&&<View style={styles.sceneDialogue}><View style={styles.sceneDialogueTail}/><View style={styles.sceneDialogueTop}><Ionicons name="volume-high" size={14} color="#7552C8"/><Text style={styles.sceneSpeaker}>SUMI</Text><View style={styles.speakingBars}>{[10,17,13].map((height,index)=><View key={index} style={[styles.speakingBar,{height}]}/>)}</View></View><Text style={styles.sceneDialogueText}>{spokenDialogue}</Text></View>}
       <View style={styles.liveIndicator}><View style={[styles.liveDot,speaking&&styles.liveDotSpeaking]}/><Text style={styles.liveText}>{speaking?'SUMI IS SPEAKING':'VOICE SESSION READY'}</Text></View>
-      <View style={styles.sceneActions}><Pressable onPress={()=>speakGreeting('ja')} disabled={speaking} style={[styles.languageReplay,language==='ja'&&styles.languageReplayActive]}><Text style={[styles.languageReplayText,language==='ja'&&styles.languageReplayTextActive]}>日本語</Text></Pressable><Pressable onPress={()=>speakGreeting('en')} disabled={speaking} style={[styles.languageReplay,language==='en'&&styles.languageReplayActive]}><Text style={[styles.languageReplayText,language==='en'&&styles.languageReplayTextActive]}>English</Text></Pressable><Pressable onPress={()=>speakGreeting(language)} disabled={speaking} style={styles.replayCircle}><Ionicons name="refresh" size={17} color="#7552C8"/></Pressable></View>
+      <View style={styles.sceneActions}>
+        <View style={styles.languageControlGroup}>
+          <Pressable
+            onPress={()=>speakGreeting('ja')}
+            disabled={speaking}
+            style={[
+              styles.languageReplay,
+              language==='ja'&&styles.languageReplayActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.languageReplayText,
+                language==='ja'&&styles.languageReplayTextActive,
+              ]}
+            >
+              日本語
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={()=>speakGreeting('en')}
+            disabled={speaking}
+            style={[
+              styles.languageReplay,
+              language==='en'&&styles.languageReplayActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.languageReplayText,
+                language==='en'&&styles.languageReplayTextActive,
+              ]}
+            >
+              English
+            </Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.speedControlGroup}>
+          <Ionicons name="speedometer-outline" size={13} color="#8A7991" />
+          {playbackSpeeds.map(speed=>(
+            <Pressable
+              key={speed}
+              onPress={()=>void changePlaybackSpeed(speed)}
+              style={[
+                styles.speedOption,
+                playbackSpeed===speed&&styles.speedOptionActive,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.speedOptionText,
+                  playbackSpeed===speed&&styles.speedOptionTextActive,
+                ]}
+              >
+                {speed.toFixed(1)}×
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        <Pressable
+          onPress={()=>speakGreeting(language)}
+          disabled={speaking}
+          style={styles.replayCircle}
+        >
+          <Ionicons name="refresh" size={17} color="#7552C8" />
+        </Pressable>
+      </View>
     </View>
 
     <Modal visible={choicesVisible} transparent animationType="slide" onRequestClose={()=>setChoicesVisible(false)}><View style={styles.modalShade}><View style={styles.choiceSheet}><View style={styles.sheetHandle}/><Pressable onPress={()=>setChoicesVisible(false)} style={styles.closeButton}><Ionicons name="close" size={19} color="#7C7182"/></Pressable><View style={styles.choiceHeader}><View style={styles.choiceAvatar}><Image source={sumiSmile} style={styles.choiceAvatarImage} resizeMode="contain"/></View><View><Text style={styles.choiceEyebrow}>SUMI IS READY</Text><Text style={styles.choiceHeading}>Choose your practice</Text></View></View><Pressable onPress={()=>openPractice('/QuackTalkConversation')} style={styles.primaryChoice}><View style={styles.choiceIconPrimary}><Ionicons name="chatbubbles" size={23} color="#FFF"/></View><View style={styles.choiceCopy}><Text style={styles.primaryChoiceTitle}>Answer Sumi's questions</Text><Text style={styles.primaryChoiceText}>Join a controlled conversation and respond to Sumi in Japanese.</Text></View><Ionicons name="arrow-forward" size={20} color="#FFF"/></Pressable><Pressable onPress={()=>openPractice('/QuackTalkSpeech')} style={styles.secondaryChoice}><View style={styles.choiceIconSecondary}><Ionicons name="mic" size={23} color="#D84F83"/></View><View style={styles.choiceCopy}><Text style={styles.secondaryChoiceTitle}>Practice a Japanese phrase</Text><Text style={styles.secondaryChoiceText}>Say a guided phrase aloud and check what the listener recognizes.</Text></View><Ionicons name="arrow-forward" size={20} color="#D84F83"/></Pressable><Pressable onPress={()=>{setChoicesVisible(false);speakGreeting(language);}} style={styles.hearAgain}><Ionicons name="volume-medium-outline" size={15} color="#7552C8"/><Text style={styles.hearAgainText}>Hear Sumi again</Text></Pressable></View></View></Modal>
