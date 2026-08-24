@@ -6,6 +6,7 @@ import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import { Ionicons } from '@expo/vector-icons';
 import StudentBottomNav from '../components/StudentBottomNav';
+import SmoothSprite from '../components/SmoothSprite';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const dateKey = (date: Date) => {
@@ -166,7 +167,7 @@ const Menu = () => {
                                 <View style={[styles.mascotStage, isCompact && styles.mascotStageCompact]}>
                                     <View style={styles.mascotSun} /><View style={styles.mascotGround} />
                                     <View style={styles.miniFuji} /><View style={styles.miniFujiSnow} />
-                                    <Image source={mascotFrames[mascotFrame]} style={[styles.mascotImage, isCompact && styles.mascotImageCompact]} resizeMode="contain" />
+                                    <SmoothSprite frames={mascotFrames} activeIndex={mascotFrame} style={[styles.mascotImage, isCompact && styles.mascotImageCompact]} transitionDuration={180} />
                                 </View>
                             </View>
                         </View>

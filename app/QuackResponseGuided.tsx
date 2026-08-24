@@ -11,6 +11,7 @@ import {
 import { router } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
 import AhiruMissionExit from '../components/AhiruMissionExit';
+import SmoothSprite from '../components/SmoothSprite';
 import styles from '../styles/stylesQuackResponseGuided';
 
 import bgClassroom from '../assets/img/background/classroom a st2 day.png';
@@ -357,6 +358,9 @@ const QuackResponseGuided = () => {
     resultVisible && !isCorrect ? boyFrown :
     current.boy;
 
+  const sumiFrames = [sumiSmile, sumiOpen, sumiFrown, sumiBlush, sumiClosedSmile];
+  const boyFrames = [boyNeutral, boyOpen, boySmile, boyFrown];
+
   if (isExiting) return <AhiruMissionExit color="#6E4BC6" tint="#EEE8FC" icon="chatbubble-ellipses-outline" eyebrow="GUIDED SESSION COMPLETE" title="A stronger reply!" message="You practiced building natural Japanese responses with clear, helpful guidance." footer="Good responses begin with confident small steps." mascot={require('../assets/hello.png')} onComplete={() => router.replace({ pathname:'/QuackResponse', params:{skipLoading:'1'} })} />;
 
   return (
@@ -396,8 +400,18 @@ const QuackResponseGuided = () => {
         </View>
 
         <Animated.View style={[styles.characterScene, { transform: [{ scale: zoomAnim }] }]}>
-          <Animated.Image source={boySprite} style={[styles.boySprite, { transform: [{ translateY: boyFloat }] }]} />
-          <Animated.Image source={sumiSprite} style={[styles.sumiSprite, { transform: [{ translateY: sumiFloat }] }]} />
+          <SmoothSprite
+            frames={boyFrames}
+            activeIndex={Math.max(0, boyFrames.indexOf(boySprite))}
+            style={[styles.boySprite, { transform: [{ translateY: boyFloat }] }]}
+            transitionDuration={80}
+          />
+          <SmoothSprite
+            frames={sumiFrames}
+            activeIndex={Math.max(0, sumiFrames.indexOf(sumiSprite))}
+            style={[styles.sumiSprite, { transform: [{ translateY: sumiFloat }] }]}
+            transitionDuration={80}
+          />
         </Animated.View>
 
         {!showChoices && (

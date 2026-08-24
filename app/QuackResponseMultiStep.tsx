@@ -12,6 +12,7 @@ import {
 import { router } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
 import AhiruMissionExit from '../components/AhiruMissionExit';
+import SmoothSprite from '../components/SmoothSprite';
 import styles from '../styles/stylesQuackResponseMultiStep';
 
 import classroomBg from '../assets/img/background/classroom a st2 day.png';
@@ -289,6 +290,9 @@ const QuackResponseMultiStep = () => {
     reply && !reply.correct ? sumiFrown :
     current.sumi || sumiSmile;
 
+  const boyFrames = [boyNeutral, boySmile, boyTalk, boySad];
+  const sumiFrames = [sumiSmile, sumiOpen, sumiFrown, sumiClosedSmile];
+
   if (isExiting) return <AhiruMissionExit color="#D84F83" tint="#FCE7EF" icon="git-branch-outline" eyebrow="CONVERSATION SAVED" title="You kept it flowing!" message="You connected several responses and carried a Japanese conversation through each step." footer="Each connected reply builds real conversation confidence." mascot={require('../assets/thinking.png')} onComplete={() => router.push({ pathname:'/QuackResponse', params:{skipLoading:'1'} })} />;
 
   return (
@@ -328,14 +332,18 @@ const QuackResponseMultiStep = () => {
       </View>
 
       <Animated.View style={[styles.characterScene, { transform: [{ scale: zoomAnim }] }]}>
-        <Animated.Image
-          source={boySprite}
+        <SmoothSprite
+          frames={boyFrames}
+          activeIndex={Math.max(0, boyFrames.indexOf(boySprite))}
           style={[styles.boySprite, { transform: [{ translateY: boyFloat }] }]}
+          transitionDuration={80}
         />
 
-        <Animated.Image
-          source={sumiSprite}
+        <SmoothSprite
+          frames={sumiFrames}
+          activeIndex={Math.max(0, sumiFrames.indexOf(sumiSprite))}
           style={[styles.sumiSprite, { transform: [{ translateY: sumiFloat }] }]}
+          transitionDuration={80}
         />
       </Animated.View>
 

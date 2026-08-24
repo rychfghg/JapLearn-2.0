@@ -5,15 +5,12 @@ import { useRouter } from 'expo-router';
 import expoconfig from '../expoconfig';
 
 const scene = require('../assets/quackslate-twilight-workshop-v4.png');
-const idle = require('../assets/idle.png');
-const talk = require('../assets/talk.png');
 const loadingMascotImage = require('../assets/hello.png');
 
 export default function QuackslateMenu() {
   const router = useRouter();
   const [progress, setProgress] = useState(5);
   const [loading, setLoading] = useState(true);
-  const [mascot, setMascot] = useState<any>(idle);
   const [joinOpen, setJoinOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [code, setCode] = useState('');
@@ -21,9 +18,8 @@ export default function QuackslateMenu() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const imageTimer = setInterval(() => setMascot((value: any) => value === idle ? talk : idle), 850);
     const loadingTimer = setInterval(() => setProgress((value) => Math.min(100, value + 6)), 100);
-    return () => { clearInterval(imageTimer); clearInterval(loadingTimer); };
+    return () => clearInterval(loadingTimer);
   }, []);
 
   useEffect(() => {

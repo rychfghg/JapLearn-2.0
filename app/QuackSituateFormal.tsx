@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import QuackSituateExit from '../components/QuackSituateExit';
+import SmoothSprite from '../components/SmoothSprite';
 import { POLITENESS_SCENARIOS } from '../data/politenessScenarios';
 import expoconfig from '../expoconfig';
 
@@ -418,19 +419,13 @@ export default function QuackSituateFormal() {
 
         <View style={styles.characterGround} />
         <View pointerEvents="none" style={styles.characterStage}>
-          {characterFrames.map((frame) => (
-            <Image
-              key={`${question.gender}-${frame}`}
-              source={people[question.gender][frame]}
-              style={[
-                styles.characterFrame,
-                frame === activeCharacterFrame
-                  ? styles.characterFrameVisible
-                  : styles.characterFrameHidden,
-              ]}
-              resizeMode="contain"
-            />
-          ))}
+          <SmoothSprite
+            frames={characterFrames.map((frame) => people[question.gender][frame])}
+            activeIndex={characterFrames.indexOf(activeCharacterFrame)}
+            style={styles.characterFrame}
+            resizeMode="contain"
+            transitionDuration={75}
+          />
         </View>
 
         <View style={styles.storyPanel}>
@@ -723,12 +718,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
-  },
-  characterFrameVisible: {
-    opacity: 1,
-  },
-  characterFrameHidden: {
-    opacity: 0,
   },
   characterGround: {
     position: 'absolute',
