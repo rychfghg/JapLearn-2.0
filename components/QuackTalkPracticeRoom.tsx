@@ -28,6 +28,25 @@ type PracticeRoomProps = {
 type Language = 'ja' | 'en';
 type RecorderState = 'ready' | 'requesting' | 'recording' | 'recorded' | 'denied' | 'error';
 
+type VoiceResumeState = {
+  language: Language;
+  positionMillis: number;
+  shouldResume: boolean;
+};
+
+const voiceResumeState: Record<PracticeRoomProps['variant'], VoiceResumeState> = {
+  conversation: {
+    language: 'ja',
+    positionMillis: 0,
+    shouldResume: false,
+  },
+  speaking: {
+    language: 'ja',
+    positionMillis: 0,
+    shouldResume: false,
+  },
+};
+
 const sumiSmile = require('../assets/img/Sumi_PoseB_WinterUni_Smile.png');
 const sumiBlink = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png');
 const sumiSpeaking = require('../assets/img/Sumi_PoseB_WinterUni_Open.png');
@@ -74,6 +93,8 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   const { user } = useContext(AuthContext);
   const recordingRef = useRef<Audio.Recording | null>(null);
   const voiceRef = useRef<Audio.Sound | null>(null);
+  const voiceRequestRef = useRef(0);
+  const languageRef = useRef<Language>('ja');
   const blinkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const speakingFrameRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -174,21 +195,60 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
     }
   };
 
-  const stopSumiVoice = async () => {
+  const stopVoiceAnimation = () => {
     if (speakingFrameRef.current) {
       clearInterval(speakingFrameRef.current);
       speakingFrameRef.current = null;
     }
 
-    const sound = voiceRef.current;
-    voiceRef.current = null;
     setIsSumiSpeaking(false);
     setSpeakingMouthOpen(false);
+  };
+
+  const stopSumiVoice = async () => {
+    voiceRequestRef.current += 1;
+    stopVoiceAnimation();
+
+    voiceResumeState[variant] = {
+      language: languageRef.current,
+      positionMillis: 0,
+      shouldResume: false,
+    };
+
+    const sound = voiceRef.current;
+    voiceRef.current = null;
 
     if (sound) {
+      sound.setOnPlaybackStatusUpdate(null);
       await sound.stopAsync().catch(() => undefined);
       await sound.unloadAsync().catch(() => undefined);
     }
+  };
+
+  const pauseAndRememberSumiVoice = async () => {
+    voiceRequestRef.current += 1;
+    stopVoiceAnimation();
+
+    const sound = voiceRef.current;
+    voiceRef.current = null;
+
+    if (!sound) return;
+
+    sound.setOnPlaybackStatusUpdate(null);
+
+    const status = await sound.getStatusAsync().catch(() => null);
+
+    if (status?.isLoaded) {
+      voiceResumeState[variant] = {
+        language: languageRef.current,
+        positionMillis: status.positionMillis,
+        shouldResume: status.isPlaying && !status.didJustFinish,
+      };
+
+      await sound.pauseAsync().catch(() => undefined);
+    }
+
+    await sound.unloadAsync().catch(() => undefined);
   };
 
   useEffect(() => {
@@ -218,7 +278,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
       }
 
       stopRecordingTimer();
-      void stopSumiVoice();
+      void pauseAndRememberSumiVoice();
       void releaseRecording();
     };
   }, []);
@@ -301,14 +361,38 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
 
   const leaveRoom = async () => {
     stopRecordingTimer();
-    await stopSumiVoice();
+    await pauseAndRememberSumiVoice();
     await releaseRecording();
     router.replace('/QuackTalk');
   };
 
-  const selectLanguage = async (nextLanguage: Language) => {
+  const selectLanguage = async (
+    nextLanguage: Language,
+    resumePositionMillis = 0,
+  ) => {
+    const requestId = voiceRequestRef.current + 1;
+    voiceRequestRef.current = requestId;
+    languageRef.current = nextLanguage;
     setLanguage(nextLanguage);
-    await stopSumiVoice();
+
+    stopVoiceAnimation();
+
+    const previousSound = voiceRef.current;
+    voiceRef.current = null;
+
+    if (previousSound) {
+      previousSound.setOnPlaybackStatusUpdate(null);
+      await previousSound.stopAsync().catch(() => undefined);
+      await previousSound.unloadAsync().catch(() => undefined);
+    }
+
+    if (requestId !== voiceRequestRef.current) return;
+
+    voiceResumeState[variant] = {
+      language: nextLanguage,
+      positionMillis: resumePositionMillis,
+      shouldResume: false,
+    };
 
     try {
       await Audio.setAudioModeAsync({
@@ -319,8 +403,17 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
 
       const result = await Audio.Sound.createAsync(
         SUMI_VOICE_PROFILE.clips[variant][nextLanguage],
-        { shouldPlay: true, volume: 1 },
+        {
+          shouldPlay: false,
+          positionMillis: resumePositionMillis,
+          volume: 1,
+        },
       );
+
+      if (requestId !== voiceRequestRef.current) {
+        await result.sound.unloadAsync().catch(() => undefined);
+        return;
+      }
 
       voiceRef.current = result.sound;
       setIsSumiSpeaking(true);
@@ -330,18 +423,37 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
       }, 170);
 
       result.sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
-        if (status.isLoaded && status.didJustFinish) {
+        if (
+          voiceRef.current === result.sound
+          && status.isLoaded
+          && status.didJustFinish
+        ) {
           void stopSumiVoice();
         }
       });
+
+      await result.sound.playAsync();
     } catch (error) {
       console.warn('Unable to play Sumi voice recording.', error);
-      await stopSumiVoice();
+
+      if (requestId === voiceRequestRef.current) {
+        await stopSumiVoice();
+      }
     }
   };
 
   useEffect(() => {
+    const savedVoice = voiceResumeState[variant];
+
     const welcomeTimer = setTimeout(() => {
+      if (savedVoice.shouldResume) {
+        void selectLanguage(
+          savedVoice.language,
+          savedVoice.positionMillis,
+        );
+        return;
+      }
+
       void selectLanguage('ja');
     }, 550);
 
@@ -349,6 +461,15 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
       clearTimeout(welcomeTimer);
     };
   }, [variant]);
+
+  const openFeedback = async () => {
+    await pauseAndRememberSumiVoice();
+
+    router.push({
+      pathname: '/QuackTalkFeedback',
+      params: { returnTo: variant },
+    });
+  };
 
   const openSupport = async () => {
     const subject = encodeURIComponent(`JapLearn ${content.title} support`);
@@ -583,10 +704,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
 
             <View style={styles.secondaryActions}>
               <Pressable
-                onPress={() => router.push({
-                  pathname: '/QuackTalkFeedback',
-                  params: { returnTo: variant },
-                })}
+                onPress={() => void openFeedback()}
                 style={styles.secondaryButton}
               >
                 <Ionicons name="analytics-outline" size={18} color="#7552C8" />
