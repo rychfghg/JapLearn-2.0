@@ -318,4 +318,453 @@ export default StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
   },
+
+  mapBackgroundWash: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(251, 248, 255, 0.94)',
+  },
+
+  mapScroll: {
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    paddingBottom: 44,
+  },
+
+  mapTopBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 52,
+  },
+
+  mapBrand: {
+    marginLeft: 12,
+  },
+
+  mapBrandEyebrow: {
+    color: '#8B24DB',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+
+  mapBrandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+
+  mapBrandTitle: {
+    color: '#3F2850',
+    fontFamily: 'Jua',
+    fontSize: 18,
+  },
+
+  mapMissionCount: {
+    marginLeft: 'auto',
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: '#8423D9',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    shadowColor: '#582078',
+    shadowOpacity: 0.18,
+    shadowRadius: 9,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+
+  mapMissionCountText: {
+    color: '#FFFFFF',
+    fontFamily: 'Jua',
+    fontSize: 15,
+  },
+
+  mapHero: {
+    minHeight: 224,
+    marginTop: 14,
+    borderRadius: 28,
+    backgroundColor: '#F2E8FC',
+    borderWidth: 1,
+    borderColor: '#DDC9EF',
+    overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 20,
+  },
+
+  mapHeroCloudOne: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    right: -18,
+    top: -20,
+    backgroundColor: 'rgba(255,255,255,0.60)',
+  },
+
+  mapHeroCloudTwo: {
+    position: 'absolute',
+    width: 72,
+    height: 22,
+    borderRadius: 14,
+    right: 114,
+    top: 35,
+    backgroundColor: 'rgba(255,255,255,0.65)',
+  },
+
+  mapHeroCopy: {
+    width: '60%',
+    zIndex: 3,
+  },
+
+  mapHeroKicker: {
+    color: '#65A936',
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 1.1,
+  },
+
+  mapHeroTitle: {
+    color: '#372044',
+    fontFamily: 'Jua',
+    fontSize: 24,
+    lineHeight: 29,
+    marginTop: 7,
+  },
+
+  mapHeroText: {
+    color: '#776A7E',
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 7,
+  },
+
+  mapHeroMascotStage: {
+    width: '40%',
+    height: 214,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+
+  mapHeroHalo: {
+    position: 'absolute',
+    width: 152,
+    height: 152,
+    borderRadius: 76,
+    bottom: 17,
+    backgroundColor: 'rgba(132,35,217,0.11)',
+  },
+
+  mapHeroMascot: {
+    width: 125,
+    height: 164,
+    zIndex: 2,
+  },
+
+  mapHeroBubble: {
+    position: 'absolute',
+    top: 24,
+    right: 8,
+    borderRadius: 13,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    zIndex: 4,
+    shadowColor: '#4D3158',
+    shadowOpacity: 0.12,
+    shadowRadius: 7,
+    elevation: 3,
+  },
+
+  mapHeroBubbleText: {
+    color: '#8423D9',
+    fontFamily: 'Jua',
+    fontSize: 11,
+  },
+
+  mapSectionHeading: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginTop: 25,
+    marginBottom: 16,
+  },
+
+  mapSectionKicker: {
+    color: '#65A936',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+
+  mapSectionTitle: {
+    color: '#3C2749',
+    fontFamily: 'Jua',
+    fontSize: 21,
+    marginTop: 3,
+  },
+
+  mapReadyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 99,
+    backgroundColor: '#EDF8E7',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+
+  mapReadyDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: '#65A936',
+  },
+
+  mapReadyText: {
+    color: '#4D8E2C',
+    fontSize: 7,
+    fontWeight: '900',
+  },
+
+  mapTrail: {
+    position: 'relative',
+    paddingBottom: 8,
+  },
+
+  mapTrailLine: {
+    position: 'absolute',
+    top: 44,
+    bottom: 68,
+    left: '50%',
+    width: 7,
+    marginLeft: -3.5,
+    borderRadius: 99,
+    backgroundColor: '#DCC6EC',
+    borderWidth: 1,
+    borderColor: '#CBA9E4',
+  },
+
+  mapNodeRow: {
+    width: '100%',
+    alignItems: 'flex-start',
+    marginBottom: 28,
+    position: 'relative',
+  },
+
+  mapNodeRowRight: {
+    alignItems: 'flex-end',
+  },
+
+  mapCheckpoint: {
+    position: 'absolute',
+    top: 42,
+    left: '50%',
+    marginLeft: -23,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 5,
+    borderColor: '#FAF7FC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 8,
+    shadowColor: '#472256',
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+
+  mapCheckpointNumber: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '900',
+  },
+
+  mapMissionCard: {
+    width: '86%',
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5DAEA',
+    overflow: 'hidden',
+    shadowColor: '#392145',
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 7 },
+    elevation: 5,
+  },
+
+  mapMissionCardRight: {
+    alignSelf: 'flex-end',
+  },
+
+  mapMissionCardPressed: {
+    transform: [{ scale: 0.985 }],
+    opacity: 0.92,
+  },
+
+  mapMissionAccent: {
+    height: 6,
+    width: '100%',
+  },
+
+  mapMissionLandscape: {
+    height: 118,
+    overflow: 'hidden',
+  },
+
+  mapLandscapeSun: {
+    position: 'absolute',
+    right: 20,
+    top: 15,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+  },
+
+  mapLandscapeHillBack: {
+    position: 'absolute',
+    width: 210,
+    height: 88,
+    borderRadius: 100,
+    right: -25,
+    bottom: -49,
+    transform: [{ rotate: '-8deg' }],
+  },
+
+  mapLandscapeHillFront: {
+    position: 'absolute',
+    width: 235,
+    height: 94,
+    borderRadius: 110,
+    left: -45,
+    bottom: -61,
+    transform: [{ rotate: '6deg' }],
+  },
+
+  mapMissionMascot: {
+    position: 'absolute',
+    right: 12,
+    bottom: -4,
+    width: 104,
+    height: 112,
+  },
+
+  mapModePill: {
+    position: 'absolute',
+    left: 15,
+    top: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 99,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+
+  mapModeText: {
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 0.7,
+  },
+
+  mapMissionContent: {
+    paddingHorizontal: 17,
+    paddingTop: 15,
+    paddingBottom: 15,
+  },
+
+  mapMissionStep: {
+    color: '#9A8D9F',
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+
+  mapMissionTitle: {
+    color: '#3C2548',
+    fontFamily: 'Jua',
+    fontSize: 22,
+    marginTop: 3,
+  },
+
+  mapMissionSubtitle: {
+    color: '#55445E',
+    fontSize: 10,
+    fontWeight: '800',
+    marginTop: 1,
+  },
+
+  mapMissionDescription: {
+    color: '#817487',
+    fontSize: 9,
+    lineHeight: 14,
+    marginTop: 5,
+    maxWidth: '90%',
+  },
+
+  mapMissionFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: '#EEE7F1',
+    marginTop: 13,
+    paddingTop: 11,
+  },
+
+  mapStartText: {
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+
+  mapStartButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  mapFinish: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: 18,
+    backgroundColor: '#FFF8E8',
+    borderWidth: 1,
+    borderColor: '#F0D89D',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    shadowColor: '#8D6820',
+    shadowOpacity: 0.10,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+
+  mapFinishKicker: {
+    color: '#B67A12',
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+
+  mapFinishText: {
+    color: '#4B354C',
+    fontFamily: 'Jua',
+    fontSize: 14,
+    marginTop: 1,
+  },
 });

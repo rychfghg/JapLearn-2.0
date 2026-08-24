@@ -44,10 +44,181 @@ export default function QuackResponse() {
 
   if(launching)return <View style={[styles.gameLoading,{backgroundColor:launching.tint}]}><View style={[styles.gameLoadOrb,styles.gameLoadOrbTop,{backgroundColor:launching.color}]}/><View style={[styles.gameLoadOrb,styles.gameLoadOrbBottom,{backgroundColor:launching.color}]}/><View style={styles.gameLoadCard}><View style={[styles.gameLoadBadge,{backgroundColor:launching.tint}]}><Ionicons name={launching.icon} size={16} color={launching.color}/><Text style={[styles.gameLoadBadgeText,{color:launching.color}]}>{launching.label}</Text></View><View style={styles.gameBadgeStage}><Animated.View style={[styles.gameBadgeGlow,{backgroundColor:`${launching.color}24`,transform:[{scale:pulse}]}]}/><View style={[styles.gameBadgeOuter,{borderColor:`${launching.color}50`}]}><View style={[styles.gameBadgeInner,{backgroundColor:launching.color}]}><Text style={styles.gameBadgeCharacter}>{launching.title==='Guided Response'?'導':launching.title==='Timed Challenge'?'速':'会'}</Text><Ionicons name={launching.icon} size={28} color="#FFF"/></View></View><Animated.View style={[styles.gameBadgeSweep,{transform:[{translateX:shine.interpolate({inputRange:[-1,1],outputRange:[-110,110]})},{rotate:'-18deg'}]}]}/><Image source={launching.mascot} style={styles.gameBadgeMascot} resizeMode="contain"/><Text style={[styles.gameBadgeSparkle,{color:launching.color}]}>✦</Text></View><Text style={styles.gameLoadKicker}>YOUR NEXT PRACTICE</Text><Text style={styles.gameLoadTitle}>{launching.title}</Text><Text style={styles.gameLoadCopy}>{launching.description}</Text><View style={styles.gameLoadStatus}><Text style={styles.gameLoadStatusText}>{launchProgress<45?'Preparing your mission':launchProgress<85?'Setting the challenge':'Mission ready!'}</Text><Text style={[styles.gameLoadValue,{color:launching.color}]}>{launchProgress}%</Text></View><View style={styles.gameLoadTrack}><View style={[styles.gameLoadFill,{width:`${launchProgress}%`,backgroundColor:launching.color}]}/></View><View style={styles.gameLoadNote}><Ionicons name="sparkles" size={14} color={launching.color}/><Text style={styles.gameLoadNoteText}>{launchProgress<45?'Preparing the activity':launchProgress<90?'Loading your challenge':'Ready to start'}</Text></View></View></View>;
 
-  return <SafeAreaView style={styles.safeArea}><ImageBackground source={require('../assets/forest2.png')} style={styles.background} resizeMode="cover"><View style={styles.lightOverlay}/><ScrollView contentContainerStyle={styles.menuScroll} showsVerticalScrollIndicator={false}>
-    <View style={styles.topBar}><Pressable onPress={()=>router.push('/Exercises')} style={styles.menuBack}><BackIcon width={18} height={18} fill="#47295A"/></Pressable><View style={styles.menuBrand}><Ionicons name="flash-outline" size={15} color="#D84F83"/><Text style={styles.menuBrandText}>AHIRU RESPONSE LAB</Text></View><View style={styles.menuTopIcon}><Ionicons name="chatbubbles-outline" size={22} color="#6E4BC6"/></View></View>
-    <View style={styles.responseHero}><View style={styles.heroBurstOne}/><View style={styles.heroBurstTwo}/><View style={styles.heroCopy}><View style={styles.heroPill}><Ionicons name="sparkles" size={12} color="#D84F83"/><Text style={styles.heroPillText}>QUICK RESPONSE</Text></View><Text style={styles.responseHeroTitle}>Find the words.{`\n`}Keep it flowing.</Text><Text style={styles.responseHeroText}>Train faster, more natural Japanese responses through three interactive missions.</Text><Pressable onPress={()=>launch(games[0])} style={styles.heroButton}><Ionicons name="play" size={13} color="#FFF"/><Text style={styles.heroButtonText}>Start guided mode</Text></Pressable></View><View style={styles.heroMascotStage}><View style={styles.heroMascotHalo}/><View style={styles.sampleLabel}><Ionicons name="chatbubbles-outline" size={11} color="#6E4BC6"/><Text style={styles.sampleLabelText}>SAMPLE RESPONSE</Text></View><Image source={sampleFrame===1?require('../assets/hello.png'):require('../assets/idle.png')} style={styles.responseMascotLeft} resizeMode="contain"/><Image source={sampleFrame===3?require('../assets/talk.png'):require('../assets/idle.png')} style={styles.responseMascotRight} resizeMode="contain"/><View style={styles.promptChip}><Text style={styles.promptChipText}>{sampleFrame<2?'こんにちは!':'...'}</Text></View><View style={styles.speechChip}><Text style={styles.speechChipText}>{sampleFrame>=2?'こんにちは!':'...'}</Text></View></View></View>
-    <View style={styles.responseHeading}><View><Text style={styles.responseSectionTitle}>Choose a response game</Text><Text style={styles.responseSectionText}>Practice with support, speed, or conversation chains.</Text></View><View style={styles.responseCount}><Text style={styles.responseCountText}>3 GAMES</Text></View></View>
-    <View style={styles.responseList}>{games.map((game,index)=>{const kanji=index===0?'導':index===1?'速':'会';const reading=index===0?'みちびく':index===1?'はやい':'かいわ';return <Pressable key={game.title} onPress={()=>launch(game)} style={({pressed})=>[styles.responseCard,{backgroundColor:game.color},pressed&&styles.responsePressed]}><View style={styles.responseGlow}/><View style={styles.responseCardTop}><View style={styles.responseBadge}><Ionicons name={game.icon} size={15} color={game.color}/><Text style={[styles.responseBadgeText,{color:game.color}]}>{game.label}</Text></View><Text style={styles.responseGameNumber}>GAME 0{index+1}</Text></View><View style={styles.responseCardBody}><View style={styles.responseCardCopy}><Text style={styles.responseCardTitle}>{game.title}</Text><Text style={styles.responseCardSubtitle}>{game.subtitle}</Text><Text style={styles.responseCardDescription}>{game.description}</Text><View style={styles.responsePlay}><Text style={[styles.responsePlayText,{color:game.color}]}>PLAY</Text><Ionicons name="arrow-forward" size={15} color={game.color}/></View></View><View style={styles.responseArt}><View style={styles.responseArtCircle}/><View style={styles.responseArtCircleInner}/><View style={styles.japanSun}/><Text style={styles.kanjiText}>{kanji}</Text><View style={styles.readingPill}><Text style={styles.kanjiReading}>{reading}</Text></View></View></View></Pressable>})}</View>
-  </ScrollView></ImageBackground></SafeAreaView>;
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <ImageBackground
+        source={require('../assets/forest2.png')}
+        style={styles.background}
+        resizeMode="cover"
+      >
+        <View style={styles.mapBackgroundWash} />
+
+        <ScrollView
+          contentContainerStyle={styles.mapScroll}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.mapTopBar}>
+            <Pressable
+              onPress={() => router.push('/Exercises')}
+              style={styles.menuBack}
+            >
+              <BackIcon width={18} height={18} fill="#47295A" />
+            </Pressable>
+
+            <View style={styles.mapBrand}>
+              <Text style={styles.mapBrandEyebrow}>QUACKRESPONSE</Text>
+              <View style={styles.mapBrandRow}>
+                <Ionicons name="map-outline" size={16} color="#6E4BC6" />
+                <Text style={styles.mapBrandTitle}>Response Trail</Text>
+              </View>
+            </View>
+
+            <View style={styles.mapMissionCount}>
+              <Ionicons name="flag" size={17} color="#FFFFFF" />
+              <Text style={styles.mapMissionCountText}>3</Text>
+            </View>
+          </View>
+
+          <View style={styles.mapHero}>
+            <View style={styles.mapHeroCloudOne} />
+            <View style={styles.mapHeroCloudTwo} />
+            <View style={styles.mapHeroCopy}>
+              <Text style={styles.mapHeroKicker}>会話の道 · CONVERSATION PATH</Text>
+              <Text style={styles.mapHeroTitle}>Choose your next response mission.</Text>
+              <Text style={styles.mapHeroText}>
+                Build confidence one checkpoint at a time—from guided replies to complete conversations.
+              </Text>
+            </View>
+
+            <View style={styles.mapHeroMascotStage}>
+              <View style={styles.mapHeroHalo} />
+              <Image
+                source={sampleFrame === 1
+                  ? require('../assets/hello.png')
+                  : require('../assets/idle.png')}
+                style={styles.mapHeroMascot}
+                resizeMode="contain"
+              />
+              <View style={styles.mapHeroBubble}>
+                <Text style={styles.mapHeroBubbleText}>いこう!</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.mapSectionHeading}>
+            <View>
+              <Text style={styles.mapSectionKicker}>YOUR JOURNEY</Text>
+              <Text style={styles.mapSectionTitle}>Three response checkpoints</Text>
+            </View>
+            <View style={styles.mapReadyPill}>
+              <View style={styles.mapReadyDot} />
+              <Text style={styles.mapReadyText}>ALL READY</Text>
+            </View>
+          </View>
+
+          <View style={styles.mapTrail}>
+            <View style={styles.mapTrailLine} />
+
+            {games.map((game, index) => (
+              <View
+                key={game.title}
+                style={[
+                  styles.mapNodeRow,
+                  index % 2 === 1 && styles.mapNodeRowRight,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.mapCheckpoint,
+                    { backgroundColor: game.color },
+                  ]}
+                >
+                  <Text style={styles.mapCheckpointNumber}>0{index + 1}</Text>
+                </View>
+
+                <Pressable
+                  onPress={() => launch(game)}
+                  style={({ pressed }) => [
+                    styles.mapMissionCard,
+                    index % 2 === 1 && styles.mapMissionCardRight,
+                    pressed && styles.mapMissionCardPressed,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.mapMissionAccent,
+                      { backgroundColor: game.color },
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.mapMissionLandscape,
+                      { backgroundColor: game.tint },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.mapLandscapeSun,
+                        { backgroundColor: `${game.color}22` },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.mapLandscapeHillBack,
+                        { backgroundColor: `${game.color}18` },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.mapLandscapeHillFront,
+                        { backgroundColor: `${game.color}2B` },
+                      ]}
+                    />
+                    <Image
+                      source={game.mascot}
+                      style={styles.mapMissionMascot}
+                      resizeMode="contain"
+                    />
+                    <View style={styles.mapModePill}>
+                      <Ionicons name={game.icon} size={13} color={game.color} />
+                      <Text style={[styles.mapModeText, { color: game.color }]}>
+                        {game.label}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.mapMissionContent}>
+                    <Text style={styles.mapMissionStep}>CHECKPOINT {index + 1}</Text>
+                    <Text style={styles.mapMissionTitle}>{game.title}</Text>
+                    <Text style={styles.mapMissionSubtitle}>{game.subtitle}</Text>
+                    <Text style={styles.mapMissionDescription}>{game.description}</Text>
+
+                    <View style={styles.mapMissionFooter}>
+                      <Text style={[styles.mapStartText, { color: game.color }]}>START MISSION</Text>
+                      <View
+                        style={[
+                          styles.mapStartButton,
+                          { backgroundColor: game.color },
+                        ]}
+                      >
+                        <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                      </View>
+                    </View>
+                  </View>
+                </Pressable>
+              </View>
+            ))}
+
+            <View style={styles.mapFinish}>
+              <Ionicons name="trophy" size={21} color="#D88727" />
+              <View>
+                <Text style={styles.mapFinishKicker}>TRAIL GOAL</Text>
+                <Text style={styles.mapFinishText}>Speak with confidence</Text>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </ImageBackground>
+    </SafeAreaView>
+  );
 }
