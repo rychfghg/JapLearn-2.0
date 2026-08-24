@@ -42,6 +42,7 @@ const roomContent = {
     accent: '#7552C8',
     accentSoft: '#F0E7FA',
     glow: '#C6A8FF',
+    backdrop: '#251A35',
     activity: 'OPEN CONVERSATION',
     ready: 'A calm space for everyday Japanese',
   },
@@ -52,6 +53,7 @@ const roomContent = {
     accent: '#D84F83',
     accentSoft: '#FCE9F1',
     glow: '#FFAAC8',
+    backdrop: '#171934',
     activity: 'LISTEN & REPEAT',
     ready: 'Hear the rhythm, then make it yours',
   },
@@ -348,7 +350,12 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ImageBackground source={content.background} style={styles.background} resizeMode="cover">
+      <ImageBackground
+        source={content.background}
+        style={[styles.background, { backgroundColor: content.backdrop }]}
+        imageStyle={styles.backgroundArtwork}
+        resizeMode="contain"
+      >
         <View style={[styles.sceneTint, variant === 'speaking' && styles.studioTint]} />
         <Animated.View
           pointerEvents="none"

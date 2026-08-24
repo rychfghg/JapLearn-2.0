@@ -9,6 +9,12 @@ export default StyleSheet.create({
   },
   background: {
     flex: 1,
+    alignSelf: 'stretch',
+    overflow: 'hidden',
+  },
+  backgroundArtwork: {
+    width: '100%',
+    height: '100%',
   },
   sceneTint: {
     ...StyleSheet.absoluteFillObject,
