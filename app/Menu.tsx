@@ -58,49 +58,59 @@ const Menu = () => {
     }, []);
 
     useEffect(() => {
+        if (!user?.email) return;
+
         const todayDate = new Date();
         const today = dateKey(todayDate);
-        const yesterdayDate = new Date(todayDate);
-        yesterdayDate.setDate(todayDate.getDate() - 1);
-        const yesterday = dateKey(yesterdayDate);
-        const storageKey = `dailyGoalMinutes:${today}`;
+        const accountKey = user.email.trim().toLowerCase();
+        const storageKey = `dailyGoalMinutes:${accountKey}:${today}`;
         let currentMinutes = 0;
         let goalRecorded = false;
 
-        const recordCompletedGoal = async () => {
-            if (goalRecorded) return;
-            const lastGoalDate = await AsyncStorage.getItem('dailyGoalLastCompletedDate');
-            const storedStreak = Number(await AsyncStorage.getItem('dailyGoalStreak')) || 0;
+        const loadAccountStreak = async () => {
+            try {
+                const response = await fetch(
+                    `${expoconfig.API_URL}/api/users/daily-goal/streak?email=${encodeURIComponent(user.email)}`,
+                );
 
-            if (lastGoalDate === today) {
-                goalRecorded = true;
-                setGoalStreak(storedStreak);
-                return;
+                if (!response.ok) return;
+
+                const data = await response.json();
+                setGoalStreak(Number(data?.streak) || 0);
+                goalRecorded = Boolean(data?.completedToday);
+            } catch (error) {
+                console.warn('Unable to load account streak.', error);
             }
-
-            const nextStreak = lastGoalDate === yesterday ? storedStreak + 1 : 1;
-            goalRecorded = true;
-            setGoalStreak(nextStreak);
-            await AsyncStorage.multiSet([
-                ['dailyGoalStreak', String(nextStreak)],
-                ['dailyGoalLastCompletedDate', today],
-            ]);
         };
 
-        Promise.all([
-            AsyncStorage.getItem(storageKey),
-            AsyncStorage.getItem('dailyGoalStreak'),
-            AsyncStorage.getItem('dailyGoalLastCompletedDate'),
-        ]).then(([storedMinutes, storedStreakValue, lastGoalDate]) => {
-            currentMinutes = Math.min(Number(storedMinutes) || 0, 20);
-            const storedStreak = Number(storedStreakValue) || 0;
-            const activeStreak = lastGoalDate === today || lastGoalDate === yesterday ? storedStreak : 0;
-            setDailyMinutes(currentMinutes);
-            setGoalStreak(activeStreak);
+        const recordCompletedGoal = async () => {
+            if (goalRecorded) return;
+            goalRecorded = true;
 
-            if (lastGoalDate !== today && lastGoalDate !== yesterday && storedStreak > 0) {
-                AsyncStorage.setItem('dailyGoalStreak', '0');
+            try {
+                const response = await fetch(`${expoconfig.API_URL}/api/users/daily-goal/complete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: user.email }),
+                });
+
+                if (!response.ok) {
+                    goalRecorded = false;
+                    return;
+                }
+
+                const data = await response.json();
+                setGoalStreak(Number(data?.streak) || 0);
+            } catch (error) {
+                goalRecorded = false;
+                console.warn('Unable to save account streak.', error);
             }
+        };
+
+        Promise.all([AsyncStorage.getItem(storageKey), loadAccountStreak()]).then(([storedMinutes]) => {
+            currentMinutes = Math.min(Number(storedMinutes) || 0, 20);
+            setDailyMinutes(currentMinutes);
+
             if (currentMinutes >= 20) recordCompletedGoal();
         });
 
@@ -112,7 +122,7 @@ const Menu = () => {
         }, 60000);
 
         return () => clearInterval(goalTimer);
-    }, []);
+    }, [user?.email]);
 
     const flipCard = (card: 'play' | 'progress') => {
         const value = card === 'play' ? playFlip : progressFlip;

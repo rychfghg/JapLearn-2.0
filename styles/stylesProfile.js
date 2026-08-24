@@ -73,6 +73,23 @@ export const styles = StyleSheet.create({
     infoCopy: { flex: 1 },
     infoLabel: { color: '#9B929F', fontSize: 11, fontWeight: '600' },
     infoValue: { color: '#4C3B55', fontSize: 14, fontWeight: '700', marginTop: 3 },
+    classInfoRow: { alignItems: 'flex-start', paddingTop: 14 },
+    classInfoCopy: { flex: 1 },
+    classJoinRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 7 },
+    classCodeInput: {
+        flex: 1, minWidth: 0, height: 43, borderRadius: 13,
+        borderWidth: 1, borderColor: '#E3D8EA', backgroundColor: '#FAF7FC',
+        color: '#4C3B55', fontSize: 13, fontWeight: '700', paddingHorizontal: 12,
+        outlineStyle: 'none',
+    },
+    darkClassCodeInput: { backgroundColor: '#211827', borderColor: '#4A3955' },
+    joinClassButton: {
+        minWidth: 66, height: 43, borderRadius: 13, backgroundColor: '#8423D9',
+        alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12,
+    },
+    joinClassButtonDisabled: { opacity: 0.5 },
+    joinClassButtonText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800', letterSpacing: 0.7 },
+    classHelpText: { color: '#978D9B', fontSize: 10, marginTop: 6 },
 
     achievementsCard: {
         backgroundColor: '#FFFFFF', borderRadius: 23, padding: 18, marginTop: 15,

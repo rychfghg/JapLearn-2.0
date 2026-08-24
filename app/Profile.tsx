@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image, Modal, ScrollView, SafeAreaView, StatusBar, Switch, Linking } from "react-native";
+import { View, Text, TouchableOpacity, Image, Modal, ScrollView, SafeAreaView, StatusBar, Switch, Linking, TextInput, ActivityIndicator } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import ForgetPasswordModal from "../components/ForgetPasswordModalProps";
 import expoconfig from "../expoconfig";
@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import StudentBottomNav from "../components/StudentBottomNav";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useClassCode } from "../context/ClassCodeContext";
 
 type Badge = {
   title: string;
@@ -28,6 +29,10 @@ const Profile = () => {
   const [badgeInfo, setBadgeInfo] = useState("");
   const [badges, setBadges] = useState<Badge[]>([]);
   const [darkMode, setDarkMode] = useState(false);
+  const [classCodeInput, setClassCodeInput] = useState("");
+  const [currentClassCode, setCurrentClassCode] = useState("");
+  const [joiningClass, setJoiningClass] = useState(false);
+  const { setClassCode: storeClassCode } = useClassCode();
   
   const router = useRouter();
 
@@ -85,6 +90,30 @@ const Profile = () => {
   }, [user]);
 
   useEffect(() => {
+    const loadStudentClass = async () => {
+      if (!user?.email) return;
+
+      try {
+        const response = await fetch(
+          `${expoconfig.API_URL}/api/students/getStudentByEmail?email=${encodeURIComponent(user.email)}`,
+        );
+
+        if (!response.ok) return;
+
+        const student = await response.json();
+        const savedClassCode = String(student?.classCode || "");
+        setCurrentClassCode(savedClassCode);
+        setClassCodeInput(savedClassCode);
+        await storeClassCode(savedClassCode);
+      } catch (error) {
+        console.warn("Unable to load the student's class.", error);
+      }
+    };
+
+    void loadStudentClass();
+  }, [user?.email]);
+
+  useEffect(() => {
     AsyncStorage.getItem("profileDarkMode").then((value) => setDarkMode(value === "true"));
   }, []);
 
@@ -105,6 +134,44 @@ const Profile = () => {
 
   const handleBackPress = () => {
     router.replace('/Menu');
+  };
+
+  const joinTeacherClass = async () => {
+    const nextClassCode = classCodeInput.trim();
+
+    if (!user?.email || !nextClassCode) {
+      setModalMessage("Enter the class code provided by your teacher.");
+      setModalVisible(true);
+      return;
+    }
+
+    setJoiningClass(true);
+
+    try {
+      const response = await fetch(
+        `${expoconfig.API_URL}/api/students/joinClass?email=${encodeURIComponent(user.email)}&classCode=${encodeURIComponent(nextClassCode)}`,
+        { method: "POST" },
+      );
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "The class code could not be found.");
+      }
+
+      setCurrentClassCode(nextClassCode);
+      setClassCodeInput(nextClassCode);
+      await storeClassCode(nextClassCode);
+      setModalMessage(`You are now enrolled in class ${nextClassCode}.`);
+    } catch (error) {
+      setModalMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to join the class right now.",
+      );
+    } finally {
+      setJoiningClass(false);
+      setModalVisible(true);
+    }
   };
 
   const handleLogout = () => {
@@ -182,9 +249,59 @@ const Profile = () => {
               <View style={styles.infoIcon}><Ionicons name="person-outline" size={21} color="#8423D9" /></View>
               <View style={styles.infoCopy}><Text style={[styles.infoLabel, darkMode && styles.darkMuted]}>Full name</Text><Text style={[styles.infoValue, darkMode && styles.darkText]}>{user ? `${user.fname} ${user.lname}` : ""}</Text></View>
             </View>
-            <View style={[styles.infoRow, styles.lastInfoRow]}>
+            <View style={styles.infoRow}>
               <View style={styles.infoIcon}><Ionicons name="mail-outline" size={21} color="#8423D9" /></View>
               <View style={styles.infoCopy}><Text style={[styles.infoLabel, darkMode && styles.darkMuted]}>Email address</Text><Text style={[styles.infoValue, darkMode && styles.darkText]}>{user ? user.email : ""}</Text></View>
+            </View>
+            <View style={[styles.infoRow, styles.lastInfoRow, styles.classInfoRow]}>
+              <View style={styles.infoIcon}><Ionicons name="people-outline" size={21} color="#8423D9" /></View>
+              <View style={styles.classInfoCopy}>
+                <Text style={[styles.infoLabel, darkMode && styles.darkMuted]}>Class</Text>
+                <View style={styles.classJoinRow}>
+                  <TextInput
+                    accessibilityLabel="Teacher class code"
+                    autoCapitalize="characters"
+                    editable={!joiningClass}
+                    onChangeText={setClassCodeInput}
+                    placeholder="Enter teacher class code"
+                    placeholderTextColor={darkMode ? "#8F8295" : "#A79DAA"}
+                    style={[
+                      styles.classCodeInput,
+                      darkMode && styles.darkClassCodeInput,
+                      darkMode && styles.darkText,
+                    ]}
+                    value={classCodeInput}
+                  />
+                  <TouchableOpacity
+                    accessibilityRole="button"
+                    disabled={
+                      joiningClass
+                      || !classCodeInput.trim()
+                      || currentClassCode === classCodeInput.trim()
+                    }
+                    onPress={joinTeacherClass}
+                    style={[
+                      styles.joinClassButton,
+                      (
+                        joiningClass
+                        || !classCodeInput.trim()
+                        || currentClassCode === classCodeInput.trim()
+                      ) && styles.joinClassButtonDisabled,
+                    ]}
+                  >
+                    {joiningClass
+                      ? <ActivityIndicator size="small" color="#FFFFFF" />
+                      : <Text style={styles.joinClassButtonText}>
+                          {currentClassCode === classCodeInput.trim() ? "JOINED" : "JOIN"}
+                        </Text>}
+                  </TouchableOpacity>
+                </View>
+                <Text style={[styles.classHelpText, darkMode && styles.darkMuted]}>
+                  {currentClassCode
+                    ? `Enrolled in ${currentClassCode}`
+                    : "Use the code shared by your teacher."}
+                </Text>
+              </View>
             </View>
           </View>
 

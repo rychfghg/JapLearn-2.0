@@ -5,7 +5,6 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
-  Image,
   ImageBackground,
   Linking,
   Modal,
@@ -33,6 +32,15 @@ const sumiSpeaking = require('../assets/img/Sumi_PoseB_WinterUni_Open.png');
 const sumiSpeakingBlink = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Open.png');
 const sumiListening = require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png');
 const sumiListeningBlink = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile_Blush.png');
+
+const sumiFrames = [
+  sumiSmile,
+  sumiBlink,
+  sumiSpeaking,
+  sumiSpeakingBlink,
+  sumiListening,
+  sumiListeningBlink,
+] as const;
 
 const roomContent = {
   conversation: {
@@ -77,6 +85,45 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'offline'>('idle');
   const ambientPulse = useRef(new Animated.Value(0)).current;
   const waveMotion = useRef(new Animated.Value(0)).current;
+  const sumiFrameOpacities = useRef(
+    sumiFrames.map((_, index) => new Animated.Value(index === 0 ? 1 : 0)),
+  ).current;
+  const isListeningToUser = recorderState === 'recording';
+
+  const activeSumiFrame = isSumiSpeaking
+    ? isBlinking
+      ? speakingMouthOpen
+        ? 3
+        : 1
+      : speakingMouthOpen
+        ? 2
+        : 0
+    : isListeningToUser
+      ? isBlinking
+        ? 5
+        : 4
+      : isBlinking
+        ? 1
+        : 0;
+
+  useEffect(() => {
+    sumiFrameOpacities.forEach((opacity) => opacity.stopAnimation());
+
+    Animated.parallel(
+      sumiFrameOpacities.map((opacity, index) =>
+        Animated.timing(opacity, {
+          toValue: index === activeSumiFrame ? 1 : 0,
+          duration: 85,
+          easing: Easing.out(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ),
+    ).start();
+
+    return () => {
+      sumiFrameOpacities.forEach((opacity) => opacity.stopAnimation());
+    };
+  }, [activeSumiFrame, sumiFrameOpacities]);
 
   useEffect(() => {
     const ambientLoop = Animated.loop(
@@ -412,7 +459,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
               <Text style={styles.coachStatusText}>
                 {isSumiSpeaking
                   ? 'SUMI IS SPEAKING'
-                  : recorderState === 'recording'
+                  : isListeningToUser
                     ? 'SUMI IS LISTENING'
                     : content.activity}
               </Text>
@@ -431,7 +478,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
                     transform: [{
                       scaleY: waveMotion.interpolate({
                         inputRange: [0, (bar + 1) / 6, 1],
-                        outputRange: [0.45, isSumiSpeaking || recorderState === 'recording' ? 1.5 : 0.65, 0.45],
+                        outputRange: [0.45, isSumiSpeaking || isListeningToUser ? 1.5 : 0.65, 0.45],
                       }),
                     }],
                   },
@@ -440,28 +487,18 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
             ))}
           </View>
 
-          <Image
-            source={
-              isSumiSpeaking
-                ? isBlinking
-                  ? speakingMouthOpen
-                    ? sumiSpeakingBlink
-                    : sumiBlink
-                  : speakingMouthOpen
-                    ? sumiSpeaking
-                    : sumiSmile
-                : recorderState === 'recording'
-                  ? isBlinking
-                    ? sumiListeningBlink
-                    : sumiListening
-                  : isBlinking
-                    ? sumiBlink
-                    : sumiSmile
-            }
-            style={styles.sumi}
-            resizeMode="contain"
-            fadeDuration={0}
-          />
+          {sumiFrames.map((source, index) => (
+            <Animated.Image
+              key={index}
+              source={source}
+              style={[
+                styles.sumi,
+                { opacity: sumiFrameOpacities[index] },
+              ]}
+              resizeMode="contain"
+              fadeDuration={0}
+            />
+          ))}
           <View style={[styles.floorShadow, { backgroundColor: `${content.accent}38` }]} />
           <View style={[styles.floorLine, { backgroundColor: `${content.glow}66` }]} />
 
@@ -488,7 +525,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
                 <View
                   style={[
                     styles.timerDot,
-                    recorderState === 'recording' && styles.timerDotActive,
+                    isListeningToUser && styles.timerDotActive,
                   ]}
                 />
                 <Text style={styles.timerText}>{timerText}</Text>
@@ -522,18 +559,19 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
             <View style={styles.microphoneArea}>
               <View style={[styles.micOrbit, { borderColor: `${content.accent}22` }]} />
               <Pressable
-                accessibilityLabel={recorderState === 'recording' ? 'Stop recording' : 'Start recording'}
-                onPress={recorderState === 'recording' ? stopRecording : startRecording}
+                accessibilityLabel={isListeningToUser ? 'Stop recording' : 'Start recording'}
+                accessibilityHint={isListeningToUser ? 'Stops Sumi from listening' : 'Lets Sumi listen to your voice'}
+                onPress={isListeningToUser ? stopRecording : startRecording}
                 style={({ pressed }) => [
                   styles.microphoneButton,
                   {
-                    backgroundColor: recorderState === 'recording' ? '#E34F6C' : content.accent,
+                    backgroundColor: isListeningToUser ? '#E34F6C' : content.accent,
                   },
                   pressed && styles.microphonePressed,
                 ]}
               >
                 <Ionicons
-                  name={recorderState === 'recording' ? 'stop' : 'mic'}
+                  name={isListeningToUser ? 'stop' : 'mic'}
                   size={33}
                   color="#FFFFFF"
                 />
