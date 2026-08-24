@@ -492,11 +492,13 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
               style={[
                 styles.sumi,
                 {
-                  display: index === displayedSumiFrame ? 'flex' : 'none',
+                  zIndex: index === displayedSumiFrame ? 4 : 2,
                 },
               ]}
               resizeMode="contain"
               fadeDuration={0}
+              renderToHardwareTextureAndroid
+              shouldRasterizeIOS
             />
           ))}
           <View style={[styles.floorShadow, { backgroundColor: `${content.accent}38` }]} />
