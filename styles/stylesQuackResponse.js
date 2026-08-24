@@ -494,8 +494,8 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    marginTop: 25,
-    marginBottom: 16,
+    marginTop: 24,
+    marginBottom: 20,
   },
 
   mapSectionKicker: {
@@ -508,7 +508,7 @@ export default StyleSheet.create({
   mapSectionTitle: {
     color: '#3C2749',
     fontFamily: 'Jua',
-    fontSize: 21,
+    fontSize: 23,
     marginTop: 3,
   },
 
@@ -517,7 +517,9 @@ export default StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     borderRadius: 99,
-    backgroundColor: '#EDF8E7',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#B9DF9F',
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
@@ -545,18 +547,22 @@ export default StyleSheet.create({
     top: 44,
     bottom: 68,
     left: '50%',
-    width: 7,
-    marginLeft: -3.5,
+    width: 11,
+    marginLeft: -5.5,
     borderRadius: 99,
-    backgroundColor: '#DCC6EC',
-    borderWidth: 1,
-    borderColor: '#CBA9E4',
+    backgroundColor: '#C99EE9',
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    shadowColor: '#7130A2',
+    shadowOpacity: 0.22,
+    shadowRadius: 7,
+    elevation: 3,
   },
 
   mapNodeRow: {
     width: '100%',
     alignItems: 'flex-start',
-    marginBottom: 28,
+    marginBottom: 34,
     position: 'relative',
   },
 
@@ -568,39 +574,41 @@ export default StyleSheet.create({
     position: 'absolute',
     top: 42,
     left: '50%',
-    marginLeft: -23,
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 5,
+    marginLeft: -27,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    borderWidth: 6,
     borderColor: '#FAF7FC',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 8,
     shadowColor: '#472256',
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 7,
   },
 
   mapCheckpointNumber: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontFamily: 'Jua',
+    fontSize: 12,
     fontWeight: '900',
   },
 
   mapMissionCard: {
-    width: '86%',
-    borderRadius: 24,
+    width: '87%',
+    borderRadius: 27,
     backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5DAEA',
+    borderWidth: 2,
+    borderColor: '#E0D1E8',
     overflow: 'hidden',
     shadowColor: '#392145',
-    shadowOpacity: 0.12,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 7 },
-    elevation: 5,
+    shadowOpacity: 0.17,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 9 },
+    elevation: 7,
   },
 
   mapMissionCardRight: {
@@ -608,18 +616,20 @@ export default StyleSheet.create({
   },
 
   mapMissionCardPressed: {
-    transform: [{ scale: 0.985 }],
-    opacity: 0.92,
+    transform: [{ scale: 0.975 }],
+    opacity: 0.9,
   },
 
   mapMissionAccent: {
-    height: 6,
+    height: 8,
     width: '100%',
   },
 
   mapMissionLandscape: {
-    height: 118,
+    height: 132,
     overflow: 'hidden',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(76,45,88,0.10)',
   },
 
   mapLandscapeSun: {
@@ -655,8 +665,8 @@ export default StyleSheet.create({
     position: 'absolute',
     right: 12,
     bottom: -4,
-    width: 104,
-    height: 112,
+    width: 116,
+    height: 126,
   },
 
   mapModePill: {
@@ -666,8 +676,10 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    borderRadius: 99,
+    borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.92)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.95)',
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
@@ -694,7 +706,7 @@ export default StyleSheet.create({
   mapMissionTitle: {
     color: '#3C2548',
     fontFamily: 'Jua',
-    fontSize: 22,
+    fontSize: 24,
     marginTop: 3,
   },
 
@@ -720,7 +732,7 @@ export default StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#EEE7F1',
     marginTop: 13,
-    paddingTop: 11,
+    paddingTop: 12,
   },
 
   mapStartText: {
@@ -730,11 +742,17 @@ export default StyleSheet.create({
   },
 
   mapStartButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.75)',
+    shadowColor: '#3B1F46',
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
 
   mapFinish: {
@@ -744,7 +762,7 @@ export default StyleSheet.create({
     gap: 10,
     borderRadius: 18,
     backgroundColor: '#FFF8E8',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#F0D89D',
     paddingHorizontal: 16,
     paddingVertical: 12,

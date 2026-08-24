@@ -17,7 +17,6 @@ export default function QuackResponse() {
   const [loaded,setLoaded]=useState(skipLoading==='1');
   const [launching,setLaunching]=useState<(typeof games)[number]|null>(null);
   const [launchProgress,setLaunchProgress]=useState(0);
-  const [sampleFrame,setSampleFrame]=useState(0);
   const pulse=useRef(new Animated.Value(1)).current;
   const shine=useRef(new Animated.Value(-1)).current;
 
@@ -28,11 +27,6 @@ export default function QuackResponse() {
     Animated.loop(Animated.timing(shine,{toValue:1,duration:1450,useNativeDriver:true})).start();
     return()=>clearInterval(timer);
   },[skipLoading]);
-
-  useEffect(()=>{
-    const frameTimer=setInterval(()=>setSampleFrame(frame=>(frame+1)%4),620);
-    return()=>clearInterval(frameTimer);
-  },[]);
 
   const launch=(game:(typeof games)[number])=>{
     if(launching)return;
@@ -76,32 +70,6 @@ export default function QuackResponse() {
             <View style={styles.mapMissionCount}>
               <Ionicons name="flag" size={17} color="#FFFFFF" />
               <Text style={styles.mapMissionCountText}>3</Text>
-            </View>
-          </View>
-
-          <View style={styles.mapHero}>
-            <View style={styles.mapHeroCloudOne} />
-            <View style={styles.mapHeroCloudTwo} />
-            <View style={styles.mapHeroCopy}>
-              <Text style={styles.mapHeroKicker}>会話の道 · CONVERSATION PATH</Text>
-              <Text style={styles.mapHeroTitle}>Choose your next response mission.</Text>
-              <Text style={styles.mapHeroText}>
-                Build confidence one checkpoint at a time—from guided replies to complete conversations.
-              </Text>
-            </View>
-
-            <View style={styles.mapHeroMascotStage}>
-              <View style={styles.mapHeroHalo} />
-              <Image
-                source={sampleFrame === 1
-                  ? require('../assets/hello.png')
-                  : require('../assets/idle.png')}
-                style={styles.mapHeroMascot}
-                resizeMode="contain"
-              />
-              <View style={styles.mapHeroBubble}>
-                <Text style={styles.mapHeroBubbleText}>いこう!</Text>
-              </View>
             </View>
           </View>
 
