@@ -30,7 +30,17 @@ type AnalyticsData = {
 type Tab = 'overview' | 'focus' | 'history';
 
 const background = require('../assets/img/background/clubroom a st2 day.png');
-const sumi = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png');
+const sumi = require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png');
+
+const feedbackTabs: Array<{
+  key: Tab;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+}> = [
+  { key: 'overview', label: 'Summary', icon: 'grid-outline' },
+  { key: 'focus', label: 'Coach notes', icon: 'sparkles-outline' },
+  { key: 'history', label: 'Sessions', icon: 'time-outline' },
+];
 
 export default function QuackTalkFeedback() {
   const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
@@ -123,40 +133,51 @@ export default function QuackTalkFeedback() {
           <Pressable onPress={() => router.replace(returnRoute)} style={styles.backButton}>
             <BackIcon width={18} height={18} fill="#462A5E" />
           </Pressable>
-          <View style={styles.headerIcon}>
-            <Ionicons name="analytics" size={19} color="#8051C8" />
-          </View>
           <View style={styles.headerCopy}>
-            <Text style={styles.headerEyebrow}>{roomName.toUpperCase()}</Text>
-            <Text style={styles.headerTitle}>Feedback studio</Text>
+            <Text style={styles.headerEyebrow}>SUMI'S SPEAKING COACH</Text>
+            <Text style={styles.headerTitle}>Practice review</Text>
           </View>
-          <View style={styles.soonBadge}>
-            <View style={styles.soonDot} />
-            <Text style={styles.soonText}>AI SOON</Text>
+          <View style={styles.roomBadge}>
+            <Ionicons name="mic" size={14} color="#8051C8" />
+            <Text style={styles.roomBadgeText}>{roomName}</Text>
           </View>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.coachCard}>
+            <View style={styles.heroOrbLarge} />
+            <View style={styles.heroOrbSmall} />
             <Image source={sumi} style={styles.sumi} resizeMode="contain" />
             <View style={styles.coachCopy}>
-              <Text style={styles.coachKicker}>SUMI'S REVIEW</Text>
-              <Text style={styles.coachTitle}>Your speaking journey, clearly organized.</Text>
+              <View style={styles.coachKickerRow}>
+                <View style={styles.liveDot} />
+                <Text style={styles.coachKicker}>YOUR VOICE JOURNEY</Text>
+              </View>
+              <Text style={styles.coachTitle}>Review, reflect, and speak with confidence.</Text>
               <Text style={styles.coachText}>
-                Real evaluated results and session history will appear here when listening analysis is available.
+                Your real speaking feedback and completed sessions will be organized here as listening analysis becomes available.
               </Text>
+              <View style={styles.heroStatus}>
+                <Ionicons name="shield-checkmark-outline" size={15} color="#5DAE38" />
+                <Text style={styles.heroStatusText}>Only evaluated sessions become scores</Text>
+              </View>
             </View>
           </View>
 
           <View style={styles.tabs}>
-            {(['overview', 'focus', 'history'] as Tab[]).map((item) => (
+            {feedbackTabs.map((item) => (
               <Pressable
-                key={item}
-                onPress={() => setTab(item)}
-                style={[styles.tab, tab === item && styles.activeTab]}
+                key={item.key}
+                onPress={() => setTab(item.key)}
+                style={[styles.tab, tab === item.key && styles.activeTab]}
               >
-                <Text style={[styles.tabText, tab === item && styles.activeTabText]}>
-                  {item === 'overview' ? 'Overview' : item === 'focus' ? 'Focus' : 'History'}
+                <Ionicons
+                  name={item.icon}
+                  size={17}
+                  color={tab === item.key ? '#FFFFFF' : '#8E8093'}
+                />
+                <Text style={[styles.tabText, tab === item.key && styles.activeTabText]}>
+                  {item.label}
                 </Text>
               </Pressable>
             ))}
@@ -173,22 +194,44 @@ export default function QuackTalkFeedback() {
 
           {!loading && !loadError && tab === 'overview' && (
             <>
-              <View style={styles.statusCard}>
-                <View style={styles.statusIcon}>
-                  <Ionicons name="mic-outline" size={23} color="#D64D82" />
+              <View style={styles.sectionHeading}>
+                <View>
+                  <Text style={styles.sectionKicker}>CURRENT STATUS</Text>
+                  <Text style={styles.sectionTitle}>Your speaking workspace</Text>
                 </View>
-                <View style={styles.statusCopy}>
-                  <Text style={styles.statusLabel}>MICROPHONE READY</Text>
-                  <Text style={styles.statusTitle}>Practice recording is available</Text>
-                  <Text style={styles.statusText}>
-                    You can test your microphone now. Transcription, pronunciation analysis, and scoring are not active yet.
-                  </Text>
+                <View style={styles.readyBadge}>
+                  <View style={styles.readyDot} />
+                  <Text style={styles.readyText}>READY</Text>
+                </View>
+              </View>
+
+              <View style={styles.statusGrid}>
+                <View style={[styles.featureCard, styles.featureCardPurple]}>
+                  <View style={styles.featureIconPurple}>
+                    <Ionicons name="mic-outline" size={22} color="#8051C8" />
+                  </View>
+                  <Text style={styles.featureKicker}>AVAILABLE NOW</Text>
+                  <Text style={styles.featureTitle}>Voice recording</Text>
+                  <Text style={styles.featureText}>Test your microphone and rehearse naturally with Sumi.</Text>
+                </View>
+                <View style={[styles.featureCard, styles.featureCardPink]}>
+                  <View style={styles.featureIconPink}>
+                    <Ionicons name="waveform-outline" size={22} color="#D64D82" />
+                  </View>
+                  <Text style={styles.featureKickerPink}>COMING SOON</Text>
+                  <Text style={styles.featureTitle}>Voice evaluation</Text>
+                  <Text style={styles.featureText}>Pronunciation, transcription, and coaching notes will appear here.</Text>
                 </View>
               </View>
               <Pressable style={styles.primaryAction} onPress={() => router.replace(returnRoute)}>
-                <Ionicons name="mic" size={19} color="#FFFFFF" />
-                <Text style={styles.primaryActionText}>Return to {roomName}</Text>
-                <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                <View style={styles.primaryActionIcon}>
+                  <Ionicons name="mic" size={19} color="#8051C8" />
+                </View>
+                <View style={styles.primaryActionCopy}>
+                  <Text style={styles.primaryActionLabel}>CONTINUE PRACTICING</Text>
+                  <Text style={styles.primaryActionText}>Return to {roomName}</Text>
+                </View>
+                <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
               </Pressable>
             </>
           )}
@@ -247,8 +290,8 @@ export default function QuackTalkFeedback() {
               <Ionicons name="analytics-outline" size={20} color="#5DAE38" />
             </View>
             <View style={styles.progressCopy}>
-              <Text style={styles.progressTitle}>Open QuackProgress</Text>
-              <Text style={styles.progressText}>View your currently saved game and learning records.</Text>
+              <Text style={styles.progressTitle}>Complete progress report</Text>
+              <Text style={styles.progressText}>Open QuackProgress for all saved learning and game records.</Text>
             </View>
             <Ionicons name="arrow-forward" size={19} color="#5DAE38" />
           </Pressable>

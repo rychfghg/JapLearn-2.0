@@ -25,11 +25,19 @@ type RecorderState = 'ready' | 'requesting' | 'recording' | 'recorded' | 'denied
 const sumiSmile = require('../assets/img/Sumi_PoseB_WinterUni_Smile.png');
 const sumiBlink = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png');
 const sumiSpeaking = require('../assets/img/Sumi_PoseB_WinterUni_Open.png');
+const sumiSpeakingBlink = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Open.png');
 const sumiListening = require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png');
+const sumiListeningBlink = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile_Blush.png');
 
 const sumiVoice = {
-  ja: require('../assets/audio/sumi-welcome-ja.mp3'),
-  en: require('../assets/audio/sumi-welcome-en.mp3'),
+  conversation: {
+    ja: require('../assets/audio/sumi-conversation-ja.mp3'),
+    en: require('../assets/audio/sumi-conversation-en.mp3'),
+  },
+  speaking: {
+    ja: require('../assets/audio/sumi-guided-phrase-ja.mp3'),
+    en: require('../assets/audio/sumi-guided-phrase-en.mp3'),
+  },
 } as const;
 
 const roomContent = {
@@ -41,8 +49,8 @@ const roomContent = {
     accentSoft: '#F0E7FA',
   },
   speaking: {
-    eyebrow: 'SUMI SPEAKING STUDIO',
-    title: 'Voice Practice',
+    eyebrow: 'GUIDED SPEAKING',
+    title: 'Guided Phrase',
     background: require('../assets/img/background/school a auditorium inuse.png'),
     accent: '#D84F83',
     accentSoft: '#FCE9F1',
@@ -197,7 +205,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
       });
 
       const result = await Audio.Sound.createAsync(
-        sumiVoice[nextLanguage],
+        sumiVoice[variant][nextLanguage],
         { shouldPlay: true, volume: 1 },
       );
 
@@ -218,6 +226,16 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
       await stopSumiVoice();
     }
   };
+
+  useEffect(() => {
+    const welcomeTimer = setTimeout(() => {
+      void selectLanguage('ja');
+    }, 550);
+
+    return () => {
+      clearTimeout(welcomeTimer);
+    };
+  }, [variant]);
 
   const openSupport = async () => {
     const subject = encodeURIComponent(`JapLearn ${content.title} support`);
@@ -300,11 +318,17 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
           <Image
             source={
               isSumiSpeaking
-                ? speakingMouthOpen
-                  ? sumiSpeaking
-                  : sumiSmile
+                ? isBlinking
+                  ? speakingMouthOpen
+                    ? sumiSpeakingBlink
+                    : sumiBlink
+                  : speakingMouthOpen
+                    ? sumiSpeaking
+                    : sumiSmile
                 : recorderState === 'recording'
-                  ? sumiListening
+                  ? isBlinking
+                    ? sumiListeningBlink
+                    : sumiListening
                   : isBlinking
                     ? sumiBlink
                     : sumiSmile
