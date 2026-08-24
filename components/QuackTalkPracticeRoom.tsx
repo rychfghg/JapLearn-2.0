@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import * as Speech from 'expo-speech';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -24,14 +25,12 @@ type RecorderState = 'ready' | 'requesting' | 'recording' | 'recorded' | 'denied
 
 const sumiSmile = require('../assets/img/Sumi_PoseB_WinterUni_Smile.png');
 const sumiBlink = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png');
+const sumiSpeaking = require('../assets/img/Sumi_PoseB_WinterUni_Open.png');
 
 const roomContent = {
   conversation: {
     eyebrow: 'SUMI CONVERSATION',
     title: 'Talk with Sumi',
-    promptLabel: 'CONVERSATION PROMPT',
-    promptTitle: 'Your next speaking situation will appear here.',
-    promptNote: 'Guided questions will begin when the conversation service is connected.',
     background: require('../assets/img/background/classroom a st2 day.png'),
     accent: '#7552C8',
     accentSoft: '#F0E7FA',
@@ -39,9 +38,6 @@ const roomContent = {
   speaking: {
     eyebrow: 'SUMI SPEAKING STUDIO',
     title: 'Voice Practice',
-    promptLabel: 'PRACTICE PROMPT',
-    promptTitle: 'Your next pronunciation activity will appear here.',
-    promptNote: 'Practice phrases will begin when the listening service is connected.',
     background: require('../assets/img/background/school a auditorium inuse.png'),
     accent: '#D84F83',
     accentSoft: '#FCE9F1',
@@ -52,10 +48,20 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   const content = roomContent[variant];
   const recordingRef = useRef<Audio.Recording | null>(null);
   const blinkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [recorderState, setRecorderState] = useState<RecorderState>('ready');
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [language, setLanguage] = useState<Language>('ja');
   const [tutorialVisible, setTutorialVisible] = useState(false);
   const [isBlinking, setIsBlinking] = useState(false);
+  const [isSumiSpeaking, setIsSumiSpeaking] = useState(false);
+
+  const stopRecordingTimer = () => {
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+  };
 
   const releaseRecording = async () => {
     const recording = recordingRef.current;
@@ -92,6 +98,8 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
         clearTimeout(blinkTimerRef.current);
       }
 
+      stopRecordingTimer();
+      Speech.stop();
       void releaseRecording();
     };
   }, []);
@@ -99,6 +107,8 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   const startRecording = async () => {
     if (recorderState === 'recording' || recorderState === 'requesting') return;
 
+    Speech.stop();
+    setIsSumiSpeaking(false);
     setRecorderState('requesting');
 
     try {
@@ -120,6 +130,11 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
       );
 
       recordingRef.current = result.recording;
+      setRecordingSeconds(0);
+      stopRecordingTimer();
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds((seconds) => seconds + 1);
+      }, 1000);
       setRecorderState('recording');
     } catch (error) {
       console.warn('Unable to start microphone recording.', error);
@@ -128,6 +143,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   };
 
   const stopRecording = async () => {
+    stopRecordingTimer();
     await releaseRecording();
 
     await Audio.setAudioModeAsync({
@@ -139,8 +155,29 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   };
 
   const leaveRoom = async () => {
+    stopRecordingTimer();
+    Speech.stop();
     await releaseRecording();
     router.replace('/QuackTalk');
+  };
+
+  const selectLanguage = (nextLanguage: Language) => {
+    setLanguage(nextLanguage);
+    Speech.stop();
+
+    const message = nextLanguage === 'ja'
+      ? 'このスピーキング機能は、まもなく利用できます。'
+      : 'This speaking feature is coming soon.';
+
+    Speech.speak(message, {
+      language: nextLanguage === 'ja' ? 'ja-JP' : 'en-US',
+      pitch: 1.05,
+      rate: 0.92,
+      onStart: () => setIsSumiSpeaking(true),
+      onDone: () => setIsSumiSpeaking(false),
+      onStopped: () => setIsSumiSpeaking(false),
+      onError: () => setIsSumiSpeaking(false),
+    });
   };
 
   const openSupport = async () => {
@@ -166,15 +203,19 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
             ? 'The microphone could not start. Check your device permission.'
             : 'Tap the microphone when you are ready.';
 
+  const timerText = `${String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:${String(
+    recordingSeconds % 60,
+  ).padStart(2, '0')}`;
+
   const tutorialSteps = variant === 'conversation'
     ? [
-        ['1', 'Check the prompt', 'Read the speaking situation shown below Sumi.'],
-        ['2', 'Listen to Sumi', 'Sumi will speak the question in your selected language.'],
+        ['1', 'Choose a language', 'Select Japanese or English for Sumi’s spoken guidance.'],
+        ['2', 'Listen to Sumi', 'Sumi will speak the conversation prompt aloud.'],
         ['3', 'Answer naturally', 'Tap the microphone, speak in Japanese, then tap again to stop.'],
       ]
     : [
-        ['1', 'Check the activity', 'The pronunciation task will appear below Sumi.'],
-        ['2', 'Listen first', 'Hear the model in Japanese or use English guidance.'],
+        ['1', 'Choose a language', 'Select Japanese or English for Sumi’s spoken guidance.'],
+        ['2', 'Listen first', 'Sumi will speak the practice activity aloud.'],
         ['3', 'Record your voice', 'Tap the microphone, practice, then tap again to stop.'],
       ];
 
@@ -187,6 +228,14 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
           <Pressable onPress={() => void leaveRoom()} style={styles.headerButton}>
             <BackIcon width={18} height={18} fill="#47295A" />
           </Pressable>
+
+          <View style={[styles.headerMark, { backgroundColor: content.accentSoft }]}> 
+            <Ionicons
+              name={variant === 'conversation' ? 'chatbubbles' : 'mic'}
+              size={19}
+              color={content.accent}
+            />
+          </View>
 
           <View style={styles.headerCopy}>
             <Text style={[styles.headerEyebrow, { color: content.accent }]}>{content.eyebrow}</Text>
@@ -210,7 +259,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
           </View>
 
           <Image
-            source={isBlinking ? sumiBlink : sumiSmile}
+            source={isSumiSpeaking ? sumiSpeaking : isBlinking ? sumiBlink : sumiSmile}
             style={styles.sumi}
             resizeMode="contain"
             fadeDuration={0}
@@ -219,26 +268,27 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
           <View style={styles.floorLine} />
 
           <View style={styles.controlPanel}>
-            <View style={styles.promptRow}>
-              <View style={[styles.promptIcon, { backgroundColor: content.accentSoft }]}> 
-                <Ionicons
-                  name={variant === 'conversation' ? 'chatbubbles-outline' : 'school-outline'}
-                  size={22}
-                  color={content.accent}
-                />
-              </View>
-              <View style={styles.promptCopy}>
-                <Text style={[styles.promptLabel, { color: content.accent }]}>{content.promptLabel}</Text>
-                <Text style={styles.promptTitle}>{content.promptTitle}</Text>
-                <Text style={styles.promptNote}>{content.promptNote}</Text>
-              </View>
-            </View>
-
             <View style={styles.languageRow}>
-              <Text style={styles.languageLabel}>SUMI'S LANGUAGE</Text>
+              <View style={styles.voiceLabelGroup}>
+                <Pressable
+                  accessibilityLabel="Replay Sumi's spoken notice"
+                  onPress={() => selectLanguage(language)}
+                  style={[styles.voiceReplay, { backgroundColor: content.accentSoft }]}
+                >
+                  <Ionicons
+                    name={isSumiSpeaking ? 'volume-high' : 'volume-medium-outline'}
+                    size={18}
+                    color={content.accent}
+                  />
+                </Pressable>
+                <View>
+                  <Text style={styles.languageLabel}>SUMI'S VOICE</Text>
+                  <Text style={styles.voiceOnlyLabel}>Spoken guidance</Text>
+                </View>
+              </View>
               <View style={styles.languageSelector}>
                 <Pressable
-                  onPress={() => setLanguage('ja')}
+                  onPress={() => selectLanguage('ja')}
                   style={[
                     styles.languageChoice,
                     language === 'ja' && { backgroundColor: content.accent },
@@ -249,7 +299,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => setLanguage('en')}
+                  onPress={() => selectLanguage('en')}
                   style={[
                     styles.languageChoice,
                     language === 'en' && { backgroundColor: content.accent },
@@ -263,6 +313,15 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
             </View>
 
             <View style={styles.microphoneArea}>
+              <View style={styles.timerPill}>
+                <View
+                  style={[
+                    styles.timerDot,
+                    recorderState === 'recording' && styles.timerDotActive,
+                  ]}
+                />
+                <Text style={styles.timerText}>{timerText}</Text>
+              </View>
               <Pressable
                 accessibilityLabel={recorderState === 'recording' ? 'Stop recording' : 'Start recording'}
                 onPress={recorderState === 'recording' ? stopRecording : startRecording}
@@ -285,7 +344,10 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
 
             <View style={styles.secondaryActions}>
               <Pressable
-                onPress={() => router.push('/QuackTalkFeedback')}
+                onPress={() => router.push({
+                  pathname: '/QuackTalkFeedback',
+                  params: { returnTo: variant },
+                })}
                 style={styles.secondaryButton}
               >
                 <Ionicons name="analytics-outline" size={18} color="#7552C8" />

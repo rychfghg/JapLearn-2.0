@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -33,11 +33,24 @@ const background = require('../assets/img/background/clubroom a st2 day.png');
 const sumi = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png');
 
 export default function QuackTalkFeedback() {
+  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const { user } = useContext(AuthContext);
   const [tab, setTab] = useState<Tab>('overview');
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+  const cameFromConversation = returnTo === 'conversation';
+  const cameFromSpeaking = returnTo === 'speaking';
+  const returnRoute = cameFromConversation
+    ? '/QuackTalkConversation'
+    : cameFromSpeaking
+      ? '/QuackTalkSpeech'
+      : '/QuackTalk';
+  const roomName = cameFromConversation
+    ? 'Talk with Sumi'
+    : cameFromSpeaking
+      ? 'Voice Practice'
+      : 'QuackTalk';
 
   useEffect(() => {
     let active = true;
@@ -107,12 +120,15 @@ export default function QuackTalkFeedback() {
         <View style={styles.overlay} />
 
         <View style={styles.header}>
-          <Pressable onPress={() => router.replace('/QuackTalk')} style={styles.backButton}>
+          <Pressable onPress={() => router.replace(returnRoute)} style={styles.backButton}>
             <BackIcon width={18} height={18} fill="#462A5E" />
           </Pressable>
+          <View style={styles.headerIcon}>
+            <Ionicons name="analytics" size={19} color="#8051C8" />
+          </View>
           <View style={styles.headerCopy}>
-            <Text style={styles.headerEyebrow}>SUMI'S REVIEW DESK</Text>
-            <Text style={styles.headerTitle}>Speaking feedback</Text>
+            <Text style={styles.headerEyebrow}>{roomName.toUpperCase()}</Text>
+            <Text style={styles.headerTitle}>Feedback studio</Text>
           </View>
           <View style={styles.soonBadge}>
             <View style={styles.soonDot} />
@@ -124,10 +140,10 @@ export default function QuackTalkFeedback() {
           <View style={styles.coachCard}>
             <Image source={sumi} style={styles.sumi} resizeMode="contain" />
             <View style={styles.coachCopy}>
-              <Text style={styles.coachKicker}>FEEDBACK STATUS</Text>
-              <Text style={styles.coachTitle}>Your review space is ready.</Text>
+              <Text style={styles.coachKicker}>SUMI'S REVIEW</Text>
+              <Text style={styles.coachTitle}>Your speaking journey, clearly organized.</Text>
               <Text style={styles.coachText}>
-                Saved QuackTalk results will appear here after listening and evaluation are connected.
+                Real evaluated results and session history will appear here when listening analysis is available.
               </Text>
             </View>
           </View>
@@ -169,9 +185,9 @@ export default function QuackTalkFeedback() {
                   </Text>
                 </View>
               </View>
-              <Pressable style={styles.primaryAction} onPress={() => router.push('/QuackTalkSpeech')}>
+              <Pressable style={styles.primaryAction} onPress={() => router.replace(returnRoute)}>
                 <Ionicons name="mic" size={19} color="#FFFFFF" />
-                <Text style={styles.primaryActionText}>Open speaking practice</Text>
+                <Text style={styles.primaryActionText}>Return to {roomName}</Text>
                 <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
               </Pressable>
             </>
