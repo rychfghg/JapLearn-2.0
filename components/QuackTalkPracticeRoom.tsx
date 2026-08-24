@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Asset } from 'expo-asset';
 import { Audio, AVPlaybackStatus } from 'expo-av';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
+  Image,
   ImageBackground,
   Linking,
   Modal,
@@ -82,12 +84,10 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   const [isBlinking, setIsBlinking] = useState(false);
   const [isSumiSpeaking, setIsSumiSpeaking] = useState(false);
   const [speakingMouthOpen, setSpeakingMouthOpen] = useState(false);
+  const [sumiFramesReady, setSumiFramesReady] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'offline'>('idle');
   const ambientPulse = useRef(new Animated.Value(0)).current;
   const waveMotion = useRef(new Animated.Value(0)).current;
-  const sumiFrameOpacities = useRef(
-    sumiFrames.map((_, index) => new Animated.Value(index === 0 ? 1 : 0)),
-  ).current;
   const isListeningToUser = recorderState === 'recording';
 
   const activeSumiFrame = isSumiSpeaking
@@ -105,25 +105,23 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
       : isBlinking
         ? 1
         : 0;
+  const displayedSumiFrame = sumiFramesReady ? activeSumiFrame : 0;
 
   useEffect(() => {
-    sumiFrameOpacities.forEach((opacity) => opacity.stopAnimation());
+    let active = true;
 
-    Animated.parallel(
-      sumiFrameOpacities.map((opacity, index) =>
-        Animated.timing(opacity, {
-          toValue: index === activeSumiFrame ? 1 : 0,
-          duration: 85,
-          easing: Easing.out(Easing.quad),
-          useNativeDriver: true,
-        }),
-      ),
-    ).start();
+    Asset.loadAsync([...sumiFrames])
+      .then(() => {
+        if (active) setSumiFramesReady(true);
+      })
+      .catch((error) => {
+        console.warn('Unable to preload Sumi animation frames.', error);
+      });
 
     return () => {
-      sumiFrameOpacities.forEach((opacity) => opacity.stopAnimation());
+      active = false;
     };
-  }, [activeSumiFrame, sumiFrameOpacities]);
+  }, []);
 
   useEffect(() => {
     const ambientLoop = Animated.loop(
@@ -488,12 +486,14 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
           </View>
 
           {sumiFrames.map((source, index) => (
-            <Animated.Image
+            <Image
               key={index}
               source={source}
               style={[
                 styles.sumi,
-                { opacity: sumiFrameOpacities[index] },
+                {
+                  display: index === displayedSumiFrame ? 'flex' : 'none',
+                },
               ]}
               resizeMode="contain"
               fadeDuration={0}
