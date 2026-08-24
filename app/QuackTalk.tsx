@@ -18,6 +18,7 @@ export default function QuackTalk(){
   const [choicesVisible,setChoicesVisible]=useState(false);
   const [language,setLanguage]=useState<'ja'|'en'>('ja');
   const [playbackSpeed,setPlaybackSpeed]=useState<1|1.5|2>(1);
+  const [speedMenuVisible,setSpeedMenuVisible]=useState(false);
   const [speaking,setSpeaking]=useState(false);
   const [speechFrame,setSpeechFrame]=useState(0);
   const activeSound=useRef<Audio.Sound|null>(null);
@@ -94,6 +95,7 @@ export default function QuackTalk(){
 
   const changePlaybackSpeed=async(speed:1|1.5|2)=>{
     setPlaybackSpeed(speed);
+    setSpeedMenuVisible(false);
 
     if(activeSound.current){
       await activeSound.current
@@ -114,7 +116,10 @@ export default function QuackTalk(){
       <View style={styles.sceneActions}>
         <View style={styles.languageControlGroup}>
           <Pressable
-            onPress={()=>speakGreeting('ja')}
+            onPress={()=>{
+              setSpeedMenuVisible(false);
+              void speakGreeting('ja');
+            }}
             disabled={speaking}
             style={[
               styles.languageReplay,
@@ -132,7 +137,10 @@ export default function QuackTalk(){
           </Pressable>
 
           <Pressable
-            onPress={()=>speakGreeting('en')}
+            onPress={()=>{
+              setSpeedMenuVisible(false);
+              void speakGreeting('en');
+            }}
             disabled={speaking}
             style={[
               styles.languageReplay,
@@ -150,40 +158,128 @@ export default function QuackTalk(){
           </Pressable>
         </View>
 
-        <View style={styles.speedControlGroup}>
-          <Ionicons name="speedometer-outline" size={13} color="#8A7991" />
-          {playbackSpeeds.map(speed=>(
-            <Pressable
-              key={speed}
-              onPress={()=>void changePlaybackSpeed(speed)}
-              style={[
-                styles.speedOption,
-                playbackSpeed===speed&&styles.speedOptionActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.speedOptionText,
-                  playbackSpeed===speed&&styles.speedOptionTextActive,
-                ]}
-              >
-                {speed.toFixed(1)}×
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
         <Pressable
-          onPress={()=>speakGreeting(language)}
+          onPress={()=>{
+            setSpeedMenuVisible(false);
+            void speakGreeting(language);
+          }}
           disabled={speaking}
           style={styles.replayCircle}
         >
           <Ionicons name="refresh" size={17} color="#7552C8" />
         </Pressable>
+
+        <Pressable
+          onPress={()=>setSpeedMenuVisible(current=>!current)}
+          style={[
+            styles.speedCircle,
+            speedMenuVisible&&styles.speedCircleActive,
+          ]}
+        >
+          <Ionicons
+            name="speedometer-outline"
+            size={17}
+            color={speedMenuVisible?'#FFFFFF':'#7552C8'}
+          />
+        </Pressable>
+
+        {speedMenuVisible&&(
+          <View style={styles.speedPopup}>
+            <View style={styles.speedPopupHeader}>
+              <Ionicons name="volume-medium-outline" size={13} color="#7552C8" />
+              <Text style={styles.speedPopupLabel}>VOICE SPEED</Text>
+            </View>
+
+            <View style={styles.speedPopupOptions}>
+              {playbackSpeeds.map(speed=>(
+                <Pressable
+                  key={speed}
+                  onPress={()=>void changePlaybackSpeed(speed)}
+                  style={[
+                    styles.speedPopupOption,
+                    playbackSpeed===speed&&styles.speedPopupOptionActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.speedPopupOptionText,
+                      playbackSpeed===speed&&styles.speedPopupOptionTextActive,
+                    ]}
+                  >
+                    {speed.toFixed(1)}×
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
       </View>
     </View>
 
-    <Modal visible={choicesVisible} transparent animationType="slide" onRequestClose={()=>setChoicesVisible(false)}><View style={styles.modalShade}><View style={styles.choiceSheet}><View style={styles.sheetHandle}/><Pressable onPress={()=>setChoicesVisible(false)} style={styles.closeButton}><Ionicons name="close" size={19} color="#7C7182"/></Pressable><View style={styles.choiceHeader}><View style={styles.choiceAvatar}><Image source={sumiSmile} style={styles.choiceAvatarImage} resizeMode="contain"/></View><View><Text style={styles.choiceEyebrow}>SUMI IS READY</Text><Text style={styles.choiceHeading}>Choose your practice</Text></View></View><Pressable onPress={()=>openPractice('/QuackTalkConversation')} style={styles.primaryChoice}><View style={styles.choiceIconPrimary}><Ionicons name="chatbubbles" size={23} color="#FFF"/></View><View style={styles.choiceCopy}><Text style={styles.primaryChoiceTitle}>Answer Sumi's questions</Text><Text style={styles.primaryChoiceText}>Join a controlled conversation and respond to Sumi in Japanese.</Text></View><Ionicons name="arrow-forward" size={20} color="#FFF"/></Pressable><Pressable onPress={()=>openPractice('/QuackTalkSpeech')} style={styles.secondaryChoice}><View style={styles.choiceIconSecondary}><Ionicons name="mic" size={23} color="#D84F83"/></View><View style={styles.choiceCopy}><Text style={styles.secondaryChoiceTitle}>Practice a Japanese phrase</Text><Text style={styles.secondaryChoiceText}>Say a guided phrase aloud and check what the listener recognizes.</Text></View><Ionicons name="arrow-forward" size={20} color="#D84F83"/></Pressable><Pressable onPress={()=>{setChoicesVisible(false);speakGreeting(language);}} style={styles.hearAgain}><Ionicons name="volume-medium-outline" size={15} color="#7552C8"/><Text style={styles.hearAgainText}>Hear Sumi again</Text></Pressable></View></View></Modal>
+    <Modal
+      visible={choicesVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setChoicesVisible(false)}
+    >
+      <View style={styles.modalShade}>
+        <View style={styles.choiceSheet}>
+          <View style={styles.sheetHandle} />
+          <Pressable onPress={() => setChoicesVisible(false)} style={styles.closeButton}>
+            <Ionicons name="close" size={19} color="#7C7182" />
+          </Pressable>
+          <View style={styles.choiceHeader}>
+            <View style={styles.choiceAvatar}>
+              <Image source={sumiSmile} style={styles.choiceAvatarImage} resizeMode="contain" />
+            </View>
+            <View>
+              <Text style={styles.choiceEyebrow}>SUMI IS READY</Text>
+              <Text style={styles.choiceHeading}>Choose your practice</Text>
+            </View>
+          </View>
+          <Pressable
+            onPress={() => openPractice('/QuackTalkConversation')}
+            style={styles.primaryChoice}
+          >
+            <View style={styles.choiceIconPrimary}>
+              <Ionicons name="chatbubbles" size={23} color="#FFF" />
+            </View>
+            <View style={styles.choiceCopy}>
+              <Text style={styles.primaryChoiceTitle}>Guided conversation with Sumi</Text>
+              <Text style={styles.primaryChoiceText}>
+                Enter Sumi's conversation room. Questions and AI listening are coming soon.
+              </Text>
+            </View>
+            <Ionicons name="arrow-forward" size={20} color="#FFF" />
+          </Pressable>
+          <Pressable
+            onPress={() => openPractice('/QuackTalkSpeech')}
+            style={styles.secondaryChoice}
+          >
+            <View style={styles.choiceIconSecondary}>
+              <Ionicons name="mic" size={23} color="#D84F83" />
+            </View>
+            <View style={styles.choiceCopy}>
+              <Text style={styles.secondaryChoiceTitle}>Open speaking practice</Text>
+              <Text style={styles.secondaryChoiceText}>
+                Test your microphone in Sumi's studio. Guided phrases and feedback are coming soon.
+              </Text>
+            </View>
+            <Ionicons name="arrow-forward" size={20} color="#D84F83" />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setChoicesVisible(false);
+              speakGreeting(language);
+            }}
+            style={styles.hearAgain}
+          >
+            <Ionicons name="volume-medium-outline" size={15} color="#7552C8" />
+            <Text style={styles.hearAgainText}>Hear Sumi again</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
     <StudentBottomNav active="talk" />
   </ImageBackground></SafeAreaView>;
 }

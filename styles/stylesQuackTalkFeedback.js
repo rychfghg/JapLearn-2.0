@@ -1,337 +1,69 @@
-import { StyleSheet, Dimensions } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
+import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
-  background: {
-    flex: 1,
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(8, 6, 22, 0.48)',
-  },
-
+  safeArea: { flex: 1, backgroundColor: '#F8F3FB' },
+  background: { flex: 1 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(249,245,251,0.86)' },
   header: {
-    height: 96,
-    backgroundColor: '#8423D9',
-    borderBottomWidth: 8,
-    borderBottomColor: '#6C3A99',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    zIndex: 30,
-  },
-
-  backButton: {
-    width: 48,
-    height: 48,
+    margin: 16,
+    marginBottom: 8,
+    padding: 12,
     borderRadius: 24,
-    backgroundColor: 'rgba(0,0,0,0.42)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  headerCenter: {
-    flex: 1,
-    alignItems: 'center',
-  },
-
-  headerMini: {
-    fontFamily: 'Jua',
-    fontSize: 11,
-    color: '#D6B4FC',
-  },
-
-  headerTitle: {
-    fontFamily: 'Jua',
-    fontSize: 27,
-    color: '#FFFFFF',
-  },
-
-  scoreBadge: {
-    width: 64,
-    height: 38,
-    borderRadius: 18,
-    backgroundColor: '#7DDA47',
-    borderWidth: 3,
-    borderColor: '#5FAF2E',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  scoreBadgeText: {
-    fontFamily: 'Jua',
-    fontSize: 13,
-    color: '#FFFFFF',
-  },
-
-  profilePanel: {
-    marginTop: 14,
-    alignSelf: 'center',
-    width: width * 0.92,
-    minHeight: 115,
-    backgroundColor: 'rgba(0,0,0,0.76)',
-    borderWidth: 3,
-    borderColor: '#D6B4FC',
-    borderRadius: 26,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-  },
-
-  sumiImage: {
-    width: 85,
-    height: 95,
-    resizeMode: 'contain',
-    marginRight: 10,
-  },
-
-  profileTextBox: {
-    flex: 1,
-  },
-
-  profileTitle: {
-    fontFamily: 'Jua',
-    fontSize: 22,
-    color: '#FFFFFF',
-  },
-
-  profileSubtitle: {
-    fontFamily: 'Jua',
-    fontSize: 12,
-    color: '#D6B4FC',
-    lineHeight: 17,
-    marginTop: 3,
-  },
-
-  tabRow: {
-    marginTop: 12,
-    alignSelf: 'center',
-    width: width * 0.92,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(0,0,0,0.62)',
-    borderRadius: 22,
-    padding: 5,
-    borderWidth: 2,
-    borderColor: '#D6B4FC',
-  },
-
-  tabButton: {
-    flex: 1,
-    paddingVertical: 9,
-    alignItems: 'center',
-    borderRadius: 17,
-  },
-
-  tabActive: {
-    backgroundColor: '#7DDA47',
-  },
-
-  tabText: {
-    fontFamily: 'Jua',
-    fontSize: 13,
-    color: '#D6B4FC',
-  },
-
-  tabTextActive: {
-    color: '#FFFFFF',
-  },
-
-  contentScroll: {
-    marginTop: 12,
-    alignSelf: 'center',
-    width: width * 0.92,
-    maxHeight: height * 0.63,
-  },
-
-  reportCard: {
     backgroundColor: 'rgba(255,255,255,0.96)',
-    borderRadius: 22,
-    borderWidth: 3,
-    borderColor: '#D6B4FC',
-    padding: 15,
-    marginBottom: 12,
-  },
-
-  cardTitle: {
-    fontFamily: 'Jua',
-    fontSize: 18,
-    color: '#4B256D',
-    marginBottom: 8,
-  },
-
-  cardText: {
-    fontFamily: 'Jua',
-    fontSize: 13,
-    color: '#333',
-    lineHeight: 19,
-    marginBottom: 5,
-  },
-
-  bigScore: {
-    fontFamily: 'Jua',
-    fontSize: 36,
-    color: '#4B256D',
-    textAlign: 'center',
-  },
-
-  progressTrack: {
-    height: 14,
-    backgroundColor: '#E7D6FF',
-    borderRadius: 10,
-    overflow: 'hidden',
-    marginVertical: 8,
-  },
-
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#7DDA47',
-    borderRadius: 10,
-  },
-
-  gridRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-
-  smallMetricCard: {
-    width: '48%',
-    backgroundColor: 'rgba(255,255,255,0.96)',
-    borderWidth: 3,
-    borderColor: '#FFD76A',
-    borderRadius: 22,
-    padding: 13,
-    alignItems: 'center',
-  },
-
-  metricLabel: {
-    fontFamily: 'Jua',
-    fontSize: 13,
-    color: '#4B256D',
-  },
-
-  metricValue: {
-    fontFamily: 'Jua',
-    fontSize: 30,
-    color: '#24170D',
-  },
-
-  metricNote: {
-    fontFamily: 'Jua',
-    fontSize: 11,
-    color: '#6B4A20',
-  },
-
-  masteryText: {
-    fontFamily: 'Jua',
-    fontSize: 18,
-    color: '#24170D',
-    marginBottom: 6,
-  },
-
-  listItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF7E4',
-    borderRadius: 16,
-    padding: 10,
-    marginBottom: 8,
-    borderWidth: 2,
-    borderColor: '#FFD76A',
+    shadowColor: '#492653',
+    shadowOpacity: 0.1,
+    shadowRadius: 13,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 5,
   },
-
-  listNumber: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: '#8423D9',
-    color: '#FFFFFF',
-    fontFamily: 'Jua',
-    textAlign: 'center',
-    lineHeight: 26,
-    marginRight: 9,
-  },
-
-  listText: {
-    flex: 1,
-    fontFamily: 'Jua',
-    fontSize: 12,
-    color: '#333',
-    lineHeight: 17,
-  },
-
-  warningPill: {
-    backgroundColor: '#F5ECFF',
-    borderWidth: 2,
-    borderColor: '#D6B4FC',
-    borderRadius: 16,
-    padding: 10,
-    marginBottom: 8,
-  },
-
-  warningText: {
-    fontFamily: 'Jua',
-    fontSize: 13,
-    color: '#4B256D',
-  },
-
-  actionButton: {
-    marginTop: 10,
-    alignSelf: 'center',
-    backgroundColor: '#7DDA47',
-    borderWidth: 4,
-    borderColor: '#5FAF2E',
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-  },
-
-  actionButtonText: {
-    fontFamily: 'Jua',
-    fontSize: 15,
-    color: '#FFFFFF',
-  },
-
-  historyRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#F5ECFF',
-    borderWidth: 2,
-    borderColor: '#D6B4FC',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 8,
-  },
-
-  historyTitle: {
-    fontFamily: 'Jua',
-    fontSize: 13,
-    color: '#24170D',
-  },
-
-  historyScore: {
-    fontFamily: 'Jua',
-    fontSize: 14,
-    color: '#8423D9',
-  },
-
-  bottomAction: {
-    alignSelf: 'center',
-    backgroundColor: '#7DDA47',
-    borderWidth: 4,
-    borderColor: '#5FAF2E',
-    borderRadius: 20,
-    paddingVertical: 11,
-    paddingHorizontal: 35,
-    marginBottom: 20,
-  },
-
-  bottomActionText: {
-    fontFamily: 'Jua',
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
+  backButton: { width: 46, height: 46, borderRadius: 16, backgroundColor: '#F5EEFA', alignItems: 'center', justifyContent: 'center' },
+  headerCopy: { flex: 1, marginHorizontal: 12 },
+  headerEyebrow: { fontFamily: 'Jua', fontSize: 9, letterSpacing: 1.1, color: '#78B943' },
+  headerTitle: { marginTop: 2, fontFamily: 'Jua', fontSize: 20, color: '#3E244C' },
+  soonBadge: { paddingHorizontal: 9, paddingVertical: 8, borderRadius: 13, backgroundColor: '#F3E9FA', flexDirection: 'row', alignItems: 'center', gap: 5 },
+  soonDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#8051C8' },
+  soonText: { fontFamily: 'Jua', fontSize: 8, letterSpacing: 0.7, color: '#8051C8' },
+  scrollContent: { paddingHorizontal: 16, paddingBottom: 34, width: '100%', maxWidth: 700, alignSelf: 'center' },
+  coachCard: { minHeight: 150, padding: 17, borderRadius: 28, backgroundColor: '#F1E5FA', flexDirection: 'row', alignItems: 'center', overflow: 'hidden' },
+  sumi: { width: 112, height: 140, marginBottom: -15 },
+  coachCopy: { flex: 1, marginLeft: 10 },
+  coachKicker: { fontFamily: 'Jua', fontSize: 9, letterSpacing: 1.1, color: '#8051C8' },
+  coachTitle: { marginTop: 5, fontFamily: 'Jua', fontSize: 21, lineHeight: 26, color: '#3E244C' },
+  coachText: { marginTop: 6, fontSize: 12, lineHeight: 18, color: '#746A79' },
+  tabs: { marginTop: 14, padding: 5, borderRadius: 18, backgroundColor: '#FFFFFF', flexDirection: 'row' },
+  tab: { flex: 1, minHeight: 40, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  activeTab: { backgroundColor: '#8051C8' },
+  tabText: { fontFamily: 'Jua', fontSize: 12, color: '#948897' },
+  activeTabText: { color: '#FFFFFF' },
+  loadingCard: { marginTop: 14, padding: 28, borderRadius: 24, backgroundColor: '#FFFFFF', alignItems: 'center' },
+  loadingText: { marginTop: 10, fontSize: 12, color: '#837786' },
+  statusCard: { marginTop: 14, padding: 17, borderRadius: 24, backgroundColor: '#FFFFFF', flexDirection: 'row' },
+  statusIcon: { width: 48, height: 48, borderRadius: 16, backgroundColor: '#FCEAF1', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  statusCopy: { flex: 1 },
+  statusLabel: { fontFamily: 'Jua', fontSize: 9, letterSpacing: 1, color: '#D64D82' },
+  statusTitle: { marginTop: 3, fontFamily: 'Jua', fontSize: 17, color: '#3E244C' },
+  statusText: { marginTop: 5, fontSize: 12, lineHeight: 18, color: '#7A6F7D' },
+  primaryAction: { marginTop: 12, minHeight: 52, paddingHorizontal: 18, borderRadius: 18, backgroundColor: '#8051C8', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
+  primaryActionText: { flex: 1, fontFamily: 'Jua', fontSize: 14, textAlign: 'center', color: '#FFFFFF' },
+  emptyCard: { marginTop: 14, padding: 23, borderRadius: 24, backgroundColor: '#FFFFFF', alignItems: 'center' },
+  emptyIcon: { width: 50, height: 50, borderRadius: 17, backgroundColor: '#F3EAF9', alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { marginTop: 11, fontFamily: 'Jua', fontSize: 18, color: '#452A52' },
+  emptyCopy: { marginTop: 5, maxWidth: 390, textAlign: 'center', fontSize: 12, lineHeight: 18, color: '#817583' },
+  dataCard: { marginTop: 14, padding: 17, borderRadius: 24, backgroundColor: '#FFFFFF' },
+  dataTitle: { marginBottom: 11, fontFamily: 'Jua', fontSize: 18, color: '#452A52' },
+  noteRow: { marginTop: 8, padding: 11, borderRadius: 16, backgroundColor: '#F9F4FC', flexDirection: 'row', alignItems: 'center' },
+  noteNumber: { width: 28, height: 28, borderRadius: 10, backgroundColor: '#8051C8', alignItems: 'center', justifyContent: 'center', marginRight: 9 },
+  noteNumberText: { fontFamily: 'Jua', fontSize: 11, color: '#FFFFFF' },
+  noteText: { flex: 1, fontSize: 12, lineHeight: 17, color: '#625666' },
+  historyRow: { minHeight: 56, borderBottomWidth: 1, borderBottomColor: '#EEE7F1', flexDirection: 'row', alignItems: 'center' },
+  historyIcon: { width: 36, height: 36, borderRadius: 12, backgroundColor: '#F3EAF9', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  historyTitle: { flex: 1, fontFamily: 'Jua', fontSize: 13, color: '#4D3458' },
+  historyScore: { fontFamily: 'Jua', fontSize: 14, color: '#6AB53B' },
+  progressLink: { marginTop: 14, padding: 14, borderRadius: 21, backgroundColor: '#F0F8EA', borderWidth: 1, borderColor: '#D4EAC5', flexDirection: 'row', alignItems: 'center' },
+  progressIcon: { width: 42, height: 42, borderRadius: 14, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginRight: 11 },
+  progressCopy: { flex: 1 },
+  progressTitle: { fontFamily: 'Jua', fontSize: 14, color: '#3D5D2C' },
+  progressText: { marginTop: 2, fontSize: 10, lineHeight: 15, color: '#718268' },
 });

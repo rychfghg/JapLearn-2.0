@@ -174,6 +174,56 @@ export default function QuackSituateFormalLevels() {
                     ]}
                     onPress={() => openLevel(item.level)}
                   >
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.japaneseMotif,
+                        {
+                          backgroundColor: unavailable
+                            ? 'rgba(157,147,160,0.08)'
+                            : `${item.color}12`,
+                        },
+                      ]}
+                    >
+                      {index === 0 && (
+                        <>
+                          <View style={[styles.sakuraPetal, styles.sakuraPetalOne]} />
+                          <View style={[styles.sakuraPetal, styles.sakuraPetalTwo]} />
+                          <View style={[styles.sakuraPetal, styles.sakuraPetalThree]} />
+                        </>
+                      )}
+
+                      {index === 1 && (
+                        <View style={styles.toriiMotif}>
+                          <View style={styles.toriiRoof} />
+                          <View style={styles.toriiBeam} />
+                          <View style={styles.toriiPillarLeft} />
+                          <View style={styles.toriiPillarRight} />
+                        </View>
+                      )}
+
+                      {index === 2 && (
+                        <>
+                          <View style={styles.summitBack} />
+                          <View style={styles.summitFront} />
+                          <View style={styles.summitSun} />
+                        </>
+                      )}
+
+                      <Text
+                        style={[
+                          styles.japaneseMotifCharacter,
+                          {
+                            color: unavailable
+                              ? 'rgba(141,131,143,0.18)'
+                              : `${item.color}35`,
+                          },
+                        ]}
+                      >
+                        {index === 0 ? '礼' : index === 1 ? '縁' : '敬'}
+                      </Text>
+                    </View>
+
                     <View style={styles.stageTopRow}>
                       <View
                         style={[
@@ -410,10 +460,125 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.975 }],
     opacity: 0.92,
   },
+  japaneseMotif: {
+    position: 'absolute',
+    right: -13,
+    top: 20,
+    width: 132,
+    height: 132,
+    borderRadius: 66,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  japaneseMotifCharacter: {
+    position: 'absolute',
+    fontFamily: 'Jua',
+    fontSize: 76,
+    lineHeight: 88,
+  },
+  sakuraPetal: {
+    position: 'absolute',
+    width: 17,
+    height: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(216,79,131,0.19)',
+    zIndex: 2,
+  },
+  sakuraPetalOne: {
+    right: 18,
+    top: 21,
+    transform: [{ rotate: '28deg' }],
+  },
+  sakuraPetalTwo: {
+    left: 17,
+    bottom: 27,
+    transform: [{ rotate: '-34deg' }],
+  },
+  sakuraPetalThree: {
+    right: 24,
+    bottom: 18,
+    transform: [{ rotate: '66deg' }],
+  },
+  toriiMotif: {
+    position: 'absolute',
+    width: 92,
+    height: 82,
+    opacity: 0.34,
+  },
+  toriiRoof: {
+    position: 'absolute',
+    top: 12,
+    left: 3,
+    width: 86,
+    height: 8,
+    borderRadius: 5,
+    backgroundColor: '#D88727',
+    transform: [{ rotate: '-2deg' }],
+  },
+  toriiBeam: {
+    position: 'absolute',
+    top: 26,
+    left: 12,
+    width: 68,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#D88727',
+  },
+  toriiPillarLeft: {
+    position: 'absolute',
+    top: 20,
+    left: 23,
+    width: 7,
+    height: 58,
+    borderRadius: 4,
+    backgroundColor: '#D88727',
+    transform: [{ rotate: '3deg' }],
+  },
+  toriiPillarRight: {
+    position: 'absolute',
+    top: 20,
+    right: 23,
+    width: 7,
+    height: 58,
+    borderRadius: 4,
+    backgroundColor: '#D88727',
+    transform: [{ rotate: '-3deg' }],
+  },
+  summitBack: {
+    position: 'absolute',
+    left: 17,
+    bottom: 28,
+    width: 92,
+    height: 52,
+    borderRadius: 46,
+    backgroundColor: 'rgba(132,35,217,0.11)',
+    transform: [{ rotate: '-10deg' }],
+  },
+  summitFront: {
+    position: 'absolute',
+    right: -3,
+    bottom: 15,
+    width: 96,
+    height: 48,
+    borderRadius: 48,
+    backgroundColor: 'rgba(101,169,54,0.10)',
+    transform: [{ rotate: '12deg' }],
+  },
+  summitSun: {
+    position: 'absolute',
+    right: 21,
+    top: 17,
+    width: 29,
+    height: 29,
+    borderRadius: 15,
+    backgroundColor: 'rgba(216,135,39,0.18)',
+  },
   stageTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    zIndex: 2,
   },
   levelTag: {
     borderRadius: 999,
@@ -431,6 +596,7 @@ const styles = StyleSheet.create({
     fontSize: 25,
     textAlign: 'center',
     marginTop: 11,
+    zIndex: 2,
   },
   stageDescription: {
     color: '#827585',
@@ -438,6 +604,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     textAlign: 'center',
     marginTop: 4,
+    zIndex: 2,
   },
   stageFooter: {
     flexDirection: 'row',
@@ -447,6 +614,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#EEE7EF',
     marginTop: 13,
     paddingTop: 11,
+    zIndex: 2,
   },
   momentCount: {
     color: '#8B7E8E',
