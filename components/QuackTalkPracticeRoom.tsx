@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   Image,
   ImageBackground,
+  Modal,
   Pressable,
   SafeAreaView,
   Text,
@@ -46,6 +47,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   const content = roomContent[variant];
   const recordingRef = useRef<Audio.Recording | null>(null);
   const [recorderState, setRecorderState] = useState<RecorderState>('ready');
+  const [tutorialVisible, setTutorialVisible] = useState(false);
 
   const releaseRecording = async () => {
     const recording = recordingRef.current;
@@ -143,12 +145,72 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
             </View>
           </View>
 
-          <View style={[styles.roomBadge, { backgroundColor: `${content.accent}16` }]}>
-            <View style={[styles.roomBadgeDot, { backgroundColor: content.accent }]} />
-            <Text style={[styles.roomBadgeText, { color: content.accent }]}>SOON</Text>
-          </View>
+          {variant === 'conversation' ? (
+            <Pressable
+              accessibilityLabel="How Talk with Sumi works"
+              onPress={() => setTutorialVisible(true)}
+              style={styles.helpButton}
+            >
+              <Ionicons name="help" size={22} color={content.accent} />
+            </Pressable>
+          ) : (
+            <View style={[styles.roomBadge, { backgroundColor: `${content.accent}16` }]}> 
+              <View style={[styles.roomBadgeDot, { backgroundColor: content.accent }]} />
+              <Text style={[styles.roomBadgeText, { color: content.accent }]}>SOON</Text>
+            </View>
+          )}
         </View>
 
+        {variant === 'conversation' ? (
+          <View style={styles.conversationStage}>
+            <View style={styles.conversationGlow} />
+
+            <View style={styles.promptCard}>
+              <View style={styles.promptIcon}>
+                <Ionicons name="sparkles" size={15} color="#7552C8" />
+              </View>
+              <View style={styles.promptCopy}>
+                <Text style={styles.promptLabel}>CONVERSATION PROMPT</Text>
+                <Text style={styles.promptText}>Your conversation situation will appear here.</Text>
+              </View>
+              <View style={styles.soonPill}>
+                <Text style={styles.soonPillText}>SOON</Text>
+              </View>
+            </View>
+
+            <View style={styles.sumiBubble}>
+              <Text style={styles.bubbleSpeaker}>SUMI</Text>
+              <Text style={styles.bubbleText}>My question will appear here when guided conversations are ready.</Text>
+              <View style={styles.bubbleTail} />
+            </View>
+
+            <Image
+              source={require('../assets/img/Sumi_PoseB_WinterUni_Smile.png')}
+              style={styles.conversationSumi}
+              resizeMode="contain"
+            />
+            <View style={styles.conversationShadow} />
+
+            <View style={styles.micDock}>
+              <Pressable
+                accessibilityLabel={recorderState === 'recording' ? 'Stop recording' : 'Start recording'}
+                onPress={recorderState === 'recording' ? stopRecording : startRecording}
+                style={({ pressed }) => [
+                  styles.conversationMic,
+                  { backgroundColor: recorderState === 'recording' ? '#E54F6D' : content.accent },
+                  pressed && styles.microphonePressed,
+                ]}
+              >
+                <Ionicons
+                  name={recorderState === 'recording' ? 'stop' : 'mic'}
+                  size={31}
+                  color="#FFFFFF"
+                />
+              </Pressable>
+              <Text style={styles.conversationMicStatus}>{statusCopy}</Text>
+            </View>
+          </View>
+        ) : (
         <View style={styles.roomStage}>
           <View style={styles.windowGlow} />
           <View style={styles.coachTag}>
@@ -215,6 +277,58 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
             </Pressable>
           </View>
         </View>
+        )}
+
+        <Modal
+          visible={tutorialVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setTutorialVisible(false)}
+        >
+          <View style={styles.tutorialShade}>
+            <View style={styles.tutorialCard}>
+              <View style={styles.tutorialHeader}>
+                <View style={styles.tutorialHeaderIcon}>
+                  <Ionicons name="chatbubbles-outline" size={23} color="#7552C8" />
+                </View>
+                <View style={styles.tutorialHeaderCopy}>
+                  <Text style={styles.tutorialKicker}>HOW IT WORKS</Text>
+                  <Text style={styles.tutorialTitle}>Talk with Sumi</Text>
+                </View>
+                <Pressable onPress={() => setTutorialVisible(false)} style={styles.tutorialClose}>
+                  <Ionicons name="close" size={20} color="#695C6E" />
+                </Pressable>
+              </View>
+
+              {[
+                ['1', 'Read the prompt', 'The conversation situation will appear above Sumi.'],
+                ['2', 'Listen to Sumi', 'Her question will be shown inside the conversation bubble.'],
+                ['3', 'Tap the microphone', 'Answer naturally in Japanese, then tap again to stop.'],
+              ].map(([step, title, copy]) => (
+                <View key={step} style={styles.tutorialStep}>
+                  <View style={styles.tutorialStepNumber}>
+                    <Text style={styles.tutorialStepNumberText}>{step}</Text>
+                  </View>
+                  <View style={styles.tutorialStepCopy}>
+                    <Text style={styles.tutorialStepTitle}>{title}</Text>
+                    <Text style={styles.tutorialStepText}>{copy}</Text>
+                  </View>
+                </View>
+              ))}
+
+              <View style={styles.tutorialNotice}>
+                <Ionicons name="construct-outline" size={17} color="#A06D1E" />
+                <Text style={styles.tutorialNoticeText}>
+                  Guided questions and AI evaluation are coming soon. Microphone testing works now.
+                </Text>
+              </View>
+
+              <Pressable onPress={() => setTutorialVisible(false)} style={styles.tutorialDone}>
+                <Text style={styles.tutorialDoneText}>Got it</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal>
       </ImageBackground>
     </SafeAreaView>
   );
