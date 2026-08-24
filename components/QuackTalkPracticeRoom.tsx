@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
-import * as Speech from 'expo-speech';
+import { Audio, AVPlaybackStatus } from 'expo-av';
 import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -26,6 +25,12 @@ type RecorderState = 'ready' | 'requesting' | 'recording' | 'recorded' | 'denied
 const sumiSmile = require('../assets/img/Sumi_PoseB_WinterUni_Smile.png');
 const sumiBlink = require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png');
 const sumiSpeaking = require('../assets/img/Sumi_PoseB_WinterUni_Open.png');
+const sumiListening = require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png');
+
+const sumiVoice = {
+  ja: require('../assets/audio/sumi-welcome-ja.mp3'),
+  en: require('../assets/audio/sumi-welcome-en.mp3'),
+} as const;
 
 const roomContent = {
   conversation: {
@@ -47,7 +52,9 @@ const roomContent = {
 export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   const content = roomContent[variant];
   const recordingRef = useRef<Audio.Recording | null>(null);
+  const voiceRef = useRef<Audio.Sound | null>(null);
   const blinkTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const speakingFrameRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [recorderState, setRecorderState] = useState<RecorderState>('ready');
   const [recordingSeconds, setRecordingSeconds] = useState(0);
@@ -55,6 +62,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   const [tutorialVisible, setTutorialVisible] = useState(false);
   const [isBlinking, setIsBlinking] = useState(false);
   const [isSumiSpeaking, setIsSumiSpeaking] = useState(false);
+  const [speakingMouthOpen, setSpeakingMouthOpen] = useState(false);
 
   const stopRecordingTimer = () => {
     if (recordingTimerRef.current) {
@@ -69,6 +77,23 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
 
     if (recording) {
       await recording.stopAndUnloadAsync().catch(() => undefined);
+    }
+  };
+
+  const stopSumiVoice = async () => {
+    if (speakingFrameRef.current) {
+      clearInterval(speakingFrameRef.current);
+      speakingFrameRef.current = null;
+    }
+
+    const sound = voiceRef.current;
+    voiceRef.current = null;
+    setIsSumiSpeaking(false);
+    setSpeakingMouthOpen(false);
+
+    if (sound) {
+      await sound.stopAsync().catch(() => undefined);
+      await sound.unloadAsync().catch(() => undefined);
     }
   };
 
@@ -99,7 +124,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
       }
 
       stopRecordingTimer();
-      Speech.stop();
+      void stopSumiVoice();
       void releaseRecording();
     };
   }, []);
@@ -107,8 +132,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
   const startRecording = async () => {
     if (recorderState === 'recording' || recorderState === 'requesting') return;
 
-    Speech.stop();
-    setIsSumiSpeaking(false);
+    await stopSumiVoice();
     setRecorderState('requesting');
 
     try {
@@ -156,28 +180,43 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
 
   const leaveRoom = async () => {
     stopRecordingTimer();
-    Speech.stop();
+    await stopSumiVoice();
     await releaseRecording();
     router.replace('/QuackTalk');
   };
 
-  const selectLanguage = (nextLanguage: Language) => {
+  const selectLanguage = async (nextLanguage: Language) => {
     setLanguage(nextLanguage);
-    Speech.stop();
+    await stopSumiVoice();
 
-    const message = nextLanguage === 'ja'
-      ? 'このスピーキング機能は、まもなく利用できます。'
-      : 'This speaking feature is coming soon.';
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+      });
 
-    Speech.speak(message, {
-      language: nextLanguage === 'ja' ? 'ja-JP' : 'en-US',
-      pitch: 1.05,
-      rate: 0.92,
-      onStart: () => setIsSumiSpeaking(true),
-      onDone: () => setIsSumiSpeaking(false),
-      onStopped: () => setIsSumiSpeaking(false),
-      onError: () => setIsSumiSpeaking(false),
-    });
+      const result = await Audio.Sound.createAsync(
+        sumiVoice[nextLanguage],
+        { shouldPlay: true, volume: 1 },
+      );
+
+      voiceRef.current = result.sound;
+      setIsSumiSpeaking(true);
+      setSpeakingMouthOpen(true);
+      speakingFrameRef.current = setInterval(() => {
+        setSpeakingMouthOpen((open) => !open);
+      }, 170);
+
+      result.sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
+        if (status.isLoaded && status.didJustFinish) {
+          void stopSumiVoice();
+        }
+      });
+    } catch (error) {
+      console.warn('Unable to play Sumi voice recording.', error);
+      await stopSumiVoice();
+    }
   };
 
   const openSupport = async () => {
@@ -259,7 +298,17 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
           </View>
 
           <Image
-            source={isSumiSpeaking ? sumiSpeaking : isBlinking ? sumiBlink : sumiSmile}
+            source={
+              isSumiSpeaking
+                ? speakingMouthOpen
+                  ? sumiSpeaking
+                  : sumiSmile
+                : recorderState === 'recording'
+                  ? sumiListening
+                  : isBlinking
+                    ? sumiBlink
+                    : sumiSmile
+            }
             style={styles.sumi}
             resizeMode="contain"
             fadeDuration={0}
@@ -268,11 +317,11 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
           <View style={styles.floorLine} />
 
           <View style={styles.controlPanel}>
-            <View style={styles.languageRow}>
+            <View style={styles.voiceToolsRow}>
               <View style={styles.voiceLabelGroup}>
                 <Pressable
                   accessibilityLabel="Replay Sumi's spoken notice"
-                  onPress={() => selectLanguage(language)}
+                  onPress={() => void selectLanguage(language)}
                   style={[styles.voiceReplay, { backgroundColor: content.accentSoft }]}
                 >
                   <Ionicons
@@ -281,14 +330,20 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
                     color={content.accent}
                   />
                 </Pressable>
-                <View>
-                  <Text style={styles.languageLabel}>SUMI'S VOICE</Text>
-                  <Text style={styles.voiceOnlyLabel}>Spoken guidance</Text>
-                </View>
+                <Text style={styles.languageLabel}>SUMI'S VOICE</Text>
+              </View>
+              <View style={styles.timerPill}>
+                <View
+                  style={[
+                    styles.timerDot,
+                    recorderState === 'recording' && styles.timerDotActive,
+                  ]}
+                />
+                <Text style={styles.timerText}>{timerText}</Text>
               </View>
               <View style={styles.languageSelector}>
                 <Pressable
-                  onPress={() => selectLanguage('ja')}
+                  onPress={() => void selectLanguage('ja')}
                   style={[
                     styles.languageChoice,
                     language === 'ja' && { backgroundColor: content.accent },
@@ -299,7 +354,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => selectLanguage('en')}
+                  onPress={() => void selectLanguage('en')}
                   style={[
                     styles.languageChoice,
                     language === 'en' && { backgroundColor: content.accent },
@@ -313,15 +368,6 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
             </View>
 
             <View style={styles.microphoneArea}>
-              <View style={styles.timerPill}>
-                <View
-                  style={[
-                    styles.timerDot,
-                    recorderState === 'recording' && styles.timerDotActive,
-                  ]}
-                />
-                <Text style={styles.timerText}>{timerText}</Text>
-              </View>
               <Pressable
                 accessibilityLabel={recorderState === 'recording' ? 'Stop recording' : 'Start recording'}
                 onPress={recorderState === 'recording' ? stopRecording : startRecording}
