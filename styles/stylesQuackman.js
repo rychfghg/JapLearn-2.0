@@ -4,7 +4,7 @@ const { width, height } = Dimensions.get('window');
 const cellSize = Math.min(width, height - 100) / 5 - 25;
 
 export const stylesQuackman = StyleSheet.create({
-    gameScreen:{flex:1,paddingTop:48},screenShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(250,247,255,.18)'},gameHeader:{height:51,flexDirection:'row',alignItems:'center',paddingHorizontal:16,zIndex:8},headerButton:{width:46,height:46,borderRadius:16,backgroundColor:'#FFF',alignItems:'center',justifyContent:'center',elevation:6},modePill:{marginLeft:9,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'rgba(255,255,255,.94)',borderRadius:99,paddingHorizontal:11,paddingVertical:9},modeText:{fontSize:8,fontWeight:'900',letterSpacing:.9,color:'#563270'},roundPill:{marginLeft:'auto',backgroundColor:'#7140C6',borderRadius:14,paddingHorizontal:13,paddingVertical:10},roundText:{fontFamily:'Jua',fontSize:12,color:'#FFF'},
+    gameScreen:{flex:1,width:'100%',height:'100%',overflow:'hidden',paddingTop:48},screenShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(250,247,255,.18)'},gameHeader:{height:51,flexDirection:'row',alignItems:'center',paddingHorizontal:16,zIndex:8},headerButton:{width:46,height:46,borderRadius:16,backgroundColor:'#FFF',alignItems:'center',justifyContent:'center',elevation:6},modePill:{marginLeft:9,flexDirection:'row',alignItems:'center',gap:6,backgroundColor:'rgba(255,255,255,.94)',borderRadius:99,paddingHorizontal:11,paddingVertical:9},modeText:{fontSize:8,fontWeight:'900',letterSpacing:.9,color:'#563270'},roundPill:{marginLeft:'auto',backgroundColor:'#7140C6',borderRadius:14,paddingHorizontal:13,paddingVertical:10},roundText:{fontFamily:'Jua',fontSize:12,color:'#FFF'},
     progressContainer: {
         alignItems: 'flex-end',
     },
@@ -133,10 +133,15 @@ export const stylesQuackman = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0,0,0,0.5)',
+        paddingHorizontal: 18,
+        paddingVertical: 24,
+        overflow: 'hidden',
     },
     modalContent: {
-        width: 300,
-        padding: 20,
+        width: '100%',
+        maxWidth: 340,
+        maxHeight: '86%',
+        padding: 18,
         backgroundColor: 'white',
         borderRadius: 26,
         alignItems: 'center',
@@ -153,6 +158,9 @@ export const stylesQuackman = StyleSheet.create({
     },
     gameOverContainer: {
         flex: 1,
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#F9F5FF', // Light background color for contrast
@@ -233,6 +241,9 @@ export const stylesQuackman = StyleSheet.create({
     },
     loadingContainer: {
         flex: 1,
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#6C3A99', // Lighter purple to match the character color
@@ -259,12 +270,17 @@ export const stylesQuackman = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)', // Dimmed background for the modal
+        paddingHorizontal: 18,
+        paddingVertical: 24,
+        overflow: 'hidden',
     },
     introModalContainer: {
-        width: '85%',
+        width: '100%',
+        maxWidth: 370,
+        maxHeight: '88%',
         backgroundColor: 'white',
         borderRadius: 28,
-        padding: 20,
+        padding: 18,
         alignItems: 'center',
         justifyContent: 'center',
         elevation: 5, // Add shadow for Android
@@ -326,12 +342,10 @@ export const stylesQuackman = StyleSheet.create({
         flex: 1, // Ensure the text content takes up the remaining space
     },
     loadingBackgroundImage: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: width, // Full screen width
-        height: height + 50, // Increase height to stretch further down
-        resizeMode: 'cover', // You can also try 'stretch' if needed
+        ...StyleSheet.absoluteFillObject,
+        width: undefined,
+        height: undefined,
+        resizeMode: 'cover',
     },
     loadingContent: {
         justifyContent: 'center',
@@ -351,7 +365,7 @@ export const stylesQuackman = StyleSheet.create({
         backgroundColor: '#8423D9', // Progress bar color
         borderRadius: 10, // Match the container's radius
     },
-    exitOverlay:{flex:1,backgroundColor:'rgba(37,20,48,.56)',alignItems:'center',justifyContent:'center',padding:24},exitCard:{width:'100%',maxWidth:360,backgroundColor:'#FFF',borderRadius:28,padding:22,alignItems:'center'},exitIcon:{width:62,height:62,borderRadius:21,backgroundColor:'#EEE6FA',alignItems:'center',justifyContent:'center'},exitTitle:{fontFamily:'Jua',fontSize:24,color:'#382044',marginTop:13},exitMessage:{fontSize:11,lineHeight:17,color:'#766A7B',textAlign:'center',marginTop:6,marginBottom:17},continueButton:{width:'100%',height:50,borderRadius:16,backgroundColor:'#7140C6',alignItems:'center',justifyContent:'center'},continueButtonText:{fontFamily:'Jua',fontSize:12,color:'#FFF'},leaveButton:{paddingTop:15,paddingBottom:3},leaveButtonText:{fontFamily:'Jua',fontSize:11,color:'#B04D60'},
+    exitOverlay:{flex:1,backgroundColor:'rgba(37,20,48,.56)',alignItems:'center',justifyContent:'center',paddingHorizontal:18,paddingVertical:24,overflow:'hidden'},exitCard:{width:'100%',maxWidth:360,maxHeight:'86%',backgroundColor:'#FFF',borderRadius:25,paddingHorizontal:20,paddingVertical:18,alignItems:'center'},exitIcon:{width:54,height:54,borderRadius:19,backgroundColor:'#EEE6FA',alignItems:'center',justifyContent:'center'},exitTitle:{fontFamily:'Jua',fontSize:22,color:'#382044',marginTop:10,textAlign:'center'},exitMessage:{fontSize:11,lineHeight:17,color:'#766A7B',textAlign:'center',marginTop:5,marginBottom:14},continueButton:{width:'100%',minHeight:46,borderRadius:15,backgroundColor:'#7140C6',alignItems:'center',justifyContent:'center',paddingVertical:11},continueButtonText:{fontFamily:'Jua',fontSize:12,color:'#FFF'},leaveButton:{paddingTop:12,paddingBottom:2},leaveButtonText:{fontFamily:'Jua',fontSize:11,color:'#B04D60'},
     
     
     

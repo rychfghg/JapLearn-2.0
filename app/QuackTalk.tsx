@@ -1,5 +1,14 @@
 import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Image, ImageBackground, Modal, Pressable, SafeAreaView, Text, View } from 'react-native';
+import {
+  Image,
+  ImageBackground,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -107,7 +116,7 @@ export default function QuackTalk(){
   const leaveFor=(route:'/Exercises'|'/QuackTalkFeedback'|'/QuackTalkConversation'|'/QuackTalkSpeech')=>{stopSumiImmediately();setChoicesVisible(false);router.push(route);};
   const openPractice=(route:'/QuackTalkConversation'|'/QuackTalkSpeech')=>leaveFor(route);
 
-  return <SafeAreaView style={styles.safeArea}><ImageBackground source={require('../assets/img/background/classroom a st2 day.png')} style={styles.background} resizeMode="cover"><View style={styles.sceneShade}/>
+  return <SafeAreaView style={styles.safeArea}><ImageBackground source={require('../assets/quacktalk/quacktalk-practice-room-v1.png')} style={styles.background} imageStyle={styles.backgroundImage} resizeMode="cover"><View style={styles.sceneShade}/>
     <View style={styles.topBar}><Pressable onPress={()=>leaveFor('/Exercises')} style={styles.backButton}><BackIcon width={18} height={18} fill="#47295A"/></Pressable><View style={styles.brand}><Ionicons name="mic-outline" size={16} color="#7552C8"/><View><Text style={styles.brandEyebrow}>SUMI'S SPEAKING ROOM</Text><Text style={styles.brandTitle}>QuackTalk Interview</Text></View></View><Pressable onPress={()=>leaveFor('/QuackTalkFeedback')} style={styles.feedbackButton}><Ionicons name="analytics-outline" size={18} color="#7552C8"/><Text style={styles.feedbackButtonText}>Feedback</Text></Pressable></View>
 
     <View style={styles.interviewStage}><View style={styles.windowGlow}/><View style={styles.coachNameTag}><View style={styles.coachOnline}/><Text style={styles.coachName}>SUMI · COACHING {firstName.toUpperCase()}</Text></View><Image source={sumiSprite} style={styles.sumiInterview} resizeMode="contain" fadeDuration={0}/><View style={styles.deskShadow}/>
@@ -220,6 +229,10 @@ export default function QuackTalk(){
       visible={choicesVisible}
       transparent
       animationType="slide"
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
+      navigationBarTranslucent
+      hardwareAccelerated
       onRequestClose={() => setChoicesVisible(false)}
     >
       <View style={styles.modalShade}>
@@ -228,55 +241,61 @@ export default function QuackTalk(){
           <Pressable onPress={() => setChoicesVisible(false)} style={styles.closeButton}>
             <Ionicons name="close" size={19} color="#7C7182" />
           </Pressable>
-          <View style={styles.choiceHeader}>
-            <View style={styles.choiceAvatar}>
-              <Image source={sumiSmile} style={styles.choiceAvatarImage} resizeMode="contain" />
-            </View>
-            <View>
-              <Text style={styles.choiceEyebrow}>SUMI IS READY</Text>
-              <Text style={styles.choiceHeading}>Choose your practice</Text>
-            </View>
-          </View>
-          <Pressable
-            onPress={() => openPractice('/QuackTalkConversation')}
-            style={styles.primaryChoice}
+          <ScrollView
+            bounces={false}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.choiceSheetContent}
           >
-            <View style={styles.choiceIconPrimary}>
-              <Ionicons name="chatbubbles" size={23} color="#FFF" />
+            <View style={styles.choiceHeader}>
+              <View style={styles.choiceAvatar}>
+                <Image source={sumiSmile} style={styles.choiceAvatarImage} resizeMode="contain" />
+              </View>
+              <View style={styles.choiceHeaderCopy}>
+                <Text style={styles.choiceEyebrow}>SUMI IS READY</Text>
+                <Text style={styles.choiceHeading}>Choose your practice</Text>
+              </View>
             </View>
-            <View style={styles.choiceCopy}>
-              <Text style={styles.primaryChoiceTitle}>Guided conversation with Sumi</Text>
-              <Text style={styles.primaryChoiceText}>
-                Enter Sumi's conversation room. Questions and AI listening are coming soon.
-              </Text>
-            </View>
-            <Ionicons name="arrow-forward" size={20} color="#FFF" />
-          </Pressable>
-          <Pressable
-            onPress={() => openPractice('/QuackTalkSpeech')}
-            style={styles.secondaryChoice}
-          >
-            <View style={styles.choiceIconSecondary}>
-              <Ionicons name="mic" size={23} color="#D84F83" />
-            </View>
-            <View style={styles.choiceCopy}>
-              <Text style={styles.secondaryChoiceTitle}>Open speaking practice</Text>
-              <Text style={styles.secondaryChoiceText}>
-                Test your microphone in Sumi's studio. Guided phrases and feedback are coming soon.
-              </Text>
-            </View>
-            <Ionicons name="arrow-forward" size={20} color="#D84F83" />
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              setChoicesVisible(false);
-              speakGreeting(language);
-            }}
-            style={styles.hearAgain}
-          >
-            <Ionicons name="volume-medium-outline" size={15} color="#7552C8" />
-            <Text style={styles.hearAgainText}>Hear Sumi again</Text>
-          </Pressable>
+            <Pressable
+              onPress={() => openPractice('/QuackTalkConversation')}
+              style={styles.primaryChoice}
+            >
+              <View style={styles.choiceIconPrimary}>
+                <Ionicons name="chatbubbles" size={23} color="#FFF" />
+              </View>
+              <View style={styles.choiceCopy}>
+                <Text style={styles.primaryChoiceTitle}>Guided conversation with Sumi</Text>
+                <Text style={styles.primaryChoiceText}>
+                  Enter Sumi's conversation room. Questions and AI listening are coming soon.
+                </Text>
+              </View>
+              <Ionicons name="arrow-forward" size={20} color="#FFF" />
+            </Pressable>
+            <Pressable
+              onPress={() => openPractice('/QuackTalkSpeech')}
+              style={styles.secondaryChoice}
+            >
+              <View style={styles.choiceIconSecondary}>
+                <Ionicons name="mic" size={23} color="#D84F83" />
+              </View>
+              <View style={styles.choiceCopy}>
+                <Text style={styles.secondaryChoiceTitle}>Open speaking practice</Text>
+                <Text style={styles.secondaryChoiceText}>
+                  Test your microphone in Sumi's studio. Guided phrases and feedback are coming soon.
+                </Text>
+              </View>
+              <Ionicons name="arrow-forward" size={20} color="#D84F83" />
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setChoicesVisible(false);
+                speakGreeting(language);
+              }}
+              style={styles.hearAgain}
+            >
+              <Ionicons name="volume-medium-outline" size={15} color="#7552C8" />
+              <Text style={styles.hearAgainText}>Hear Sumi again</Text>
+            </Pressable>
+          </ScrollView>
         </View>
       </View>
     </Modal>

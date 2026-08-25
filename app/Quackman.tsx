@@ -376,7 +376,16 @@ const Quackman = () => {
     const confirmExit = () => { setExitConfirmVisible(false); handleBackPress(); };
 
     const renderExitModal = () => (
-        <Modal visible={exitConfirmVisible} transparent animationType="fade" onRequestClose={cancelExit}>
+        <Modal
+            visible={exitConfirmVisible}
+            transparent
+            animationType="fade"
+            presentationStyle="overFullScreen"
+            statusBarTranslucent
+            navigationBarTranslucent
+            hardwareAccelerated
+            onRequestClose={cancelExit}
+        >
             <View style={stylesQuackman.exitOverlay}>
                 <View style={stylesQuackman.exitCard}>
                     <View style={stylesQuackman.exitIcon}><Ionicons name="cloud-outline" size={28} color="#7140C6" /></View>
@@ -412,6 +421,10 @@ const Quackman = () => {
             visible={introModalVisible}
             transparent={true}
             animationType="fade"
+            presentationStyle="overFullScreen"
+            statusBarTranslucent
+            navigationBarTranslucent
+            hardwareAccelerated
             onRequestClose={() => setIntroModalVisible(false)}
         >
             <View style={stylesQuackman.introModalBackground}>
@@ -479,7 +492,11 @@ const Quackman = () => {
 
     if (gameOver) {
         return (
-            <ImageBackground source={require('../assets/quackman/quackman-sky-temple.png')} style={stylesQuackman.gameOverContainer}>
+            <ImageBackground
+                source={require('../assets/quackman/quackman-sky-temple.png')}
+                style={stylesQuackman.gameOverContainer}
+                resizeMode="cover"
+            >
                 <View style={stylesQuackman.screenShade} />
                 <Text style={stylesQuackman.gameOverText}>Game Over!</Text>
                 <Text style={stylesQuackman.scoreText}>
@@ -559,6 +576,10 @@ const Quackman = () => {
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
+                presentationStyle="overFullScreen"
+                statusBarTranslucent
+                navigationBarTranslucent
+                hardwareAccelerated
                 onRequestClose={() => setModalVisible(false)}
             >
                 <View style={stylesQuackman.modalContainer}>

@@ -722,6 +722,10 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
           visible={tutorialVisible}
           transparent
           animationType="fade"
+          presentationStyle="overFullScreen"
+          statusBarTranslucent
+          navigationBarTranslucent
+          hardwareAccelerated
           onRequestClose={() => setTutorialVisible(false)}
         >
           <View style={styles.tutorialShade}>

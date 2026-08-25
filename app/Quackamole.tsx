@@ -237,9 +237,135 @@ export default function Quackamole() {
   const openSettings = () => { setPaused(true); setMenuOpen(true); };
   const resumeGame = () => { setMenuOpen(false); setPaused(false); };
 
-  const exitDialog = <Modal visible={exitConfirmVisible} transparent animationType="fade" onRequestClose={continueGame}><View style={styles.exitOverlay}><View style={styles.exitCard}><View style={styles.exitIcon}><Ionicons name="flag-outline" size={28} color="#7B35C8"/></View><Text style={styles.exitTitle}>Leave Quack-a-Mole?</Text><Text style={styles.exitMessage}>Do you want to leave this activity?</Text><Pressable style={styles.continueButton} onPress={continueGame}><Ionicons name="play" size={17} color="#FFF"/><Text style={styles.continueButtonText}>CONTINUE</Text></Pressable><Pressable style={styles.endButton} onPress={exitGame}><Text style={styles.endButtonText}>Exit activity</Text></Pressable></View></View></Modal>;
+  const exitDialog = (
+    <Modal
+      visible={exitConfirmVisible}
+      transparent
+      animationType="fade"
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
+      navigationBarTranslucent
+      hardwareAccelerated
+      onRequestClose={continueGame}
+    >
+      <View style={styles.exitOverlay}>
+        <View style={styles.exitCard}>
+          <View style={styles.exitIcon}>
+            <Ionicons name="flag-outline" size={28} color="#7B35C8" />
+          </View>
+          <Text style={styles.exitTitle}>Leave Quack-a-Mole?</Text>
+          <Text style={styles.exitMessage}>Do you want to leave this activity?</Text>
+          <Pressable style={styles.continueButton} onPress={continueGame}>
+            <Ionicons name="play" size={17} color="#FFF" />
+            <Text style={styles.continueButtonText}>CONTINUE</Text>
+          </Pressable>
+          <Pressable style={styles.endButton} onPress={exitGame}>
+            <Text style={styles.endButtonText}>Exit activity</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
+  );
 
-  const gameMenu = <><Pressable style={styles.confirmBackButton} onPress={confirmExit}><Ionicons name="arrow-back" size={22} color="#432653"/></Pressable><Pressable style={styles.floatingMenuButton} onPress={openSettings}><Ionicons name="ellipsis-horizontal" size={24} color="#432653"/></Pressable><Modal visible={menuOpen} transparent animationType="fade" onRequestClose={resumeGame}><View style={styles.menuOverlay}><View style={styles.menuCard}><Text style={styles.menuKicker}>QUACK-A-MOLE</Text><View style={styles.menuHeading}><Text style={styles.menuTitle}>Game paused</Text><View style={styles.bestBadge}><Ionicons name="trophy" size={17} color="#D59A2A"/><Text style={styles.bestValue}>{highScore}</Text><Text style={styles.bestLabel}>BEST</Text></View></View><Pressable style={styles.menuRow} onPress={()=>setMusicMuted(value=>!value)}><Ionicons name="musical-notes" size={21} color="#6F38B7"/><View style={styles.menuCopy}><Text style={styles.menuRowTitle}>Background music</Text><Text style={styles.menuRowText}>{musicMuted?'Muted':'On during gameplay'}</Text></View><Ionicons name={musicMuted?'volume-mute':'volume-high'} size={22} color="#75657D"/></Pressable><Pressable style={styles.menuRow} onPress={()=>setEffectsMuted(value=>!value)}><Ionicons name="hammer-outline" size={21} color="#6F38B7"/><View style={styles.menuCopy}><Text style={styles.menuRowTitle}>Game sounds</Text><Text style={styles.menuRowText}>{effectsMuted?'Muted':'Whack effects on'}</Text></View><Ionicons name={effectsMuted?'volume-mute':'volume-medium'} size={22} color="#75657D"/></Pressable><Pressable style={styles.menuRow} onPress={startGame}><Ionicons name="refresh" size={21} color="#6F38B7"/><View style={styles.menuCopy}><Text style={styles.menuRowTitle}>Restart round</Text><Text style={styles.menuRowText}>Start again from zero</Text></View></Pressable><Pressable style={styles.resumeButton} onPress={resumeGame}><Ionicons name="play" size={18} color="#FFF"/><Text style={styles.resumeText}>RESUME GAME</Text></Pressable><Pressable style={styles.menuExit} onPress={()=>{setMenuOpen(false);confirmExit();}}><Text style={styles.menuExitText}>Exit to Exercises</Text></Pressable></View></View></Modal><Modal visible={exitConfirmVisible} transparent animationType="fade" onRequestClose={continueGame}><View style={styles.exitOverlay}><View style={styles.exitCard}><View style={styles.exitIcon}><Ionicons name="flag-outline" size={28} color="#7B35C8"/></View><Text style={styles.exitTitle}>Leave Quack-a-Mole?</Text><Text style={styles.exitMessage}>This round is still in progress. Your current score will not be saved if you leave now.</Text><Pressable style={styles.continueButton} onPress={continueGame}><Ionicons name="play" size={17} color="#FFF"/><Text style={styles.continueButtonText}>CONTINUE PLAYING</Text></Pressable><Pressable style={styles.endButton} onPress={exitGame}><Text style={styles.endButtonText}>Leave this round</Text></Pressable></View></View></Modal></>;
+  const gameMenu = (
+    <>
+      <Pressable style={styles.confirmBackButton} onPress={confirmExit}>
+        <Ionicons name="arrow-back" size={22} color="#432653" />
+      </Pressable>
+      <Pressable style={styles.floatingMenuButton} onPress={openSettings}>
+        <Ionicons name="ellipsis-horizontal" size={24} color="#432653" />
+      </Pressable>
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="fade"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
+        navigationBarTranslucent
+        hardwareAccelerated
+        onRequestClose={resumeGame}
+      >
+        <View style={styles.menuOverlay}>
+          <View style={styles.menuCard}>
+            <Text style={styles.menuKicker}>QUACK-A-MOLE</Text>
+            <View style={styles.menuHeading}>
+              <Text style={styles.menuTitle}>Game paused</Text>
+              <View style={styles.bestBadge}>
+                <Ionicons name="trophy" size={17} color="#D59A2A" />
+                <Text style={styles.bestValue}>{highScore}</Text>
+                <Text style={styles.bestLabel}>BEST</Text>
+              </View>
+            </View>
+            <Pressable style={styles.menuRow} onPress={() => setMusicMuted((value) => !value)}>
+              <Ionicons name="musical-notes" size={21} color="#6F38B7" />
+              <View style={styles.menuCopy}>
+                <Text style={styles.menuRowTitle}>Background music</Text>
+                <Text style={styles.menuRowText}>{musicMuted ? 'Muted' : 'On during gameplay'}</Text>
+              </View>
+              <Ionicons name={musicMuted ? 'volume-mute' : 'volume-high'} size={22} color="#75657D" />
+            </Pressable>
+            <Pressable style={styles.menuRow} onPress={() => setEffectsMuted((value) => !value)}>
+              <Ionicons name="hammer-outline" size={21} color="#6F38B7" />
+              <View style={styles.menuCopy}>
+                <Text style={styles.menuRowTitle}>Game sounds</Text>
+                <Text style={styles.menuRowText}>{effectsMuted ? 'Muted' : 'Whack effects on'}</Text>
+              </View>
+              <Ionicons name={effectsMuted ? 'volume-mute' : 'volume-medium'} size={22} color="#75657D" />
+            </Pressable>
+            <Pressable style={styles.menuRow} onPress={startGame}>
+              <Ionicons name="refresh" size={21} color="#6F38B7" />
+              <View style={styles.menuCopy}>
+                <Text style={styles.menuRowTitle}>Restart round</Text>
+                <Text style={styles.menuRowText}>Start again from zero</Text>
+              </View>
+            </Pressable>
+            <Pressable style={styles.resumeButton} onPress={resumeGame}>
+              <Ionicons name="play" size={18} color="#FFF" />
+              <Text style={styles.resumeText}>RESUME GAME</Text>
+            </Pressable>
+            <Pressable
+              style={styles.menuExit}
+              onPress={() => {
+                setMenuOpen(false);
+                confirmExit();
+              }}
+            >
+              <Text style={styles.menuExitText}>Exit to Exercises</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={exitConfirmVisible}
+        transparent
+        animationType="fade"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent
+        navigationBarTranslucent
+        hardwareAccelerated
+        onRequestClose={continueGame}
+      >
+        <View style={styles.exitOverlay}>
+          <View style={styles.exitCard}>
+            <View style={styles.exitIcon}>
+              <Ionicons name="flag-outline" size={28} color="#7B35C8" />
+            </View>
+            <Text style={styles.exitTitle}>Leave Quack-a-Mole?</Text>
+            <Text style={styles.exitMessage}>
+              This round is still in progress. Your current score will not be saved if you leave now.
+            </Text>
+            <Pressable style={styles.continueButton} onPress={continueGame}>
+              <Ionicons name="play" size={17} color="#FFF" />
+              <Text style={styles.continueButtonText}>CONTINUE PLAYING</Text>
+            </Pressable>
+            <Pressable style={styles.endButton} onPress={exitGame}>
+              <Text style={styles.endButtonText}>Leave this round</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
 
   if (phase === 'loading') return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.moleLoadingScreen} resizeMode="cover"><View style={styles.moleLoadingShade}/><View style={styles.moleLoadingContent}><View style={styles.moleLoadingBadge}><Ionicons name="hammer-outline" size={14} color="#6F38B7"/><Text style={styles.moleLoadingBadgeText}>JAPLEARN KANA HUNT</Text></View><Animated.View style={[styles.moleLoadingPortal,{transform:[{scale:pulse}]}]}><View style={styles.moleLoadingHole}/><Mole width={122} height={155}/><Image source={require('../assets/hammer.png')} style={styles.moleLoadingHammer}/></Animated.View><Text style={styles.moleLoadingTitle}>QUACK-A-MOLE</Text><Text style={styles.moleLoadingSubtitle}>Preparing the kana garden...</Text><View style={styles.moleLoadingTrack}><View style={[styles.moleLoadingFill,{width:`${loading}%`}]}/></View><Text style={styles.moleLoadingStatus}>{loading<100?`PREPARING GAME - ${loading}%`:'READY TO PLAY'}</Text></View></ImageBackground>;
 

@@ -6,6 +6,7 @@ export default StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F7F1FA',
+    overflow: 'hidden',
   },
   background: {
     flex: 1,
@@ -364,14 +365,17 @@ export default StyleSheet.create({
   },
   tutorialShade: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 24,
     backgroundColor: 'rgba(40,23,47,0.58)',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   tutorialCard: {
     width: '100%',
     maxWidth: 480,
+    maxHeight: '90%',
     padding: 19,
     borderRadius: 29,
     backgroundColor: '#FFFFFF',
