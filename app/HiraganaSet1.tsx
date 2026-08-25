@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, Pressable, ImageBackground } from 'react-native';
+import { View, Text, Pressable, ImageBackground, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesHiraganaSet1';
@@ -126,7 +126,10 @@ const HiraganaSet1 = () => {
       source={require('../assets/img/LessonJourneyBackground.png')}
       style={styles.background}
     >
-      <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Pressable onPress={handleBackToIntroPress}>
             <View style={styles.backButtonContainer}>
@@ -157,7 +160,7 @@ const HiraganaSet1 = () => {
           onComplete={handleCompletePress}
           message="Congratulations on completing the first set of Hiragana characters!"
         />
-      </View>
+      </ScrollView>
     </ImageBackground>
   );
 };

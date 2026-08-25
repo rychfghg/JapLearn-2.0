@@ -1,9 +1,7 @@
-import { Dimensions, StyleSheet } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-  background: { flex: 1, paddingTop: 44, paddingHorizontal: 20, overflow: 'hidden' },
+  background: { flex: 1, minHeight: 0, paddingTop: 36, paddingHorizontal: 16, overflow: 'hidden' },
   softShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(247,241,250,.12)' },
   lightOrb: { position: 'absolute', top: 130, left: -70, width: 150, height: 150, borderRadius: 75, backgroundColor: 'rgba(229,204,255,.18)' },
   fallingLeaf: { position: 'absolute', top: 190, left: -45, fontSize: 22, opacity: .5 },
@@ -16,11 +14,11 @@ export const styles = StyleSheet.create({
   soundPill: { width: 42, height: 42, borderRadius: 15, backgroundColor: 'rgba(255,255,255,.9)', alignItems: 'center', justifyContent: 'center' },
   storyLayout: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   warningLayout: { paddingTop: 84 },
-  characterImage: { width: width * .72, height: height * .39, resizeMode: 'contain', marginBottom: -7 },
-  warningCharacterImage: { width: width * .55, height: height * .31, marginBottom: 4 },
+  characterImage: { width: '72%', maxWidth: 430, height: '38%', minHeight: 160, resizeMode: 'contain', marginBottom: -7 },
+  warningCharacterImage: { width: '55%', maxWidth: 340, height: '30%', minHeight: 140, marginBottom: 4 },
   warningBadge: { position: 'absolute', top: 92, alignSelf: 'center', flexDirection: 'row', gap: 6, backgroundColor: '#FFF0F2', borderWidth: 1, borderColor: '#F3C7CE', borderRadius: 20, paddingHorizontal: 13, paddingVertical: 7 },
   warningText: { color: '#C94F63', fontFamily: 'Jua', fontSize: 10, letterSpacing: 1.2 },
-  dialogueCard: { width: '100%', backgroundColor: 'rgba(255,253,255,.97)', borderRadius: 27, padding: 20, marginBottom: 22, borderWidth: 1, borderColor: '#E9DBEF', shadowColor: '#25102F', shadowOpacity: .2, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
+  dialogueCard: { width: '100%', maxHeight: '49%', backgroundColor: 'rgba(255,253,255,.97)', borderRadius: 27, padding: 17, marginBottom: 14, borderWidth: 1, borderColor: '#E9DBEF', shadowColor: '#25102F', shadowOpacity: .2, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 8 },
   warningDialogueCard: { paddingHorizontal: 22, paddingTop: 18, paddingBottom: 18, marginBottom: 18 },
   speakerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
   speakerDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#75C93F', marginRight: 7 },

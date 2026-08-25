@@ -1,14 +1,11 @@
-import { StyleSheet, Dimensions } from 'react-native';
-
-const { width, height } = Dimensions.get('window');
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   background: {
     flex: 1,
     width: '100%',
     height: '100%',
-    position: 'absolute', // Ensures the background is absolute and fills the parent
-    resizeMode: 'cover', // Stretches to cover the entire screen while maintaining aspect ratio
+    overflow: 'hidden',
   },
   container: {
     flex: 1,
@@ -22,35 +19,37 @@ export const styles = StyleSheet.create({
     shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
   },
   question: {
-    paddingTop: 72,
-    paddingHorizontal: 48,
-    fontSize: width < 380 ? 23 : 27,
-    lineHeight: width < 380 ? 29 : 34,
-    marginVertical: 20,
+    paddingTop: 62,
+    paddingHorizontal: 36,
+    fontSize: 24,
+    lineHeight: 30,
+    marginVertical: 12,
     textAlign: 'center',
     color: 'white',
     fontFamily: 'Jua',
   },
   choiceContainer: {
     position: 'absolute',
-    bottom: '14%',
-    width: '90%',
-    height: '25%',
+    bottom: '12%',
+    width: '94%',
+    minHeight: 150,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-around',
     alignItems: 'center',
-    padding: 20,
+    padding: 10,
   },
   
   choice: {
-    width: 70, // Set fixed width
-    height: 50, // Set fixed height
+    width: '20%',
+    minWidth: 62,
+    maxWidth: 86,
+    height: 48,
     backgroundColor: '#3b6b3b',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
-    margin: 10,
+    margin: 6,
     position: 'relative', // Allows absolute positioning during animation
   },
   choiceText: {
@@ -65,7 +64,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingHorizontal: 5,
-    marginTop: 120,
+    marginTop: 74,
   },
   characterContainer: {
     alignItems: 'center',
@@ -107,15 +106,15 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     width: 50,
     height: 50,
-    left: width / 2 - 25,
-    top: height / 2 - 100,
+    left: '46%',
+    top: '40%',
     resizeMode: 'contain',
     tintColor: '#ff0000',
   },
   bottomButton: {
     position: 'absolute',
-    bottom: height * 0.03,
-    width: width * 0.2,
+    bottom: 18,
+    minWidth: 112,
     paddingVertical: 15,
     backgroundColor: '#76C043',
     justifyContent: 'center',

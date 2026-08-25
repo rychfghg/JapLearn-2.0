@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, Text, Image, Pressable, ImageBackground } from 'react-native';
+import { View, TouchableOpacity, Text, Image, Pressable, ImageBackground, ScrollView } from 'react-native';
 import { styles } from "../styles/stylesCharacterExercise";
 import BackIcon from '../assets/svg/back-icon.svg';
 import cardBackImage from '../assets/img/card_back.png';
@@ -176,7 +176,11 @@ const CharacterExercise3 = () => {
                 </TouchableOpacity>
                 <ExerciseCompletionBadge email={user?.email} field="hiragana3" />
             </View>
-            <View style={styles.matchGame}>
+            <ScrollView
+                style={styles.matchGame}
+                contentContainerStyle={styles.matchGameContent}
+                showsVerticalScrollIndicator={false}
+            >
                 <ExerciseGameHeader currentRound={currentSetIndex + 1} totalRounds={sets.length} previewing={gameState === 'preview'} />
                 <Text style={styles.matchGameText}>
                     {gameState === 'preview'
@@ -216,7 +220,7 @@ const CharacterExercise3 = () => {
                     })}
                 </View>
                 {message && <ExerciseCompletePanel onDone={handleCompleteExercise} />}
-            </View>
+            </ScrollView>
         </ImageBackground>
     );
 };
