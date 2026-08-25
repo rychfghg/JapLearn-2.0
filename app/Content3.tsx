@@ -109,7 +109,14 @@ export default function Content3() {
     } catch { setPhase('final'); }
   };
 
-  if (phase === 'battle') return <Game3 onGameOver={() => setPhase('final')} />;
+  if (phase === 'battle') {
+    return (
+      <Game3
+        onGameOver={() => setPhase('final')}
+        onExit={() => setPhase('warning')}
+      />
+    );
+  }
 
   const lesson = dialogues[dialogueIndex];
   const warning = postCinematicDialogues[postIndex];
@@ -127,7 +134,7 @@ export default function Content3() {
       <Animated.Text style={[styles.fallingLeaf, { transform: [{ translateX: driftX }, { rotate: '20deg' }] }]}>🍃</Animated.Text>
 
       <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}><Ionicons name="arrow-back" size={23} color="#432653" /></Pressable>
+        <Pressable style={styles.backButton} onPress={() => router.replace('/LearnMenu')}><Ionicons name="arrow-back" size={23} color="#432653" /></Pressable>
         <View style={styles.headerCopy}><Text style={styles.pathLabel}>JAPLEARN · FINAL LESSON</Text><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress * 100}%` }]} /></View></View>
         <View style={styles.soundPill}><Ionicons name="volume-medium" size={18} color="#8424E8" /></View>
       </View>

@@ -7,6 +7,7 @@ import CompletionModal from '../components/CompletionModal';
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import { Audio } from 'expo-av';
 import VoiceIcon from '../assets/svg/voice.svg';
+import useLessonResume from '../hooks/useLessonResume';
 
 const HiraganaSet1 = () => {
   const router = useRouter();
@@ -30,7 +31,7 @@ const HiraganaSet1 = () => {
   { character: 'そ', romaji: 'so', audio: require('../assets/charactersaudio/so.mp3') },
   ];
 
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useLessonResume('hiragana-set-1', user?.email);
   const [isModalVisible, setModalVisible] = useState(false);
 
   const playAudio = async () => {
@@ -118,7 +119,7 @@ const HiraganaSet1 = () => {
   };
 
   const handleBackToIntroPress = () => {
-    router.push('/HiraganaIntro');
+    router.replace('/HiraganaMenu');
   };
 
   return (

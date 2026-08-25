@@ -53,7 +53,7 @@ export default function WordsPractice() {
   return <View style={styles.screen}>
     <View style={styles.ambientTop} /><View style={styles.ambientBottom} />
     <View style={styles.topRow}>
-      <Pressable style={styles.backButton} onPress={() => router.back()}><Ionicons name="arrow-back" size={23} color="#552E68" /></Pressable>
+      <Pressable style={styles.backButton} onPress={() => router.replace('/WordsMenu')}><Ionicons name="arrow-back" size={23} color="#552E68" /></Pressable>
       <View style={styles.headerCopy}><Text style={styles.topEyebrow}>WORDS CHECKPOINT</Text><Text style={styles.topLabel}>Picture Mix Review</Text></View>
       <View style={styles.countPill}><Text style={styles.topCount}>{index + 1} / {mixed.length}</Text></View>
     </View>

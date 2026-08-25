@@ -8,11 +8,12 @@ import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig'; // Import the configuration for your backend API
 import VoiceIcon from '../assets/svg/voice.svg';
 import { Audio } from 'expo-av';
+import useLessonResume from '../hooks/useLessonResume';
 
 const KatakanaSet2 = () => {
   const { user } = useContext(AuthContext); // Get the user object (which includes email)
   const router = useRouter();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useLessonResume('katakana-set-2', user?.email);
   const [isModalVisible, setModalVisible] = useState(false);
 
   const katakanaSet = [
@@ -88,7 +89,7 @@ const KatakanaSet2 = () => {
   };
 
   const handleBackPress = () => {
-    router.push("/KatakanaMenu");
+    router.replace('/KatakanaMenu');
   };
   const handlePreviousPress = () => {
     if (currentIndex > 0) {

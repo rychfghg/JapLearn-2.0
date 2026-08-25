@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
@@ -37,6 +38,13 @@ export default function QuackSituateRecognition() {
   const [lastCorrect, setLastCorrect] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('profileDarkMode')
+      .then((value) => setDarkMode(value === 'true'))
+      .catch(() => setDarkMode(false));
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -88,13 +96,13 @@ export default function QuackSituateRecognition() {
   if (loading) return <View style={styles.centerState}><ActivityIndicator size="large" color="#8423D9" /><Text style={styles.stateTitle}>Preparing Recognition...</Text></View>;
   if (!question) return <View style={styles.centerState}><Ionicons name="cloud-offline-outline" size={38} color="#8423D9" /><Text style={styles.stateTitle}>Missions could not load</Text><Text style={styles.stateText}>{error}</Text><Pressable style={styles.primaryButton} onPress={() => router.back()}><Text style={styles.primaryButtonText}>Return</Text></Pressable></View>;
 
-  return <View style={styles.screen}>
+  return <View style={[styles.screen, darkMode && styles.darkScreen]}>
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <View style={styles.topRow}><Pressable style={styles.backButton} onPress={() => setExitVisible(true)}><BackIcon width={19} height={19} fill="#462A5E" /></Pressable><View style={styles.brandBlock}><Text style={styles.brandEyebrow}>QUICK CHOICE</Text><Text style={styles.brandTitle}>Recognition</Text></View><View style={styles.missionBadge}><Text style={styles.missionLabel}>MISSION</Text><Text style={styles.missionNumber}>{String(index + 1).padStart(2, '0')}</Text></View></View>
-      <View style={styles.statusRow}><View style={[styles.levelPill, question.difficulty === 'HARD' && styles.hardPill]}><Ionicons name={question.difficulty === 'HARD' ? 'flame' : 'leaf'} size={13} color={question.difficulty === 'HARD' ? '#D87D19' : '#65A936'} /><Text style={[styles.levelPillText, question.difficulty === 'HARD' && styles.hardPillText]}>{question.difficulty}</Text></View><Text style={styles.phaseText}>{phaseNumber} / {phaseTotal}</Text><View style={styles.scorePill}><Ionicons name="star" size={14} color="#E29A17" /><Text style={styles.scoreText}>{correctCount * 10}</Text></View></View>
+      <View style={styles.topRow}><Pressable style={[styles.backButton, darkMode && styles.darkCard]} onPress={() => setExitVisible(true)}><BackIcon width={19} height={19} fill={darkMode ? '#F4EAF9' : '#462A5E'} /></Pressable><View style={styles.brandBlock}><Text style={styles.brandEyebrow}>QUICK CHOICE</Text><Text style={[styles.brandTitle, darkMode && styles.darkTitle]}>Recognition</Text></View><View style={styles.missionBadge}><Text style={styles.missionLabel}>MISSION</Text><Text style={styles.missionNumber}>{String(index + 1).padStart(2, '0')}</Text></View></View>
+      <View style={styles.statusRow}><View style={[styles.levelPill, question.difficulty === 'HARD' && styles.hardPill]}><Ionicons name={question.difficulty === 'HARD' ? 'flame' : 'leaf'} size={13} color={question.difficulty === 'HARD' ? '#D87D19' : '#65A936'} /><Text style={[styles.levelPillText, question.difficulty === 'HARD' && styles.hardPillText]}>{question.difficulty}</Text></View><Text style={[styles.phaseText, darkMode && styles.darkMuted]}>{phaseNumber} / {phaseTotal}</Text><View style={[styles.scorePill, darkMode && styles.darkCard]}><Ionicons name="star" size={14} color="#E29A17" /><Text style={[styles.scoreText, darkMode && styles.darkTitle]}>{correctCount * 10}</Text></View></View>
       <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%` }]} /></View>
-      <View style={styles.introCopy}><Text style={styles.introTitle}>Pick the best phrase</Text><Text style={styles.introText}>Read the situation and choose the Japanese expression that feels natural.</Text></View>
-      <View style={styles.sceneCard}>
+      <View style={styles.introCopy}><Text style={[styles.introTitle, darkMode && styles.darkTitle]}>Pick the best phrase</Text><Text style={[styles.introText, darkMode && styles.darkMuted]}>Choose the Japanese expression that fits the situation.</Text></View>
+      <View style={[styles.sceneCard, darkMode && styles.darkCard]}>
         <View style={styles.sceneMedia}>
           <Image source={sceneImage} style={styles.sceneBackdrop} resizeMode="cover" blurRadius={12} />
           <View style={styles.sceneBackdropTint} />
@@ -109,11 +117,11 @@ export default function QuackSituateRecognition() {
             <View style={styles.scenarioMarker}><Ionicons name="chatbubble-ellipses" size={14} color="#65A936" /></View>
             <Text style={styles.scenarioLabel}>WHAT WOULD YOU SAY?</Text>
           </View>
-          <Text style={styles.scenarioText}>{question.scenario}</Text>
+          <Text style={[styles.scenarioText, darkMode && styles.darkTitle]}>{question.scenario}</Text>
         </View>
       </View>
-      <View style={styles.answerHeader}><View><Text style={styles.answerTitle}>Choose your response</Text><Text style={styles.answerSubtitle}>Japanese phrase with reading support</Text></View><Pressable style={styles.hintButton} onPress={() => setHintVisible(true)}><Ionicons name="information-circle-outline" size={20} color="#8423D9" /><Text style={styles.hintButtonText}>Hint</Text></Pressable></View>
-      <View style={styles.choices}>{question.choices.map((choice, choiceIndex) => { const active = selected?.japanese === choice.japanese; return <Pressable key={`${choice.japanese}-${choiceIndex}`} style={[styles.choiceCard, active && styles.choiceCardActive]} onPress={() => setSelected(choice)}><View style={[styles.choiceMarker, active && styles.choiceMarkerActive]}><Text style={[styles.choiceMarkerText, active && styles.choiceMarkerTextActive]}>{String.fromCharCode(65 + choiceIndex)}</Text></View><View style={styles.choiceCopy}><Text style={styles.choiceJapanese}>{choice.japanese}</Text><Text style={styles.choiceRomaji}>{choice.romaji}</Text></View><Ionicons name={active ? 'checkmark-circle' : 'ellipse-outline'} size={23} color={active ? '#8423D9' : '#D7CBDB'} /></Pressable>; })}</View>
+      <View style={styles.answerHeader}><View><Text style={[styles.answerTitle, darkMode && styles.darkTitle]}>Choose your response</Text><Text style={[styles.answerSubtitle, darkMode && styles.darkMuted]}>Japanese with reading support</Text></View><Pressable style={styles.hintButton} onPress={() => setHintVisible(true)}><Ionicons name="information-circle-outline" size={20} color="#8423D9" /><Text style={styles.hintButtonText}>Hint</Text></Pressable></View>
+      <View style={styles.choices}>{question.choices.map((choice, choiceIndex) => { const active = selected?.japanese === choice.japanese; return <Pressable key={`${choice.japanese}-${choiceIndex}`} style={[styles.choiceCard, darkMode && styles.darkCard, active && styles.choiceCardActive, active && darkMode && styles.darkChoiceActive]} onPress={() => setSelected(choice)}><View style={[styles.choiceMarker, active && styles.choiceMarkerActive]}><Text style={[styles.choiceMarkerText, active && styles.choiceMarkerTextActive]}>{String.fromCharCode(65 + choiceIndex)}</Text></View><View style={styles.choiceCopy}><Text style={[styles.choiceJapanese, darkMode && styles.darkTitle]}>{choice.japanese}</Text><Text style={[styles.choiceRomaji, darkMode && styles.darkMuted]}>{choice.romaji}</Text></View><Ionicons name={active ? 'checkmark-circle' : 'ellipse-outline'} size={23} color={active ? '#A95BE8' : darkMode ? '#716578' : '#D7CBDB'} /></Pressable>; })}</View>
       <Pressable disabled={!selected} style={[styles.submitButton, !selected && styles.submitButtonDisabled]} onPress={submit}><Text style={styles.submitText}>LOCK IN ANSWER</Text><Ionicons name="arrow-forward" size={19} color="#FFFFFF" /></Pressable>
     </ScrollView>
 

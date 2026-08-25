@@ -6,13 +6,14 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesWords';
 import expoconfig from '../expoconfig';
 import { AuthContext } from '../context/AuthContext';
+import useLessonResume from '../hooks/useLessonResume';
 
 
 const Words = () => {
   const { user } = useContext(AuthContext);
   const router = useRouter();
   const [processedWords, setProcessedWords] = useState([]);
-  const [currentWordIndex, setCurrentWordIndex] = useState(0); // Current word index
+  const [currentWordIndex, setCurrentWordIndex] = useLessonResume('words-set-1', user?.email);
   const [completionVisible, setCompletionVisible] = useState(false);
   const vocabulary = [
     { word: "わたし", romaji: "watashi", translation: "I, me", image: require('../assets/words_premium/words1-me.png') },
@@ -33,7 +34,7 @@ const Words = () => {
   ];
 
   const handleBackPress = () => {
-    router.back(); // Navigate to the previous screen
+    router.replace('/WordsMenu');
   };
 
   const handleNextPress = () => {
@@ -90,7 +91,7 @@ const Words = () => {
       <View style={styles.ambientLeaf} />
       <View style={styles.container}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()}>
+          <Pressable onPress={handleBackPress}>
             <View style={styles.backButtonContainer}>
               <BackIcon width={22} height={22} fill={'#552E68'} />
             </View>

@@ -1,4 +1,4 @@
-import { View, TouchableOpacity, Text, Image, Pressable, ImageBackground, ScrollView } from 'react-native';
+import { View, TouchableOpacity, Text, Image, Pressable, ImageBackground } from 'react-native';
 import { styles } from "../styles/stylesCharacterExercise";
 import BackIcon from '../assets/svg/back-icon.svg';
 import cardBackImage from '../assets/img/card_back.png';
@@ -9,6 +9,7 @@ import expoconfig from '../expoconfig';
 import ExerciseCompletionBadge from '../components/ExerciseCompletionBadge';
 import ExerciseGameHeader from '../components/ExerciseGameHeader';
 import ExerciseCompletePanel from '../components/ExerciseCompletePanel';
+import useLessonResume from '../hooks/useLessonResume';
 
 // Fisher-Yates shuffle algorithm
 const shuffleArray = (array) => {
@@ -43,7 +44,7 @@ const CharacterExercise3 = () => {
         { romaji: 'n', hiragana: 'ん' }
     ];
 
-    const [currentSetIndex, setCurrentSetIndex] = useState(0);
+    const [currentSetIndex, setCurrentSetIndex] = useLessonResume('character-exercise-3', user?.email);
     const [flippedCard, setFlippedCard] = useState(null);
     const [matchedPairs, setMatchedPairs] = useState([]);
     const [message, setMessage] = useState('');
@@ -121,7 +122,7 @@ const CharacterExercise3 = () => {
     };
 
     const handleBackPress = () => {
-        router.back();
+        router.replace('/HiraganaMenu');
     };
 
     const handleCompleteExercise = async () => {
@@ -176,11 +177,8 @@ const CharacterExercise3 = () => {
                 </TouchableOpacity>
                 <ExerciseCompletionBadge email={user?.email} field="hiragana3" />
             </View>
-            <ScrollView
-                style={styles.matchGame}
-                contentContainerStyle={styles.matchGameContent}
-                showsVerticalScrollIndicator={false}
-            >
+            <View style={styles.matchGame}>
+              <View style={styles.matchGameContent}>
                 <ExerciseGameHeader currentRound={currentSetIndex + 1} totalRounds={sets.length} previewing={gameState === 'preview'} />
                 <Text style={styles.matchGameText}>
                     {gameState === 'preview'
@@ -220,7 +218,8 @@ const CharacterExercise3 = () => {
                     })}
                 </View>
                 {message && <ExerciseCompletePanel onDone={handleCompleteExercise} />}
-            </ScrollView>
+              </View>
+            </View>
         </ImageBackground>
     );
 };

@@ -7,11 +7,12 @@ import styles from '../styles/stylesHiraganaSet1'; // Adjust if styles are separ
 import CompletionModal from '../components/CompletionModal';
 import { AuthContext } from '../context/AuthContext'; // Assuming you have an AuthContext
 import { Audio } from 'expo-av';
+import useLessonResume from '../hooks/useLessonResume';
 
 const HiraganaSet2 = () => {
   const router = useRouter();
   const { user } = useContext(AuthContext); // Get the user object (which includes email)
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useLessonResume('hiragana-set-2', user?.email);
   const [isModalVisible, setModalVisible] = useState(false);
 
   const hiraganaSet = [
@@ -65,7 +66,7 @@ const HiraganaSet2 = () => {
   };
 
   const handleBackToMenuPress = () => {
-    router.push('/HiraganaMenu');
+    router.replace('/HiraganaMenu');
   };
 
   const handleCompletePress = () => {

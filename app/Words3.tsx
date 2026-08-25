@@ -6,6 +6,7 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesWords';
 import expoconfig from '../expoconfig';
 import { AuthContext } from '../context/AuthContext';
+import useLessonResume from '../hooks/useLessonResume';
 
 const vocabulary = [
   { word: 'いえ', romaji: 'ie', translation: 'house', image: require('../assets/words3_image/house.png') },
@@ -28,7 +29,7 @@ const vocabulary = [
 export default function Words3() {
   const { user } = useContext(AuthContext);
   const router = useRouter();
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useLessonResume('words-set-3', user?.email);
   const [completionVisible, setCompletionVisible] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
@@ -53,7 +54,7 @@ export default function Words3() {
   return <ImageBackground style={styles.background}>
     <View style={styles.ambientCircle} /><View style={styles.ambientLeaf} />
     <View style={styles.container}>
-      <View style={styles.header}><Pressable onPress={() => router.back()}><View style={styles.backButtonContainer}><BackIcon width={22} height={22} fill="#552E68" /></View></Pressable><Text style={styles.headerLabel}>EVERYDAY PLACES & OBJECTS</Text><View style={styles.counterPill}><Text style={styles.counterText}>{index + 1} / {vocabulary.length}</Text></View></View>
+      <View style={styles.header}><Pressable onPress={() => router.replace('/WordsMenu')}><View style={styles.backButtonContainer}><BackIcon width={22} height={22} fill="#552E68" /></View></Pressable><Text style={styles.headerLabel}>EVERYDAY PLACES & OBJECTS</Text><View style={styles.counterPill}><Text style={styles.counterText}>{index + 1} / {vocabulary.length}</Text></View></View>
       <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${((index + 1) / vocabulary.length) * 100}%` }]} /></View>
       <View style={styles.contentContainer}><View style={styles.imageStage}><View style={styles.imageAccent} /><View style={styles.imageAccentSmall} /><Image source={current.image} style={styles.image} /></View>
         <View style={styles.wordContent}><Text style={styles.categoryLabel}>Picture dictionary · Set 3</Text><Text style={styles.japanese}>{current.word}</Text><Text style={styles.romaji}>{current.romaji}</Text><Text style={styles.english}>{current.translation}</Text>

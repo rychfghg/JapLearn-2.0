@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, ImageBackground, TouchableOpacity, Dimensions, Modal } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { styles } from '../styles/game3Styles';
 
 const { width, height } = Dimensions.get('window');
@@ -57,8 +56,7 @@ const redBlinkAnimation = {
   1: { opacity: 1 },
 };
 
-const Game3 = ({ onGameOver }) => {
-  const router = useRouter();
+const Game3 = ({ onGameOver, onExit }) => {
   const questions = [
     {
       question: "Which particle makes the sentence possessive?",
@@ -133,7 +131,7 @@ const Game3 = ({ onGameOver }) => {
   const leaveBattle = () => {
     if (curtainTimerRef.current) clearTimeout(curtainTimerRef.current);
     setShowExitConfirm(false);
-    router.back();
+    onExit();
   };
 
   const handleAnswer = (choice) => {
