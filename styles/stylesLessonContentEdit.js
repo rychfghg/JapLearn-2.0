@@ -78,7 +78,7 @@ export const stylesLessonContent = StyleSheet.create ({
     },
     LessonContentText: {
         color: 'white',
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         fontSize: 17,
         marginVertical: 5, // Add vertical spacing between items
     },

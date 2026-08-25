@@ -6,6 +6,7 @@ import CustomButton from '../components/CustomButton';
 import ConfirmationModal from '../components/ConfirmationModal';
 import { styles } from '../styles/stylesModal';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import expoconfig from '../expoconfig';
 
 const QuackmanLevels = () => {
     const [addModalVisible, setAddModalVisible] = useState(false);
@@ -28,7 +29,7 @@ const QuackmanLevels = () => {
 
     const fetchLevels = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/api/quackmanlevels/getLevels/${classCode}`);
+            const response = await fetch(`${expoconfig.API_URL}/api/quackmanlevels/getLevels/${classCode}`);
             if (response.ok) {
                 const data = await response.json();
                 console.log(data);
@@ -62,7 +63,7 @@ const QuackmanLevels = () => {
 
     const handleAddLevel = async () => {
         try {
-            const response = await fetch('http://localhost:8080/api/quackmanlevels/addLevel', {
+            const response = await fetch(`${expoconfig.API_URL}/api/quackmanlevels/addLevel`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -94,7 +95,7 @@ const QuackmanLevels = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:8080/api/quackmanlevels/deleteLevel/${selectedLevelID}`, {
+            const response = await fetch(`${expoconfig.API_URL}/api/quackmanlevels/deleteLevel/${selectedLevelID}`, {
                 method: 'DELETE',
             });
 
@@ -122,7 +123,7 @@ const QuackmanLevels = () => {
         if (!selectedLevelID) return;
 
         try {
-            const response = await fetch(`http://localhost:8080/api/quackmanlevels/updateLevel/${selectedLevelID}`, {
+            const response = await fetch(`${expoconfig.API_URL}/api/quackmanlevels/updateLevel/${selectedLevelID}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

@@ -22,7 +22,7 @@ export const stylesLevels = StyleSheet.create ({
         padding: 20,
     },
     titleText: {
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         fontSize: 20,
     },
     buttonContainer: {
@@ -60,7 +60,7 @@ export const stylesLevels = StyleSheet.create ({
         
     },
     levelText: {
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         fontSize: 16,
         color: 'white',
     },

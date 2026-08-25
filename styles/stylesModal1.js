@@ -37,7 +37,7 @@ export const styles1 = StyleSheet.create({
     text: {
         marginBottom: 20,
         fontSize: 16,
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         textAlign: 'center',
     },
     closeButtonContainer: {
@@ -67,7 +67,7 @@ export const styles1 = StyleSheet.create({
     closeButtonText: {
         fontSize: 20,
         color: 'grey',
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         textAlign: 'center'
     },
     stack: {
@@ -100,7 +100,7 @@ export const styles1 = StyleSheet.create({
     },
     buttonText: {
         color: 'white',
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         fontSize: 15,
         textAlign: 'center'
     },
@@ -109,7 +109,7 @@ export const styles1 = StyleSheet.create({
     },
     contentText: {
         fontSize: 16,
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         color: 'white',
     },
     selected: {
@@ -139,7 +139,7 @@ export const styles1 = StyleSheet.create({
     },
     lessonButtonText: {
         fontSize: 14,
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         textAlign: 'center',
     },
 });

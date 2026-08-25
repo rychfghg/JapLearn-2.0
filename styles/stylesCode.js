@@ -22,7 +22,7 @@ export const stylesCode = StyleSheet.create({
         padding: 20,
     },
     titleText: {
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         fontSize: 20,
     },
     upperButtonContainer: {

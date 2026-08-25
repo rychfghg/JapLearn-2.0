@@ -22,7 +22,7 @@ export const stylesHost = StyleSheet.create({
         padding: 20,
     },
     titleText: {
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         fontSize: 20,
     },
     buttonContainer: {
@@ -90,7 +90,7 @@ export const stylesHost = StyleSheet.create({
         marginBottom: 15,
     },
     characterText: {
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         textAlign: 'center',
         fontSize: 20,
         color: '#333333',
@@ -102,7 +102,7 @@ export const stylesHost = StyleSheet.create({
         backgroundColor: '#C1FF8B',
     },
     contentText: {
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         fontSize: 20,
         color: 'white',
     },

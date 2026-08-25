@@ -36,7 +36,7 @@ export const stylesScore = StyleSheet.create({
     categoryButtonText: {
         textAlign: 'center',
         fontSize: 10,
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
     },
     scoreContainer: {
         flex: 1,
@@ -59,10 +59,10 @@ export const stylesScore = StyleSheet.create({
     },
     scoreTitleText: {
         color: '#789C59',
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
     },
     scoreText: {
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         color: 'white',
     },
     container: {

@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
     text: {
         marginBottom: 20,
         fontSize: 16,
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         textAlign: 'center',
     },
     closeButtonContainer: {
@@ -65,7 +65,7 @@ export const styles = StyleSheet.create({
     closeButtonText: {
         fontSize: 20,
         color: 'grey',
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         textAlign: 'center'
     },
     stack: {
@@ -109,13 +109,13 @@ export const styles = StyleSheet.create({
     },
     playButtonText: {
         color: 'white',
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         fontSize: 15, // Slightly increased font size
         textAlign: 'center'
     },
     buttonText: {
         color: 'white',
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         fontSize: 15,
         textAlign: 'center'
     },
@@ -124,7 +124,7 @@ export const styles = StyleSheet.create({
     },
     contentText: {
         fontSize: 16,
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         color: 'white',
     },
     selected: {

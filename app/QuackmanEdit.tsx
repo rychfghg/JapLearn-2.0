@@ -5,6 +5,7 @@ import { styles } from '../styles/stylesModal';
 import BackIcon from '../assets/svg/back-icon.svg';
 import CustomButton from '../components/CustomButton';
 import {useRouter, useLocalSearchParams } from 'expo-router';
+import expoconfig from '../expoconfig';
  
 const QuackmanEdit = () => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -27,7 +28,7 @@ const QuackmanEdit = () => {
  
     const fetchContent = async () => {
         try {
-            const response = await fetch(`http://localhost:8080/api/quackmancontent/getContentByLevelId/${levelId}`);
+            const response = await fetch(`${expoconfig.API_URL}/api/quackmancontent/getContentByLevelId/${levelId}`);
             const responseText = await response.text();
  
             if (response.ok) {
@@ -56,7 +57,7 @@ const QuackmanEdit = () => {
                 levelId: levelId
             };
    
-            const response = await fetch(`http://localhost:8080/api/quackmancontent/addContent`, {
+            const response = await fetch(`${expoconfig.API_URL}/api/quackmancontent/addContent`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -83,7 +84,7 @@ const QuackmanEdit = () => {
             const encodedWord = encodeURIComponent(word);
             const encodedHint = encodeURIComponent(hint);
             const encodedLevelId = encodeURIComponent(levelId);
-            const response = await fetch(`http://localhost:8080/api/quackmancontent/addContentToLevel?levelId=${encodedLevelId}&word=${encodedWord}&hint=${encodedHint}`, {
+            const response = await fetch(`${expoconfig.API_URL}/api/quackmancontent/addContentToLevel?levelId=${encodedLevelId}&word=${encodedWord}&hint=${encodedHint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -123,7 +124,7 @@ const QuackmanEdit = () => {
             console.log('Updated content:', updatedContent);
    
             // Send the update request to the backend
-            const response = await fetch(`http://localhost:8080/api/quackmancontent/updateContent/${selectedContentId}`, {
+            const response = await fetch(`${expoconfig.API_URL}/api/quackmancontent/updateContent/${selectedContentId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -160,7 +161,7 @@ const QuackmanEdit = () => {
             const wordToRemove = content[0].word[selectedWordIndex];
             const hintToRemove = content[0].hint[selectedWordIndex];
            
-            const response = await fetch(`http://localhost:8080/api/quackmancontent/deleteContent/${selectedContentId}`, {
+            const response = await fetch(`${expoconfig.API_URL}/api/quackmancontent/deleteContent/${selectedContentId}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -393,4 +394,3 @@ const QuackmanEdit = () => {
 };
  
 export default QuackmanEdit;
- 

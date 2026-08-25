@@ -2,10 +2,10 @@
   "expo": {
     "name": "JapLearn",
     "slug": "japlearn",
-    "scheme": "your-app-scheme",
+    "scheme": "japlearn",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/APPLOGO.png",
+    "icon": "./assets/APPLOGO_SQUARE.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/APPLOGO.png",
@@ -16,8 +16,20 @@
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "RECORD_AUDIO",
+        "MODIFY_AUDIO_SETTINGS",
+        "VIBRATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/APPLOGO.png",
+        "foregroundImage": "./assets/APPLOGO_SQUARE.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.japlearn.cit"

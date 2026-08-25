@@ -64,7 +64,7 @@ export const stylesLessonPage = StyleSheet.create({
     },
     pageContentText: {
         color: 'white',
-        fontFamily: 'jua',
+        fontFamily: 'Jua',
         fontSize: 17,
         marginRight: 20, // Add spacing between text and the button
     },
