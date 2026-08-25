@@ -2,7 +2,8 @@ import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: '#FCFAFF' },
-    container: { flex: 1, backgroundColor: '#FCFAFF' },
+    container: { flex: 1, minHeight: 0, backgroundColor: '#FCFAFF', overflow: 'hidden' },
+    scrollView: { flex: 1 },
     scrollContent: { paddingBottom: 112 },
     pressed: { opacity: 0.82 },
     header: { minHeight: 410, paddingHorizontal: 24, paddingBottom: 22, backgroundColor: '#FBF8FF', overflow: 'hidden' },

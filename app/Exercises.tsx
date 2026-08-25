@@ -86,7 +86,7 @@ const Exercises = () => {
   return (
     <SafeAreaView style={[styles.safeArea, darkMode && styles.darkPage]}>
       <View style={[styles.container, darkMode && styles.darkPage]}>
-        <ScrollView key={refreshKey} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.scrollView} key={refreshKey} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={[styles.header, darkMode && styles.darkHeader]}>
             <View style={styles.heroCircle} />
             <View style={styles.heroCloudOne} />

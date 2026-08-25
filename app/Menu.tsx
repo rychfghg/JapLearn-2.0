@@ -141,7 +141,7 @@ const Menu = () => {
         <SafeAreaView style={[styles.safeArea, darkMode && styles.darkPage]}>
             <StatusBar barStyle="light-content" backgroundColor={darkMode ? '#17101E' : '#8423D9'} />
                 <View style={[styles.container, darkMode && styles.darkPage]}>
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+                    <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
                         <View style={[styles.header, darkMode && styles.darkHeader, isCompact && styles.headerCompact, { paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) + 16 : 30 }]}>
                             <View style={styles.heroCircle} />
                             <View style={styles.cloudOne} />

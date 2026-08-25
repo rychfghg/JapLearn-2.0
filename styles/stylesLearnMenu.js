@@ -4,9 +4,11 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#FCFAFF' },
   container: {
       flex: 1,
+      minHeight: 0,
       backgroundColor: '#FCFAFF',
       overflow: 'hidden',
   },
+  scrollView: { flex: 1 },
   background: {
       flex: 1,
       resizeMode: 'cover',

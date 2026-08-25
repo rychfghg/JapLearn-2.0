@@ -194,7 +194,7 @@ const Login = () => {
                 >
                 <View style={styles.imageContainer}>
                     <View style={styles.mascotWrap}>
-                        <Logo width={150} height={150} />
+                        <Logo width={132} height={132} />
                     </View>
                     <Text style={styles.titleText}>JAPLEARN 2.0</Text>
                     <Text style={styles.subtitleText}>Learn Japanese, one step at a time.</Text>

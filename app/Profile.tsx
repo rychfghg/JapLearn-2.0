@@ -214,7 +214,7 @@ const Profile = () => {
   return (
     <SafeAreaView style={[styles.container, darkMode && styles.darkContainer]}>
       <StatusBar barStyle="light-content" backgroundColor={darkMode ? "#21162B" : "#8423D9"} />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.hero}>
           <View style={styles.heroCircleOne} />
           <View style={styles.heroCircleTwo} />

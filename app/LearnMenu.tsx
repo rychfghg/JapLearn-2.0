@@ -237,7 +237,7 @@ const LearnMenu = () => {
   return (
     <SafeAreaView style={[styles.safeArea, darkMode && styles.darkPage]}>
       <View style={[styles.container, darkMode && styles.darkPage]}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={[styles.headerShell, darkMode && styles.darkPage]}>
             <View style={[styles.header, darkMode && styles.darkHeader]}>
               <View style={styles.heroCircle} />

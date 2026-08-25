@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  mascotWrap: { width: 150, height: 150, alignItems: 'center', justifyContent: 'center' },
+  mascotWrap: { width: 132, height: 132, alignItems: 'center', justifyContent: 'center' },
   subtitleText: { fontSize: 14, color: '#777076', marginTop: 5, textAlign: 'center' },
   formCard: {
     backgroundColor: '#FFFFFF', borderRadius: 24, padding: 20,

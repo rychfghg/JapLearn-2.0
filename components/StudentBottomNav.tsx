@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Tab = 'home' | 'learn' | 'talk' | 'play' | 'profile';
 
@@ -15,9 +16,11 @@ const items: { key: Tab; label: string; icon: any; activeIcon: any; route: any }
 
 export default function StudentBottomNav({ active }: { active?: Tab }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const bottomOffset = Math.max(insets.bottom, 8);
 
   return (
-    <View style={styles.nav}>
+    <View style={[styles.nav, { bottom: bottomOffset }]}>
       {items.map((item) => {
         const selected = item.key === active;
         const isTalk = item.key === 'talk';
@@ -36,7 +39,7 @@ export default function StudentBottomNav({ active }: { active?: Tab }) {
 
 const styles = StyleSheet.create({
   nav: {
-    position: 'absolute', left: 14, right: 14, bottom: 12, height: 76,
+    position: 'absolute', left: 14, right: 14, height: 76,
     backgroundColor: '#FFFFFF', borderRadius: 24, flexDirection: 'row',
     alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 8,
     borderWidth: 1, borderColor: '#EEE7F1', zIndex: 50,

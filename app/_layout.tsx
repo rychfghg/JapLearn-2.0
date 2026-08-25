@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Font from 'expo-font';
-import { View, StyleSheet, ActivityIndicator, Image } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Image, Platform } from 'react-native';
 import { AuthContext, AuthProvider } from '../context/AuthContext';
 import { ClassCodeProvider } from '../context/ClassCodeContext';
 import { LessonProgressProvider, useLessonProgress } from '../context/LessonProgressContext';
@@ -57,6 +57,16 @@ const defaultRouteByRole: Record<string, string> = {
   teacher: '/TeacherDashboard',
 };
 
+const publicRoutes = [
+  '',
+  'Login',
+  'Signup',
+  'ResetPassword',
+  'ConfirmEmail',
+  'PrivacyPolicyPage',
+  'TermsOfServicePage',
+];
+
 // const Drawer = createDrawerNavigator();
 
 // function CustomDrawerContent(props) {
@@ -104,6 +114,32 @@ const { user, setUser, authLoading } = useContext(AuthContext);
   }, []);
 
   useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+
+    const html = document.documentElement;
+    const body = document.body;
+    const previousHtmlOverflow = html.style.overflow;
+    const previousHtmlHeight = html.style.height;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyHeight = body.style.height;
+    const previousBodyOverscroll = body.style.overscrollBehavior;
+
+    html.style.height = '100%';
+    html.style.overflow = 'hidden';
+    body.style.height = '100%';
+    body.style.overflow = 'hidden';
+    body.style.overscrollBehavior = 'none';
+
+    return () => {
+      html.style.overflow = previousHtmlOverflow;
+      html.style.height = previousHtmlHeight;
+      body.style.overflow = previousBodyOverflow;
+      body.style.height = previousBodyHeight;
+      body.style.overscrollBehavior = previousBodyOverscroll;
+    };
+  }, []);
+
+  useEffect(() => {
   if (authLoading || !isMounted || !fontLoaded) return;
 
   const currentSegment = segments.length > 0 ? segments[0] : '';
@@ -112,6 +148,7 @@ const { user, setUser, authLoading } = useContext(AuthContext);
 
   if (
     !user &&
+    !publicRoutes.includes(currentSegment) &&
     (
       routeAccessConfig.student.includes(currentSegment) ||
       routeAccessConfig.teacher.includes(currentSegment)
@@ -121,7 +158,7 @@ const { user, setUser, authLoading } = useContext(AuthContext);
     return;
   }
 
-  if (user && currentSegment) {
+  if (user && currentSegment && !publicRoutes.includes(currentSegment)) {
     const normalizedRole = String(user.role || '').toLowerCase();
     const allowedRoutes = routeAccessConfig[normalizedRole] || [];
     const defaultRoute = defaultRouteByRole[normalizedRole] || '/Login';
@@ -212,6 +249,7 @@ const { user, setUser, authLoading } = useContext(AuthContext);
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    overflow: 'hidden',
   },
   assetWarmup: {
     position: 'absolute',

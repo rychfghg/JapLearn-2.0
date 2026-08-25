@@ -1,7 +1,8 @@
 import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#FBF9FD' },
+    container: { flex: 1, minHeight: 0, backgroundColor: '#FBF9FD', overflow: 'hidden' },
+    scrollView: { flex: 1 },
     darkContainer: { backgroundColor: '#17111D' },
     scrollContent: { paddingBottom: 112 },
     hero: {
