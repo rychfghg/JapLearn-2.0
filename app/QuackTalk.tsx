@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { Asset } from 'expo-asset';
+import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackTalk';
 import StudentBottomNav from '../components/StudentBottomNav';
@@ -55,8 +56,17 @@ export default function QuackTalk(){
     setLanguage(selectedLanguage);
     setSpeaking(true);
     try{
-      await Audio.setAudioModeAsync({playsInSilentModeIOS:true,shouldDuckAndroid:true});
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
       const source=selectedLanguage==='ja'?require('../assets/audio/sumi-welcome-ja.mp3'):require('../assets/audio/sumi-welcome-en.mp3');
+      await Asset.loadAsync(source);
       const {sound}=await Audio.Sound.createAsync(
         source,
         {

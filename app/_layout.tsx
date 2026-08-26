@@ -3,20 +3,26 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Font from 'expo-font';
 import { View, StyleSheet, ActivityIndicator, Image, Platform } from 'react-native';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { AuthContext, AuthProvider } from '../context/AuthContext';
 import { ClassCodeProvider } from '../context/ClassCodeContext';
 import { LessonProgressProvider, useLessonProgress } from '../context/LessonProgressContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { preloadExerciseCovers, preloadQuackamoleAssets } from '../utils/gameAssetPreloader';
+import { preloadExerciseCovers, preloadGameAssets, preloadQuackamoleAssets } from '../utils/gameAssetPreloader';
 // import { createDrawerNavigator, DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
 
 
 const getFonts = async () => {
   try {
-    await Font.loadAsync({ 'Jua': require('../assets/fonts/Jua.ttf') });
-    console.log('Jua font loaded successfully');
+    await Font.loadAsync({
+      Jua: require('../assets/fonts/Jua.ttf'),
+      ...Ionicons.font,
+      ...FontAwesome.font,
+    });
+    console.log('JapLearn fonts and icon glyphs loaded successfully');
   } catch (error) {
-    console.error('Error loading Jua font:', error);
+    console.error('Error loading JapLearn fonts or icon glyphs:', error);
+    throw error;
   }
 };
 
@@ -94,6 +100,7 @@ const { user, setUser, authLoading } = useContext(AuthContext);
         // Cache original artwork in the background. Never block app startup or
         // navigation while large game images are still downloading.
         preloadExerciseCovers();
+        preloadGameAssets();
         await Promise.all([getFonts(), checkUserAuth()]);
       } catch (error) {
         console.error('Error loading resources', error);

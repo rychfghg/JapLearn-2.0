@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ImageBackground, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { stylesQuackman } from '../styles/stylesQuackman';
@@ -8,6 +8,7 @@ import CustomButton from '../components/CustomButton';
 import expoconfig from '../expoconfig';
 import { router } from 'expo-router';
 import { Audio } from 'expo-av';
+import { loadBundledSound } from '../utils/nativeAudio';
 
 const allRomaji = [
     'a', 'i', 'u', 'e', 'o', 'ka', 'ki', 'ku', 'ke', 'ko', 'sa', 'shi', 'su', 'se', 'so', 'ta', 'chi', 'tsu', 'te', 'to',
@@ -78,16 +79,16 @@ const Quackman = () => {
 
     useEffect(() => {
         const loadSounds = async () => {
-            const { sound: quackmanSound } = await Audio.Sound.createAsync(
+            const { sound: quackmanSound } = await loadBundledSound(
                 require('../assets/audio/sfx/quackmanselect.mp3')
             );
-            const { sound: correctSfx } = await Audio.Sound.createAsync(
+            const { sound: correctSfx } = await loadBundledSound(
                 require('../assets/audio/sfx/correct_sfx.mp3')
             );
-            const { sound: incorrectSfx } = await Audio.Sound.createAsync(
+            const { sound: incorrectSfx } = await loadBundledSound(
                 require('../assets/audio/sfx/incorrect_sfx.mp3')
             );
-            const { sound: angelSfx } = await Audio.Sound.createAsync(
+            const { sound: angelSfx } = await loadBundledSound(
                 require('../assets/audio/sfx/incorrect.mp3'),
                 { volume: 0.48 }
             );
@@ -99,7 +100,7 @@ const Quackman = () => {
         };
 
         const loadBackgroundMusic = async () => {
-            const { sound: backgroundMusic } = await Audio.Sound.createAsync(
+            const { sound: backgroundMusic } = await loadBundledSound(
                 require('../assets/audio/sfx/quackmanbg.mp3'),
                 { isLooping: true } // Loop the background music
             );
@@ -120,7 +121,7 @@ const Quackman = () => {
     }, []);
 
     const playSound = async () => {
-        const { sound } = await Audio.Sound.createAsync(
+        const { sound } = await loadBundledSound(
             require('../assets/audio/sfx/quackmanselect.mp3')
         );
         setSound(sound);
@@ -613,5 +614,6 @@ const Quackman = () => {
 };
 
 export default Quackman;
+
 
 

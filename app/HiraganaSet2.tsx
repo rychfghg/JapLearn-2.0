@@ -7,6 +7,7 @@ import styles from '../styles/stylesHiraganaSet1'; // Adjust if styles are separ
 import CompletionModal from '../components/CompletionModal';
 import { AuthContext } from '../context/AuthContext'; // Assuming you have an AuthContext
 import { Audio } from 'expo-av';
+import { loadBundledSound } from '../utils/nativeAudio';
 import useLessonResume from '../hooks/useLessonResume';
 
 const HiraganaSet2 = () => {
@@ -35,10 +36,8 @@ const HiraganaSet2 = () => {
 
   const playAudio = async () => {
     const { audio } = hiraganaSet[currentIndex];
-    const sound = new Audio.Sound();
-
     try {
-      await sound.loadAsync(audio);
+      const { sound } = await loadBundledSound(audio);
       await sound.setVolumeAsync(0.4); // Set volume to 40%
       await sound.playAsync();
       sound.setOnPlaybackStatusUpdate((status) => {
@@ -124,3 +123,4 @@ const HiraganaSet2 = () => {
 };
 
 export default HiraganaSet2;
+

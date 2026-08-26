@@ -7,6 +7,7 @@ import CompletionModal from '../components/CompletionModal';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig'; // Import the configuration for your backend API
 import { Audio } from 'expo-av';
+import { loadBundledSound } from '../utils/nativeAudio';
 import VoiceIcon from '../assets/svg/voice.svg';
 import useLessonResume from '../hooks/useLessonResume';
 
@@ -37,10 +38,8 @@ const KatakanaSet3 = () => {
 
   const playAudio = async () => {
     const { audio } = katakanaSet[currentIndex];
-    const sound = new Audio.Sound();
-
     try {
-      await sound.loadAsync(audio);
+      const { sound } = await loadBundledSound(audio);
       await sound.setVolumeAsync(0.4); // Set volume to 40%
       await sound.playAsync();
       sound.setOnPlaybackStatusUpdate((status) => {
@@ -149,3 +148,4 @@ const KatakanaSet3 = () => {
 };
 
 export default KatakanaSet3;
+

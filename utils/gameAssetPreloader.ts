@@ -35,6 +35,60 @@ const otherGameAssets: ImageSourcePropType[] = [
   require('../assets/quacksituate/cards/politeness-mission.png'),
   require('../assets/Angel.png'),
   require('../assets/Idle_TrapDoor.png'),
+  require('../assets/quacktalk/quacktalk-practice-room-v1.png'),
+  require('../assets/quacktalk/talk-with-sumi-lounge-v1.png'),
+  require('../assets/quacktalk/guided-phrase-studio-v1.png'),
+  require('../assets/img/Sumi_PoseB_WinterUni_Smile.png'),
+  require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png'),
+  require('../assets/img/Sumi_PoseB_WinterUni_Open.png'),
+  require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Open.png'),
+];
+
+const bundledAudioAssets = [
+  require('../assets/audio/sumi-welcome-ja.mp3'),
+  require('../assets/audio/sumi-welcome-en.mp3'),
+  require('../assets/audio/sumi-conversation-ja.mp3'),
+  require('../assets/audio/sumi-conversation-en.mp3'),
+  require('../assets/audio/sumi-guided-phrase-ja.mp3'),
+  require('../assets/audio/sumi-guided-phrase-en.mp3'),
+  require('../assets/audio/sfx/quiz.mp3'),
+  require('../assets/audio/sfx/quackmanbg.mp3'),
+  require('../assets/audio/sfx/quackmanselect.mp3'),
+  require('../assets/audio/sfx/whack.mp3'),
+  require('../assets/audio/sfx/correct.mp3'),
+  require('../assets/audio/sfx/incorrect.mp3'),
+  require('../assets/audio/sfx/correct_sfx.mp3'),
+  require('../assets/audio/sfx/incorrect_sfx.mp3'),
+  require('../assets/audio/politeness/npc-01.mp3'),
+  require('../assets/audio/politeness/npc-02.mp3'),
+  require('../assets/audio/politeness/npc-03.mp3'),
+  require('../assets/audio/politeness/npc-04.mp3'),
+  require('../assets/audio/politeness/npc-05.mp3'),
+  require('../assets/audio/politeness/npc-06.mp3'),
+  require('../assets/audio/politeness/npc-07.mp3'),
+  require('../assets/audio/politeness/npc-08.mp3'),
+  require('../assets/audio/politeness/npc-09.mp3'),
+  require('../assets/audio/politeness/npc-10.mp3'),
+  require('../assets/audio/politeness/npc-11.mp3'),
+  require('../assets/audio/politeness/npc-12.mp3'),
+  require('../assets/audio/politeness/npc-13.mp3'),
+  require('../assets/audio/politeness/npc-14.mp3'),
+  require('../assets/audio/politeness/npc-15.mp3'),
+  require('../assets/audio/politeness/npc-16.mp3'),
+  require('../assets/audio/politeness/npc-17.mp3'),
+  require('../assets/audio/politeness/npc-18.mp3'),
+  require('../assets/audio/politeness/npc-19.mp3'),
+  require('../assets/audio/politeness/npc-20.mp3'),
+  require('../assets/audio/politeness/npc-21.mp3'),
+  require('../assets/audio/politeness/npc-22.mp3'),
+  require('../assets/audio/politeness/npc-23.mp3'),
+  require('../assets/audio/politeness/npc-24.mp3'),
+  require('../assets/audio/politeness/npc-25.mp3'),
+  require('../assets/audio/politeness/npc-26.mp3'),
+  require('../assets/audio/politeness/npc-27.mp3'),
+  require('../assets/audio/politeness/npc-28.mp3'),
+  require('../assets/audio/politeness/npc-29.mp3'),
+  require('../assets/audio/politeness/npc-30.mp3'),
 ];
 
 const preloadImages = async (sources: ImageSourcePropType[]) => {
@@ -49,6 +103,11 @@ const preloadImages = async (sources: ImageSourcePropType[]) => {
   ]);
 };
 
+
+const preloadAudio = async () => {
+  await Asset.loadAsync(bundledAudioAssets);
+};
+
 let exerciseCoverPromise: Promise<void> | null = null;
 let quackamoleAssetPromise: Promise<void> | null = null;
 let gameAssetPromise: Promise<void> | null = null;
@@ -61,7 +120,11 @@ export const preloadExerciseCovers = () => {
 export const preloadGameAssets = () => {
   // Give Quack-a-Mole priority so its loading scene, tutorial steps, and
   // animated moles are ready before the heavier backgrounds of other games.
-  gameAssetPromise ??= preloadQuackamoleAssets().then(() => preloadImages(otherGameAssets));
+  gameAssetPromise ??= Promise.all([
+    preloadQuackamoleAssets(),
+    preloadImages(otherGameAssets),
+    preloadAudio(),
+  ]).then(() => undefined);
   return gameAssetPromise;
 };
 
@@ -69,3 +132,4 @@ export const preloadQuackamoleAssets = () => {
   quackamoleAssetPromise ??= preloadImages(quackamoleAssets);
   return quackamoleAssetPromise;
 };
+

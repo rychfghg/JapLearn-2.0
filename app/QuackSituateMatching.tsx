@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import { loadBundledSound } from '../utils/nativeAudio';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Image, ImageBackground, Modal, PanResponder, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
@@ -123,9 +124,9 @@ export default function QuackSituateMatching() {
           setScenes(shuffle(current));
         }
         const loaded = await Promise.all([
-          Audio.Sound.createAsync(require('../assets/audio/sfx/quiz.mp3'), { isLooping: true, volume: 0.13, shouldPlay: true }),
-          Audio.Sound.createAsync(require('../assets/audio/sfx/correct_sfx.mp3')),
-          Audio.Sound.createAsync(require('../assets/audio/sfx/incorrect_sfx.mp3')),
+          loadBundledSound(require('../assets/audio/sfx/quiz.mp3'), { isLooping: true, volume: 0.13, shouldPlay: true }),
+          loadBundledSound(require('../assets/audio/sfx/correct_sfx.mp3')),
+          loadBundledSound(require('../assets/audio/sfx/incorrect_sfx.mp3')),
         ]);
         music.current = loaded[0].sound;
         correctSound.current = loaded[1].sound;
@@ -463,3 +464,4 @@ const styles = StyleSheet.create({
   modalSecondary: { width: '100%', padding: 14, alignItems: 'center', marginTop: 4 },
   modalSecondaryText: { fontFamily: 'Jua', fontSize: 14, color: '#D65373' },
 });
+

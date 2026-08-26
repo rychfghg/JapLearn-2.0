@@ -1,7 +1,8 @@
-﻿import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Image, ImageBackground, Modal, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import { loadBundledSound } from '../utils/nativeAudio';
 import { useRouter } from 'expo-router';
 // Use the bundled PNG on every platform. The SVG component does not render
 // reliably in mobile Safari, which left only the romaji labels above empty holes.
@@ -117,7 +118,7 @@ export default function Quackamole() {
     const controlMusic = async () => {
       try {
         if (!musicRef.current) {
-          const created = await Audio.Sound.createAsync(require('../assets/audio/sfx/quackmanbg.mp3'), { isLooping: true, volume: 0.22 });
+          const created = await loadBundledSound(require('../assets/audio/sfx/quackmanbg.mp3'), { isLooping: true, volume: 0.22 });
           musicRef.current = created.sound;
         }
         if (phase === 'playing' && !paused && !musicMuted) await musicRef.current.playAsync();
@@ -157,7 +158,7 @@ export default function Quackamole() {
   const playWhack = async () => {
     if (effectsMuted) return;
     try {
-      if (!soundRef.current) soundRef.current = (await Audio.Sound.createAsync(require('../assets/audio/sfx/whack.mp3'))).sound;
+      if (!soundRef.current) soundRef.current = (await loadBundledSound(require('../assets/audio/sfx/whack.mp3'))).sound;
       await soundRef.current.replayAsync();
     } catch { /* Game stays playable when audio is unavailable. */ }
   };
@@ -380,6 +381,7 @@ export default function Quackamole() {
 
   return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.gameBackground} resizeMode="cover">{gameMenu}<View style={styles.gameShade}/><View style={styles.gameHeader}><Pressable style={styles.gameBackHidden} onPress={confirmExit}><Ionicons name="arrow-back" size={22} color="#432653"/></Pressable><View style={styles.scorePill}><Ionicons name="star" size={17} color="#D99B2B"/><Text style={styles.scoreValue}>{score}</Text></View><View style={[styles.timerPill,seconds<=8&&styles.timerDanger]}><Ionicons name="time-outline" size={18} color={seconds<=8?'#D5526B':'#6F38B7'}/><Text style={[styles.timerValue,seconds<=8&&styles.timerValueDanger]}>{seconds}s</Text></View></View><View style={[styles.targetCard,styles.compactTargetCard]}><View style={styles.targetTopRow}><View style={styles.targetModePill}><Ionicons name="hammer-outline" size={13} color="#6F38B7"/><Text style={styles.targetModeText}>KANA HUNT</Text></View><Text style={styles.targetProgress}>{Math.min(currentIndex+1,pairs.length)} / {pairs.length}</Text></View><View style={[styles.targetMissionRow,styles.centeredMission,styles.compactMission]}><View style={[styles.targetBadge,styles.compactTargetBadge]}><View style={styles.targetBadgeGlow}/><Text style={[styles.targetKana,styles.compactTargetKana]}>{pairs[currentIndex]?.kana||'—'}</Text></View><Text style={styles.targetLabel}>FIND THIS SOUND</Text><Text style={styles.centeredPrompt}>Choose its matching romaji below</Text></View><View style={styles.targetProgressTrack}><View style={[styles.targetProgressFill,{width:`${Math.min(100,((currentIndex+1)/Math.max(1,pairs.length))*100)}%`}]}/></View></View><View style={styles.holesGrid}>{holes.map((value,index)=><Pressable key={index} style={styles.hole} onPress={()=>whack(index)} disabled={!value||locked}><View style={styles.moleClip}><View style={styles.holeShadow}/>{value&&<Animated.View style={[styles.mole,{transform:[{translateY:popAnimations[index].interpolate({inputRange:[0,1],outputRange:[0,78]})}]}]}><Mole width={82} height={108}/></Animated.View>}</View>{value&&<Animated.View pointerEvents="none" style={[styles.answerBubble,styles.compactRomajiTag,{opacity:popAnimations[index].interpolate({inputRange:[0,.55,1],outputRange:[1,1,0]})}]}><Text numberOfLines={1} adjustsFontSizeToFit style={[styles.answerText,styles.compactRomajiText]}>{value}</Text></Animated.View>}{hammerHole===index&&<Animated.View pointerEvents="none" style={[styles.hammerEffect,{opacity:hammerSwing.interpolate({inputRange:[0,.15,1.8,2],outputRange:[0,1,1,0]}),transform:[{translateY:hammerSwing.interpolate({inputRange:[0,1,2],outputRange:[-35,8,2]})},{rotate:hammerSwing.interpolate({inputRange:[0,1,2],outputRange:['-55deg','-12deg','-20deg']})},{scale:hammerSwing.interpolate({inputRange:[0,1,2],outputRange:[.82,1.05,.95]})}]}]}><Image source={require('../assets/hammer.png')} style={styles.hammerImage}/><Image source={require('../assets/whack.png')} style={styles.impactImage}/></Animated.View>}</Pressable>)}</View>{feedback!=='idle'&&<View style={[styles.feedbackToast,feedback==='correct'?styles.feedbackCorrect:styles.feedbackWrong]}><Ionicons name={feedback==='correct'?'checkmark-circle':'close-circle'} size={21} color={feedback==='correct'?'#5FA53A':'#D5526B'}/><Text style={[styles.feedbackText,{color:feedback==='correct'?'#5FA53A':'#D5526B'}]}>{feedback==='correct'?'Great match!':'Try another mole!'}</Text></View>}</ImageBackground>;
 }
+
 
 
 

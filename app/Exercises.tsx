@@ -135,7 +135,7 @@ const Exercises = () => {
                   onPress={() => handleButtonPress(activity.key)}
                   style={({ pressed }) => [styles.activityCard, { backgroundColor: activity.cardColor }, pressed && styles.cardPressed]}
                 >
-                  <ImageBackground source={activity.image} style={styles.cardCover} imageStyle={styles.cardCoverImage} resizeMode="stretch">
+                  <ImageBackground source={activity.image} style={styles.cardCover} imageStyle={styles.cardCoverImage} resizeMode="cover">
                     <View style={styles.cardShade} />
                     <View style={styles.cardTopRow}>
                       <View style={styles.cardTag}><Ionicons name={activity.icon} size={13} color={activity.color} /><Text style={[styles.cardTagText, { color: activity.color }]}>{activity.tag}</Text></View>

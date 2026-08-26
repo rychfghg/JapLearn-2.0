@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Image,
   ImageBackground,
@@ -17,6 +17,7 @@ import {
 import QuackSituateExit from '../components/QuackSituateExit';
 import { POLITENESS_SCENARIOS } from '../data/politenessScenarios';
 import expoconfig from '../expoconfig';
+import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
 
 const scenes = [
   require('../assets/img/background/school a hallway st2 day.png'),
@@ -155,10 +156,7 @@ export default function QuackSituateFormal() {
 
     if (!sound.current) return;
 
-    try {
-      await sound.current.stopAsync();
-      await sound.current.unloadAsync();
-    } catch {}
+    await stopAndUnloadSound(sound.current);
 
     sound.current = null;
   };
@@ -191,7 +189,7 @@ export default function QuackSituateFormal() {
     fallbackTimer.current = setTimeout(revealChoices, 4200);
 
     try {
-      const loaded = await Audio.Sound.createAsync(
+      const loaded = await loadBundledSound(
         npcVoices[question.id - 1],
         {
           shouldPlay: true,
@@ -217,6 +215,12 @@ export default function QuackSituateFormal() {
       void stopSound();
     };
   }, [index]);
+
+  useFocusEffect(
+    useCallback(() => () => {
+      void stopSound();
+    }, []),
+  );
 
   useEffect(() => {
     setNpcFrame(0);
@@ -257,7 +261,7 @@ export default function QuackSituateFormal() {
     }
 
     try {
-      const loaded = await Audio.Sound.createAsync(
+      const loaded = await loadBundledSound(
         correct
           ? require('../assets/audio/sfx/correct_sfx.mp3')
           : require('../assets/audio/sfx/incorrect_sfx.mp3'),
@@ -1088,3 +1092,5 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
 });
+
+

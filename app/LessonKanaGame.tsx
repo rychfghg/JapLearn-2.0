@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, Modal } from 'react-native';
 import { Audio } from 'expo-av';
+import { loadBundledSound } from '../utils/nativeAudio';
 import CustomButton from '../components/CustomButton';
 import styles from '../styles/stylesLessonKanaGame';
 
@@ -26,8 +27,8 @@ const LessonKanaGame = ({ data }) => {
 
     useEffect(() => {
         async function preloadSounds() {
-            const { sound: correctSound } = await Audio.Sound.createAsync(require('../assets/audio/sfx/correct_sfx.mp3'));
-            const { sound: incorrectSound } = await Audio.Sound.createAsync(require('../assets/audio/sfx/incorrect_sfx.mp3'));
+            const { sound: correctSound } = await loadBundledSound(require('../assets/audio/sfx/correct_sfx.mp3'));
+            const { sound: incorrectSound } = await loadBundledSound(require('../assets/audio/sfx/incorrect_sfx.mp3'));
             setCorrectSound(correctSound);
             setIncorrectSound(incorrectSound);
             setIsSoundReady(true);
@@ -123,3 +124,4 @@ const LessonKanaGame = ({ data }) => {
 };
 
 export default LessonKanaGame;
+

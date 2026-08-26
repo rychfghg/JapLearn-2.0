@@ -1,6 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Asset } from 'expo-asset';
-import { Audio, AVPlaybackStatus } from 'expo-av';
+import {
+  Audio,
+  AVPlaybackStatus,
+  InterruptionModeAndroid,
+  InterruptionModeIOS,
+} from 'expo-av';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
@@ -397,12 +402,19 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
     try {
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
+        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
         playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
         shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
       });
 
+      const voiceSource = SUMI_VOICE_PROFILE.clips[variant][nextLanguage];
+      await Asset.loadAsync(voiceSource);
+
       const result = await Audio.Sound.createAsync(
-        SUMI_VOICE_PROFILE.clips[variant][nextLanguage],
+        voiceSource,
         {
           shouldPlay: false,
           positionMillis: resumePositionMillis,
@@ -520,7 +532,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
         source={content.background}
         style={[styles.background, { backgroundColor: content.backdrop }]}
         imageStyle={styles.backgroundArtwork}
-        resizeMode="contain"
+        resizeMode="cover"
       >
         <View style={[styles.sceneTint, variant === 'speaking' && styles.studioTint]} />
         <Animated.View

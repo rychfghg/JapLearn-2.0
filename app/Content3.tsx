@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Animated, Image, ImageBackground, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
+import { loadBundledSound } from '../utils/nativeAudio';
 import { useRouter } from 'expo-router';
 import Game3 from './Game3';
 import { styles } from '../styles/content3Styles';
@@ -75,7 +76,7 @@ export default function Content3() {
   const playCue = async (source: number) => {
     try {
       if (soundRef.current) { await soundRef.current.stopAsync(); await soundRef.current.unloadAsync(); }
-      const { sound } = await Audio.Sound.createAsync(source, { shouldPlay: true, volume: 0.38 });
+      const { sound } = await loadBundledSound(source, { shouldPlay: true, volume: 0.38 });
       soundRef.current = sound;
     } catch { /* Narrative continues normally without device audio. */ }
   };
@@ -168,3 +169,4 @@ export default function Content3() {
     </ImageBackground>
   );
 }
+

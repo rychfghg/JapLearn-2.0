@@ -5,12 +5,12 @@
     "scheme": "japlearn",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/APPLOGO_SQUARE.png",
+    "icon": "./assets/APPLOGO_ICON_1024.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/APPLOGO.png",
+      "image": "./assets/APPLOGO_SPLASH_1024.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F8F3FC"
     },
     "ios": {
       "supportsTablet": true
@@ -29,8 +29,8 @@
         "android.permission.SYSTEM_ALERT_WINDOW"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/APPLOGO_SQUARE.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/APPLOGO_ADAPTIVE_1024.png",
+        "backgroundColor": "#F8F3FC"
       },
       "package": "com.japlearn.cit"
     },
@@ -48,8 +48,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "3d2a6458-faf8-4012-b174-bec1665b2b1d"
+        "projectId": "eee8a62c-404c-4a0d-816d-29b3ccbf11a0"
       }
-    }
+    },
+    "owner": "reybacolod"
   }
 }
