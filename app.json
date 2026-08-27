@@ -40,7 +40,16 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/Jua.ttf",
+            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf",
+            "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.ttf"
+          ]
+        }
+      ],
       "expo-asset"
     ],
     "extra": {
@@ -51,6 +60,14 @@
         "projectId": "eee8a62c-404c-4a0d-816d-29b3ccbf11a0"
       }
     },
-    "owner": "reybacolod"
+    "owner": "reybacolod",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/eee8a62c-404c-4a0d-816d-29b3ccbf11a0",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    }
   }
 }

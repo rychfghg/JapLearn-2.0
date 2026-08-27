@@ -2,7 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Font from 'expo-font';
-import { View, StyleSheet, ActivityIndicator, Image, Platform } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+import { StyleSheet, Platform } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { AuthContext, AuthProvider } from '../context/AuthContext';
 import { ClassCodeProvider } from '../context/ClassCodeContext';
@@ -11,20 +12,30 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { createDrawerNavigator, DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
 
 
+const STARTUP_TIMEOUT_MS = 12000;
+
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // The splash may already be hidden during fast refresh.
+});
+
 const getFonts = async () => {
-  await Promise.all([
-    Font.loadAsync('Jua', require('../assets/fonts/Jua.ttf')),
-    Ionicons.loadFont(),
-    FontAwesome.loadFont(),
-  ]);
-
-  const missingFonts = ['Jua', 'ionicons', 'FontAwesome'].filter(
-    (fontFamily) => !Font.isLoaded(fontFamily),
-  );
-
-  if (missingFonts.length > 0) {
-    throw new Error(`Required fonts did not load: ${missingFonts.join(', ')}`);
+  if (Platform.OS !== 'web') {
+    return;
   }
+
+  const loadBundledFonts = Font.loadAsync({
+    Jua: require('../assets/fonts/Jua.ttf'),
+    ...Ionicons.font,
+    ...FontAwesome.font,
+  });
+
+  const timeout = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error('Bundled fonts took too long to initialize.'));
+    }, STARTUP_TIMEOUT_MS);
+  });
+
+  await Promise.race([loadBundledFonts, timeout]);
 };
 
 
@@ -87,27 +98,33 @@ const authenticatedEntryRoutes = ['', 'Login', 'Signup'];
 const RootLayout = () => {
   const [fontLoaded, setFontsLoaded] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [resourceError, setResourceError] = useState<Error | null>(null);
   const { user, authLoading } = useContext(AuthContext);
   const router = useRouter();
   // const [isDrawerOpen, setDrawerOpen] = useState(false);
   const segments = useSegments();
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadResources = async () => {
       try {
         await getFonts();
-        setFontsLoaded(true);
-        setIsMounted(true);
       } catch (error) {
-        console.error('Error loading resources', error);
-        setResourceError(
-          error instanceof Error ? error : new Error('Unable to load app resources'),
-        );
+        console.warn('JapLearn font initialization fallback:', error);
+      } finally {
+        if (!cancelled) {
+          setFontsLoaded(true);
+          setIsMounted(true);
+          await SplashScreen.hideAsync().catch(() => undefined);
+        }
       }
     };
 
     loadResources();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -186,26 +203,13 @@ const RootLayout = () => {
   }
 }, [authLoading, isMounted, fontLoaded, user, segments]);
 
-  if (resourceError) {
-    return (
-      <View style={styles.resourceError}>
-        <ActivityIndicator size="large" color="#8c20df" />
-      </View>
-    );
-  }
-
   if (!fontLoaded || !isMounted) {
-    return <ActivityIndicator size="large" color="#8c20df" />;
+    return null;
   }
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <View pointerEvents="none" accessibilityElementsHidden style={styles.assetWarmup}>
-        <Image source={require('../assets/quackamole/quackamole-arena.png')} style={styles.warmupImage} fadeDuration={0} />
-        <Image source={require('../assets/svg/Mole.png')} style={styles.warmupImage} fadeDuration={0} />
-        <Image source={require('../assets/hammer.png')} style={styles.warmupImage} fadeDuration={0} />
-        <Image source={require('../assets/whack.png')} style={styles.warmupImage} fadeDuration={0} />
-      </View>
+
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Login" />
         <Stack.Screen name="Signup" />
@@ -274,24 +278,7 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
   },
-  assetWarmup: {
-    position: 'absolute',
-    width: 1,
-    height: 1,
-    opacity: 0.001,
-    overflow: 'hidden',
-  },
-  warmupImage: {
-    position: 'absolute',
-    width: 1,
-    height: 1,
-  },
-  resourceError: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fbf8ff',
-  },
+
   whiteScreen: {
     flex: 1,
     backgroundColor: 'white',

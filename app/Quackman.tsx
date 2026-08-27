@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image, ImageBackground, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { stylesQuackman } from '../styles/stylesQuackman';
@@ -43,38 +43,35 @@ const Quackman = () => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [progress, setProgress] = useState(0);
-    const fadeAnim = new Animated.Value(1);
-    const [sound, setSound] = useState<Audio.Sound | null>(null);
-    const [correctSound, setCorrectSound] = useState<Audio.Sound | null>(null);
-    const [incorrectSound, setIncorrectSound] = useState<Audio.Sound | null>(null);
-    const [angelSound, setAngelSound] = useState<Audio.Sound | null>(null);
+    const fadeAnim = useRef(new Animated.Value(1)).current;
+    const sound = useRef<Audio.Sound | null>(null);
+    const correctSound = useRef<Audio.Sound | null>(null);
+    const incorrectSound = useRef<Audio.Sound | null>(null);
+    const angelSound = useRef<Audio.Sound | null>(null);
 
     // Background music
-    const [bgMusic, setBgMusic] = useState<Audio.Sound | null>(null);
+    const bgMusic = useRef<Audio.Sound | null>(null);
+    useEffect(() => {
+        const progressTimer = setInterval(() => {
+            setProgress((current) => Math.min(100, current + 10));
+        }, 90);
+
+        return () => clearInterval(progressTimer);
+    }, []);
 
     useEffect(() => {
-        const simulateProgress = () => {
-            if (progress >= 100) {
-                Animated.timing(fadeAnim, {
-                    toValue: 0,
-                    duration: 500,
-                    useNativeDriver: true,
-                }).start(() => {
-                    setIsLoading(false);
-                });
-                return;
-            }
-    
-            const randomDelay = Math.random() * 1000 + 500;
-            const randomIncrement = Math.min(100 - progress, Math.random() * 10 + 5);
-            setTimeout(() => {
-                setProgress((prev) => Math.min(100, prev + randomIncrement));
-                simulateProgress();
-            }, randomDelay);
-        };
-    
-        simulateProgress();
-    }, [progress]);
+        if (progress < 100 || !isLoading) return;
+
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 350,
+            useNativeDriver: true,
+        }).start(() => {
+            setIsLoading(false);
+        });
+    }, [fadeAnim, isLoading, progress]);
+
+
     
 
     useEffect(() => {
@@ -93,10 +90,10 @@ const Quackman = () => {
                 { volume: 0.48 }
             );
 
-            setSound(quackmanSound);
-            setCorrectSound(correctSfx);
-            setIncorrectSound(incorrectSfx);
-            setAngelSound(angelSfx);
+            sound.current = quackmanSound;
+            correctSound.current = correctSfx;
+            incorrectSound.current = incorrectSfx;
+            angelSound.current = angelSfx;
         };
 
         const loadBackgroundMusic = async () => {
@@ -105,65 +102,44 @@ const Quackman = () => {
                 { isLooping: true } // Loop the background music
             );
             await backgroundMusic.setVolumeAsync(0.1); // Set the volume to 20%
-            setBgMusic(backgroundMusic);
+            bgMusic.current = backgroundMusic;
         };
 
         loadSounds();
         loadBackgroundMusic();
 
         return () => {
-            if (sound) sound.unloadAsync();
-            if (correctSound) correctSound.unloadAsync();
-            if (incorrectSound) incorrectSound.unloadAsync();
-            if (angelSound) angelSound.unloadAsync();
-            if (bgMusic) bgMusic.unloadAsync();
+            void sound.current?.unloadAsync().catch(() => undefined);
+            void correctSound.current?.unloadAsync().catch(() => undefined);
+            void incorrectSound.current?.unloadAsync().catch(() => undefined);
+            void angelSound.current?.unloadAsync().catch(() => undefined);
+            void bgMusic.current?.unloadAsync().catch(() => undefined);
         };
     }, []);
 
     const playSound = async () => {
-        const { sound } = await loadBundledSound(
-            require('../assets/audio/sfx/quackmanselect.mp3')
-        );
-        setSound(sound);
-        await sound.playAsync();
+        if (!sound.current) {
+            const loaded = await loadBundledSound(
+                require('../assets/audio/sfx/quackmanselect.mp3')
+            );
+            sound.current = loaded.sound;
+        }
+
+        await sound.current.replayAsync();
     };
 
     const handleUserInteraction = async () => {
         setUserInteracted(true); // Mark the user as interacted
-        if (bgMusic) {
+        if (bgMusic.current) {
             try {
-                await bgMusic.playAsync(); // Play background music
+                await bgMusic.current.playAsync(); // Play background music
             } catch (error) {
                 console.error("Failed to play background music after user interaction:", error);
             }
         }
     };
 
-    useEffect(() => {
-        const simulateProgress = () => {
-            if (progress >= 100) {
-                Animated.timing(fadeAnim, {
-                    toValue: 0,
-                    duration: 500,
-                    useNativeDriver: true,
-                }).start(() => {
-                    setIsLoading(false);
-                });
-                return;
-            }
 
-            const randomDelay = Math.random() * 1000 + 500;
-            const randomIncrement = Math.min(100 - progress, Math.random() * 10 + 5);
-            const delayMultiplier = [45, 75].includes(progress) ? 2000 : randomDelay;
-
-            setTimeout(() => {
-                setProgress((prev) => Math.min(100, prev + randomIncrement));
-                simulateProgress();
-            }, delayMultiplier);
-        };
-
-        simulateProgress();
-    }, [progress]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -266,7 +242,7 @@ const Quackman = () => {
     };
 
     const handleAttemptsExhausted = () => {
-        angelSound?.stopAsync().then(() => angelSound.replayAsync()).catch(() => undefined);
+        angelSound.current?.stopAsync().then(() => angelSound.current?.replayAsync()).catch(() => undefined);
         setCharacterImage(require('../assets/Fallin_TrapDoor.png'));
         setTimeout(() => {
             setCharacterImage(require('../assets/Trapdoor.png'));
@@ -312,7 +288,7 @@ const Quackman = () => {
 
         if (inputRomaji.join('') === word.join('')) {
             setRoundTransitioning(true);
-            correctSound?.playAsync();
+            correctSound.current?.replayAsync();
 
             // Set the character to the jumping animation
             setCorrectAnswersCount((prevCount) => prevCount + 1);
@@ -324,7 +300,7 @@ const Quackman = () => {
                 moveToNextWord(); // Proceed to the next question
             }, 2000); // Duration of the animation in milliseconds
         } else {
-            incorrectSound?.playAsync();
+            incorrectSound.current?.replayAsync();
             setAttempts((prevAttempts) => {
                 const updatedAttempts = [...prevAttempts];
                 const nextAttemptIndex = prevAttempts.findIndex((attempt) => attempt === null);
@@ -361,10 +337,10 @@ const Quackman = () => {
 
     const handleBackPress = async () => {
         setGameOver(false);
-        if (bgMusic) {
+        if (bgMusic.current) {
             try {
-                await bgMusic.stopAsync(); // Stop the background music
-                await bgMusic.unloadAsync(); // Unload the background music to free resources
+                await bgMusic.current.stopAsync(); // Stop the background music
+                await bgMusic.current.unloadAsync(); // Unload the background music to free resources
             } catch (error) {
                 console.error("Error stopping background music:", error);
             }
@@ -406,10 +382,10 @@ const Quackman = () => {
         setInputRomaji([]);
         setSelectedTileIndexes([]);
         setRoundTransitioning(false);
-        if (bgMusic) {
+        if (bgMusic.current) {
             try {
-                await bgMusic.stopAsync(); // Stop the music
-                await bgMusic.playAsync(); // Restart the music
+                await bgMusic.current.stopAsync(); // Stop the music
+                await bgMusic.current.playAsync(); // Restart the music
             } catch (error) {
                 console.error("Error restarting background music:", error);
             }
