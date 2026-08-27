@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     featuredInfo: { position: 'absolute', right: 11, top: 10, width: 29, height: 29, alignItems: 'center', justifyContent: 'center' },
     cardPressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
     activityGrid: { marginTop: 14 },
-    activityCard: { width: '100%', height: 238, borderRadius: 25, marginBottom: 16, overflow: 'hidden', backgroundColor: '#321645', shadowColor: '#321645', shadowOpacity: 0.20, shadowRadius: 15, shadowOffset: { width: 0, height: 8 }, elevation: 7 },
+    activityCard: { width: '100%', aspectRatio: 1.5, borderRadius: 25, marginBottom: 16, overflow: 'hidden', backgroundColor: '#321645', shadowColor: '#321645', shadowOpacity: 0.20, shadowRadius: 15, shadowOffset: { width: 0, height: 8 }, elevation: 7 },
     cardCover: { width: '100%', height: '100%', padding: 17, justifyContent: 'space-between' },
     cardCoverImage: { width: '100%', height: '100%', borderRadius: 25 },
     cardShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(20,7,30,0.04)', borderRadius: 25 },

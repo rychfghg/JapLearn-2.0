@@ -25,6 +25,7 @@ import { SUMI_VOICE_PROFILE } from '../config/sumiVoiceProfile';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackTalkPracticeRoom';
+import { loadBundledSound } from '../utils/nativeAudio';
 
 type PracticeRoomProps = {
   variant: 'conversation' | 'speaking';
@@ -400,20 +401,8 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
     };
 
     try {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        interruptionModeIOS: InterruptionModeIOS.DoNotMix,
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: false,
-        interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
-      });
-
       const voiceSource = SUMI_VOICE_PROFILE.clips[variant][nextLanguage];
-      await Asset.loadAsync(voiceSource);
-
-      const result = await Audio.Sound.createAsync(
+      const result = await loadBundledSound(
         voiceSource,
         {
           shouldPlay: false,

@@ -25,14 +25,21 @@ export const loadBundledSound = async (
   initialStatus: AVPlaybackStatusToSet = {},
   onPlaybackStatusUpdate?: (status: AVPlaybackStatus) => void,
 ) => {
+  let playableSource = source;
+
   if (typeof source === 'number') {
-    await Asset.loadAsync(source);
+    const asset = Asset.fromModule(source);
+    await asset.downloadAsync();
+
+    if (asset.localUri) {
+      playableSource = { uri: asset.localUri };
+    }
   }
 
   await prepareGameAudio();
 
   return Audio.Sound.createAsync(
-    source,
+    playableSource,
     initialStatus,
     onPlaybackStatusUpdate,
   );

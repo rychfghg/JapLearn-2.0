@@ -8,28 +8,24 @@ import { AuthContext, AuthProvider } from '../context/AuthContext';
 import { ClassCodeProvider } from '../context/ClassCodeContext';
 import { LessonProgressProvider, useLessonProgress } from '../context/LessonProgressContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { preloadExerciseCovers, preloadGameAssets, preloadQuackamoleAssets } from '../utils/gameAssetPreloader';
 // import { createDrawerNavigator, DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
 
 
 const getFonts = async () => {
-  try {
-    await Font.loadAsync({
-      Jua: require('../assets/fonts/Jua.ttf'),
-      ...Ionicons.font,
-      ...FontAwesome.font,
-    });
-    console.log('JapLearn fonts and icon glyphs loaded successfully');
-  } catch (error) {
-    console.error('Error loading JapLearn fonts or icon glyphs:', error);
-    throw error;
+  await Promise.all([
+    Font.loadAsync('Jua', require('../assets/fonts/Jua.ttf')),
+    Ionicons.loadFont(),
+    FontAwesome.loadFont(),
+  ]);
+
+  const missingFonts = ['Jua', 'ionicons', 'FontAwesome'].filter(
+    (fontFamily) => !Font.isLoaded(fontFamily),
+  );
+
+  if (missingFonts.length > 0) {
+    throw new Error(`Required fonts did not load: ${missingFonts.join(', ')}`);
   }
 };
-
-// Start downloading Quack-a-Mole's original artwork as soon as the app bundle
-// is evaluated. This promise is deliberately not awaited, so startup and every
-// game button remain immediately responsive.
-void preloadQuackamoleAssets();
 
 
 const routeAccessConfig: Record<string, string[]> = {
@@ -73,6 +69,8 @@ const publicRoutes = [
   'TermsOfServicePage',
 ];
 
+const authenticatedEntryRoutes = ['', 'Login', 'Signup'];
+
 // const Drawer = createDrawerNavigator();
 
 // function CustomDrawerContent(props) {
@@ -89,7 +87,8 @@ const publicRoutes = [
 const RootLayout = () => {
   const [fontLoaded, setFontsLoaded] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-const { user, setUser, authLoading } = useContext(AuthContext);
+  const [resourceError, setResourceError] = useState<Error | null>(null);
+  const { user, authLoading } = useContext(AuthContext);
   const router = useRouter();
   // const [isDrawerOpen, setDrawerOpen] = useState(false);
   const segments = useSegments();
@@ -97,23 +96,14 @@ const { user, setUser, authLoading } = useContext(AuthContext);
   useEffect(() => {
     const loadResources = async () => {
       try {
-        // Cache original artwork in the background. Never block app startup or
-        // navigation while large game images are still downloading.
-        preloadExerciseCovers();
-        preloadGameAssets();
-        await Promise.all([getFonts(), checkUserAuth()]);
-      } catch (error) {
-        console.error('Error loading resources', error);
-      } finally {
+        await getFonts();
         setFontsLoaded(true);
         setIsMounted(true);
-      }
-    };
-
-    const checkUserAuth = async () => {
-      const storedUser = await AsyncStorage.getItem('user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error loading resources', error);
+        setResourceError(
+          error instanceof Error ? error : new Error('Unable to load app resources'),
+        );
       }
     };
 
@@ -153,6 +143,24 @@ const { user, setUser, authLoading } = useContext(AuthContext);
 
   console.log("Current segment:", currentSegment, "User:", user);
 
+  if (user && authenticatedEntryRoutes.includes(currentSegment)) {
+    const normalizedRole = String(user.role || '').toLowerCase();
+
+    if (normalizedRole === 'student') {
+      AsyncStorage.getItem('classCode')
+        .then((classCode) => {
+          router.replace(classCode ? '/Menu' : '/StartMenu');
+        })
+        .catch(() => {
+          router.replace('/Menu');
+        });
+      return;
+    }
+
+    router.replace(defaultRouteByRole[normalizedRole] || '/Login');
+    return;
+  }
+
   if (
     !user &&
     !publicRoutes.includes(currentSegment) &&
@@ -178,8 +186,16 @@ const { user, setUser, authLoading } = useContext(AuthContext);
   }
 }, [authLoading, isMounted, fontLoaded, user, segments]);
 
+  if (resourceError) {
+    return (
+      <View style={styles.resourceError}>
+        <ActivityIndicator size="large" color="#8c20df" />
+      </View>
+    );
+  }
+
   if (!fontLoaded || !isMounted) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
+    return <ActivityIndicator size="large" color="#8c20df" />;
   }
 
   return (
@@ -269,6 +285,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 1,
     height: 1,
+  },
+  resourceError: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fbf8ff',
   },
   whiteScreen: {
     flex: 1,

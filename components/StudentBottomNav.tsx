@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   activeIconWrap: { backgroundColor: '#8423D9' },
   talkIconWrap: { width: 58, height: 58, borderRadius: 29, backgroundColor: '#F3EFF5', borderWidth: 5, borderColor: '#FFFFFF', shadowColor: '#2E193B', shadowOpacity: .16, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 12 },
   talkIconActive: { backgroundColor: '#8423D9' },
-  label: { color: '#918797', fontSize: 11, fontWeight: '600' },
-  activeLabel: { color: '#8423D9', fontWeight: '800' },
-  talkLabel: { color: '#918797', fontWeight: '700', marginTop: -1 },
+  label: { color: '#918797', fontFamily: 'Jua', fontSize: 11 },
+  activeLabel: { color: '#8423D9' },
+  talkLabel: { color: '#918797', marginTop: -1 },
 });

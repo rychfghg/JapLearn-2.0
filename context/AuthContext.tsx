@@ -9,6 +9,18 @@ interface User {
   role: string;
 }
 
+const isStoredUser = (value: unknown): value is User => {
+  if (!value || typeof value !== 'object') return false;
+
+  const candidate = value as Partial<User>;
+
+  return Boolean(
+    candidate.userId &&
+    candidate.email &&
+    candidate.role,
+  );
+};
+
 interface AuthContextProps {
   user: User | null;
   setUser: (user: User | null) => void;
@@ -35,12 +47,16 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userDataString = await AsyncStorage.getItem('user');
 
         if (userDataString) {
-          const userData: User = JSON.parse(userDataString);
-          setUser(userData);
+          const userData: unknown = JSON.parse(userDataString);
+
+          if (isStoredUser(userData)) {
+            setUser(userData);
+          } else {
+            await AsyncStorage.removeItem('user');
+          }
         }
       } catch (error) {
         console.error('Failed to load user:', error);
-        await AsyncStorage.removeItem('user');
       } finally {
         setAuthLoading(false);
       }
@@ -50,8 +66,8 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (userData: User) => {
-    setUser(userData);
     await AsyncStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
   };
 
   const logout = async () => {

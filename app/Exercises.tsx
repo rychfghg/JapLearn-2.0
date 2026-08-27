@@ -7,7 +7,7 @@ import { AuthContext } from '../context/AuthContext';
 import StudentBottomNav from '../components/StudentBottomNav';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { preloadGameAssets } from '../utils/gameAssetPreloader';
+import { preloadExerciseCovers } from '../utils/gameAssetPreloader';
 
 const activities = [
   { key: 'KANA', title: 'Quack-a-Mole', subtitle: 'Match kana before time runs out.', description: 'Test your recognition of Hiragana and Katakana characters.', icon: 'hammer-outline', color: '#8423D9', tint: '#F0E4FA', cardColor: '#24123F', mode: 'CHARACTERS', tag: 'KANA HUNT', image: require('../assets/exercise-covers/quack-a-mole-official-v2.png') },
@@ -39,7 +39,7 @@ const Exercises = () => {
   }, []));
 
   useEffect(() => {
-    preloadGameAssets();
+    preloadExerciseCovers();
 
     const mascotTimer = setInterval(() => {
       setMascotGuide((current) => (current + 1) % mascotGuides.length);
