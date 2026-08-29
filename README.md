@@ -1,361 +1,187 @@
 <div align="center">
-  <img src="./assets/APPLOGO.png" alt="JapLearn logo" width="112" />
+  <img src="./assets/APPLOGO.png" alt="JapLearn logo" width="96" />
 
   # JapLearn Student App
 
-  **Interactive Japanese learning through guided lessons, speaking practice, and gamified activities.**
+  **Interactive Japanese learning through lessons, speaking practice, and games.**
 
-  [![Expo](https://img.shields.io/badge/Expo-SDK%2056-4630EB?logo=expo&logoColor=white)](https://expo.dev/)
+  [![Expo](https://img.shields.io/badge/Expo-SDK%2052-4630EB?logo=expo&logoColor=white)](https://expo.dev/)
   [![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB?logo=react&logoColor=111827)](https://reactnative.dev/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Expo Router](https://img.shields.io/badge/Navigation-Expo%20Router-7C3AED)](https://docs.expo.dev/router/introduction/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-  Mobile · Android · iOS · Web
+  Android · iOS · Web
 </div>
 
 ---
 
-## About JapLearn
+## Overview
 
-JapLearn is a Japanese-language learning application for students. It combines structured lessons with interactive activities, communication practice, progress tracking, and game-based learning.
+JapLearn is a student-focused Japanese language application featuring:
 
-### Main learning experiences
+- Guided Kana, vocabulary, and grammar lessons
+- Quack-a-Mole, Quackman, QuackSlate, and QuackSituate activities
+- QuackResponse communication exercises
+- QuackTalk speaking practice with Sumi
+- Student progress, scores, mastery, and achievements
+- Teacher-class enrollment and synchronized learning records
 
-- **Learn** — Kana, vocabulary, and grammar learning paths
-- **Quack-a-Mole** — Fast kana recognition practice
-- **Quackman** — Japanese word-building challenges
-- **QuackSlate** — Sentence-building practice and teacher-hosted sessions
-- **QuackSituate** — Recognition, expression matching, and politeness scenarios
-- **QuackResponse** — Guided, timed, and multi-step response missions
-- **QuackTalk** — Japanese speaking practice with Sumi
-- **QuackProgress** — Mastery, scores, progression, and learning analytics
+This repository contains the **Expo/React Native student frontend**. Authentication, progress storage, classes, teacher synchronization, and email services are provided by the separate Spring Boot backend.
 
-> This repository contains the **React Native/Expo student frontend**. The Spring Boot backend must run separately for authentication, progress saving, teacher synchronization, and other server features.
-
----
-
-## Technology
+## Tech Stack
 
 | Area | Technology |
 |---|---|
-| Application | React Native + Expo |
+| App | React Native 0.76 + Expo SDK 52 |
 | Language | TypeScript |
 | Navigation | Expo Router |
-| Web support | React Native Web |
-| Local storage | AsyncStorage |
+| Storage | AsyncStorage |
 | Audio | Expo AV |
 | Icons | Expo Vector Icons |
-| Animation | React Native Animated and Animatable |
-| SVG support | React Native SVG + SVG Transformer |
-| Cloud builds | EAS Build |
-| Web deployment | Vercel-compatible static export |
+| Web | React Native Web |
+| Builds | EAS Build |
 
----
+## Requirements
 
-## Prerequisites
+- Node.js 20 LTS or newer
+- npm
+- Git
+- Expo Go for development on a physical phone
+- A running JapLearn backend for server-connected features
 
-Install these before setting up the project:
-
-1. **Node.js 20 LTS or newer**  
-   Download from [nodejs.org](https://nodejs.org/).
-
-2. **npm**  
-   npm is included with Node.js. Confirm both installations:
-
-   ```bash
-   node --version
-   npm --version
-   ```
-
-3. **Git**  
-   Download from [git-scm.com](https://git-scm.com/).
-
-4. **A running JapLearn Spring Boot backend**  
-   Local development expects the backend on port `8080`.
-
-### Choose a device setup
-
-- **Web:** A modern browser such as Chrome, Edge, Firefox, or Safari
-- **Physical Android/iPhone:** Install **Expo Go** and connect the phone to the same Wi-Fi network as the development computer
-- **Android emulator:** Install Android Studio and create an Android Virtual Device
-- **iOS simulator:** Requires macOS and Xcode
-
----
-
-## Installation
-
-### 1. Clone the repository
+## Setup
 
 ```bash
-git clone <your-repository-url>
+git clone <repository-url>
 cd Japlearn-1
-```
-
-If this frontend is inside the complete JapLearn workspace, open this directory:
-
-```text
-JapLearn-FrontEnd_Final_Test/Japlearn-1
-```
-
-### 2. Install dependencies
-
-For a clean and reproducible installation:
-
-```bash
 npm ci
 ```
 
-If the lock file is intentionally being updated, use:
+Start the application:
 
 ```bash
-npm install
+npx expo start
 ```
 
-### 3. Configure the backend address
+Scan the QR code with Expo Go, or press `w` to open the web version.
 
-The API selection logic is located in [`expoconfig.tsx`](./expoconfig.tsx).
-
-Current behavior:
-
-| Runtime | Backend used |
-|---|---|
-| Local web browser | `http://localhost:8080` |
-| Android emulator | `http://10.0.2.2:8080` |
-| Physical device with Expo | Development computer's LAN address |
-| Deployed web/native build | `https://japlearn2-0.onrender.com` |
-
-For a physical phone, update `LAN_IP_URL` with the development computer's current IPv4 address:
-
-```ts
-const LAN_IP_URL = 'http://192.168.x.x:8080';
-```
-
-To find the address on Windows:
-
-```powershell
-ipconfig
-```
-
-Use the **IPv4 Address** of the active Wi-Fi adapter. The phone and computer must be connected to the same network.
-
-> Do not place passwords, SMTP keys, database credentials, or private API secrets in this frontend. Browser and mobile bundles are visible to users. Store secrets only in the Spring Boot backend or deployment environment.
-
-### 4. Start the Spring Boot backend
-
-Start the backend before testing features that save or fetch data. Confirm it responds at:
-
-```text
-http://localhost:8080
-```
-
-For physical-device testing, the backend must accept connections through the computer's LAN address and the firewall must allow port `8080`.
-
-### 5. Start JapLearn
-
-```bash
-npm start
-```
-
-The Expo terminal will show options for opening the application.
-
----
-
-## Run Commands
-
-| Command | Purpose |
-|---|---|
-| `npm start` | Start the Expo development server |
-| `npm run web` | Open the web version |
-| `npm run android` | Open on an Android emulator/device |
-| `npm run ios` | Open in the iOS simulator on macOS |
-| `npx expo start -c` | Start Expo and clear the Metro cache |
-| `npx expo export --platform web` | Create a production web export in `dist/` |
-
-### Physical phone with Expo Go
-
-1. Run `npm start`.
-2. Open Expo Go on the phone.
-3. Scan the QR code displayed by Expo.
-4. Keep the phone and computer on the same Wi-Fi network.
-5. Make sure `LAN_IP_URL` points to the computer running Spring Boot.
-
----
-
-## Project Structure
-
-```text
-Japlearn-1/
-├── app/                 # Expo Router screens and routes
-├── assets/              # Images, sprites, audio, fonts, and game artwork
-├── components/          # Shared interface components
-├── context/             # Shared React state and application context
-├── data/                # Local lesson and game content
-├── styles/              # Screen-specific React Native styles
-├── types/               # Shared TypeScript definitions
-├── utils/               # API and application utilities
-├── app.json             # Expo application configuration
-├── eas.json             # EAS development, preview, and production profiles
-├── expoconfig.tsx       # Backend URL selection
-├── metro.config.js      # Metro and SVG transformer configuration
-├── tsconfig.json        # TypeScript configuration
-├── vercel.json          # Single-page application rewrites for Vercel
-└── package.json         # Dependencies and npm scripts
-```
-
-### Routing
-
-Files inside `app/` become application routes through Expo Router. The shared navigation configuration is in:
-
-```text
-app/_layout.tsx
-```
-
-When adding a screen, preserve existing route names and backend calls unless the corresponding navigation or API contract is intentionally being changed.
-
----
-
-## Web Production Build
-
-Create a production-ready static export:
-
-```bash
-npx expo export --platform web
-```
-
-The generated website is written to:
-
-```text
-dist/
-```
-
-Test the production export before deploying it:
-
-```bash
-npx serve dist
-```
-
-The included `vercel.json` redirects application routes to `index.html`, allowing direct links such as `/ResetPassword` to work with Expo Router.
-
-### Suggested Vercel settings
-
-| Setting | Value |
-|---|---|
-| Framework preset | Other |
-| Install command | `npm ci` |
-| Build command | `npx expo export --platform web` |
-| Output directory | `dist` |
-
----
-
-## Native Builds with EAS
-
-Install and sign in to the EAS CLI:
-
-```bash
-npm install --global eas-cli
-eas login
-```
-
-Available profiles from `eas.json`:
-
-```bash
-eas build --profile development --platform android
-eas build --profile preview --platform android
-eas build --profile production --platform android
-```
-
-For iOS, replace `android` with `ios`. Apple credentials and macOS/iOS requirements may apply.
-
----
-
-## Troubleshooting
-
-### The application opens but requests fail
-
-- Confirm the Spring Boot backend is running.
-- Confirm the configured API address is correct.
-- On a physical phone, do not use `localhost`; use the computer's LAN IPv4 address.
-- Confirm the firewall permits inbound access to port `8080`.
-- For the deployed app, confirm the Render backend is awake and healthy.
-
-### Expo or assets appear stale
-
-Clear Metro's cache:
+If cached files cause unexpected behavior:
 
 ```bash
 npx expo start -c
 ```
 
-Then refresh or reopen the application.
+## Backend Configuration
 
-### Dependency installation problems
+Backend selection is managed in [`expoconfig.tsx`](./expoconfig.tsx).
 
-Remove only generated dependencies and reinstall them:
+| Environment | Backend |
+|---|---|
+| Local web | `http://localhost:8080` |
+| Android emulator | `http://10.0.2.2:8080` |
+| Expo Go on a physical device | Development computer's LAN address |
+| Deployed web and APK builds | `https://japlearn2-0.onrender.com` |
+
+For Expo Go testing, set `LAN_IP_URL` to the active IPv4 address of the computer running Spring Boot. The phone and computer must use the same network.
+
+```ts
+const LAN_IP_URL = 'http://192.168.x.x:8080';
+```
+
+Never store database passwords, SMTP credentials, JWT secrets, or private keys in this frontend.
+
+## Common Commands
+
+| Command | Purpose |
+|---|---|
+| `npx expo start` | Start the Expo development server |
+| `npm run web` | Run the web app |
+| `npx expo start -c` | Start Expo with a cleared cache |
+| `npx expo export --platform android` | Verify the Android production bundle |
+| `npx expo export --platform web` | Create the web production export |
+| `npx expo-doctor` | Check Expo package compatibility |
+
+## EAS Builds
+
+Sign in before submitting a build:
 
 ```bash
-npm ci
+npx eas-cli login
 ```
 
-Avoid manually editing files inside `node_modules/` because they are regenerated during installation.
+Create an installable Android APK:
 
-### Android emulator cannot reach the backend
+```bash
+npx eas-cli build -p android --profile apk
+```
 
-The Android emulator uses:
+Create an Android App Bundle for Google Play:
+
+```bash
+npx eas-cli build -p android --profile production
+```
+
+The `apk` profile is for direct device testing. The `production` profile produces the store-ready Android build.
+
+## Web Build
+
+```bash
+npx expo export --platform web
+```
+
+The production website is generated in `dist/`. The included `vercel.json` supports direct Expo Router links such as `/ResetPassword`.
+
+## Project Structure
 
 ```text
-http://10.0.2.2:8080
+Japlearn-1/
+├── app/            # Screens and Expo Router routes
+├── assets/         # Fonts, images, sprites, audio, and game artwork
+├── components/     # Reusable interface components
+├── context/        # Authentication and shared application state
+├── data/           # Local lesson and game content
+├── styles/         # Screen-specific styles
+├── types/          # TypeScript definitions
+├── utils/          # API, asset, and application utilities
+├── app.json        # Expo application configuration
+├── eas.json        # EAS build profiles
+├── expoconfig.tsx  # Backend URL selection
+└── package.json    # Dependencies and scripts
 ```
 
-This address maps to the development computer's localhost.
+## Before Committing
 
-### A direct web route displays 404 after deployment
+1. Confirm the app opens through Expo.
+2. Test the changed screen on a narrow phone layout.
+3. Verify audio, fonts, icons, and local images.
+4. Confirm timers and audio stop when leaving game screens.
+5. Run Android and web export checks.
+6. Ensure credentials and generated builds are not staged.
 
-- Confirm `vercel.json` is included in the deployed project root.
-- Confirm the Vercel output directory is `dist`.
-- Redeploy after committing the rewrite configuration.
+## Troubleshooting
 
-### Audio does not play automatically in a browser
+### Requests fail on a physical phone
 
-Some browsers block audio until the user interacts with the page. Tap or click the game once, then retry the audio control.
+- Confirm Spring Boot is running.
+- Confirm `LAN_IP_URL` uses the computer's current IPv4 address.
+- Keep the phone and computer on the same network.
+- Allow backend port `8080` through the firewall.
 
----
+### Deployed requests fail
 
-## Development Guidelines
+- Confirm the Render backend is reachable.
+- A sleeping free-tier service may need time to wake up.
 
-- Preserve backend endpoints, request bodies, and stored progress logic during design-only changes.
-- Keep components and styles readable; do not compress entire files onto one line.
-- Reuse existing JapLearn assets and palette before adding replacements.
-- Test mobile layouts at narrow screen widths.
-- Stop timers, audio, and animations when leaving a game screen.
-- Never commit secrets, production credentials, `.env.local` files, or private keys.
-- Run a web export before committing major changes:
+### Fonts, icons, or images look stale
 
-  ```bash
-  npx expo export --platform web
-  ```
+```bash
+npx expo start -c
+```
 
----
+Reopen the app after the cache is cleared.
 
-## Security Notes
+### A deployed web route returns 404
 
-This frontend should contain only public configuration such as a backend base URL. Sensitive values belong in protected backend environment variables.
-
-Before pushing to GitHub, confirm that the following are not committed:
-
-- Database connection strings
-- SMTP passwords
-- Brevo API or SMTP keys
-- JWT secrets
-- Admin credentials
-- Private signing certificates
-- Service-account files
-
----
-
-## Related Services
-
-- **Production student web app:** [japlearn20.vercel.app](https://japlearn20.vercel.app)
-- **Production backend:** [japlearn2-0.onrender.com](https://japlearn2-0.onrender.com)
+Confirm `vercel.json` is deployed from the project root and that Vercel uses `dist` as the output directory.
 
 ---
 
