@@ -651,7 +651,7 @@ export default StyleSheet.create({
   mapTrailLine: {
     position: 'absolute',
     top: 31,
-    bottom: 70,
+    bottom: 35,
     left: 25,
     width: 8,
     borderRadius: 99,
@@ -1017,7 +1017,7 @@ export default StyleSheet.create({
   },
 
   mapFinish: {
-    alignSelf: 'center',
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
@@ -1031,6 +1031,40 @@ export default StyleSheet.create({
     shadowOpacity: 0.10,
     shadowRadius: 8,
     elevation: 3,
+  },
+
+  mapFinishRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 74,
+  },
+
+  mapFinishCheckpoint: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginHorizontal: 4,
+    backgroundColor: '#D88727',
+    borderWidth: 5,
+    borderColor: '#FAF7FC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 8,
+    shadowColor: '#7B5317',
+    shadowOpacity: 0.24,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+
+  mapFinishIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#FFF0C9',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   mapFinishKicker: {

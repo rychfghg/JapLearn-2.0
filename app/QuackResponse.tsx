@@ -193,11 +193,18 @@ export default function QuackResponse() {
               </View>
             ))}
 
-            <View style={styles.mapFinish}>
-              <Ionicons name="trophy" size={21} color="#D88727" />
-              <View>
-                <Text style={styles.mapFinishKicker}>TRAIL GOAL</Text>
-                <Text style={styles.mapFinishText}>Speak with confidence</Text>
+            <View style={styles.mapFinishRow}>
+              <View style={styles.mapFinishCheckpoint}>
+                <Ionicons name="trophy" size={20} color="#FFFFFF" />
+              </View>
+              <View style={styles.mapFinish}>
+                <View style={styles.mapFinishIcon}>
+                  <Ionicons name="sparkles" size={18} color="#D88727" />
+                </View>
+                <View>
+                  <Text style={styles.mapFinishKicker}>TRAIL GOAL</Text>
+                  <Text style={styles.mapFinishText}>Speak with confidence</Text>
+                </View>
               </View>
             </View>
           </View>
