@@ -246,6 +246,8 @@ export default function ReplyCoachStory() {
   const [reviewVisible, setReviewVisible] = useState(false);
   const [resultsVisible, setResultsVisible] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [typedNarration, setTypedNarration] = useState('');
+  const [narrationFinished, setNarrationFinished] = useState(false);
   const fade = useRef(new Animated.Value(0)).current;
   const backgroundMusic = useRef<Audio.Sound | null>(null);
 
@@ -306,6 +308,29 @@ export default function ReplyCoachStory() {
       useNativeDriver: true,
     }).start();
   }, [nodeId]);
+
+  useEffect(() => {
+    if (!currentNode || (currentNode.type !== 'NARRATION' && currentNode.type !== 'CULTURAL_NOTE')) {
+      setTypedNarration('');
+      setNarrationFinished(false);
+      return;
+    }
+
+    const fullText = currentNode.text ?? '';
+    let cursor = 0;
+    setTypedNarration('');
+    setNarrationFinished(false);
+    const timer = setInterval(() => {
+      cursor = Math.min(cursor + 2, fullText.length);
+      setTypedNarration(fullText.slice(0, cursor));
+      if (cursor >= fullText.length) {
+        clearInterval(timer);
+        setNarrationFinished(true);
+      }
+    }, 24);
+
+    return () => clearInterval(timer);
+  }, [currentNode?.id]);
 
   const requestJson = async (path: string, options?: RequestInit) => {
     const response = await fetch(`${expoconfig.API_URL}${path}`, options);
@@ -408,6 +433,15 @@ export default function ReplyCoachStory() {
     await moveTo(currentNode?.nextNodeId);
   };
 
+  const advanceNarration = () => {
+    if (!narrationFinished) {
+      setTypedNarration(currentNode?.text ?? '');
+      setNarrationFinished(true);
+      return;
+    }
+    void moveTo(currentNode?.nextNodeId);
+  };
+
   const background = backgrounds[currentNode?.backgroundKey ?? 'station'] ?? backgrounds.station;
   const displayedCharacter = currentNode?.characterKey || currentNode?.secondaryCharacterKey;
   const displayedExpression = currentNode?.characterKey
@@ -416,6 +450,9 @@ export default function ReplyCoachStory() {
   const displayedSprite = displayedCharacter
     ? sprites[displayedCharacter]?.[displayedExpression ?? 'NEUTRAL']
     : null;
+  const primaryChoiceCharacter = currentNode?.characterKey;
+  const secondaryChoiceCharacter = currentNode?.secondaryCharacterKey
+    || (primaryChoiceCharacter === 'SUMI' ? 'HARU' : 'SUMI');
   const isNarration = currentNode?.type === 'NARRATION' || currentNode?.type === 'CULTURAL_NOTE';
   const isReaction = currentNode?.type === 'REACTION';
   const reactionEvaluation = selectedChoice?.evaluation ?? latestAnswer?.evaluation;
@@ -450,7 +487,12 @@ export default function ReplyCoachStory() {
   }
 
   return (
-    <ImageBackground source={background} style={styles.background} resizeMode="cover">
+    <ImageBackground
+      source={background}
+      style={styles.background}
+      imageStyle={styles.backgroundImage}
+      resizeMode="cover"
+    >
       <View style={styles.backgroundShade} />
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
@@ -473,14 +515,33 @@ export default function ReplyCoachStory() {
         <Animated.View style={[styles.storyStage, { opacity: fade }]}>
           {currentNode.spritesVisible && !isNarration && (
             <View style={styles.spriteStage} pointerEvents="none">
-              {displayedCharacter && displayedSprite && (
+              {currentNode.type === 'CHOICE' ? (
+                <>
+                  {secondaryChoiceCharacter && sprites[secondaryChoiceCharacter] && (
+                    <SpriteActor
+                      characterKey={secondaryChoiceCharacter}
+                      expressionKey={currentNode.secondaryExpressionKey}
+                      positionStyle={styles.choiceSpriteLeft}
+                      speaking={false}
+                    />
+                  )}
+                  {primaryChoiceCharacter && sprites[primaryChoiceCharacter] && (
+                    <SpriteActor
+                      characterKey={primaryChoiceCharacter}
+                      expressionKey={currentNode.expressionKey}
+                      positionStyle={styles.choiceSpriteRight}
+                      speaking={false}
+                    />
+                  )}
+                </>
+              ) : displayedCharacter && displayedSprite ? (
                 <SpriteActor
                   characterKey={displayedCharacter}
                   expressionKey={displayedExpression}
                   positionStyle={displayedCharacter === 'HARU' ? styles.soloSpriteLeft : styles.soloSpriteRight}
                   speaking={currentNode.type !== 'CHOICE'}
                 />
-              )}
+              ) : null}
             </View>
           )}
           {currentNode.spritesVisible && !isNarration && currentNode.type !== 'CHOICE' && (
@@ -491,7 +552,7 @@ export default function ReplyCoachStory() {
           )}
 
           {isNarration ? (
-            <Pressable style={styles.narrationWrap} onPress={() => moveTo(currentNode.nextNodeId)}>
+            <Pressable style={styles.narrationWrap} onPress={advanceNarration}>
               <View style={styles.narrationCard}>
                 <View style={styles.narrationLocation}>
                   <Ionicons name="location-outline" size={15} color="#B9F28E" />
@@ -501,7 +562,9 @@ export default function ReplyCoachStory() {
                 <Text style={styles.narrationEyebrow}>
                   {currentNode.type === 'CULTURAL_NOTE' ? 'A MOMENT TO REMEMBER' : 'YOUR STORY CONTINUES'}
                 </Text>
-                <Text style={styles.narrationText}>{currentNode.text}</Text>
+                <Text style={styles.narrationText} maxFontSizeMultiplier={1.08}>
+                  {typedNarration}
+                </Text>
                 <View style={styles.continueRow}>
                   <Text style={styles.continueText}>Tap to continue</Text>
                   <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
@@ -555,7 +618,7 @@ export default function ReplyCoachStory() {
             <Pressable
               style={[
                 styles.speechBubbleArea,
-                displayedCharacter === 'HARU' ? styles.speechBubbleRight : styles.speechBubbleLeft,
+                styles.speechBubbleCentered,
               ]}
               onPress={() => isReaction ? setCorrectionVisible(true) : moveTo(currentNode.nextNodeId)}
             >
@@ -590,7 +653,15 @@ export default function ReplyCoachStory() {
                 {isReaction ? (
                   <>
                     <Text style={styles.reactionAddress}>{studentName},</Text>
-                    <Text style={styles.dialogueText}>{currentNode.text}</Text>
+                    <Text
+                      style={styles.dialogueText}
+                      numberOfLines={2}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.76}
+                      maxFontSizeMultiplier={1.04}
+                    >
+                      {selectedChoice?.reactionText || currentNode.text}
+                    </Text>
                   </>
                 ) : (
                   null
@@ -654,7 +725,13 @@ export default function ReplyCoachStory() {
               </>
             )}
             <Text style={styles.feedbackReaction}>
-              {selectedChoice?.reactionText || currentNode.text}
+              {reactionEvaluation === 'BEST'
+                ? 'That response fits this moment naturally.'
+                : reactionEvaluation === 'ACCEPTABLE'
+                  ? 'Your reply works, but it can sound more natural.'
+                  : reactionEvaluation === 'AWKWARD'
+                    ? 'Let’s adjust this reply so it fits the situation.'
+                    : 'Let’s review how this reply may be understood.'}
             </Text>
             {latestAnswer && (
               <View style={styles.answerComparison}>
