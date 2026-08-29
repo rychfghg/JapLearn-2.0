@@ -248,7 +248,7 @@ export default function QuackTalk(){
           >
             <View style={styles.choiceHeader}>
               <View style={styles.choiceAvatar}>
-                <Image source={sumiSmile} style={styles.choiceAvatarImage} resizeMode="contain" />
+                <Ionicons name="sparkles" size={27} color="#7552C8" />
               </View>
               <View style={styles.choiceHeaderCopy}>
                 <Text style={styles.choiceEyebrow}>SUMI IS READY</Text>

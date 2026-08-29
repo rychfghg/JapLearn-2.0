@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
@@ -38,13 +37,7 @@ export default function QuackSituateRecognition() {
   const [lastCorrect, setLastCorrect] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    AsyncStorage.getItem('profileDarkMode')
-      .then((value) => setDarkMode(value === 'true'))
-      .catch(() => setDarkMode(false));
-  }, []);
+  const darkMode = false;
 
   useEffect(() => {
     let mounted = true;

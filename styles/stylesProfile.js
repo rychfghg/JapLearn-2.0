@@ -83,6 +83,7 @@ export const styles = StyleSheet.create({
         color: '#4C3B55', fontSize: 13, fontWeight: '700', paddingHorizontal: 12,
         outlineStyle: 'none',
     },
+    classCodeInputReadOnly: { backgroundColor: '#F2EDF5', color: '#5E5065' },
     darkClassCodeInput: { backgroundColor: '#211827', borderColor: '#4A3955' },
     joinClassButton: {
         minWidth: 66, height: 43, borderRadius: 13, backgroundColor: '#8423D9',
@@ -90,6 +91,7 @@ export const styles = StyleSheet.create({
     },
     joinClassButtonDisabled: { opacity: 0.5 },
     joinClassButtonText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800', letterSpacing: 0.7 },
+    joinClassButtonContent: { flexDirection: 'row', alignItems: 'center', gap: 5 },
     classHelpText: { color: '#978D9B', fontSize: 10, marginTop: 6 },
 
     achievementsCard: {

@@ -142,6 +142,7 @@ export default function QuackSituateFormal() {
   const [showHint, setShowHint] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [npcFrame, setNpcFrame] = useState(0);
+  const [storyPanelHeight, setStoryPanelHeight] = useState(132);
   const sound = useRef<Audio.Sound | null>(null);
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const question = questions[index];
@@ -438,7 +439,10 @@ export default function QuackSituateFormal() {
           ))}
         </View>
 
-        <View style={styles.storyPanel}>
+        <View
+          style={styles.storyPanel}
+          onLayout={(event) => setStoryPanelHeight(event.nativeEvent.layout.height)}
+        >
           <View style={styles.speakerRow}>
             <View>
               <Text style={styles.speakerLabel}>{question.speaker}</Text>
@@ -488,7 +492,7 @@ export default function QuackSituateFormal() {
         </View>
 
         {phase === 'speaking' && (
-          <View style={styles.listeningPill}>
+          <View style={[styles.listeningPill, { bottom: storyPanelHeight + 34 }]}>
             <View style={styles.listeningDot} />
             <Text style={styles.listeningText}>Listen to the speaker first...</Text>
           </View>
@@ -541,7 +545,10 @@ export default function QuackSituateFormal() {
         )}
 
         {phase === 'reaction' && (
-          <Pressable style={styles.continueButton} onPress={() => void continueStory()}>
+          <Pressable
+            style={[styles.continueButton, { bottom: storyPanelHeight + 34 }]}
+            onPress={() => void continueStory()}
+          >
             <Text style={styles.continueText}>
               {index === questions.length - 1 ? 'FINISH THIS LEVEL' : 'CONTINUE THE STORY'}
             </Text>

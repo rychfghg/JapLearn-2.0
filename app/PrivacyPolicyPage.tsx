@@ -111,8 +111,8 @@ export default function PrivacyPolicyPage() {
             <View style={styles.contactCopy}>
               <Text style={styles.contactTitle}>Privacy questions?</Text>
               <Text style={styles.contactText}>Contact the JapLearn team and we’ll help with your concern.</Text>
-              <Pressable onPress={() => Linking.openURL('mailto:japlearn.official@gmail.com?subject=JapLearn%20Privacy%20Question')}>
-                <Text style={styles.contactEmail}>japlearn.official@gmail.com</Text>
+              <Pressable onPress={() => Linking.openURL('mailto:japlearnofficial@gmail.com?subject=JapLearn%20Privacy%20Question')}>
+                <Text style={styles.contactEmail}>japlearnofficial@gmail.com</Text>
               </Pressable>
             </View>
           </View>

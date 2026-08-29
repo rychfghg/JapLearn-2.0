@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Image, Modal, ScrollView, SafeAreaView, StatusBar, Switch, Linking, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, Image, Modal, ScrollView, SafeAreaView, StatusBar, Linking, TextInput, ActivityIndicator } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import ForgetPasswordModal from "../components/ForgetPasswordModalProps";
 import expoconfig from "../expoconfig";
@@ -8,7 +8,6 @@ import { styles } from "../styles/stylesProfile";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import StudentBottomNav from "../components/StudentBottomNav";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useClassCode } from "../context/ClassCodeContext";
 
 type Badge = {
@@ -28,11 +27,13 @@ const Profile = () => {
   const [badgeModalVisible, setBadgeModalVisible] = useState(false);
   const [badgeInfo, setBadgeInfo] = useState("");
   const [badges, setBadges] = useState<Badge[]>([]);
-  const [darkMode, setDarkMode] = useState(false);
   const [classCodeInput, setClassCodeInput] = useState("");
   const [currentClassCode, setCurrentClassCode] = useState("");
+  const [editingClass, setEditingClass] = useState(true);
   const [joiningClass, setJoiningClass] = useState(false);
-  const { setClassCode: storeClassCode } = useClassCode();
+  const { setClassCode: storeClassCode } = useClassCode() as {
+    setClassCode: (code: string) => Promise<void>;
+  };
   
   const router = useRouter();
 
@@ -104,6 +105,7 @@ const Profile = () => {
         const savedClassCode = String(student?.classCode || "");
         setCurrentClassCode(savedClassCode);
         setClassCodeInput(savedClassCode);
+        setEditingClass(!savedClassCode);
         await storeClassCode(savedClassCode);
       } catch (error) {
         console.warn("Unable to load the student's class.", error);
@@ -112,15 +114,6 @@ const Profile = () => {
 
     void loadStudentClass();
   }, [user?.email]);
-
-  useEffect(() => {
-    AsyncStorage.getItem("profileDarkMode").then((value) => setDarkMode(value === "true"));
-  }, []);
-
-  const toggleDarkMode = async (enabled: boolean) => {
-    setDarkMode(enabled);
-    await AsyncStorage.setItem("profileDarkMode", String(enabled));
-  };
 
   const contactSupport = async () => {
     const mailUrl = "mailto:japlearnofficial@gmail.com?subject=JapLearn%20Support%20Request";
@@ -160,6 +153,7 @@ const Profile = () => {
 
       setCurrentClassCode(nextClassCode);
       setClassCodeInput(nextClassCode);
+      setEditingClass(false);
       await storeClassCode(nextClassCode);
       setModalMessage(`You are now enrolled in class ${nextClassCode}.`);
     } catch (error) {
@@ -212,9 +206,9 @@ const Profile = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container, darkMode && styles.darkContainer]}>
-      <StatusBar barStyle="light-content" backgroundColor={darkMode ? "#21162B" : "#8423D9"} />
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#8423D9" />
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <View style={styles.hero}>
           <View style={styles.heroCircleOne} />
           <View style={styles.heroCircleTwo} />
@@ -234,11 +228,11 @@ const Profile = () => {
         </View>
 
         <View style={styles.pageContent}>
-          <View style={[styles.infoCard, darkMode && styles.darkCard]}>
+          <View style={styles.infoCard}>
             <View style={styles.sectionHeaderRow}>
               <View>
-                <Text style={[styles.sectionTitle, darkMode && styles.darkTitle]}>Account information</Text>
-                <Text style={[styles.sectionSubtitle, darkMode && styles.darkMuted]}>Your personal learning profile</Text>
+                <Text style={styles.sectionTitle}>Account information</Text>
+                <Text style={styles.sectionSubtitle}>Your personal learning profile</Text>
               </View>
               <View style={styles.verifiedPill}>
                 <Ionicons name="checkmark-circle" size={15} color="#5AA524" />
@@ -247,67 +241,61 @@ const Profile = () => {
             </View>
             <View style={styles.infoRow}>
               <View style={styles.infoIcon}><Ionicons name="person-outline" size={21} color="#8423D9" /></View>
-              <View style={styles.infoCopy}><Text style={[styles.infoLabel, darkMode && styles.darkMuted]}>Full name</Text><Text style={[styles.infoValue, darkMode && styles.darkText]}>{user ? `${user.fname} ${user.lname}` : ""}</Text></View>
+              <View style={styles.infoCopy}><Text style={styles.infoLabel}>Full name</Text><Text style={styles.infoValue}>{user ? `${user.fname} ${user.lname}` : ""}</Text></View>
             </View>
             <View style={styles.infoRow}>
               <View style={styles.infoIcon}><Ionicons name="mail-outline" size={21} color="#8423D9" /></View>
-              <View style={styles.infoCopy}><Text style={[styles.infoLabel, darkMode && styles.darkMuted]}>Email address</Text><Text style={[styles.infoValue, darkMode && styles.darkText]}>{user ? user.email : ""}</Text></View>
+              <View style={styles.infoCopy}><Text style={styles.infoLabel}>Email address</Text><Text style={styles.infoValue}>{user ? user.email : ""}</Text></View>
             </View>
             <View style={[styles.infoRow, styles.lastInfoRow, styles.classInfoRow]}>
               <View style={styles.infoIcon}><Ionicons name="people-outline" size={21} color="#8423D9" /></View>
               <View style={styles.classInfoCopy}>
-                <Text style={[styles.infoLabel, darkMode && styles.darkMuted]}>Class</Text>
+                <Text style={styles.infoLabel}>Class</Text>
                 <View style={styles.classJoinRow}>
                   <TextInput
                     accessibilityLabel="Teacher class code"
                     autoCapitalize="characters"
-                    editable={!joiningClass}
+                    editable={editingClass && !joiningClass}
                     onChangeText={setClassCodeInput}
                     placeholder="Enter teacher class code"
-                    placeholderTextColor={darkMode ? "#8F8295" : "#A79DAA"}
-                    style={[
-                      styles.classCodeInput,
-                      darkMode && styles.darkClassCodeInput,
-                      darkMode && styles.darkText,
-                    ]}
+                    placeholderTextColor="#A79DAA"
+                    style={[styles.classCodeInput, !editingClass && styles.classCodeInputReadOnly]}
                     value={classCodeInput}
                   />
                   <TouchableOpacity
                     accessibilityRole="button"
-                    disabled={
-                      joiningClass
-                      || !classCodeInput.trim()
-                      || currentClassCode === classCodeInput.trim()
-                    }
-                    onPress={joinTeacherClass}
+                    disabled={joiningClass || (editingClass && !classCodeInput.trim())}
+                    onPress={() => {
+                      if (currentClassCode && !editingClass) {
+                        setEditingClass(true);
+                        return;
+                      }
+                      void joinTeacherClass();
+                    }}
                     style={[
                       styles.joinClassButton,
                       (
                         joiningClass
-                        || !classCodeInput.trim()
-                        || currentClassCode === classCodeInput.trim()
+                        || (editingClass && !classCodeInput.trim())
                       ) && styles.joinClassButtonDisabled,
                     ]}
                   >
                     {joiningClass
                       ? <ActivityIndicator size="small" color="#FFFFFF" />
-                      : <Text style={styles.joinClassButtonText}>
-                          {currentClassCode === classCodeInput.trim() ? "JOINED" : "JOIN"}
-                        </Text>}
+                      : <View style={styles.joinClassButtonContent}>
+                          <Ionicons name={currentClassCode && !editingClass ? "pencil" : "enter-outline"} size={14} color="#FFFFFF" />
+                          <Text style={styles.joinClassButtonText}>{currentClassCode && !editingClass ? "EDIT" : "JOIN"}</Text>
+                        </View>}
                   </TouchableOpacity>
                 </View>
-                <Text style={[styles.classHelpText, darkMode && styles.darkMuted]}>
-                  {currentClassCode
-                    ? `Enrolled in ${currentClassCode}`
-                    : "Use the code shared by your teacher."}
-                </Text>
+                {!currentClassCode && <Text style={styles.classHelpText}>Use the code shared by your teacher.</Text>}
               </View>
             </View>
           </View>
 
-          <View style={[styles.achievementsCard, darkMode && styles.darkCard]}>
+          <View style={styles.achievementsCard}>
             <View style={styles.sectionHeaderRow}>
-              <View><Text style={[styles.sectionTitle, darkMode && styles.darkTitle]}>Achievements</Text><Text style={[styles.sectionSubtitle, darkMode && styles.darkMuted]}>Tap a badge to view its details</Text></View>
+              <View><Text style={styles.sectionTitle}>Achievements</Text><Text style={styles.sectionSubtitle}>Tap a badge to view its details</Text></View>
               <Ionicons name="trophy-outline" size={24} color="#F7AE23" />
             </View>
             <View style={styles.badgeContainer}>
@@ -319,19 +307,14 @@ const Profile = () => {
                       <Ionicons name={badge.acquired ? "checkmark" : "lock-closed"} size={11} color="#FFFFFF" />
                     </View>
                   </View>
-                  <Text style={[styles.badgeName, darkMode && styles.darkText]} numberOfLines={2}>{badge.title.replace(' Badge', '')}</Text>
+                  <Text style={styles.badgeName} numberOfLines={2}>{badge.title.replace(' Badge', '')}</Text>
                 </TouchableOpacity>
               ))}
             </View>
           </View>
 
-          <Text style={[styles.settingsTitle, darkMode && styles.darkTitle]}>Preferences & support</Text>
-          <View style={[styles.settingsCard, darkMode && styles.darkCard]}>
-            <View style={styles.settingRow}>
-              <View style={styles.settingIcon}><Ionicons name={darkMode ? "moon" : "moon-outline"} size={21} color="#8423D9" /></View>
-              <View style={styles.settingCopy}><Text style={[styles.settingLabel, darkMode && styles.darkText]}>Dark mode</Text><Text style={[styles.settingDescription, darkMode && styles.darkMuted]}>Use a darker profile appearance</Text></View>
-              <Switch value={darkMode} onValueChange={toggleDarkMode} trackColor={{ false: "#D8D0DC", true: "#A95BE8" }} thumbColor={darkMode ? "#FFFFFF" : "#F7F4F8"} />
-            </View>
+          <Text style={styles.settingsTitle}>Preferences & support</Text>
+          <View style={styles.settingsCard}>
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityLabel="Open JapLearn privacy policy"
@@ -339,22 +322,22 @@ const Profile = () => {
               style={styles.settingRow}
             >
               <View style={styles.settingIcon}><Ionicons name="shield-checkmark-outline" size={21} color="#8423D9" /></View>
-              <View style={styles.settingCopy}><Text style={[styles.settingLabel, darkMode && styles.darkText]}>Privacy policy</Text><Text style={[styles.settingDescription, darkMode && styles.darkMuted]}>See how JapLearn handles your information</Text></View>
+              <View style={styles.settingCopy}><Text style={styles.settingLabel}>Privacy policy</Text><Text style={styles.settingDescription}>See how JapLearn handles your information</Text></View>
               <Ionicons name="chevron-forward" size={20} color="#A89EAD" />
             </TouchableOpacity>
             <TouchableOpacity onPress={contactSupport} style={styles.settingRow}>
               <View style={styles.settingIcon}><Ionicons name="headset-outline" size={21} color="#8423D9" /></View>
-              <View style={styles.settingCopy}><Text style={[styles.settingLabel, darkMode && styles.darkText]}>Contact support</Text><Text style={[styles.settingDescription, darkMode && styles.darkMuted]}>japlearnofficial@gmail.com</Text></View>
+              <View style={styles.settingCopy}><Text style={styles.settingLabel}>Contact support</Text><Text style={styles.settingDescription}>japlearnofficial@gmail.com</Text></View>
               <Ionicons name="open-outline" size={19} color="#A89EAD" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setForgetPasswordVisible(true)} style={styles.settingRow}>
               <View style={styles.settingIcon}><Ionicons name="key-outline" size={21} color="#8423D9" /></View>
-              <View style={styles.settingCopy}><Text style={[styles.settingLabel, darkMode && styles.darkText]}>Reset password</Text><Text style={[styles.settingDescription, darkMode && styles.darkMuted]}>Send a secure reset link to your email</Text></View>
+              <View style={styles.settingCopy}><Text style={styles.settingLabel}>Reset password</Text><Text style={styles.settingDescription}>Send a secure reset link to your email</Text></View>
               <Ionicons name="chevron-forward" size={20} color="#A89EAD" />
             </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} style={[styles.settingRow, styles.logoutRow]}>
               <View style={[styles.settingIcon, styles.logoutIcon]}><Ionicons name="log-out-outline" size={21} color="#C53D47" /></View>
-              <View style={styles.settingCopy}><Text style={styles.logoutLabel}>Log out</Text><Text style={[styles.settingDescription, darkMode && styles.darkMuted]}>Sign out of your JapLearn account</Text></View>
+              <View style={styles.settingCopy}><Text style={styles.logoutLabel}>Log out</Text><Text style={styles.settingDescription}>Sign out of your JapLearn account</Text></View>
               <Ionicons name="chevron-forward" size={20} color="#A89EAD" />
             </TouchableOpacity>
           </View>

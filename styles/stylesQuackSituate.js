@@ -44,5 +44,5 @@ export default StyleSheet.create({
  ,questBrand:{flex:1,marginLeft:13,justifyContent:'center'},questBrandOverline:{color:'#8423D9',fontFamily:'Jua',fontSize:14,fontWeight:'400',letterSpacing:.7},questBrandRow:{display:'none'},
  questMissionCard:{width:'100%',height:258,borderRadius:23,overflow:'hidden',backgroundColor:'#29143F',borderWidth:2,borderColor:'rgba(255,255,255,.70)',shadowColor:'#3E2152',shadowOpacity:.22,shadowRadius:15,shadowOffset:{width:0,height:8},elevation:8},
  questMissionBackground:{flex:1,width:'100%',height:'100%',padding:15,justifyContent:'space-between',overflow:'hidden'},
- questMissionFullImage:{...StyleSheet.absoluteFillObject,width:undefined,height:undefined},
+ questMissionImage:{width:'100%',height:'100%',borderRadius:23},
 });

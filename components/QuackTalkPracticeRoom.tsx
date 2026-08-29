@@ -479,7 +479,7 @@ export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
     );
 
     await Linking.openURL(
-      `mailto:japlearn.official@gmail.com?subject=${subject}&body=${body}`,
+      `mailto:japlearnofficial@gmail.com?subject=${subject}&body=${body}`,
     );
   };
 

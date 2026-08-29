@@ -1,6 +1,6 @@
 import { SafeAreaView, Text, View, Pressable, Image, Platform, StatusBar, ScrollView, useWindowDimensions, Animated } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import styles from '../styles/stylesMenu';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
@@ -27,13 +27,9 @@ const Menu = () => {
     const [goalStreak, setGoalStreak] = useState(0);
     const [tipVisible, setTipVisible] = useState(true);
     const [flippedCard, setFlippedCard] = useState<'play' | 'progress' | null>(null);
-    const [darkMode, setDarkMode] = useState(false);
+    const darkMode = false;
     const playFlip = React.useRef(new Animated.Value(0)).current;
     const progressFlip = React.useRef(new Animated.Value(0)).current;
-
-    useFocusEffect(React.useCallback(() => {
-        AsyncStorage.getItem('profileDarkMode').then((value) => setDarkMode(value === 'true'));
-    }, []));
 
     useEffect(() => {
         const fetchClassCode = async () => {
@@ -154,7 +150,6 @@ const Menu = () => {
                             </View>
                             <View style={styles.heroTopBar}>
                                 <View style={styles.headerIntro}>
-                                    <Text style={styles.konnichiwa}>KONNICHIWA</Text>
                                     <Text style={[styles.greeting, isCompact && styles.greetingCompact]}>Hi, {user?.fname || 'Learner'}! 👋</Text>
                                 </View>
                                 <Pressable onPress={() => router.push('/Profile')} style={({ pressed }) => [styles.profileButton, pressed && styles.pressed]}>

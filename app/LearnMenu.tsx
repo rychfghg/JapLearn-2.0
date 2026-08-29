@@ -9,8 +9,8 @@ import {
   SafeAreaView,
   Image,
 } from 'react-native';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import React, { useContext, useEffect, useState } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import styles from '../styles/stylesLearnMenu';
 import BackIcon from '../assets/svg/back-icon.svg';
 import ImageButton from '../components/ImageButton';
@@ -47,11 +47,7 @@ const LearnMenu = () => {
   const [tipVisible, setTipVisible] = useState(true);
   const [mascotGuide, setMascotGuide] = useState(0);
   const [classLessons, setClassLessons] = useState<any[]>([]);
-  const [darkMode, setDarkMode] = useState(false);
-
-  useFocusEffect(useCallback(() => {
-    AsyncStorage.getItem('profileDarkMode').then((value) => setDarkMode(value === 'true'));
-  }, []));
+  const darkMode = false;
 
   useEffect(() => {
     const loadClassLessons = async () => {

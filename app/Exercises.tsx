@@ -6,7 +6,6 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import { AuthContext } from '../context/AuthContext';
 import StudentBottomNav from '../components/StudentBottomNav';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { preloadExerciseCovers } from '../utils/gameAssetPreloader';
 
 const activities = [
@@ -32,11 +31,7 @@ const Exercises = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [infoActivity, setInfoActivity] = useState<(typeof activities)[number] | null>(null);
   const [mascotGuide, setMascotGuide] = useState(0);
-  const [darkMode, setDarkMode] = useState(false);
-
-  useFocusEffect(useCallback(() => {
-    AsyncStorage.getItem('profileDarkMode').then((value) => setDarkMode(value === 'true'));
-  }, []));
+  const darkMode = false;
 
   useEffect(() => {
     preloadExerciseCovers();
@@ -135,8 +130,13 @@ const Exercises = () => {
                   onPress={() => handleButtonPress(activity.key)}
                   style={({ pressed }) => [styles.activityCard, { backgroundColor: activity.cardColor }, pressed && styles.cardPressed]}
                 >
-                  <Image source={activity.image} style={styles.cardCoverAsset} resizeMode="cover" fadeDuration={0} />
-                  <View style={styles.cardCover}>
+                  <ImageBackground
+                    source={activity.image}
+                    style={styles.cardCoverAsset}
+                    imageStyle={styles.cardCoverImage}
+                    resizeMode="cover"
+                  >
+                    <View style={styles.cardCover}>
                     <View style={styles.cardShade} />
                     <View style={styles.cardTopRow}>
                       <View style={styles.cardTag}><Ionicons name={activity.icon} size={13} color={activity.color} /><Text style={[styles.cardTagText, { color: activity.color }]}>{activity.tag}</Text></View>
@@ -150,7 +150,8 @@ const Exercises = () => {
                       <View><Text style={styles.playOverline}>PLAY NOW</Text><Text style={styles.playLabel}>{activity.mode}</Text></View>
                       <View style={styles.smallPlay}><Ionicons name="play" size={16} color={activity.color} /></View>
                     </View>
-                  </View>
+                    </View>
+                  </ImageBackground>
                 </Pressable>
               ))}
             </View>

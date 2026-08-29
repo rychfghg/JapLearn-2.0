@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
@@ -10,6 +10,8 @@ import styles from '../styles/stylesWordMenu';
 const WordsMenu = () => {
   const { user } = useContext(AuthContext);
   const router = useRouter();
+  const { width } = useWindowDimensions();
+  const compact = width < 430;
   const { fromWords } = useLocalSearchParams();
   const badgeCheckCompleted = useRef(false);
   const [isBadgeVisible, setBadgeVisible] = useState(false);
@@ -62,10 +64,10 @@ const WordsMenu = () => {
 
   return <View style={styles.background}>
     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-      <View style={styles.hero}><View style={styles.heroOrb} /><View style={styles.heroOrbInner} />
+      <View style={[styles.hero, compact && styles.heroCompact]}><View style={styles.heroOrb} /><View style={styles.heroOrbInner} />
         <View style={styles.header}><Pressable style={styles.backButton} onPress={() => router.push('/LearnMenu')}><BackIcon width={21} height={21} fill="#552E68" /></Pressable><Text style={styles.journeyLabel}>JAPLEARN · WORDS PATH</Text><View style={styles.bookButton}><Ionicons name="images" size={25} color="#8423D9" /></View></View>
-        <View style={styles.heroCopy}><Text style={styles.eyebrow}>PICTURE DICTIONARY</Text><Text style={styles.title}>See it. Read it. Remember it.</Text><Text style={styles.subtitle}>Build useful Japanese vocabulary through visual collections.</Text></View>
-        <View style={styles.collage}><View style={styles.coverPlate} /><Image source={require('../assets/words_cover/everyday-places-cover.png')} style={styles.collageImageMain} /><Image source={require('../assets/words_cover/people-relationships-cover.png')} style={styles.collageImageSmall} /><Image source={require('../assets/words_cover/school-professions-cover.png')} style={styles.collageImageAccent} /><View style={styles.wordBubble}><Text style={styles.wordBubbleText}>ことば</Text></View></View>
+        <View style={[styles.heroCopy, compact && styles.heroCopyCompact]}><Text style={styles.eyebrow}>PICTURE DICTIONARY</Text><Text style={[styles.title, compact && styles.titleCompact]}>See it. Read it. Remember it.</Text><Text style={[styles.subtitle, compact && styles.subtitleCompact]}>Build useful Japanese vocabulary through visual collections.</Text></View>
+        <View style={[styles.collage, compact && styles.collageCompact]}><View style={[styles.coverPlate, compact && styles.coverPlateCompact]} /><Image source={require('../assets/words_cover/everyday-places-cover.png')} style={[styles.collageImageMain, compact && styles.collageImageMainCompact]} /><Image source={require('../assets/words_cover/people-relationships-cover.png')} style={[styles.collageImageSmall, compact && styles.collageImageSmallCompact]} /><Image source={require('../assets/words_cover/school-professions-cover.png')} style={[styles.collageImageAccent, compact && styles.collageImageAccentCompact]} /><View style={[styles.wordBubble, compact && styles.wordBubbleCompact]}><Text style={styles.wordBubbleText}>ことば</Text></View></View>
       </View>
       <View style={styles.body}>
         <View style={styles.sectionHeader}><View><Text style={styles.sectionTitle}>Your collections</Text><Text style={styles.sectionSubtitle}>Explore each illustrated word set.</Text></View><View style={styles.countPill}><Text style={styles.countText}>{doneCount} / 3 DONE</Text></View></View>
