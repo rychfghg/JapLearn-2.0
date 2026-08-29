@@ -138,6 +138,97 @@ const shuffle = <T,>(items: T[]) => {
   return copy;
 };
 
+type SpriteActorProps = {
+  characterKey: string;
+  expressionKey?: string;
+  positionStyle: any;
+  speaking: boolean;
+};
+
+function SpriteActor({
+  characterKey,
+  expressionKey = 'NEUTRAL',
+  positionStyle,
+  speaking,
+}: SpriteActorProps) {
+  const expressionOpacity = useRef(new Animated.Value(0)).current;
+  const bodyScale = useRef(new Animated.Value(1)).current;
+  const baseSource = sprites[characterKey]?.NEUTRAL;
+  const expressionSource = sprites[characterKey]?.[expressionKey] ?? baseSource;
+  const motionSource = characterKey === 'SUMI'
+    ? sprites.SUMI.SPEAKING
+    : sprites.HARU.SPEAKING;
+
+  useEffect(() => {
+    expressionOpacity.stopAnimation();
+    expressionOpacity.setValue(0);
+
+    const expressionLoop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(speaking ? 280 : 2500),
+        Animated.timing(expressionOpacity, {
+          toValue: 1,
+          duration: speaking ? 90 : 70,
+          useNativeDriver: true,
+        }),
+        Animated.delay(speaking ? 150 : 100),
+        Animated.timing(expressionOpacity, {
+          toValue: 0,
+          duration: speaking ? 110 : 90,
+          useNativeDriver: true,
+        }),
+        Animated.delay(speaking ? 180 : 800),
+      ]),
+    );
+
+    const breathingLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bodyScale, {
+          toValue: 1.008,
+          duration: 1300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(bodyScale, {
+          toValue: 1,
+          duration: 1300,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    expressionLoop.start();
+    breathingLoop.start();
+
+    return () => {
+      expressionLoop.stop();
+      breathingLoop.stop();
+    };
+  }, [characterKey, expressionKey, speaking]);
+
+  return (
+    <Animated.View
+      style={[
+        styles.spriteActor,
+        positionStyle,
+        { transform: [{ scale: bodyScale }] },
+      ]}
+    >
+      <Image
+        source={baseSource}
+        style={styles.spriteLayer}
+        resizeMode="contain"
+        fadeDuration={0}
+      />
+      <Animated.Image
+        source={speaking ? motionSource : expressionSource}
+        style={[styles.spriteLayer, { opacity: expressionOpacity }]}
+        resizeMode="contain"
+        fadeDuration={0}
+      />
+    </Animated.View>
+  );
+}
+
 export default function ReplyCoachStory() {
   const { user } = useContext(AuthContext);
   const [chapter, setChapter] = useState<Chapter | null>(null);
@@ -146,7 +237,6 @@ export default function ReplyCoachStory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedChoice, setSelectedChoice] = useState<ChoiceOption | null>(null);
-  const [choiceFeedback, setChoiceFeedback] = useState(false);
   const [exitVisible, setExitVisible] = useState(false);
   const [reviewVisible, setReviewVisible] = useState(false);
   const [resultsVisible, setResultsVisible] = useState(false);
@@ -165,6 +255,8 @@ export default function ReplyCoachStory() {
   const progress = chapter
     ? Math.min(1, (attempt?.answers.length ?? 0) / Math.max(1, chapter.nodes.filter((node) => node.type === 'CHOICE').length))
     : 0;
+  const studentName = user?.fname?.trim() || 'friend';
+  const latestAnswer = attempt?.answers?.[attempt.answers.length - 1];
 
   useEffect(() => {
     void loadStory();
@@ -215,7 +307,6 @@ export default function ReplyCoachStory() {
   const moveTo = async (next?: string) => {
     if (!next || !attempt) return;
     setSelectedChoice(null);
-    setChoiceFeedback(false);
     setNodeId(next);
     setAttempt((current) => current ? { ...current, currentNodeId: next } : current);
     try {
@@ -240,7 +331,7 @@ export default function ReplyCoachStory() {
       });
       setAttempt(response.attempt);
       setSelectedChoice(response.choice);
-      setChoiceFeedback(true);
+      setNodeId(response.choice.nextNodeId);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Your response could not be saved.');
     } finally {
@@ -282,6 +373,11 @@ export default function ReplyCoachStory() {
     ? sprites[currentNode.secondaryCharacterKey]?.[currentNode.secondaryExpressionKey ?? 'NEUTRAL']
     : null;
   const isNarration = currentNode?.type === 'NARRATION' || currentNode?.type === 'CULTURAL_NOTE';
+  const isReaction = currentNode?.type === 'REACTION';
+  const activeCharacter = currentNode?.characterKey;
+  const reactionEvaluation = selectedChoice?.evaluation ?? latestAnswer?.evaluation;
+  const reactionExplanation = selectedChoice?.explanation ?? latestAnswer?.explanation;
+  const reactionCulture = selectedChoice?.culturalNote ?? latestAnswer?.culturalNote;
 
   if (loading) {
     return (
@@ -334,11 +430,21 @@ export default function ReplyCoachStory() {
         <Animated.View style={[styles.storyStage, { opacity: fade }]}>
           {currentNode.spritesVisible && !isNarration && (
             <View style={styles.spriteStage} pointerEvents="none">
-              {secondarySprite && (
-                <Image source={secondarySprite} style={[styles.sprite, styles.secondarySprite]} resizeMode="contain" fadeDuration={0} />
+              {currentNode.secondaryCharacterKey && secondarySprite && (
+                <SpriteActor
+                  characterKey={currentNode.secondaryCharacterKey}
+                  expressionKey={currentNode.secondaryExpressionKey}
+                  positionStyle={styles.secondarySprite}
+                  speaking={activeCharacter === currentNode.secondaryCharacterKey}
+                />
               )}
-              {primarySprite && (
-                <Image source={primarySprite} style={[styles.sprite, styles.primarySprite]} resizeMode="contain" fadeDuration={0} />
+              {currentNode.characterKey && primarySprite && (
+                <SpriteActor
+                  characterKey={currentNode.characterKey}
+                  expressionKey={currentNode.expressionKey}
+                  positionStyle={styles.primarySprite}
+                  speaking={activeCharacter === currentNode.characterKey}
+                />
               )}
             </View>
           )}
@@ -346,9 +452,13 @@ export default function ReplyCoachStory() {
           {isNarration ? (
             <Pressable style={styles.narrationWrap} onPress={() => moveTo(currentNode.nextNodeId)}>
               <View style={styles.narrationCard}>
+                <View style={styles.narrationLocation}>
+                  <Ionicons name="location-outline" size={15} color="#B9F28E" />
+                  <Text style={styles.narrationLocationText}>{currentNode.title}</Text>
+                </View>
                 <View style={styles.narrationRule} />
                 <Text style={styles.narrationEyebrow}>
-                  {currentNode.type === 'CULTURAL_NOTE' ? 'CULTURE NOTE' : currentNode.title}
+                  {currentNode.type === 'CULTURAL_NOTE' ? 'A MOMENT TO REMEMBER' : 'YOUR STORY CONTINUES'}
                 </Text>
                 <Text style={styles.narrationText}>{currentNode.text}</Text>
                 <View style={styles.continueRow}>
@@ -359,6 +469,7 @@ export default function ReplyCoachStory() {
             </Pressable>
           ) : currentNode.type === 'CHOICE' ? (
             <View style={styles.decisionPanel}>
+              <View style={styles.drawerHandle} />
               <View style={styles.decisionHeading}>
                 <View style={styles.decisionIcon}>
                   <Ionicons name="chatbubbles-outline" size={21} color="#FFFFFF" />
@@ -383,7 +494,6 @@ export default function ReplyCoachStory() {
                     <View style={styles.choiceCopy}>
                       <Text style={styles.choiceJapanese}>{choice.japanese}</Text>
                       <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
-                      <Text style={styles.choiceEnglish}>{choice.text}</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={19} color="#A58CAF" />
                   </Pressable>
@@ -410,7 +520,41 @@ export default function ReplyCoachStory() {
                 </View>
                 {Boolean(currentNode.japanese) && <Text style={styles.dialogueJapanese}>{currentNode.japanese}</Text>}
                 {Boolean(currentNode.romaji) && <Text style={styles.dialogueRomaji}>{currentNode.romaji}</Text>}
-                <Text style={styles.dialogueText}>{currentNode.text}</Text>
+                {isReaction ? (
+                  <>
+                    <Text style={styles.reactionAddress}>{studentName},</Text>
+                    <Text style={styles.dialogueText}>{currentNode.text}</Text>
+                    {reactionEvaluation && (
+                      <View style={styles.inlineReactionRow}>
+                        <View
+                          style={[
+                            styles.inlineReactionDot,
+                            { backgroundColor: evaluationTheme[reactionEvaluation].color },
+                          ]}
+                        />
+                        <Text
+                          style={[
+                            styles.inlineReactionLabel,
+                            { color: evaluationTheme[reactionEvaluation].color },
+                          ]}
+                        >
+                          {evaluationTheme[reactionEvaluation].label}
+                        </Text>
+                      </View>
+                    )}
+                    {Boolean(reactionExplanation) && (
+                      <Text style={styles.reactionTeaching}>{reactionExplanation}</Text>
+                    )}
+                    {Boolean(reactionCulture) && (
+                      <View style={styles.inlineCultureNote}>
+                        <Ionicons name="leaf-outline" size={16} color="#5CAA38" />
+                        <Text style={styles.inlineCultureText}>{reactionCulture}</Text>
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  null
+                )}
                 <View style={styles.continueRowDark}>
                   <Text style={styles.continueTextDark}>Tap to continue</Text>
                   <Ionicons name="chevron-forward" size={18} color="#8423D9" />
@@ -420,36 +564,6 @@ export default function ReplyCoachStory() {
           )}
         </Animated.View>
       </SafeAreaView>
-
-      <Modal visible={choiceFeedback} transparent animationType="fade" onRequestClose={() => undefined}>
-        <View style={styles.modalBackdrop}>
-          {selectedChoice && (
-            <View style={styles.feedbackCard}>
-              <View style={[styles.feedbackIcon, { backgroundColor: evaluationTheme[selectedChoice.evaluation].color }]}>
-                <Ionicons name={evaluationTheme[selectedChoice.evaluation].icon} size={29} color="#FFFFFF" />
-              </View>
-              <Text style={[styles.feedbackEyebrow, { color: evaluationTheme[selectedChoice.evaluation].color }]}>
-                {evaluationTheme[selectedChoice.evaluation].label.toUpperCase()}
-              </Text>
-              <Text style={styles.feedbackReaction}>{selectedChoice.reactionText}</Text>
-              <View style={styles.explanationBox}>
-                <Text style={styles.explanationLabel}>WHY IT SOUNDS THIS WAY</Text>
-                <Text style={styles.explanationText}>{selectedChoice.explanation}</Text>
-              </View>
-              {Boolean(selectedChoice.culturalNote) && (
-                <View style={styles.cultureBox}>
-                  <Ionicons name="flower-outline" size={20} color="#5DAF37" />
-                  <Text style={styles.cultureText}>{selectedChoice.culturalNote}</Text>
-                </View>
-              )}
-              <Pressable style={styles.primaryButton} onPress={() => moveTo(selectedChoice.nextNodeId)}>
-                <Text style={styles.primaryButtonText}>Continue the story</Text>
-                <Ionicons name="arrow-forward" size={19} color="#FFFFFF" />
-              </Pressable>
-            </View>
-          )}
-        </View>
-      </Modal>
 
       <Modal visible={exitVisible} transparent animationType="fade" onRequestClose={() => setExitVisible(false)}>
         <View style={styles.modalBackdrop}>
@@ -537,7 +651,6 @@ export default function ReplyCoachStory() {
                   </View>
                   <Text style={styles.reviewPrompt}>{answer.prompt}</Text>
                   <Text style={styles.reviewSelected}>{answer.selectedJapanese}</Text>
-                  <Text style={styles.reviewEnglish}>{answer.selectedText}</Text>
                   {answer.evaluation !== 'BEST' && (
                     <View style={styles.bestAnswerBox}>
                       <Text style={styles.bestAnswerLabel}>BEST RESPONSE</Text>
