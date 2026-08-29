@@ -321,7 +321,7 @@ export default StyleSheet.create({
 
   mapBackgroundWash: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(251, 248, 255, 0.94)',
+    backgroundColor: 'rgba(251, 248, 255, 0.72)',
   },
 
   mapScroll: {
@@ -519,7 +519,7 @@ export default StyleSheet.create({
     borderRadius: 99,
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#B9DF9F',
+    borderColor: '#D5C2E7',
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
@@ -528,11 +528,11 @@ export default StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: '#65A936',
+    backgroundColor: '#6E4BC6',
   },
 
   mapReadyText: {
-    color: '#4D8E2C',
+    color: '#6E4BC6',
     fontSize: 7,
     fontWeight: '900',
   },
@@ -550,7 +550,7 @@ export default StyleSheet.create({
     width: 11,
     marginLeft: -5.5,
     borderRadius: 99,
-    backgroundColor: '#C99EE9',
+    backgroundColor: '#B988DF',
     borderWidth: 3,
     borderColor: '#FFFFFF',
     shadowColor: '#7130A2',
@@ -598,11 +598,11 @@ export default StyleSheet.create({
   },
 
   mapMissionCard: {
-    width: '87%',
-    borderRadius: 27,
-    backgroundColor: '#FFFFFF',
+    width: '84%',
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.97)',
     borderWidth: 2,
-    borderColor: '#E0D1E8',
+    borderColor: '#D9C4E8',
     overflow: 'hidden',
     shadowColor: '#392145',
     shadowOpacity: 0.17,
@@ -620,13 +620,20 @@ export default StyleSheet.create({
     opacity: 0.9,
   },
 
+  mapMissionCardLocked: {
+    backgroundColor: 'rgba(248,246,249,0.98)',
+    borderColor: '#D9D2DC',
+    shadowOpacity: 0.08,
+    elevation: 3,
+  },
+
   mapMissionAccent: {
     height: 8,
     width: '100%',
   },
 
   mapMissionLandscape: {
-    height: 132,
+    height: 124,
     overflow: 'hidden',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(76,45,88,0.10)',
@@ -669,6 +676,10 @@ export default StyleSheet.create({
     height: 126,
   },
 
+  mapMissionMascotLocked: {
+    opacity: 0.42,
+  },
+
   mapModePill: {
     position: 'absolute',
     left: 15,
@@ -685,6 +696,32 @@ export default StyleSheet.create({
   },
 
   mapModeText: {
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 0.7,
+  },
+
+  mapLockedSeal: {
+    position: 'absolute',
+    right: 14,
+    top: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderWidth: 1,
+    borderColor: '#D8D0DC',
+    paddingHorizontal: 9,
+    paddingVertical: 7,
+    shadowColor: '#4C3B53',
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+
+  mapLockedSealText: {
+    color: '#675A6D',
     fontSize: 7,
     fontWeight: '900',
     letterSpacing: 0.7,
@@ -735,10 +772,21 @@ export default StyleSheet.create({
     paddingTop: 12,
   },
 
+  mapMissionActionCopy: {
+    flex: 1,
+    paddingRight: 8,
+  },
+
   mapStartText: {
     fontSize: 8,
     fontWeight: '900',
     letterSpacing: 0.8,
+  },
+
+  mapUnlockHint: {
+    color: '#9B919F',
+    fontSize: 7,
+    marginTop: 3,
   },
 
   mapStartButton: {

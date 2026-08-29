@@ -6,9 +6,9 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackResponse';
 
 const games = [
-  { title:'Guided Response', subtitle:'Build the right reply', description:'Follow helpful cues and learn how natural Japanese responses are formed.', route:'/QuackResponseGuided', icon:'chatbubble-ellipses-outline', label:'GUIDED MODE', color:'#6E4BC6', tint:'#EEE8FC', mascot:require('../assets/talk.png') },
-  { title:'Timed Challenge', subtitle:'Think fast, answer naturally', description:'Race the clock and strengthen your instinct for everyday Japanese replies.', route:'/QuackResponseTimed', icon:'timer-outline', label:'SPEED MODE', color:'#E58B2A', tint:'#FFF0DE', mascot:require('../assets/Surprised.png') },
-  { title:'Multi-Step', subtitle:'Keep the conversation moving', description:'Choose connected responses across a complete conversation sequence.', route:'/QuackResponseMultiStep', icon:'git-branch-outline', label:'CHAIN MODE', color:'#D84F83', tint:'#FCE7EF', mascot:require('../assets/thinking.png') },
+  { title:'Guided Response', subtitle:'Build the right reply', description:'Follow helpful cues and learn how natural Japanese responses are formed.', route:'/QuackResponseGuided', icon:'chatbubble-ellipses-outline', label:'GUIDED MODE', color:'#6E4BC6', tint:'#EEE8FC', mascot:require('../assets/talk.png'), locked:false },
+  { title:'Timed Challenge', subtitle:'Think fast, answer naturally', description:'Race the clock and strengthen your instinct for everyday Japanese replies.', route:'/QuackResponseTimed', icon:'timer-outline', label:'SPEED MODE', color:'#E58B2A', tint:'#FFF0DE', mascot:require('../assets/Surprised.png'), locked:true },
+  { title:'Multi-Step', subtitle:'Keep the conversation moving', description:'Choose connected responses across a complete conversation sequence.', route:'/QuackResponseMultiStep', icon:'git-branch-outline', label:'CHAIN MODE', color:'#D84F83', tint:'#FCE7EF', mascot:require('../assets/thinking.png'), locked:true },
 ] as const;
 
 export default function QuackResponse() {
@@ -29,7 +29,7 @@ export default function QuackResponse() {
   },[skipLoading]);
 
   const launch=(game:(typeof games)[number])=>{
-    if(launching)return;
+    if(launching||game.locked)return;
     setLaunching(game);setLaunchProgress(8);let value=8;
     const timer=setInterval(()=>{value=Math.min(value+12,100);setLaunchProgress(value);if(value>=100){clearInterval(timer);router.push(game.route);setTimeout(()=>{setLaunching(null);setLaunchProgress(0);},350);}},55);
   };
@@ -41,7 +41,7 @@ export default function QuackResponse() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ImageBackground
-        source={require('../assets/forest2.png')}
+        source={require('../assets/img/LessonJourneyBackground.png')}
         style={styles.background}
         resizeMode="cover"
       >
@@ -76,11 +76,11 @@ export default function QuackResponse() {
           <View style={styles.mapSectionHeading}>
             <View>
               <Text style={styles.mapSectionKicker}>YOUR JOURNEY</Text>
-              <Text style={styles.mapSectionTitle}>Three response checkpoints</Text>
+              <Text style={styles.mapSectionTitle}>Response mission trail</Text>
             </View>
             <View style={styles.mapReadyPill}>
               <View style={styles.mapReadyDot} />
-              <Text style={styles.mapReadyText}>ALL READY</Text>
+              <Text style={styles.mapReadyText}>1 OPEN</Text>
             </View>
           </View>
 
@@ -98,17 +98,23 @@ export default function QuackResponse() {
                 <View
                   style={[
                     styles.mapCheckpoint,
-                    { backgroundColor: game.color },
+                    { backgroundColor: game.locked ? '#B8AFBC' : game.color },
                   ]}
                 >
-                  <Text style={styles.mapCheckpointNumber}>0{index + 1}</Text>
+                  {game.locked ? (
+                    <Ionicons name="lock-closed" size={18} color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.mapCheckpointNumber}>0{index + 1}</Text>
+                  )}
                 </View>
 
                 <Pressable
+                  disabled={game.locked}
                   onPress={() => launch(game)}
                   style={({ pressed }) => [
                     styles.mapMissionCard,
                     index % 2 === 1 && styles.mapMissionCardRight,
+                    game.locked && styles.mapMissionCardLocked,
                     pressed && styles.mapMissionCardPressed,
                   ]}
                 >
@@ -144,7 +150,10 @@ export default function QuackResponse() {
                     />
                     <Image
                       source={game.mascot}
-                      style={styles.mapMissionMascot}
+                      style={[
+                        styles.mapMissionMascot,
+                        game.locked && styles.mapMissionMascotLocked,
+                      ]}
                       resizeMode="contain"
                     />
                     <View style={styles.mapModePill}>
@@ -153,6 +162,12 @@ export default function QuackResponse() {
                         {game.label}
                       </Text>
                     </View>
+                    {game.locked && (
+                      <View style={styles.mapLockedSeal}>
+                        <Ionicons name="lock-closed" size={16} color="#675A6D" />
+                        <Text style={styles.mapLockedSealText}>LOCKED PATH</Text>
+                      </View>
+                    )}
                   </View>
 
                   <View style={styles.mapMissionContent}>
@@ -162,14 +177,25 @@ export default function QuackResponse() {
                     <Text style={styles.mapMissionDescription}>{game.description}</Text>
 
                     <View style={styles.mapMissionFooter}>
-                      <Text style={[styles.mapStartText, { color: game.color }]}>START MISSION</Text>
+                      <View style={styles.mapMissionActionCopy}>
+                        <Text style={[styles.mapStartText, { color: game.locked ? '#8D8491' : game.color }]}>
+                          {game.locked ? 'COMPLETE THE PREVIOUS MISSION' : 'START MISSION'}
+                        </Text>
+                        {game.locked && (
+                          <Text style={styles.mapUnlockHint}>Progression opens here later</Text>
+                        )}
+                      </View>
                       <View
                         style={[
                           styles.mapStartButton,
-                          { backgroundColor: game.color },
+                          { backgroundColor: game.locked ? '#B8AFBC' : game.color },
                         ]}
                       >
-                        <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+                        <Ionicons
+                          name={game.locked ? 'lock-closed' : 'arrow-forward'}
+                          size={18}
+                          color="#FFFFFF"
+                        />
                       </View>
                     </View>
                   </View>
