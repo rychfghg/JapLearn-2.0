@@ -1,5 +1,14 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Image, ImageBackground, Modal, Pressable, Text, View } from 'react-native';
+import {
+  Animated,
+  Image,
+  ImageBackground,
+  Modal,
+  Pressable,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { loadBundledSound } from '../utils/nativeAudio';
@@ -47,6 +56,7 @@ const tutorial = [
 
 export default function Quackamole() {
   const router = useRouter();
+  const { width: viewportWidth, height: viewportHeight } = useWindowDimensions();
   const { user } = useContext(AuthContext);
   const [phase, setPhase] = useState<GamePhase>('loading');
   const [loading, setLoading] = useState(8);
@@ -75,6 +85,8 @@ export default function Quackamole() {
   const spawnTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const clockTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const hideTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const resolutionTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lockedRef = useRef(false);
   const soundRef = useRef<Audio.Sound | null>(null);
   const musicRef = useRef<Audio.Sound | null>(null);
   const mounted = useRef(true);
@@ -85,7 +97,20 @@ export default function Quackamole() {
     if (spawnTimer.current) clearInterval(spawnTimer.current);
     if (clockTimer.current) clearInterval(clockTimer.current);
     hideTimers.current.forEach(clearTimeout);
+    if (resolutionTimer.current) clearTimeout(resolutionTimer.current);
     spawnTimer.current = null; clockTimer.current = null; hideTimers.current = [];
+    resolutionTimer.current = null;
+  };
+
+  // Round timers can restart when the active kana changes. The answer
+  // resolution timer must survive that restart or Android can remain locked.
+  const clearRoundTimers = () => {
+    if (spawnTimer.current) clearInterval(spawnTimer.current);
+    if (clockTimer.current) clearInterval(clockTimer.current);
+    hideTimers.current.forEach(clearTimeout);
+    spawnTimer.current = null;
+    clockTimer.current = null;
+    hideTimers.current = [];
   };
 
   useEffect(() => {
@@ -169,7 +194,7 @@ export default function Quackamole() {
   };
 
   const spawnMoles = () => {
-    if (!mounted.current || locked) return;
+    if (!mounted.current || lockedRef.current) return;
     hideTimers.current.forEach(clearTimeout); hideTimers.current = [];
     const correct = pairs[currentIndex]?.romaji;
     if (!correct) return;
@@ -189,10 +214,13 @@ export default function Quackamole() {
 
   useEffect(() => {
     if (phase !== 'playing' || paused) return;
-    clearGameTimers(); spawnMoles();
+    clearRoundTimers();
+    lockedRef.current = false;
+    setLocked(false);
+    spawnMoles();
     spawnTimer.current = setInterval(spawnMoles, 1750);
     clockTimer.current = setInterval(() => setSeconds((value) => value <= 1 ? 0 : value - 1), 1000);
-    return clearGameTimers;
+    return clearRoundTimers;
   }, [phase, paused, currentIndex, pairs]);
 
   useEffect(() => {
@@ -205,11 +233,13 @@ export default function Quackamole() {
     clearGameTimers(); setCurrentIndex(0); setScore(0); setTotalWhacks(0); setAttempts(0); setSeconds(ROUND_SECONDS);
     completedRound.current = false; savedRound.current = false;
     setPaused(false); setMenuOpen(false); setNewBest(false);
+    lockedRef.current = false;
     setFeedback('idle'); setLocked(false); setHoles(Array(HOLE_COUNT).fill(null)); setPhase('playing');
   };
 
   const whack = (index: number) => {
     if (paused || locked || !holes[index]) return;
+    lockedRef.current = true;
     setLocked(true); setHammerHole(index); setTotalWhacks((value)=>value+1); playWhack();
     hammerSwing.setValue(0);
     Animated.sequence([
@@ -221,10 +251,14 @@ export default function Quackamole() {
     if (correct) { setScore((value) => value + 1); setAttempts(0); }
     else setAttempts((value) => value + 1);
     const shouldAdvance = correct || attempts + 1 >= 3;
-    hideTimers.current.push(setTimeout(() => {
+    if (resolutionTimer.current) clearTimeout(resolutionTimer.current);
+    resolutionTimer.current = setTimeout(() => {
       if (shouldAdvance) { setCurrentIndex((value) => value + 1); setAttempts(0); }
-      setFeedback('idle'); setLocked(false);
-    }, 520));
+      setFeedback('idle');
+      lockedRef.current = false;
+      setLocked(false);
+      resolutionTimer.current = null;
+    }, 520);
   };
 
   const leave = () => { completedRound.current = false; clearGameTimers(); router.replace('/Exercises'); };
@@ -368,19 +402,20 @@ export default function Quackamole() {
     </>
   );
 
-  if (phase === 'loading') return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.moleLoadingScreen} resizeMode="cover"><View style={styles.moleLoadingShade}/><View style={styles.moleLoadingContent}><View style={styles.moleLoadingBadge}><Ionicons name="hammer-outline" size={14} color="#6F38B7"/><Text style={styles.moleLoadingBadgeText}>JAPLEARN KANA HUNT</Text></View><Animated.View style={[styles.moleLoadingPortal,{transform:[{scale:pulse}]}]}><View style={styles.moleLoadingHole}/><Mole width={122} height={155}/><Image source={require('../assets/hammer.png')} style={styles.moleLoadingHammer}/></Animated.View><Text style={styles.moleLoadingTitle}>QUACK-A-MOLE</Text><Text style={styles.moleLoadingSubtitle}>Preparing the kana garden...</Text><View style={styles.moleLoadingTrack}><View style={[styles.moleLoadingFill,{width:`${loading}%`}]}/></View><Text style={styles.moleLoadingStatus}>{loading<100?`PREPARING GAME - ${loading}%`:'READY TO PLAY'}</Text></View></ImageBackground>;
+  if (phase === 'loading') return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.moleLoadingScreen} resizeMode="cover" imageStyle={{ width: '100%', height: '100%' }}><View style={styles.moleLoadingShade}/><View style={styles.moleLoadingContent}><View style={styles.moleLoadingBadge}><Ionicons name="hammer-outline" size={14} color="#6F38B7"/><Text style={styles.moleLoadingBadgeText}>JAPLEARN KANA HUNT</Text></View><Animated.View style={[styles.moleLoadingPortal,{transform:[{scale:pulse}]}]}><View style={styles.moleLoadingHole}/><Mole width={122} height={155}/><Image source={require('../assets/hammer.png')} style={styles.moleLoadingHammer}/></Animated.View><Text style={styles.moleLoadingTitle}>QUACK-A-MOLE</Text><Text style={styles.moleLoadingSubtitle}>Preparing the kana garden...</Text><View style={styles.moleLoadingTrack}><View style={[styles.moleLoadingFill,{width:`${loading}%`}]}/></View><Text style={styles.moleLoadingStatus}>{loading<100?`PREPARING GAME - ${loading}%`:'READY TO PLAY'}</Text></View></ImageBackground>;
 
   if (phase === 'tutorial') {
     const step = tutorial[tutorialIndex];
-    return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.tutorialBackground} resizeMode="cover">{exitDialog}<View style={styles.tutorialShade}/><Pressable style={styles.tutorialBack} onPress={confirmExit}><Ionicons name="arrow-back" size={22} color="#432653"/></Pressable><View style={styles.tutorialCard}><View style={styles.tutorialHeader}><View style={styles.tutorialMode}><Ionicons name="school-outline" size={14} color="#6F38B7"/><Text style={styles.tutorialModeText}>AHIRU TRAINING</Text></View><View style={styles.tutorialStep}><Text style={styles.tutorialStepText}>STEP {tutorialIndex+1} / {tutorial.length}</Text></View></View><View style={styles.tutorialStage}><View style={styles.tutorialHalo}/><Animated.Image source={step.image} style={[styles.tutorialMascot,{transform:[{scale:pulse}]}]} resizeMode="contain"/><View style={styles.sampleTarget}><Text style={styles.sampleTargetLabel}>TARGET</Text><Text style={styles.sampleTargetKana}>{'\u3042'}</Text></View><View style={styles.sampleHole}/>{tutorialIndex>=1&&<View style={styles.sampleMole}><Text style={styles.sampleAnswer}>a</Text><Mole width={85} height={112}/></View>}{tutorialIndex===2&&<Image source={require('../assets/hammer.png')} style={styles.sampleHammer}/>}<View style={styles.tutorialPath}><View style={[styles.tutorialPathNode,styles.tutorialPathActive]}><Text style={styles.tutorialPathText}>{'\u3042'}</Text></View><Ionicons name="arrow-forward" size={16} color="#9A86A5"/><View style={[styles.tutorialPathNode,tutorialIndex>=1&&styles.tutorialPathActive]}><Text style={styles.tutorialPathText}>{'\u3042'}</Text></View><Ionicons name="arrow-forward" size={16} color="#9A86A5"/><View style={[styles.tutorialPathNode,tutorialIndex===2&&styles.tutorialPathActive]}><Ionicons name="hammer" size={15} color="#6F38B7"/></View></View></View><Text style={styles.tutorialLabel}>{step.label}</Text><Text style={styles.tutorialTitle}>{step.title}</Text><Text style={styles.tutorialText}>{step.text}</Text><View style={styles.tutorialDots}>{tutorial.map((_,i)=><View key={i} style={[styles.tutorialDot,i===tutorialIndex&&styles.tutorialDotActive]}/>)}</View><Pressable style={styles.tutorialButton} onPress={()=>tutorialIndex<tutorial.length-1?setTutorialIndex((value)=>value+1):setPhase('ready')}><Text style={styles.tutorialButtonText}>{tutorialIndex<tutorial.length-1?'SHOW ME THE NEXT STEP':'ENTER THE GARDEN'}</Text><Ionicons name="arrow-forward" size={20} color="#FFF"/></Pressable></View></ImageBackground>;
+    return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.tutorialBackground} resizeMode="cover" imageStyle={{ width: '100%', height: '100%' }}>{exitDialog}<View style={styles.tutorialShade}/><Pressable style={styles.tutorialBack} onPress={confirmExit}><Ionicons name="arrow-back" size={22} color="#432653"/></Pressable><View style={styles.tutorialCard}><View style={styles.tutorialHeader}><View style={styles.tutorialMode}><Ionicons name="school-outline" size={14} color="#6F38B7"/><Text style={styles.tutorialModeText}>AHIRU TRAINING</Text></View><View style={styles.tutorialStep}><Text style={styles.tutorialStepText}>STEP {tutorialIndex+1} / {tutorial.length}</Text></View></View><View style={styles.tutorialStage}><View style={styles.tutorialHalo}/><Animated.Image source={step.image} style={[styles.tutorialMascot,{transform:[{scale:pulse}]}]} resizeMode="contain"/><View style={styles.sampleTarget}><Text style={styles.sampleTargetLabel}>TARGET</Text><Text style={styles.sampleTargetKana}>{'\u3042'}</Text></View><View style={styles.sampleHole}/>{tutorialIndex>=1&&<View style={styles.sampleMole}><Text style={styles.sampleAnswer}>a</Text><Mole width={85} height={112}/></View>}{tutorialIndex===2&&<Image source={require('../assets/hammer.png')} style={styles.sampleHammer}/>}<View style={styles.tutorialPath}><View style={[styles.tutorialPathNode,styles.tutorialPathActive]}><Text style={styles.tutorialPathText}>{'\u3042'}</Text></View><Ionicons name="arrow-forward" size={16} color="#9A86A5"/><View style={[styles.tutorialPathNode,tutorialIndex>=1&&styles.tutorialPathActive]}><Text style={styles.tutorialPathText}>{'\u3042'}</Text></View><Ionicons name="arrow-forward" size={16} color="#9A86A5"/><View style={[styles.tutorialPathNode,tutorialIndex===2&&styles.tutorialPathActive]}><Ionicons name="hammer" size={15} color="#6F38B7"/></View></View></View><Text style={styles.tutorialLabel}>{step.label}</Text><Text style={styles.tutorialTitle}>{step.title}</Text><Text style={styles.tutorialText}>{step.text}</Text><View style={styles.tutorialDots}>{tutorial.map((_,i)=><View key={i} style={[styles.tutorialDot,i===tutorialIndex&&styles.tutorialDotActive]}/>)}</View><Pressable style={styles.tutorialButton} onPress={()=>tutorialIndex<tutorial.length-1?setTutorialIndex((value)=>value+1):setPhase('ready')}><Text style={styles.tutorialButtonText}>{tutorialIndex<tutorial.length-1?'SHOW ME THE NEXT STEP':'ENTER THE GARDEN'}</Text><Ionicons name="arrow-forward" size={20} color="#FFF"/></Pressable></View></ImageBackground>;
   }
 
-  if (phase === 'ready') return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.tutorialBackground} resizeMode="cover">{exitDialog}<View style={styles.readyShade}/><Pressable style={styles.tutorialBack} onPress={confirmExit}><Ionicons name="arrow-back" size={22} color="#432653"/></Pressable><View style={styles.readyCard}><View style={styles.readyIcon}><Ionicons name="hammer-outline" size={35} color="#6F38B7"/></View><Text style={styles.readyKicker}>GARDEN CHALLENGE</Text><Text style={styles.readyTitle}>Ready to start?</Text><Text style={styles.readyText}>Match as many kana as you can before the 30-second timer ends.</Text><View style={styles.readyRules}><View style={styles.readyRule}><Ionicons name="time-outline" size={20} color="#6F38B7"/><Text style={styles.readyRuleValue}>30 sec</Text><Text style={styles.readyRuleLabel}>Time limit</Text></View><View style={styles.readyDivider}/><View style={styles.readyRule}><Ionicons name="heart-outline" size={20} color="#65A936"/><Text style={styles.readyRuleValue}>3 tries</Text><Text style={styles.readyRuleLabel}>Per kana</Text></View></View><View style={styles.readyAhiru}><Image source={require('../assets/hello.png')} style={styles.readyMascot}/><View style={styles.readyBubble}><Text style={styles.readyBubbleText}>Watch the kana, find its sound, and tap the matching mole!</Text></View></View><Pressable style={styles.readyButton} onPress={startGame}><Text style={styles.readyButtonText}>START QUACK-A-MOLE</Text><Ionicons name="play" size={19} color="#FFF"/></Pressable></View></ImageBackground>;
+  if (phase === 'ready') return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.tutorialBackground} resizeMode="cover" imageStyle={{ width: '100%', height: '100%' }}>{exitDialog}<View style={styles.readyShade}/><Pressable style={styles.tutorialBack} onPress={confirmExit}><Ionicons name="arrow-back" size={22} color="#432653"/></Pressable><View style={styles.readyCard}><View style={styles.readyIcon}><Ionicons name="hammer-outline" size={35} color="#6F38B7"/></View><Text style={styles.readyKicker}>GARDEN CHALLENGE</Text><Text style={styles.readyTitle}>Ready to start?</Text><Text style={styles.readyText}>Match as many kana as you can before the 30-second timer ends.</Text><View style={styles.readyRules}><View style={styles.readyRule}><Ionicons name="time-outline" size={20} color="#6F38B7"/><Text style={styles.readyRuleValue}>30 sec</Text><Text style={styles.readyRuleLabel}>Time limit</Text></View><View style={styles.readyDivider}/><View style={styles.readyRule}><Ionicons name="heart-outline" size={20} color="#65A936"/><Text style={styles.readyRuleValue}>3 tries</Text><Text style={styles.readyRuleLabel}>Per kana</Text></View></View><View style={styles.readyAhiru}><Image source={require('../assets/hello.png')} style={styles.readyMascot}/><View style={styles.readyBubble}><Text style={styles.readyBubbleText}>Watch the kana, find its sound, and tap the matching mole!</Text></View></View><Pressable style={styles.readyButton} onPress={startGame}><Text style={styles.readyButtonText}>START QUACK-A-MOLE</Text><Ionicons name="play" size={19} color="#FFF"/></Pressable></View></ImageBackground>;
 
-  if (phase === 'result') { const accuracy=totalWhacks?Math.round((score/totalWhacks)*100):0; const rank=accuracy>=90?'S':accuracy>=75?'A':accuracy>=55?'B':'C'; return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.tutorialBackground} resizeMode="cover">{exitDialog}<View style={styles.readyShade}/><View style={styles.resultCard}><View style={styles.resultBurstOne}/><View style={styles.resultBurstTwo}/><View style={styles.resultTop}><View><Text style={styles.resultEyebrow}>QUACK-A-MOLE RESULTS</Text><Text style={styles.resultTitle}>Round complete!</Text></View><View style={styles.rankBadge}><Text style={styles.rankLabel}>RANK</Text><Text style={styles.rankValue}>{rank}</Text></View></View><View style={styles.resultHero}><View style={styles.resultTrophy}><Ionicons name="trophy" size={34} color="#D59A2A"/></View><View><Text style={styles.resultScore}>{score}</Text><Text style={styles.resultLabel}>kana matched</Text></View><Image source={score>0?require('../assets/hello.png'):require('../assets/thinking.png')} style={styles.resultMascot}/></View><View style={styles.resultStats}><View style={styles.resultStat}><Ionicons name="checkmark-circle" size={19} color="#65A936"/><Text style={styles.resultStatValue}>{accuracy}%</Text><Text style={styles.resultStatLabel}>Accuracy</Text></View><View style={styles.resultDivider}/><View style={styles.resultStat}><Ionicons name="hammer" size={19} color="#6F38B7"/><Text style={styles.resultStatValue}>{totalWhacks}</Text><Text style={styles.resultStatLabel}>Whacks</Text></View><View style={styles.resultDivider}/><View style={styles.resultStat}><Ionicons name="time" size={19} color="#D88727"/><Text style={styles.resultStatValue}>30s</Text><Text style={styles.resultStatLabel}>Round</Text></View></View><View style={styles.resultMessage}><Ionicons name="sparkles" size={17} color="#6F38B7"/><Text style={styles.resultMessageText}>{accuracy>=75?'Sharp eyes! Your kana recognition is getting faster.':'Good practice! Replay and aim for a cleaner streak.'}</Text></View><Pressable style={styles.readyButton} onPress={startGame}><Text style={styles.readyButtonText}>PLAY AGAIN</Text><Ionicons name="refresh" size={19} color="#FFF"/></Pressable><Pressable style={styles.resultExit} onPress={leave}><Text style={styles.resultExitText}>Return to Exercises</Text></Pressable></View></ImageBackground>; }
+  if (phase === 'result') { const accuracy=totalWhacks?Math.round((score/totalWhacks)*100):0; const rank=accuracy>=90?'S':accuracy>=75?'A':accuracy>=55?'B':'C'; return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.tutorialBackground} resizeMode="cover" imageStyle={{ width: '100%', height: '100%' }}>{exitDialog}<View style={styles.readyShade}/><View style={styles.resultCard}><View style={styles.resultBurstOne}/><View style={styles.resultBurstTwo}/><View style={styles.resultTop}><View><Text style={styles.resultEyebrow}>QUACK-A-MOLE RESULTS</Text><Text style={styles.resultTitle}>Round complete!</Text></View><View style={styles.rankBadge}><Text style={styles.rankLabel}>RANK</Text><Text style={styles.rankValue}>{rank}</Text></View></View><View style={styles.resultHero}><View style={styles.resultTrophy}><Ionicons name="trophy" size={34} color="#D59A2A"/></View><View><Text style={styles.resultScore}>{score}</Text><Text style={styles.resultLabel}>kana matched</Text></View><Image source={score>0?require('../assets/hello.png'):require('../assets/thinking.png')} style={styles.resultMascot}/></View><View style={styles.resultStats}><View style={styles.resultStat}><Ionicons name="checkmark-circle" size={19} color="#65A936"/><Text style={styles.resultStatValue}>{accuracy}%</Text><Text style={styles.resultStatLabel}>Accuracy</Text></View><View style={styles.resultDivider}/><View style={styles.resultStat}><Ionicons name="hammer" size={19} color="#6F38B7"/><Text style={styles.resultStatValue}>{totalWhacks}</Text><Text style={styles.resultStatLabel}>Whacks</Text></View><View style={styles.resultDivider}/><View style={styles.resultStat}><Ionicons name="time" size={19} color="#D88727"/><Text style={styles.resultStatValue}>30s</Text><Text style={styles.resultStatLabel}>Round</Text></View></View><View style={styles.resultMessage}><Ionicons name="sparkles" size={17} color="#6F38B7"/><Text style={styles.resultMessageText}>{accuracy>=75?'Sharp eyes! Your kana recognition is getting faster.':'Good practice! Replay and aim for a cleaner streak.'}</Text></View><Pressable style={styles.readyButton} onPress={startGame}><Text style={styles.readyButtonText}>PLAY AGAIN</Text><Ionicons name="refresh" size={19} color="#FFF"/></Pressable><Pressable style={styles.resultExit} onPress={leave}><Text style={styles.resultExitText}>Return to Exercises</Text></Pressable></View></ImageBackground>; }
 
-  return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={styles.gameBackground} resizeMode="cover">{gameMenu}<View style={styles.gameShade}/><View style={styles.gameHeader}><Pressable style={styles.gameBackHidden} onPress={confirmExit}><Ionicons name="arrow-back" size={22} color="#432653"/></Pressable><View style={styles.scorePill}><Ionicons name="star" size={17} color="#D99B2B"/><Text style={styles.scoreValue}>{score}</Text></View><View style={[styles.timerPill,seconds<=8&&styles.timerDanger]}><Ionicons name="time-outline" size={18} color={seconds<=8?'#D5526B':'#6F38B7'}/><Text style={[styles.timerValue,seconds<=8&&styles.timerValueDanger]}>{seconds}s</Text></View></View><View style={[styles.targetCard,styles.compactTargetCard]}><View style={styles.targetTopRow}><View style={styles.targetModePill}><Ionicons name="hammer-outline" size={13} color="#6F38B7"/><Text style={styles.targetModeText}>KANA HUNT</Text></View><Text style={styles.targetProgress}>{Math.min(currentIndex+1,pairs.length)} / {pairs.length}</Text></View><View style={[styles.targetMissionRow,styles.centeredMission,styles.compactMission]}><View style={[styles.targetBadge,styles.compactTargetBadge]}><View style={styles.targetBadgeGlow}/><Text style={[styles.targetKana,styles.compactTargetKana]}>{pairs[currentIndex]?.kana||'—'}</Text></View><Text style={styles.targetLabel}>FIND THIS SOUND</Text><Text style={styles.centeredPrompt}>Choose its matching romaji below</Text></View><View style={styles.targetProgressTrack}><View style={[styles.targetProgressFill,{width:`${Math.min(100,((currentIndex+1)/Math.max(1,pairs.length))*100)}%`}]}/></View></View><View style={styles.holesGrid}>{holes.map((value,index)=><Pressable key={index} style={styles.hole} onPress={()=>whack(index)} disabled={!value||locked}><View style={styles.moleClip}><View style={styles.holeShadow}/>{value&&<Animated.View style={[styles.mole,{transform:[{translateY:popAnimations[index].interpolate({inputRange:[0,1],outputRange:[0,78]})}]}]}><Mole width={82} height={108}/></Animated.View>}</View>{value&&<Animated.View pointerEvents="none" style={[styles.answerBubble,styles.compactRomajiTag,{opacity:popAnimations[index].interpolate({inputRange:[0,.55,1],outputRange:[1,1,0]})}]}><Text numberOfLines={1} adjustsFontSizeToFit style={[styles.answerText,styles.compactRomajiText]}>{value}</Text></Animated.View>}{hammerHole===index&&<Animated.View pointerEvents="none" style={[styles.hammerEffect,{opacity:hammerSwing.interpolate({inputRange:[0,.15,1.8,2],outputRange:[0,1,1,0]}),transform:[{translateY:hammerSwing.interpolate({inputRange:[0,1,2],outputRange:[-35,8,2]})},{rotate:hammerSwing.interpolate({inputRange:[0,1,2],outputRange:['-55deg','-12deg','-20deg']})},{scale:hammerSwing.interpolate({inputRange:[0,1,2],outputRange:[.82,1.05,.95]})}]}]}><Image source={require('../assets/hammer.png')} style={styles.hammerImage}/><Image source={require('../assets/whack.png')} style={styles.impactImage}/></Animated.View>}</Pressable>)}</View>{feedback!=='idle'&&<View style={[styles.feedbackToast,feedback==='correct'?styles.feedbackCorrect:styles.feedbackWrong]}><Ionicons name={feedback==='correct'?'checkmark-circle':'close-circle'} size={21} color={feedback==='correct'?'#5FA53A':'#D5526B'}/><Text style={[styles.feedbackText,{color:feedback==='correct'?'#5FA53A':'#D5526B'}]}>{feedback==='correct'?'Great match!':'Try another mole!'}</Text></View>}</ImageBackground>;
+  return <ImageBackground source={require('../assets/quackamole/quackamole-arena.png')} style={[styles.gameBackground,{width:viewportWidth,height:viewportHeight}]} resizeMode="cover" imageStyle={{ width: viewportWidth, height: viewportHeight }}>{gameMenu}<View style={styles.gameShade}/><View style={styles.gameHeader}><Pressable style={styles.gameBackHidden} onPress={confirmExit}><Ionicons name="arrow-back" size={22} color="#432653"/></Pressable><View style={styles.scorePill}><Ionicons name="star" size={17} color="#D99B2B"/><Text style={styles.scoreValue}>{score}</Text></View><View style={[styles.timerPill,seconds<=8&&styles.timerDanger]}><Ionicons name="time-outline" size={18} color={seconds<=8?'#D5526B':'#6F38B7'}/><Text style={[styles.timerValue,seconds<=8&&styles.timerValueDanger]}>{seconds}s</Text></View></View><View style={[styles.targetCard,styles.compactTargetCard]}><View style={styles.targetTopRow}><View style={styles.targetModePill}><Ionicons name="hammer-outline" size={13} color="#6F38B7"/><Text style={styles.targetModeText}>KANA HUNT</Text></View><Text style={styles.targetProgress}>{Math.min(currentIndex+1,pairs.length)} / {pairs.length}</Text></View><View style={[styles.targetMissionRow,styles.centeredMission,styles.compactMission]}><View style={[styles.targetBadge,styles.compactTargetBadge]}><View style={styles.targetBadgeGlow}/><Text style={[styles.targetKana,styles.compactTargetKana]}>{pairs[currentIndex]?.kana||'—'}</Text></View><Text style={styles.targetLabel}>FIND THIS SOUND</Text><Text style={styles.centeredPrompt}>Choose its matching romaji below</Text></View><View style={styles.targetProgressTrack}><View style={[styles.targetProgressFill,{width:`${Math.min(100,((currentIndex+1)/Math.max(1,pairs.length))*100)}%`}]}/></View></View><View style={styles.holesGrid}>{holes.map((value,index)=><Pressable key={index} style={styles.hole} onPress={()=>whack(index)} disabled={!value||locked}><View style={styles.moleClip}><View style={styles.holeShadow}/>{value&&<Animated.View style={[styles.mole,{transform:[{translateY:popAnimations[index].interpolate({inputRange:[0,1],outputRange:[0,78]})}]}]}><Mole width={82} height={108}/></Animated.View>}</View>{value&&<Animated.View pointerEvents="none" style={[styles.answerBubble,styles.compactRomajiTag,{opacity:popAnimations[index].interpolate({inputRange:[0,.55,1],outputRange:[1,1,0]})}]}><Text numberOfLines={1} adjustsFontSizeToFit style={[styles.answerText,styles.compactRomajiText]}>{value}</Text></Animated.View>}{hammerHole===index&&<Animated.View pointerEvents="none" style={[styles.hammerEffect,{opacity:hammerSwing.interpolate({inputRange:[0,.15,1.8,2],outputRange:[0,1,1,0]}),transform:[{translateY:hammerSwing.interpolate({inputRange:[0,1,2],outputRange:[-35,8,2]})},{rotate:hammerSwing.interpolate({inputRange:[0,1,2],outputRange:['-55deg','-12deg','-20deg']})},{scale:hammerSwing.interpolate({inputRange:[0,1,2],outputRange:[.82,1.05,.95]})}]}]}><Image source={require('../assets/hammer.png')} style={styles.hammerImage}/><Image source={require('../assets/whack.png')} style={styles.impactImage}/></Animated.View>}</Pressable>)}</View>{feedback!=='idle'&&<View style={[styles.feedbackToast,feedback==='correct'?styles.feedbackCorrect:styles.feedbackWrong]}><Ionicons name={feedback==='correct'?'checkmark-circle':'close-circle'} size={21} color={feedback==='correct'?'#5FA53A':'#D5526B'}/><Text style={[styles.feedbackText,{color:feedback==='correct'?'#5FA53A':'#D5526B'}]}>{feedback==='correct'?'Great match!':'Try another mole!'}</Text></View>}</ImageBackground>;
 }
+
 
 
 

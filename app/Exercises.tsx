@@ -135,7 +135,8 @@ const Exercises = () => {
                   onPress={() => handleButtonPress(activity.key)}
                   style={({ pressed }) => [styles.activityCard, { backgroundColor: activity.cardColor }, pressed && styles.cardPressed]}
                 >
-                  <ImageBackground source={activity.image} style={styles.cardCover} imageStyle={styles.cardCoverImage} resizeMode="cover">
+                  <Image source={activity.image} style={styles.cardCoverAsset} resizeMode="cover" fadeDuration={0} />
+                  <View style={styles.cardCover}>
                     <View style={styles.cardShade} />
                     <View style={styles.cardTopRow}>
                       <View style={styles.cardTag}><Ionicons name={activity.icon} size={13} color={activity.color} /><Text style={[styles.cardTagText, { color: activity.color }]}>{activity.tag}</Text></View>
@@ -149,7 +150,7 @@ const Exercises = () => {
                       <View><Text style={styles.playOverline}>PLAY NOW</Text><Text style={styles.playLabel}>{activity.mode}</Text></View>
                       <View style={styles.smallPlay}><Ionicons name="play" size={16} color={activity.color} /></View>
                     </View>
-                  </ImageBackground>
+                  </View>
                 </Pressable>
               ))}
             </View>

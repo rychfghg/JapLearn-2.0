@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Image, ImageBackground, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
@@ -50,7 +50,7 @@ const WordsMenu = () => {
   const LessonCard = ({ title, copy, status, image, green, locked, onPress }: any) => (
     <Pressable style={[styles.setCard, locked && styles.setCardLocked]} disabled={locked} onPress={onPress}>
       <View style={[styles.imagePanel, green && styles.imagePanelGreen]}>
-        <Text style={styles.cardCharacter}>{green ? '職' : '人'}</Text><Image source={image} style={styles.cardImage} />
+        <Text style={styles.cardCharacter}>{green ? '職' : '人'}</Text><Image source={image} style={styles.cardImage} resizeMode="cover" fadeDuration={0} />
       </View>
       <View style={styles.cardContent}>
         <View style={styles.cardTop}><Text style={[styles.status, status === 'COMPLETED' && styles.statusDone]}>{status}</Text><Ionicons name={status === 'COMPLETED' ? 'checkmark-circle' : locked ? 'lock-closed' : 'images-outline'} size={20} color={status === 'COMPLETED' ? '#61B936' : locked ? '#A99DAE' : '#8423D9'} /></View>
@@ -60,7 +60,7 @@ const WordsMenu = () => {
     </Pressable>
   );
 
-  return <ImageBackground style={styles.background}>
+  return <View style={styles.background}>
     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
       <View style={styles.hero}><View style={styles.heroOrb} /><View style={styles.heroOrbInner} />
         <View style={styles.header}><Pressable style={styles.backButton} onPress={() => router.push('/LearnMenu')}><BackIcon width={21} height={21} fill="#552E68" /></Pressable><Text style={styles.journeyLabel}>JAPLEARN · WORDS PATH</Text><View style={styles.bookButton}><Ionicons name="images" size={25} color="#8423D9" /></View></View>
@@ -90,7 +90,7 @@ const WordsMenu = () => {
       </View>
     </ScrollView>
     <Modal visible={isBadgeVisible} transparent animationType="fade" onRequestClose={() => setBadgeVisible(false)}><View style={styles.awardModal}><View style={styles.awardCard}><View style={styles.awardGlow}><Image source={require('../assets/word_badge.png')} style={styles.awardBadge} /></View><Text style={styles.awardEyebrow}>NEW MILESTONE</Text><Text style={styles.awardTitle}>Words path completed!</Text><Text style={styles.awardCopy}>You completed all three illustrated collections. Your Words badge is saved and the final Grammar stage is now unlocked.</Text><Pressable style={styles.awardButton} onPress={() => { setBadgeVisible(false); router.replace('/LearnMenu'); }}><Text style={styles.awardButtonText}>Continue to final stage</Text></Pressable></View></View></Modal>
-  </ImageBackground>;
+  </View>;
 };
 
 export default WordsMenu;
