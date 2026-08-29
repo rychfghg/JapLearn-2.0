@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 type MasteryItem = { name: string; percentage: number };
 type ProgressSummary = { overallMastery: number; completedActivities: number; weakAreaCount: number; recommendation: string; masteryItems: MasteryItem[] };
 type SpeakingSummary = { sessions: number; seconds: number; lastRoom?: string };
+type ReplyCoachSummary = { completedChapters: number; attempts: number; bestScore: number; averageScore: number };
 
 const guides = [
   { image: require('../assets/idle.png'), label: 'See how far you’ve come', text: 'Your activity results become a clear Japanese growth map here.' },
@@ -31,6 +32,7 @@ export default function QuackProgress() {
   const [expressionBest, setExpressionBest] = useState(0);
   const [politenessBest, setPolitenessBest] = useState(0);
   const [speakingSummary, setSpeakingSummary] = useState<SpeakingSummary>({ sessions: 0, seconds: 0 });
+  const [replyCoachSummary, setReplyCoachSummary] = useState<ReplyCoachSummary>({ completedChapters: 0, attempts: 0, bestScore: 0, averageScore: 0 });
 
   useEffect(() => {
     fetchProgressSummary();
@@ -74,6 +76,15 @@ export default function QuackProgress() {
         lastRoom: records[0]?.roomType,
       }))
       .catch((error) => console.log('QuackTalk history fetch error:', error.message));
+    fetch(`${expoconfig.API_URL}/api/reply-coach/progress?email=${encodeURIComponent(email)}`)
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Reply Coach progress unavailable')))
+      .then((record) => setReplyCoachSummary({
+        completedChapters: record.completedChapters || 0,
+        attempts: record.attempts || 0,
+        bestScore: record.bestScore || 0,
+        averageScore: record.averageScore || 0,
+      }))
+      .catch((error) => console.log('Reply Coach progress fetch error:', error.message));
 
     try {
       setLoading(true);
@@ -157,6 +168,7 @@ export default function QuackProgress() {
           </View>
           <Ionicons name="checkmark-circle" size={24} color="#65A936" />
         </View>
+        <View style={styles.arcadeBestCard}><Ionicons name="chatbubbles" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>REPLY COACH · {replyCoachSummary.completedChapters} CHAPTERS</Text><Text style={styles.arcadeBestTitle}>Interactive story mastery</Text><Text style={styles.panelSubtitle}>{replyCoachSummary.attempts} completed attempts · {replyCoachSummary.averageScore}% average</Text></View><Text style={styles.arcadeBestValue}>{replyCoachSummary.bestScore}%</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="trophy" size={25} color="#D59A2A" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>ARCADE PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Quack-a-Mole</Text></View><Text style={styles.arcadeBestValue}>{quackamoleBest}</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="eye" size={25} color="#65A936" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>SITUATIONAL PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Recognition</Text></View><Text style={styles.arcadeBestValue}>{recognitionBest}</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="git-compare" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>MATCHING PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Expression Match</Text></View><Text style={styles.arcadeBestValue}>{expressionBest}</Text></View>

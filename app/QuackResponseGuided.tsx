@@ -1,506 +1,557 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ImageBackground,
-  Image,
-  Animated,
-  Modal,
-} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import BackIcon from '../assets/svg/back-icon.svg';
-import AhiruMissionExit from '../components/AhiruMissionExit';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Animated,
+  Image,
+  ImageBackground,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
+import { AuthContext } from '../context/AuthContext';
+import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackResponseGuided';
 
-import bgClassroom from '../assets/img/background/classroom a st2 day.png';
-import bgHallway from '../assets/img/background/school a hallway st2 day.png';
-import bgGym from '../assets/img/background/school a gym s1st2 day.png';
-import bgStairs from '../assets/img/background/school a stairs st2 day.png';
-import bgClubroom from '../assets/img/background/clubroom a st2 day.png';
+type Evaluation = 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'IMPOLITE' | 'RUDE';
+type ChoiceOption = {
+  id: string;
+  text: string;
+  japanese: string;
+  romaji: string;
+  evaluation: Evaluation;
+  points: number;
+  explanation: string;
+  culturalNote: string;
+  reactionText: string;
+  reactionCharacterKey: string;
+  reactionExpressionKey: string;
+  nextNodeId: string;
+};
+type StoryNode = {
+  id: string;
+  type: 'NARRATION' | 'DIALOGUE' | 'CHOICE' | 'REACTION' | 'CULTURAL_NOTE' | 'ENDING';
+  title?: string;
+  text?: string;
+  japanese?: string;
+  romaji?: string;
+  speaker?: string;
+  characterKey?: string;
+  expressionKey?: string;
+  secondaryCharacterKey?: string;
+  secondaryExpressionKey?: string;
+  backgroundKey?: string;
+  audioUrl?: string;
+  spritesVisible?: boolean;
+  tapToContinue?: boolean;
+  shuffleChoices?: boolean;
+  nextNodeId?: string;
+  choices?: ChoiceOption[];
+};
+type Chapter = {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: string;
+  learningObjectives: string[];
+  startNodeId: string;
+  order: number;
+  nodes: StoryNode[];
+};
+type AnswerRecord = {
+  nodeId: string;
+  prompt: string;
+  selectedText: string;
+  selectedJapanese: string;
+  bestResponse: string;
+  evaluation: Evaluation;
+  points: number;
+  explanation: string;
+  culturalNote: string;
+};
+type Attempt = {
+  id: string;
+  chapterId: string;
+  chapterTitle: string;
+  attemptNumber: number;
+  currentNodeId: string;
+  status: 'IN_PROGRESS' | 'COMPLETED';
+  score: number;
+  maximumScore: number;
+  finalPercentage: number;
+  bestCount: number;
+  acceptableCount: number;
+  awkwardCount: number;
+  impoliteCount: number;
+  rudeCount: number;
+  answers: AnswerRecord[];
+};
 
-import sumiSmile from '../assets/img/Sumi_PoseB_WinterUni_Smile.png';
-import sumiOpen from '../assets/img/Sumi_PoseB_WinterUni_Open.png';
-import sumiFrown from '../assets/img/Sumi_PoseB_WinterUni_Frown.png';
-import sumiBlush from '../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png';
-import sumiClosedSmile from '../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png';
+const backgrounds: Record<string, any> = {
+  station: require('../assets/img/background/city a s1st2 day.png'),
+  'station-night': require('../assets/img/background/city a s1st2 nightlights.png'),
+  train: require('../assets/img/background/train_scene day.png'),
+  temple: require('../assets/img/background/park s1 day2.png'),
+  shop: require('../assets/img/background/city a s3st2 day.png'),
+  restaurant: require('../assets/img/background/kitchen dining day.png'),
+  hallway: require('../assets/img/background/school a hallway st2 day.png'),
+  home: require('../assets/img/background/apartment a living room day.png'),
+  neighborhood: require('../assets/img/background/outskirts road a day2.png'),
+};
 
-import boyNeutral from '../assets/img/Sprite Male Dark Hair Neu01.png';
-import boyOpen from '../assets/img/Sprite Male Dark Hair Ann01.png';
-import boySmile from '../assets/img/Sprite Male Dark Hair Smi01.png';
-import boyFrown from '../assets/img/Sprite Male Dark Hair Sad01.png';
-
-const scenarios = [
-  {
-    title: 'Morning Classroom',
-    location: 'Classroom',
-    background: bgClassroom,
-    prompt: 'Tanaka-sensei enters the classroom. What should you say?',
-    correctAnswer: 'おはようございます',
-    npcReplyCorrect: 'Good! That is polite and appropriate for a teacher.',
-    npcReplyWrong: 'Not quite. Since this is a teacher, use a polite greeting.',
-    steps: [
-      {
-        speaker: 'Narration',
-        line: 'The morning class is about to begin. Your classmates are already inside.',
-        jp: '',
-        romaji: '',
-        focus: 'both',
-        sumi: sumiSmile,
-        boy: boyNeutral,
-      },
-      {
-        speaker: 'Sumi',
-        line: 'Look, Tanaka-sensei is entering the classroom.',
-        jp: '田中先生が来ました。',
-        romaji: 'Tanaka-sensei ga kimashita.',
-        focus: 'sumi',
-        sumi: sumiOpen,
-        boy: boyNeutral,
-      },
-      {
-        speaker: 'Classmate',
-        line: 'We should greet the teacher properly.',
-        jp: 'ちゃんとあいさつしよう。',
-        romaji: 'Chanto aisatsu shiyou.',
-        focus: 'boy',
-        sumi: sumiSmile,
-        boy: boyOpen,
-      },
-    ],
-    choices: [
-      { jp: 'おはようございます', romaji: 'ohayou gozaimasu', correct: true },
-      { jp: 'じゃあね', romaji: 'jaa ne', correct: false },
-      { jp: 'ありがとう', romaji: 'arigatou', correct: false },
-      { jp: 'いただきます', romaji: 'itadakimasu', correct: false },
-    ],
+const sprites: Record<string, Record<string, any>> = {
+  SUMI: {
+    NEUTRAL: require('../assets/img/Sumi_PoseB_WinterUni_Smile.png'),
+    SPEAKING: require('../assets/img/Sumi_PoseB_WinterUni_Open.png'),
+    SMILE: require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png'),
+    CORRECT: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png'),
+    WRONG: require('../assets/img/Sumi_PoseB_WinterUni_Frown.png'),
   },
-  {
-    title: 'Hallway Apology',
-    location: 'School Hallway',
-    background: bgHallway,
-    prompt: 'You bump into a classmate lightly. What should you say?',
-    correctAnswer: 'すみません',
-    npcReplyCorrect: 'Nice! That apology fits the situation naturally.',
-    npcReplyWrong: 'That does not fit. You need an apology expression here.',
-    steps: [
-      {
-        speaker: 'Narration',
-        line: 'The hallway is busy between classes. You accidentally bump into someone.',
-        jp: '',
-        romaji: '',
-        focus: 'both',
-        sumi: sumiSmile,
-        boy: boyNeutral,
-      },
-      {
-        speaker: 'Classmate',
-        line: 'Oh! Are you okay?',
-        jp: 'あっ！大丈夫？',
-        romaji: 'Ah! Daijoubu?',
-        focus: 'boy',
-        sumi: sumiSmile,
-        boy: boyOpen,
-      },
-    ],
-    choices: [
-      { jp: 'すみません', romaji: 'sumimasen', correct: true },
-      { jp: 'いただきます', romaji: 'itadakimasu', correct: false },
-      { jp: 'おはよう', romaji: 'ohayou', correct: false },
-      { jp: 'またね', romaji: 'mata ne', correct: false },
-    ],
+  HARU: {
+    NEUTRAL: require('../assets/img/Sprite Male Dark Hair Neu01.png'),
+    SPEAKING: require('../assets/img/Sprite Male Dark Hair Smi02.png'),
+    SMILE: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
+    CORRECT: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
+    WRONG: require('../assets/img/Sprite Male Dark Hair Sad01.png'),
   },
-  {
-    title: 'Gym Encouragement',
-    location: 'Gym',
-    background: bgGym,
-    prompt: 'Sumi says she is nervous before PE. What is a good response?',
-    correctAnswer: 'がんばって',
-    npcReplyCorrect: 'Great! That encourages your friend.',
-    npcReplyWrong: 'Not quite. Choose an expression that encourages someone.',
-    steps: [
-      {
-        speaker: 'Narration',
-        line: 'In the gym, students are preparing for the activity.',
-        jp: '',
-        romaji: '',
-        focus: 'both',
-        sumi: sumiFrown,
-        boy: boyNeutral,
-      },
-      {
-        speaker: 'Sumi',
-        line: 'I am a little nervous.',
-        jp: 'ちょっと緊張してる。',
-        romaji: 'Chotto kinchou shiteru.',
-        focus: 'sumi',
-        sumi: sumiFrown,
-        boy: boyNeutral,
-      },
-    ],
-    choices: [
-      { jp: 'がんばって', romaji: 'ganbatte', correct: true },
-      { jp: 'さようなら', romaji: 'sayounara', correct: false },
-      { jp: 'ごちそうさま', romaji: 'gochisousama', correct: false },
-      { jp: 'おやすみ', romaji: 'oyasumi', correct: false },
-    ],
-  },
-  {
-    title: 'Stairs Thanking',
-    location: 'School Stairs',
-    background: bgStairs,
-    prompt: 'Your classmate helps you pick up your notebook. What should you say?',
-    correctAnswer: 'ありがとう',
-    npcReplyCorrect: 'Correct! You thanked them naturally.',
-    npcReplyWrong: 'Not quite. This situation needs a thanking expression.',
-    steps: [
-      {
-        speaker: 'Narration',
-        line: 'Near the stairs, you drop your notebook. Your classmate picks it up for you.',
-        jp: '',
-        romaji: '',
-        focus: 'both',
-        sumi: sumiSmile,
-        boy: boySmile,
-      },
-      {
-        speaker: 'Classmate',
-        line: 'Here you go.',
-        jp: 'はい、どうぞ。',
-        romaji: 'Hai, douzo.',
-        focus: 'boy',
-        sumi: sumiSmile,
-        boy: boyOpen,
-      },
-    ],
-    choices: [
-      { jp: 'ありがとう', romaji: 'arigatou', correct: true },
-      { jp: 'ごめんね', romaji: 'gomen ne', correct: false },
-      { jp: 'こんばんは', romaji: 'konbanwa', correct: false },
-      { jp: 'いただきます', romaji: 'itadakimasu', correct: false },
-    ],
-  },
-  {
-    title: 'Clubroom Parting',
-    location: 'Clubroom',
-    background: bgClubroom,
-    prompt: 'Club activity is finished. Sumi says she will see you tomorrow. What should you say?',
-    correctAnswer: 'また明日',
-    npcReplyCorrect: 'Nice! That is a natural parting response.',
-    npcReplyWrong: 'Not quite. This is a goodbye / see-you-later situation.',
-    steps: [
-      {
-        speaker: 'Narration',
-        line: 'Club practice ends. Everyone starts packing their things.',
-        jp: '',
-        romaji: '',
-        focus: 'both',
-        sumi: sumiSmile,
-        boy: boyNeutral,
-      },
-      {
-        speaker: 'Sumi',
-        line: 'Let’s meet again tomorrow.',
-        jp: 'また明日会おうね。',
-        romaji: 'Mata ashita aou ne.',
-        focus: 'sumi',
-        sumi: sumiOpen,
-        boy: boyNeutral,
-      },
-    ],
-    choices: [
-      { jp: 'また明日', romaji: 'mata ashita', correct: true },
-      { jp: 'いただきます', romaji: 'itadakimasu', correct: false },
-      { jp: 'おはようございます', romaji: 'ohayou gozaimasu', correct: false },
-      { jp: 'すみません', romaji: 'sumimasen', correct: false },
-    ],
-  },
-];
+};
 
-const QuackResponseGuided = () => {
-  const [scenarioIndex, setScenarioIndex] = useState(0);
-  const [step, setStep] = useState(0);
-  const [showChoices, setShowChoices] = useState(false);
-  const [selected, setSelected] = useState<any>(null);
-  const [resultVisible, setResultVisible] = useState(false);
-  const [resultText, setResultText] = useState('');
-  const [isCorrect, setIsCorrect] = useState(false);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [mistakeCount, setMistakeCount] = useState(0);
-  const [finished, setFinished] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
+const evaluationTheme: Record<Evaluation, { label: string; color: string; icon: any }> = {
+  BEST: { label: 'Best response', color: '#62B83C', icon: 'checkmark-circle' },
+  ACCEPTABLE: { label: 'Acceptable', color: '#5086D8', icon: 'thumbs-up' },
+  AWKWARD: { label: 'Awkward', color: '#D89525', icon: 'help-circle' },
+  IMPOLITE: { label: 'Impolite', color: '#D4635D', icon: 'alert-circle' },
+  RUDE: { label: 'Rude / offensive', color: '#B83B55', icon: 'close-circle' },
+};
 
-  const zoomAnim = useRef(new Animated.Value(1)).current;
-  const sumiFloat = useRef(new Animated.Value(0)).current;
-  const boyFloat = useRef(new Animated.Value(0)).current;
-  const choiceAnim = useRef(new Animated.Value(0)).current;
+const shuffle = <T,>(items: T[]) => {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const target = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[target]] = [copy[target], copy[index]];
+  }
+  return copy;
+};
 
-  const currentScenario = scenarios[scenarioIndex];
-  const current = currentScenario.steps[step];
+export default function ReplyCoachStory() {
+  const { user } = useContext(AuthContext);
+  const [chapter, setChapter] = useState<Chapter | null>(null);
+  const [attempt, setAttempt] = useState<Attempt | null>(null);
+  const [nodeId, setNodeId] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [selectedChoice, setSelectedChoice] = useState<ChoiceOption | null>(null);
+  const [choiceFeedback, setChoiceFeedback] = useState(false);
+  const [exitVisible, setExitVisible] = useState(false);
+  const [reviewVisible, setReviewVisible] = useState(false);
+  const [resultsVisible, setResultsVisible] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const fade = useRef(new Animated.Value(0)).current;
+
+  const nodes = useMemo(
+    () => new Map((chapter?.nodes ?? []).map((node) => [node.id, node])),
+    [chapter],
+  );
+  const currentNode = nodes.get(nodeId);
+  const choiceOrder = useMemo(() => {
+    const choices = currentNode?.choices ?? [];
+    return currentNode?.shuffleChoices ? shuffle(choices) : choices;
+  }, [currentNode?.id]);
+  const progress = chapter
+    ? Math.min(1, (attempt?.answers.length ?? 0) / Math.max(1, chapter.nodes.filter((node) => node.type === 'CHOICE').length))
+    : 0;
 
   useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(sumiFloat, { toValue: -8, duration: 800, useNativeDriver: true }),
-        Animated.timing(sumiFloat, { toValue: 0, duration: 800, useNativeDriver: true }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(boyFloat, { toValue: -6, duration: 850, useNativeDriver: true }),
-        Animated.timing(boyFloat, { toValue: 0, duration: 850, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
+    void loadStory();
+  }, [user?.email]);
 
   useEffect(() => {
-    const focus = current.focus;
-    let scale = 1;
-
-    if (focus === 'sumi' || focus === 'boy') {
-      scale = 1.18;
-    }
-
-    Animated.timing(zoomAnim, {
-      toValue: scale,
-      duration: 350,
+    fade.setValue(0);
+    Animated.timing(fade, {
+      toValue: 1,
+      duration: 260,
       useNativeDriver: true,
     }).start();
-  }, [step, scenarioIndex]);
+  }, [nodeId]);
 
-  const openChoices = () => {
-    Animated.sequence([
-      Animated.timing(zoomAnim, {
-        toValue: 1,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(choiceAnim, {
-        toValue: 1,
-        duration: 280,
-        useNativeDriver: true,
-      }),
-    ]).start(() => setShowChoices(true));
+  const requestJson = async (path: string, options?: RequestInit) => {
+    const response = await fetch(`${expoconfig.API_URL}${path}`, options);
+    if (!response.ok) throw new Error(`Reply Coach returned ${response.status}.`);
+    return response.json();
   };
 
-  const nextDialogue = () => {
-    if (showChoices || resultVisible || finished) return;
-
-    if (step < currentScenario.steps.length - 1) {
-      setStep(step + 1);
-      return;
+  const loadStory = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const chapters = (await requestJson('/api/reply-coach/chapters')) as Chapter[];
+      if (!chapters.length) throw new Error('No published Reply Coach chapter is available yet.');
+      const selectedChapter = chapters[0];
+      const newAttempt = (await requestJson('/api/reply-coach/attempts/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user?.email,
+          name: `${user?.fname ?? ''} ${user?.lname ?? ''}`.trim(),
+          chapterId: selectedChapter.id,
+        }),
+      })) as Attempt;
+      setChapter(selectedChapter);
+      setAttempt(newAttempt);
+      setNodeId(newAttempt.currentNodeId || selectedChapter.startNodeId);
+      await AsyncStorage.setItem('replyCoachLastAttempt', newAttempt.id);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Reply Coach could not load.');
+    } finally {
+      setLoading(false);
     }
-
-    openChoices();
   };
 
-  const handleChoice = (choice: any) => {
-    setSelected(choice);
-    setIsCorrect(choice.correct);
-
-    if (choice.correct) {
-      setCorrectCount((prev) => prev + 1);
-      setResultText(currentScenario.npcReplyCorrect);
-    } else {
-      setMistakeCount((prev) => prev + 1);
-      setResultText(currentScenario.npcReplyWrong);
+  const moveTo = async (next?: string) => {
+    if (!next || !attempt) return;
+    setSelectedChoice(null);
+    setChoiceFeedback(false);
+    setNodeId(next);
+    setAttempt((current) => current ? { ...current, currentNodeId: next } : current);
+    try {
+      await requestJson(`/api/reply-coach/attempts/${attempt.id}/progress`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentNodeId: next }),
+      });
+    } catch {
+      // The on-device state remains playable; the next interaction retries persistence.
     }
-
-    setResultVisible(true);
   };
 
-  const nextScenario = () => {
-    setResultVisible(false);
-    setSelected(null);
-    setShowChoices(false);
-    choiceAnim.setValue(0);
-    zoomAnim.setValue(1);
-
-    if (scenarioIndex >= scenarios.length - 1) {
-      setFinished(true);
-      return;
+  const choose = async (choice: ChoiceOption) => {
+    if (!attempt || !currentNode || saving) return;
+    setSaving(true);
+    try {
+      const response = await requestJson(`/api/reply-coach/attempts/${attempt.id}/answer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodeId: currentNode.id, choiceId: choice.id }),
+      });
+      setAttempt(response.attempt);
+      setSelectedChoice(response.choice);
+      setChoiceFeedback(true);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Your response could not be saved.');
+    } finally {
+      setSaving(false);
     }
-
-    setScenarioIndex((prev) => prev + 1);
-    setStep(0);
   };
 
-  const resetAll = () => {
-    setScenarioIndex(0);
-    setStep(0);
-    setShowChoices(false);
-    setSelected(null);
-    setResultVisible(false);
-    setResultText('');
-    setIsCorrect(false);
-    setCorrectCount(0);
-    setMistakeCount(0);
-    setFinished(false);
-    choiceAnim.setValue(0);
-    zoomAnim.setValue(1);
+  const finish = async () => {
+    if (!attempt || saving) return;
+    setSaving(true);
+    try {
+      const completed = await requestJson(`/api/reply-coach/attempts/${attempt.id}/complete`, {
+        method: 'POST',
+      });
+      setAttempt(completed);
+      setResultsVisible(true);
+      await AsyncStorage.removeItem('replyCoachLastAttempt');
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Results could not be saved.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const backToMenu = () => {
-    setResultVisible(false);
-    setFinished(false);
-    setIsExiting(true);
+  const replay = async () => {
+    setResultsVisible(false);
+    setReviewVisible(false);
+    setChapter(null);
+    setAttempt(null);
+    setNodeId('');
+    await loadStory();
   };
 
-  const sumiSprite =
-    resultVisible && isCorrect ? sumiClosedSmile :
-    resultVisible && !isCorrect ? sumiFrown :
-    current.sumi;
+  const background = backgrounds[currentNode?.backgroundKey ?? 'station'] ?? backgrounds.station;
+  const primarySprite = currentNode?.characterKey
+    ? sprites[currentNode.characterKey]?.[currentNode.expressionKey ?? 'NEUTRAL']
+    : null;
+  const secondarySprite = currentNode?.secondaryCharacterKey
+    ? sprites[currentNode.secondaryCharacterKey]?.[currentNode.secondaryExpressionKey ?? 'NEUTRAL']
+    : null;
+  const isNarration = currentNode?.type === 'NARRATION' || currentNode?.type === 'CULTURAL_NOTE';
 
-  const boySprite =
-    resultVisible && isCorrect ? boySmile :
-    resultVisible && !isCorrect ? boyFrown :
-    current.boy;
+  if (loading) {
+    return (
+      <View style={styles.loadingScreen}>
+        <Image source={require('../assets/hello.png')} style={styles.loadingMascot} />
+        <ActivityIndicator color="#8423D9" size="large" />
+        <Text style={styles.loadingTitle}>Opening your story...</Text>
+        <Text style={styles.loadingText}>Preparing the next Japanese moment.</Text>
+      </View>
+    );
+  }
 
-  if (isExiting) return <AhiruMissionExit color="#6E4BC6" tint="#EEE8FC" icon="chatbubble-ellipses-outline" eyebrow="GUIDED SESSION COMPLETE" title="A stronger reply!" message="You practiced building natural Japanese responses with clear, helpful guidance." footer="Good responses begin with confident small steps." mascot={require('../assets/hello.png')} onComplete={() => router.replace({ pathname:'/QuackResponse', params:{skipLoading:'1'} })} />;
+  if (!chapter || !attempt || !currentNode) {
+    return (
+      <View style={styles.loadingScreen}>
+        <Ionicons name="cloud-offline-outline" size={44} color="#8423D9" />
+        <Text style={styles.loadingTitle}>Reply Coach is resting</Text>
+        <Text style={styles.loadingText}>{error || 'The story could not be opened.'}</Text>
+        <Pressable style={styles.primaryButton} onPress={loadStory}>
+          <Text style={styles.primaryButtonText}>Try again</Text>
+        </Pressable>
+        <Pressable onPress={() => router.back()}>
+          <Text style={styles.textButton}>Return to mission map</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
-    <ImageBackground source={currentScenario.background} style={styles.background} resizeMode="cover">
-      <View style={styles.overlay} />
-
-      <View style={styles.header}>
-        <TouchableOpacity onPress={backToMenu}>
-          <View style={styles.backButtonContainer}>
-            <BackIcon width={22} height={22} fill="white" />
+    <ImageBackground source={background} style={styles.background} resizeMode="cover">
+      <View style={styles.backgroundShade} />
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Pressable style={styles.iconButton} onPress={() => setExitVisible(true)}>
+            <Ionicons name="arrow-back" size={24} color="#351A4A" />
+          </Pressable>
+          <View style={styles.headerCopy}>
+            <Text style={styles.headerEyebrow}>REPLY COACH · CHAPTER {chapter.order ?? 1}</Text>
+            <Text style={styles.headerTitle} numberOfLines={1}>{chapter.title}</Text>
           </View>
-        </TouchableOpacity>
-
-        <View style={styles.headerTitleBox}>
-          <Text style={styles.headerSmall}>2.1 GUIDED RESPONSE</Text>
-          <Text style={styles.headerTitle}>Scenario {scenarioIndex + 1}/5</Text>
+          <Pressable style={styles.iconButton} onPress={() => setReviewVisible(true)}>
+            <Ionicons name="journal-outline" size={23} color="#8423D9" />
+          </Pressable>
         </View>
 
-        <Image source={require('../assets/talk.png')} style={styles.headerDuck} />
-      </View>
-
-      <View style={styles.scoreHud}>
-        <View style={styles.scoreBox}>
-          <Text style={styles.scoreLabel}>Correct</Text>
-          <Text style={styles.scoreValue}>{correctCount}</Text>
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${Math.max(2, progress * 100)}%` }]} />
         </View>
 
-        <View style={styles.scoreBox}>
-          <Text style={styles.scoreLabel}>Mistakes</Text>
-          <Text style={styles.scoreValue}>{mistakeCount}</Text>
-        </View>
-      </View>
+        <Animated.View style={[styles.storyStage, { opacity: fade }]}>
+          {currentNode.spritesVisible && !isNarration && (
+            <View style={styles.spriteStage} pointerEvents="none">
+              {secondarySprite && (
+                <Image source={secondarySprite} style={[styles.sprite, styles.secondarySprite]} resizeMode="contain" fadeDuration={0} />
+              )}
+              {primarySprite && (
+                <Image source={primarySprite} style={[styles.sprite, styles.primarySprite]} resizeMode="contain" fadeDuration={0} />
+              )}
+            </View>
+          )}
 
-      <TouchableOpacity activeOpacity={1} style={styles.stage} onPress={nextDialogue}>
-        <View style={styles.locationPill}>
-          <Text style={styles.locationText}>{currentScenario.location}</Text>
-        </View>
-
-        <Animated.View style={[styles.characterScene, { transform: [{ scale: zoomAnim }] }]}>
-          <Animated.Image source={boySprite} style={[styles.boySprite, { transform: [{ translateY: boyFloat }] }]} fadeDuration={0} />
-          <Animated.Image source={sumiSprite} style={[styles.sumiSprite, { transform: [{ translateY: sumiFloat }] }]} fadeDuration={0} />
+          {isNarration ? (
+            <Pressable style={styles.narrationWrap} onPress={() => moveTo(currentNode.nextNodeId)}>
+              <View style={styles.narrationCard}>
+                <View style={styles.narrationRule} />
+                <Text style={styles.narrationEyebrow}>
+                  {currentNode.type === 'CULTURAL_NOTE' ? 'CULTURE NOTE' : currentNode.title}
+                </Text>
+                <Text style={styles.narrationText}>{currentNode.text}</Text>
+                <View style={styles.continueRow}>
+                  <Text style={styles.continueText}>Tap to continue</Text>
+                  <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
+                </View>
+              </View>
+            </Pressable>
+          ) : currentNode.type === 'CHOICE' ? (
+            <View style={styles.decisionPanel}>
+              <View style={styles.decisionHeading}>
+                <View style={styles.decisionIcon}>
+                  <Ionicons name="chatbubbles-outline" size={21} color="#FFFFFF" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.decisionEyebrow}>YOUR TURN</Text>
+                  <Text style={styles.decisionTitle}>{currentNode.title || 'What would you say?'}</Text>
+                </View>
+              </View>
+              <Text style={styles.decisionPrompt}>{currentNode.text}</Text>
+              <ScrollView style={styles.choiceScroll} showsVerticalScrollIndicator={false}>
+                {choiceOrder.map((choice, index) => (
+                  <Pressable
+                    key={choice.id}
+                    disabled={saving}
+                    style={({ pressed }) => [styles.choiceButton, pressed && styles.choicePressed]}
+                    onPress={() => choose(choice)}
+                  >
+                    <View style={styles.choiceLetter}>
+                      <Text style={styles.choiceLetterText}>{String.fromCharCode(65 + index)}</Text>
+                    </View>
+                    <View style={styles.choiceCopy}>
+                      <Text style={styles.choiceJapanese}>{choice.japanese}</Text>
+                      <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
+                      <Text style={styles.choiceEnglish}>{choice.text}</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={19} color="#A58CAF" />
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          ) : currentNode.type === 'ENDING' ? (
+            <View style={styles.endingCard}>
+              <Ionicons name="ribbon-outline" size={48} color="#8423D9" />
+              <Text style={styles.endingEyebrow}>JOURNEY COMPLETE</Text>
+              <Text style={styles.endingTitle}>{currentNode.title}</Text>
+              <Text style={styles.endingText}>{currentNode.text}</Text>
+              <Pressable style={styles.primaryButton} onPress={finish} disabled={saving}>
+                <Text style={styles.primaryButtonText}>{saving ? 'Saving...' : 'View my results'}</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable style={styles.dialogueArea} onPress={() => moveTo(currentNode.nextNodeId)}>
+              <View style={styles.dialogueBox}>
+                <View style={styles.speakerRow}>
+                  <View style={styles.speakerDot} />
+                  <Text style={styles.speakerName}>{currentNode.speaker || currentNode.title}</Text>
+                  <Text style={styles.nodeType}>{currentNode.type}</Text>
+                </View>
+                {Boolean(currentNode.japanese) && <Text style={styles.dialogueJapanese}>{currentNode.japanese}</Text>}
+                {Boolean(currentNode.romaji) && <Text style={styles.dialogueRomaji}>{currentNode.romaji}</Text>}
+                <Text style={styles.dialogueText}>{currentNode.text}</Text>
+                <View style={styles.continueRowDark}>
+                  <Text style={styles.continueTextDark}>Tap to continue</Text>
+                  <Ionicons name="chevron-forward" size={18} color="#8423D9" />
+                </View>
+              </View>
+            </Pressable>
+          )}
         </Animated.View>
+      </SafeAreaView>
 
-        {!showChoices && (
-          <View style={styles.dialogueBox}>
-            <Text style={styles.speakerName}>{current.speaker}</Text>
-
-            {current.jp !== '' && (
-              <>
-                <Text style={styles.jpLine}>{current.jp}</Text>
-                <Text style={styles.romajiLine}>{current.romaji}</Text>
-              </>
-            )}
-
-            <Text style={styles.dialogueText}>{current.line}</Text>
-            <Text style={styles.tapHint}>Tap to continue</Text>
-          </View>
-        )}
-
-        {showChoices && (
-          <Animated.View
-            style={[
-              styles.choicePanel,
-              {
-                opacity: choiceAnim,
-                transform: [{ scale: choiceAnim }],
-              },
-            ]}
-          >
-            <Text style={styles.choiceTitle}>{currentScenario.title}</Text>
-            <Text style={styles.choicePrompt}>{currentScenario.prompt}</Text>
-
-            <View style={styles.choiceGrid}>
-              {currentScenario.choices.map((choice) => (
-                <TouchableOpacity
-                  key={choice.jp}
-                  activeOpacity={0.9}
-                  style={[
-                    styles.choiceButton,
-                    selected?.jp === choice.jp && styles.choiceSelected,
-                  ]}
-                  onPress={() => handleChoice(choice)}
-                >
-                  <Text style={styles.choiceJP}>{choice.jp}</Text>
-                  <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </Animated.View>
-        )}
-      </TouchableOpacity>
-
-      <Modal visible={resultVisible} transparent animationType="fade" onRequestClose={() => setResultVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <TouchableOpacity style={styles.closeButton} onPress={() => setResultVisible(false)}>
-              <Text style={styles.closeText}>X</Text>
-            </TouchableOpacity>
-
-            <Image
-              source={isCorrect ? sumiClosedSmile : sumiFrown}
-              style={styles.modalNpc}
-            />
-
-            <Text style={styles.resultTitle}>{isCorrect ? 'Good Response!' : 'Not Quite'}</Text>
-            <Text style={styles.resultText}>{resultText}</Text>
-
-            <View style={styles.answerBox}>
-              <Text style={styles.answerLabel}>Best Response</Text>
-              <Text style={styles.answerJP}>{currentScenario.correctAnswer}</Text>
-            </View>
-
-            <TouchableOpacity style={styles.modalButton} onPress={nextScenario}>
-              <Text style={styles.modalButtonText}>
-                {scenarioIndex >= scenarios.length - 1 ? 'View Results' : 'Next Scenario'}
+      <Modal visible={choiceFeedback} transparent animationType="fade" onRequestClose={() => undefined}>
+        <View style={styles.modalBackdrop}>
+          {selectedChoice && (
+            <View style={styles.feedbackCard}>
+              <View style={[styles.feedbackIcon, { backgroundColor: evaluationTheme[selectedChoice.evaluation].color }]}>
+                <Ionicons name={evaluationTheme[selectedChoice.evaluation].icon} size={29} color="#FFFFFF" />
+              </View>
+              <Text style={[styles.feedbackEyebrow, { color: evaluationTheme[selectedChoice.evaluation].color }]}>
+                {evaluationTheme[selectedChoice.evaluation].label.toUpperCase()}
               </Text>
-            </TouchableOpacity>
+              <Text style={styles.feedbackReaction}>{selectedChoice.reactionText}</Text>
+              <View style={styles.explanationBox}>
+                <Text style={styles.explanationLabel}>WHY IT SOUNDS THIS WAY</Text>
+                <Text style={styles.explanationText}>{selectedChoice.explanation}</Text>
+              </View>
+              {Boolean(selectedChoice.culturalNote) && (
+                <View style={styles.cultureBox}>
+                  <Ionicons name="flower-outline" size={20} color="#5DAF37" />
+                  <Text style={styles.cultureText}>{selectedChoice.culturalNote}</Text>
+                </View>
+              )}
+              <Pressable style={styles.primaryButton} onPress={() => moveTo(selectedChoice.nextNodeId)}>
+                <Text style={styles.primaryButtonText}>Continue the story</Text>
+                <Ionicons name="arrow-forward" size={19} color="#FFFFFF" />
+              </Pressable>
+            </View>
+          )}
+        </View>
+      </Modal>
+
+      <Modal visible={exitVisible} transparent animationType="fade" onRequestClose={() => setExitVisible(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.exitCard}>
+            <Ionicons name="bookmark-outline" size={38} color="#8423D9" />
+            <Text style={styles.exitTitle}>Save your place?</Text>
+            <Text style={styles.exitText}>Your story progress is already saved. You can continue from this exact moment later.</Text>
+            <Pressable style={styles.primaryButton} onPress={() => router.replace('/QuackResponse')}>
+              <Text style={styles.primaryButtonText}>Save and leave</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryButton} onPress={() => setExitVisible(false)}>
+              <Text style={styles.secondaryButtonText}>Continue playing</Text>
+            </Pressable>
           </View>
         </View>
       </Modal>
 
-      <Modal visible={finished} transparent animationType="fade" onRequestClose={() => setFinished(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <TouchableOpacity style={styles.closeButton} onPress={backToMenu}>
-              <Text style={styles.closeText}>X</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.resultTitle}>Guided Complete!</Text>
-            <Text style={styles.resultText}>Correct: {correctCount}/5</Text>
-            <Text style={styles.resultText}>Mistakes: {mistakeCount}</Text>
-
-            <TouchableOpacity style={styles.modalButton} onPress={resetAll}>
-              <Text style={styles.modalButtonText}>Retry</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.modalButton} onPress={backToMenu}>
-              <Text style={styles.modalButtonText}>Back to Menu</Text>
-            </TouchableOpacity>
-          </View>
+      <Modal visible={resultsVisible} transparent animationType="slide" onRequestClose={() => undefined}>
+        <View style={styles.resultsPage}>
+          <SafeAreaView style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={styles.resultsContent}>
+              <View style={styles.resultMedal}>
+                <Ionicons name="ribbon" size={46} color="#FFFFFF" />
+              </View>
+              <Text style={styles.resultsEyebrow}>REPLY COACH COMPLETE</Text>
+              <Text style={styles.resultsTitle}>{chapter.title}</Text>
+              <Text style={styles.resultsScore}>{attempt.finalPercentage}%</Text>
+              <Text style={styles.resultsRating}>
+                {attempt.finalPercentage >= 90 ? 'Excellent cultural awareness' : attempt.finalPercentage >= 75 ? 'Good — keep refining your replies' : 'Review recommended'}
+              </Text>
+              <View style={styles.resultGrid}>
+                {[
+                  ['Best', attempt.bestCount, '#62B83C'],
+                  ['Acceptable', attempt.acceptableCount, '#5086D8'],
+                  ['Awkward', attempt.awkwardCount, '#D89525'],
+                  ['Impolite / rude', attempt.impoliteCount + attempt.rudeCount, '#D4635D'],
+                ].map(([label, value, color]) => (
+                  <View key={String(label)} style={styles.resultTile}>
+                    <View style={[styles.resultDot, { backgroundColor: String(color) }]} />
+                    <Text style={styles.resultValue}>{String(value)}</Text>
+                    <Text style={styles.resultLabel}>{String(label)}</Text>
+                  </View>
+                ))}
+              </View>
+              <Pressable style={styles.primaryButton} onPress={() => setReviewVisible(true)}>
+                <Ionicons name="reader-outline" size={19} color="#FFFFFF" />
+                <Text style={styles.primaryButtonText}>Review my decisions</Text>
+              </Pressable>
+              <Pressable style={styles.secondaryButton} onPress={replay}>
+                <Text style={styles.secondaryButtonText}>Replay chapter</Text>
+              </Pressable>
+              <Pressable style={styles.textButtonWrap} onPress={() => router.replace('/QuackResponse')}>
+                <Text style={styles.textButton}>Return to Reply Coach</Text>
+              </Pressable>
+            </ScrollView>
+          </SafeAreaView>
         </View>
+      </Modal>
+
+      <Modal visible={reviewVisible} animationType="slide" onRequestClose={() => setReviewVisible(false)}>
+        <SafeAreaView style={styles.reviewPage}>
+          <View style={styles.reviewHeader}>
+            <Pressable style={styles.iconButton} onPress={() => setReviewVisible(false)}>
+              <Ionicons name="arrow-back" size={23} color="#351A4A" />
+            </Pressable>
+            <View>
+              <Text style={styles.reviewEyebrow}>DECISION JOURNAL</Text>
+              <Text style={styles.reviewTitle}>Review your replies</Text>
+            </View>
+          </View>
+          <ScrollView contentContainerStyle={styles.reviewContent}>
+            {!attempt.answers.length ? (
+              <View style={styles.emptyReview}>
+                <Ionicons name="book-outline" size={40} color="#B99EC7" />
+                <Text style={styles.emptyReviewTitle}>Your journal is waiting</Text>
+                <Text style={styles.emptyReviewText}>Completed decisions will appear here with explanations and cultural notes.</Text>
+              </View>
+            ) : attempt.answers.map((answer, index) => {
+              const theme = evaluationTheme[answer.evaluation];
+              return (
+                <View key={`${answer.nodeId}-${index}`} style={styles.reviewCard}>
+                  <View style={styles.reviewCardTop}>
+                    <Text style={styles.reviewNumber}>DECISION {String(index + 1).padStart(2, '0')}</Text>
+                    <Text style={[styles.reviewEvaluation, { color: theme.color }]}>{theme.label}</Text>
+                  </View>
+                  <Text style={styles.reviewPrompt}>{answer.prompt}</Text>
+                  <Text style={styles.reviewSelected}>{answer.selectedJapanese}</Text>
+                  <Text style={styles.reviewEnglish}>{answer.selectedText}</Text>
+                  {answer.evaluation !== 'BEST' && (
+                    <View style={styles.bestAnswerBox}>
+                      <Text style={styles.bestAnswerLabel}>BEST RESPONSE</Text>
+                      <Text style={styles.bestAnswerText}>{answer.bestResponse}</Text>
+                    </View>
+                  )}
+                  <Text style={styles.reviewExplanation}>{answer.explanation}</Text>
+                  {Boolean(answer.culturalNote) && <Text style={styles.reviewCulture}>文化 · {answer.culturalNote}</Text>}
+                </View>
+              );
+            })}
+          </ScrollView>
+        </SafeAreaView>
       </Modal>
     </ImageBackground>
   );
-};
-
-export default QuackResponseGuided;
+}
