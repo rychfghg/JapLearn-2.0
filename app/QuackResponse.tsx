@@ -1,9 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Animated, Image, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackResponse';
+import { AuthContext } from '../context/AuthContext';
+import expoconfig from '../expoconfig';
 
 const games = [
   { title:'Guided Response', displayTitle:'Reply Coach', subtitle:'Build the right reply', description:'Follow helpful cues and learn how natural Japanese responses are formed.', route:'/QuackResponseGuided', icon:'chatbubble-ellipses-outline', label:'GUIDED MODE', color:'#6E4BC6', tint:'#EEE8FC', mascot:require('../assets/talk.png'), locked:false },
@@ -12,12 +14,14 @@ const games = [
 ] as const;
 
 export default function QuackResponse() {
+  const { user } = useContext(AuthContext);
   const { skipLoading } = useLocalSearchParams<{skipLoading?:string}>();
   const [progress,setProgress]=useState(0);
   const [loaded,setLoaded]=useState(skipLoading==='1');
   const [launching,setLaunching]=useState<(typeof games)[number]|null>(null);
   const [launchProgress,setLaunchProgress]=useState(0);
   const [guideVisible,setGuideVisible]=useState(false);
+  const [unlockedStages,setUnlockedStages]=useState(1);
   const pulse=useRef(new Animated.Value(1)).current;
   const shine=useRef(new Animated.Value(-1)).current;
 
@@ -29,8 +33,20 @@ export default function QuackResponse() {
     return()=>clearInterval(timer);
   },[skipLoading]);
 
-  const launch=(game:(typeof games)[number])=>{
-    if(launching||game.locked)return;
+  useEffect(() => {
+    if (!user?.email) return;
+    let active = true;
+    fetch(`${expoconfig.API_URL}/api/reply-coach/progress?email=${encodeURIComponent(user.email)}`)
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((summary) => {
+        if (active && Number(summary?.bestScore ?? 0) >= 60) setUnlockedStages(2);
+      })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [user?.email]);
+
+  const launch=(game:(typeof games)[number], locked = game.locked)=>{
+    if(launching||locked)return;
     setLaunching(game);setLaunchProgress(8);let value=8;
     const timer=setInterval(()=>{value=Math.min(value+12,100);setLaunchProgress(value);if(value>=100){clearInterval(timer);router.push(game.route);setTimeout(()=>{setLaunching(null);setLaunchProgress(0);},350);}},55);
   };
@@ -92,16 +108,18 @@ export default function QuackResponse() {
           <View style={styles.mapTrail}>
             <View style={styles.mapTrailLine} />
 
-            {games.map((game, index) => (
+            {games.map((game, index) => {
+              const missionLocked = index >= unlockedStages;
+              return (
               <View key={game.title} style={styles.mapNodeRow}>
                 <View style={styles.mapCheckpointColumn}>
                   <View
                     style={[
                       styles.mapCheckpoint,
-                      { backgroundColor: game.locked ? '#B8AFBC' : game.color },
+                      { backgroundColor: missionLocked ? '#B8AFBC' : game.color },
                     ]}
                   >
-                    {game.locked ? (
+                    {missionLocked ? (
                       <Ionicons name="lock-closed" size={19} color="#FFFFFF" />
                     ) : (
                       <Ionicons name="flag" size={20} color="#FFFFFF" />
@@ -111,11 +129,11 @@ export default function QuackResponse() {
                 </View>
 
                 <Pressable
-                  disabled={game.locked}
-                  onPress={() => launch(game)}
+                  disabled={missionLocked}
+                  onPress={() => launch(game, missionLocked)}
                   style={({ pressed }) => [
                     styles.mapMissionCard,
-                    game.locked && styles.mapMissionCardLocked,
+                    missionLocked && styles.mapMissionCardLocked,
                     pressed && styles.mapMissionCardPressed,
                   ]}
                 >
@@ -128,7 +146,7 @@ export default function QuackResponse() {
                     </Text>
                     <Image
                       source={game.mascot}
-                      style={[styles.mapMissionMascot, game.locked && styles.mapMissionMascotLocked]}
+                      style={[styles.mapMissionMascot, missionLocked && styles.mapMissionMascotLocked]}
                       resizeMode="contain"
                     />
                     <View style={[styles.mapStageBadge, { backgroundColor: game.color }]}>
@@ -142,7 +160,7 @@ export default function QuackResponse() {
                         <Ionicons name={game.icon} size={17} color={game.color} />
                       </View>
                       <Text style={[styles.mapModeText, { color: game.color }]}>{game.label}</Text>
-                      {game.locked && (
+                      {missionLocked && (
                         <View style={styles.mapLockedPill}>
                           <Ionicons name="lock-closed" size={10} color="#756B79" />
                           <Text style={styles.mapLockedPillText}>LOCKED</Text>
@@ -156,21 +174,21 @@ export default function QuackResponse() {
 
                     <View style={styles.mapMissionFooter}>
                       <View style={styles.mapMissionActionCopy}>
-                        <Text style={[styles.mapStartText, { color: game.locked ? '#8D8491' : game.color }]}>
-                          {game.locked ? 'FINISH THE PREVIOUS STAGE' : 'BEGIN GUIDED MISSION'}
+                        <Text style={[styles.mapStartText, { color: missionLocked ? '#8D8491' : game.color }]}>
+                          {missionLocked ? 'FINISH THE PREVIOUS STAGE' : 'BEGIN GUIDED MISSION'}
                         </Text>
                         <Text style={styles.mapUnlockHint}>
-                          {game.locked ? 'This trail is not available yet' : 'Practice at your own pace'}
+                          {missionLocked ? 'Score at least 60% to unlock' : 'Practice at your own pace'}
                         </Text>
                       </View>
                       <View
                         style={[
                           styles.mapStartButton,
-                          { backgroundColor: game.locked ? '#B8AFBC' : game.color },
+                          { backgroundColor: missionLocked ? '#B8AFBC' : game.color },
                         ]}
                       >
                         <Ionicons
-                          name={game.locked ? 'lock-closed' : 'play'}
+                          name={missionLocked ? 'lock-closed' : 'play'}
                           size={17}
                           color="#FFFFFF"
                         />
@@ -179,7 +197,7 @@ export default function QuackResponse() {
                   </View>
                 </Pressable>
               </View>
-            ))}
+            )})}
 
             <View style={styles.mapFinishRow}>
               <View style={styles.mapFinishCheckpoint}>
