@@ -342,6 +342,7 @@ export default function ReplyCoachStory() {
 
   const moveTo = async (next?: string) => {
     if (!next || !attempt) return;
+    if (backgroundMusic.current) void backgroundMusic.current.playAsync().catch(() => undefined);
     setSelectedChoice(null);
     setNodeId(next);
     setAttempt((current) => current ? { ...current, currentNodeId: next } : current);
@@ -358,6 +359,7 @@ export default function ReplyCoachStory() {
 
   const choose = async (choice: ChoiceOption) => {
     if (!attempt || !currentNode || saving) return;
+    if (backgroundMusic.current) void backgroundMusic.current.playAsync().catch(() => undefined);
     setSaving(true);
     try {
       const response = await requestJson(`/api/reply-coach/attempts/${attempt.id}/answer`, {
@@ -407,15 +409,15 @@ export default function ReplyCoachStory() {
   };
 
   const background = backgrounds[currentNode?.backgroundKey ?? 'station'] ?? backgrounds.station;
-  const primarySprite = currentNode?.characterKey
-    ? sprites[currentNode.characterKey]?.[currentNode.expressionKey ?? 'NEUTRAL']
-    : null;
-  const secondarySprite = currentNode?.secondaryCharacterKey
-    ? sprites[currentNode.secondaryCharacterKey]?.[currentNode.secondaryExpressionKey ?? 'NEUTRAL']
+  const displayedCharacter = currentNode?.characterKey || currentNode?.secondaryCharacterKey;
+  const displayedExpression = currentNode?.characterKey
+    ? currentNode.expressionKey
+    : currentNode?.secondaryExpressionKey;
+  const displayedSprite = displayedCharacter
+    ? sprites[displayedCharacter]?.[displayedExpression ?? 'NEUTRAL']
     : null;
   const isNarration = currentNode?.type === 'NARRATION' || currentNode?.type === 'CULTURAL_NOTE';
   const isReaction = currentNode?.type === 'REACTION';
-  const activeCharacter = currentNode?.characterKey;
   const reactionEvaluation = selectedChoice?.evaluation ?? latestAnswer?.evaluation;
   const reactionExplanation = selectedChoice?.explanation ?? latestAnswer?.explanation;
   const reactionCulture = selectedChoice?.culturalNote ?? latestAnswer?.culturalNote;
@@ -471,22 +473,20 @@ export default function ReplyCoachStory() {
         <Animated.View style={[styles.storyStage, { opacity: fade }]}>
           {currentNode.spritesVisible && !isNarration && (
             <View style={styles.spriteStage} pointerEvents="none">
-              {currentNode.secondaryCharacterKey && secondarySprite && (
+              {displayedCharacter && displayedSprite && (
                 <SpriteActor
-                  characterKey={currentNode.secondaryCharacterKey}
-                  expressionKey={currentNode.secondaryExpressionKey}
-                  positionStyle={styles.secondarySprite}
-                  speaking={currentNode.type !== 'CHOICE' && activeCharacter === currentNode.secondaryCharacterKey}
+                  characterKey={displayedCharacter}
+                  expressionKey={displayedExpression}
+                  positionStyle={displayedCharacter === 'HARU' ? styles.soloSpriteLeft : styles.soloSpriteRight}
+                  speaking={currentNode.type !== 'CHOICE'}
                 />
               )}
-              {currentNode.characterKey && primarySprite && (
-                <SpriteActor
-                  characterKey={currentNode.characterKey}
-                  expressionKey={currentNode.expressionKey}
-                  positionStyle={styles.primarySprite}
-                  speaking={currentNode.type !== 'CHOICE' && activeCharacter === currentNode.characterKey}
-                />
-              )}
+            </View>
+          )}
+          {currentNode.spritesVisible && !isNarration && currentNode.type !== 'CHOICE' && (
+            <View style={styles.stageForeground} pointerEvents="none">
+              <View style={styles.stageForegroundLine} />
+              <Text style={styles.stageForegroundText}>REPLY COACH STORY</Text>
             </View>
           )}
 
@@ -521,7 +521,7 @@ export default function ReplyCoachStory() {
                 </View>
               </View>
               <Text style={styles.decisionPrompt}>{currentNode.text}</Text>
-              <ScrollView style={styles.choiceScroll} showsVerticalScrollIndicator={false}>
+              <View style={styles.choiceList}>
                 {choiceOrder.map((choice, index) => (
                   <Pressable
                     key={choice.id}
@@ -539,7 +539,7 @@ export default function ReplyCoachStory() {
                     <Ionicons name="chevron-forward" size={19} color="#A58CAF" />
                   </Pressable>
                 ))}
-              </ScrollView>
+              </View>
             </View>
           ) : currentNode.type === 'ENDING' ? (
             <View style={styles.endingCard}>
@@ -555,7 +555,7 @@ export default function ReplyCoachStory() {
             <Pressable
               style={[
                 styles.speechBubbleArea,
-                currentNode.characterKey === 'HARU' ? styles.speechBubbleLeft : styles.speechBubbleRight,
+                displayedCharacter === 'HARU' ? styles.speechBubbleRight : styles.speechBubbleLeft,
               ]}
               onPress={() => isReaction ? setCorrectionVisible(true) : moveTo(currentNode.nextNodeId)}
             >
@@ -563,7 +563,7 @@ export default function ReplyCoachStory() {
                 <View
                   style={[
                     styles.speechTail,
-                    currentNode.characterKey === 'HARU' ? styles.speechTailLeft : styles.speechTailRight,
+                    displayedCharacter === 'HARU' ? styles.speechTailLeft : styles.speechTailRight,
                   ]}
                 />
                 <View style={styles.speakerRow}>
@@ -571,8 +571,22 @@ export default function ReplyCoachStory() {
                   <Text style={styles.speakerName}>{currentNode.speaker || currentNode.title}</Text>
                   <Text style={styles.nodeType}>{currentNode.type}</Text>
                 </View>
-                {Boolean(currentNode.japanese) && <Text style={styles.dialogueJapanese}>{currentNode.japanese}</Text>}
-                {Boolean(currentNode.romaji) && <Text style={styles.dialogueRomaji}>{currentNode.romaji}</Text>}
+                {Boolean(currentNode.japanese) && (
+                  <Text
+                    style={styles.dialogueJapanese}
+                    numberOfLines={3}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.72}
+                    maxFontSizeMultiplier={1.1}
+                  >
+                    {currentNode.japanese}
+                  </Text>
+                )}
+                {Boolean(currentNode.romaji) && (
+                  <Text style={styles.dialogueRomaji} numberOfLines={2} maxFontSizeMultiplier={1.05}>
+                    {currentNode.romaji}
+                  </Text>
+                )}
                 {isReaction ? (
                   <>
                     <Text style={styles.reactionAddress}>{studentName},</Text>
@@ -642,6 +656,20 @@ export default function ReplyCoachStory() {
             <Text style={styles.feedbackReaction}>
               {selectedChoice?.reactionText || currentNode.text}
             </Text>
+            {latestAnswer && (
+              <View style={styles.answerComparison}>
+                <View style={styles.answerComparisonColumn}>
+                  <Text style={styles.answerComparisonLabel}>YOUR REPLY</Text>
+                  <Text style={styles.answerComparisonValue}>{latestAnswer.selectedJapanese}</Text>
+                </View>
+                {latestAnswer.evaluation !== 'BEST' && (
+                  <View style={styles.answerComparisonColumn}>
+                    <Text style={styles.answerComparisonLabel}>BEST REPLY</Text>
+                    <Text style={styles.answerComparisonValue}>{latestAnswer.bestResponse}</Text>
+                  </View>
+                )}
+              </View>
+            )}
             <View style={styles.explanationBox}>
               <Text style={styles.explanationLabel}>
                 {reactionEvaluation === 'BEST' ? 'WHY THIS WORKS' : 'WHY THIS NEEDS ADJUSTMENT'}
