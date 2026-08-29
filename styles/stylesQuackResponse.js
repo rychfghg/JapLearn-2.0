@@ -372,12 +372,16 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 5,
     shadowColor: '#582078',
     shadowOpacity: 0.18,
     shadowRadius: 9,
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
+  },
+
+  mapGuideButtonPressed: {
+    transform: [{ scale: 0.94 }],
+    opacity: 0.88,
   },
 
   mapMissionCountText: {
@@ -598,17 +602,18 @@ export default StyleSheet.create({
 
   mapSectionHeading: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 28,
-    marginBottom: 18,
+    marginTop: 18,
+    marginBottom: 16,
+    paddingHorizontal: 2,
   },
 
   mapSectionKicker: {
-    color: '#65A936',
-    fontSize: 8,
+    color: '#4B2C5A',
+    fontSize: 11,
     fontWeight: '900',
-    letterSpacing: 1.2,
+    letterSpacing: 1.5,
   },
 
   mapSectionTitle: {
@@ -1079,5 +1084,149 @@ export default StyleSheet.create({
     fontFamily: 'Jua',
     fontSize: 14,
     marginTop: 1,
+  },
+
+  guideOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 22,
+    paddingVertical: 28,
+    backgroundColor: 'rgba(36,18,45,0.58)',
+  },
+
+  guideDismissArea: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
+  guideCard: {
+    width: '100%',
+    maxWidth: 390,
+    borderRadius: 30,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 2,
+    borderColor: '#DDCDE8',
+    padding: 22,
+    shadowColor: '#24102D',
+    shadowOpacity: 0.28,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 14,
+  },
+
+  guideTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+
+  guideIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EEE7FA',
+  },
+
+  guideClose: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F5F1F7',
+  },
+
+  guideKicker: {
+    color: '#65A936',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+
+  guideTitle: {
+    color: '#3C2548',
+    fontFamily: 'Jua',
+    fontSize: 25,
+    lineHeight: 30,
+    marginTop: 5,
+  },
+
+  guideText: {
+    color: '#776A7E',
+    fontSize: 10,
+    lineHeight: 16,
+    marginTop: 7,
+  },
+
+  guideSteps: {
+    gap: 10,
+    marginTop: 18,
+  },
+
+  guideStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 18,
+    backgroundColor: '#F9F6FB',
+    borderWidth: 1,
+    borderColor: '#E9DFEE',
+    padding: 12,
+  },
+
+  guideStepNumber: {
+    width: 38,
+    height: 38,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 11,
+  },
+
+  guideStepNumberLocked: {
+    backgroundColor: '#AAA0AE',
+  },
+
+  guideStepNumberText: {
+    color: '#FFFFFF',
+    fontFamily: 'Jua',
+    fontSize: 15,
+  },
+
+  guideStepCopy: {
+    flex: 1,
+  },
+
+  guideStepTitle: {
+    color: '#493451',
+    fontFamily: 'Jua',
+    fontSize: 14,
+  },
+
+  guideStepText: {
+    color: '#807584',
+    fontSize: 9,
+    lineHeight: 13,
+    marginTop: 2,
+  },
+
+  guideButton: {
+    height: 50,
+    borderRadius: 16,
+    backgroundColor: '#6E4BC6',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 9,
+    marginTop: 18,
+  },
+
+  guideButtonText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.8,
   },
 });

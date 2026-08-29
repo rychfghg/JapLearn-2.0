@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Image, ImageBackground, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { Animated, Image, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import BackIcon from '../assets/svg/back-icon.svg';
@@ -17,6 +17,7 @@ export default function QuackResponse() {
   const [loaded,setLoaded]=useState(skipLoading==='1');
   const [launching,setLaunching]=useState<(typeof games)[number]|null>(null);
   const [launchProgress,setLaunchProgress]=useState(0);
+  const [guideVisible,setGuideVisible]=useState(false);
   const pulse=useRef(new Animated.Value(1)).current;
   const shine=useRef(new Animated.Value(-1)).current;
 
@@ -34,9 +35,9 @@ export default function QuackResponse() {
     const timer=setInterval(()=>{value=Math.min(value+12,100);setLaunchProgress(value);if(value>=100){clearInterval(timer);router.push(game.route);setTimeout(()=>{setLaunching(null);setLaunchProgress(0);},350);}},55);
   };
 
-  if(!loaded)return <View style={styles.premiumLoading}><View style={styles.loadOrbOne}/><View style={styles.loadOrbTwo}/><View style={styles.loadCard}><View style={styles.loadContent}><View style={styles.loadBrand}><Ionicons name="chatbubbles-outline" size={15} color="#7542BA"/><Text style={styles.loadBrandText}>AHIRU RESPONSE PRACTICE</Text></View><View style={styles.responseBadgeStage}><Animated.View style={[styles.responseBadgeGlow,{transform:[{scale:pulse}]}]}/><View style={styles.responseBadgeOuter}><View style={styles.responseBadgeInner}><Text style={styles.responseBadgeCharacter}>応</Text><Ionicons name="chatbubbles" size={38} color="#FFF"/></View></View><Animated.View style={[styles.responseBadgeSweep,{transform:[{translateX:shine.interpolate({inputRange:[-1,1],outputRange:[-110,110]})},{rotate:'-18deg'}]}]}/><Text style={styles.responseSparkleOne}>✦</Text><Text style={styles.responseSparkleTwo}>✧</Text></View><Text style={styles.loadJapanese}>会話で学ぶ</Text><Text style={styles.loadKicker}>NATURAL JAPANESE REPLIES</Text><Text style={styles.loadTitle}>Preparing response practice</Text><Text style={styles.loadCopy}>Setting up your guided, timed, and conversation activities.</Text><View style={styles.loadStatus}><Text style={styles.loadStatusText}>GETTING THINGS READY</Text><Text style={styles.loadValue}>{progress}%</Text></View><View style={styles.loadTrack}><View style={[styles.loadFill,{width:`${progress}%`}]}/></View><View style={styles.loadSteps}><View style={[styles.loadStep,progress>=25&&styles.loadStepActive]}/><View style={[styles.loadStep,progress>=50&&styles.loadStepActive]}/><View style={[styles.loadStep,progress>=75&&styles.loadStepActive]}/><View style={[styles.loadStep,progress>=100&&styles.loadStepActive]}/></View><View style={styles.loadFooter}><Ionicons name="sparkles" size={13} color="#7542BA"/><Text style={styles.loadFooterText}>{progress<50?'Preparing your practice':progress<90?'Almost ready':'Ready to begin'}</Text></View></View></View></View>;
+  if(!loaded)return <View style={styles.premiumLoading}><View style={styles.loadOrbOne}/><View style={styles.loadOrbTwo}/><View style={styles.loadCard}><View style={styles.loadContent}><View style={styles.loadBrand}><Ionicons name="chatbubbles-outline" size={15} color="#7542BA"/><Text style={styles.loadBrandText}>AHIRU RESPONSE PRACTICE</Text></View><View style={styles.responseBadgeStage}><Animated.View style={[styles.responseBadgeGlow,{transform:[{scale:pulse}]}]}/><View style={styles.responseBadgeOuter}><View style={styles.responseBadgeInner}><Text style={styles.responseBadgeCharacter}>応</Text><Ionicons name="chatbubbles" size={38} color="#FFF"/></View></View><Animated.View style={[styles.responseBadgeSweep,{transform:[{translateX:shine.interpolate({inputRange:[-1,1],outputRange:[-110,110]})},{rotate:'-18deg'}]}]}/></View><Text style={styles.loadJapanese}>会話で学ぶ</Text><Text style={styles.loadKicker}>NATURAL JAPANESE REPLIES</Text><Text style={styles.loadTitle}>Preparing response practice</Text><Text style={styles.loadCopy}>Setting up your guided, timed, and conversation activities.</Text><View style={styles.loadStatus}><Text style={styles.loadStatusText}>GETTING THINGS READY</Text><Text style={styles.loadValue}>{progress}%</Text></View><View style={styles.loadTrack}><View style={[styles.loadFill,{width:`${progress}%`}]}/></View><View style={styles.loadSteps}><View style={[styles.loadStep,progress>=25&&styles.loadStepActive]}/><View style={[styles.loadStep,progress>=50&&styles.loadStepActive]}/><View style={[styles.loadStep,progress>=75&&styles.loadStepActive]}/><View style={[styles.loadStep,progress>=100&&styles.loadStepActive]}/></View><View style={styles.loadFooter}><Ionicons name="chatbubble-ellipses-outline" size={13} color="#7542BA"/><Text style={styles.loadFooterText}>{progress<50?'Preparing your practice':progress<90?'Almost ready':'Ready to begin'}</Text></View></View></View></View>;
 
-  if(launching)return <View style={[styles.gameLoading,{backgroundColor:launching.tint}]}><View style={[styles.gameLoadOrb,styles.gameLoadOrbTop,{backgroundColor:launching.color}]}/><View style={[styles.gameLoadOrb,styles.gameLoadOrbBottom,{backgroundColor:launching.color}]}/><View style={styles.gameLoadCard}><View style={[styles.gameLoadBadge,{backgroundColor:launching.tint}]}><Ionicons name={launching.icon} size={16} color={launching.color}/><Text style={[styles.gameLoadBadgeText,{color:launching.color}]}>{launching.label}</Text></View><View style={styles.gameBadgeStage}><Animated.View style={[styles.gameBadgeGlow,{backgroundColor:`${launching.color}24`,transform:[{scale:pulse}]}]}/><View style={[styles.gameBadgeOuter,{borderColor:`${launching.color}50`}]}><View style={[styles.gameBadgeInner,{backgroundColor:launching.color}]}><Text style={styles.gameBadgeCharacter}>{launching.title==='Guided Response'?'導':launching.title==='Timed Challenge'?'速':'会'}</Text><Ionicons name={launching.icon} size={28} color="#FFF"/></View></View><Animated.View style={[styles.gameBadgeSweep,{transform:[{translateX:shine.interpolate({inputRange:[-1,1],outputRange:[-110,110]})},{rotate:'-18deg'}]}]}/><Image source={launching.mascot} style={styles.gameBadgeMascot} resizeMode="contain"/><Text style={[styles.gameBadgeSparkle,{color:launching.color}]}>✦</Text></View><Text style={styles.gameLoadKicker}>YOUR NEXT PRACTICE</Text><Text style={styles.gameLoadTitle}>{launching.title}</Text><Text style={styles.gameLoadCopy}>{launching.description}</Text><View style={styles.gameLoadStatus}><Text style={styles.gameLoadStatusText}>{launchProgress<45?'Preparing your mission':launchProgress<85?'Setting the challenge':'Mission ready!'}</Text><Text style={[styles.gameLoadValue,{color:launching.color}]}>{launchProgress}%</Text></View><View style={styles.gameLoadTrack}><View style={[styles.gameLoadFill,{width:`${launchProgress}%`,backgroundColor:launching.color}]}/></View><View style={styles.gameLoadNote}><Ionicons name="sparkles" size={14} color={launching.color}/><Text style={styles.gameLoadNoteText}>{launchProgress<45?'Preparing the activity':launchProgress<90?'Loading your challenge':'Ready to start'}</Text></View></View></View>;
+  if(launching)return <View style={[styles.gameLoading,{backgroundColor:launching.tint}]}><View style={[styles.gameLoadOrb,styles.gameLoadOrbTop,{backgroundColor:launching.color}]}/><View style={[styles.gameLoadOrb,styles.gameLoadOrbBottom,{backgroundColor:launching.color}]}/><View style={styles.gameLoadCard}><View style={[styles.gameLoadBadge,{backgroundColor:launching.tint}]}><Ionicons name={launching.icon} size={16} color={launching.color}/><Text style={[styles.gameLoadBadgeText,{color:launching.color}]}>{launching.label}</Text></View><View style={styles.gameBadgeStage}><Animated.View style={[styles.gameBadgeGlow,{backgroundColor:`${launching.color}24`,transform:[{scale:pulse}]}]}/><View style={[styles.gameBadgeOuter,{borderColor:`${launching.color}50`}]}><View style={[styles.gameBadgeInner,{backgroundColor:launching.color}]}><Text style={styles.gameBadgeCharacter}>{launching.title==='Guided Response'?'導':launching.title==='Timed Challenge'?'速':'会'}</Text><Ionicons name={launching.icon} size={28} color="#FFF"/></View></View><Animated.View style={[styles.gameBadgeSweep,{transform:[{translateX:shine.interpolate({inputRange:[-1,1],outputRange:[-110,110]})},{rotate:'-18deg'}]}]}/><Image source={launching.mascot} style={styles.gameBadgeMascot} resizeMode="contain"/></View><Text style={styles.gameLoadKicker}>YOUR NEXT PRACTICE</Text><Text style={styles.gameLoadTitle}>{launching.title}</Text><Text style={styles.gameLoadCopy}>{launching.description}</Text><View style={styles.gameLoadStatus}><Text style={styles.gameLoadStatusText}>{launchProgress<45?'Preparing your mission':launchProgress<85?'Setting the challenge':'Mission ready!'}</Text><Text style={[styles.gameLoadValue,{color:launching.color}]}>{launchProgress}%</Text></View><View style={styles.gameLoadTrack}><View style={[styles.gameLoadFill,{width:`${launchProgress}%`,backgroundColor:launching.color}]}/></View><View style={styles.gameLoadNote}><Ionicons name="chatbubble-ellipses-outline" size={14} color={launching.color}/><Text style={styles.gameLoadNoteText}>{launchProgress<45?'Preparing the activity':launchProgress<90?'Loading your challenge':'Ready to start'}</Text></View></View></View>;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -67,36 +68,23 @@ export default function QuackResponse() {
               </View>
             </View>
 
-            <View style={styles.mapMissionCount}>
-              <Ionicons name="flag" size={17} color="#FFFFFF" />
-              <Text style={styles.mapMissionCountText}>3</Text>
-            </View>
-          </View>
-
-          <View style={styles.questBoard}>
-            <View style={styles.questBoardPatternOne} />
-            <View style={styles.questBoardPatternTwo} />
-            <View style={styles.questBoardCopy}>
-              <Text style={styles.questBoardKicker}>RESPONSE QUEST</Text>
-              <Text style={styles.questBoardTitle}>Choose your next reply mission</Text>
-              <Text style={styles.questBoardText}>
-                Begin with guided practice. Each completed stage opens a harder response challenge.
-              </Text>
-            </View>
-            <View style={styles.questProgressMedallion}>
-              <Text style={styles.questProgressValue}>1</Text>
-              <View style={styles.questProgressDivider} />
-              <Text style={styles.questProgressTotal}>3</Text>
-            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="How QuackResponse works"
+              onPress={() => setGuideVisible(true)}
+              style={({ pressed }) => [
+                styles.mapMissionCount,
+                pressed && styles.mapGuideButtonPressed,
+              ]}
+            >
+              <Ionicons name="book-outline" size={22} color="#FFFFFF" />
+            </Pressable>
           </View>
 
           <View style={styles.mapSectionHeading}>
-            <View>
-              <Text style={styles.mapSectionKicker}>MISSION MAP</Text>
-              <Text style={styles.mapSectionTitle}>Follow the response trail</Text>
-            </View>
+            <Text style={styles.mapSectionKicker}>MISSION MAP</Text>
             <View style={styles.mapReadyPill}>
-              <Ionicons name="sparkles" size={12} color="#6E4BC6" />
+              <Ionicons name="compass-outline" size={13} color="#6E4BC6" />
               <Text style={styles.mapReadyText}>1 AVAILABLE</Text>
             </View>
           </View>
@@ -199,7 +187,7 @@ export default function QuackResponse() {
               </View>
               <View style={styles.mapFinish}>
                 <View style={styles.mapFinishIcon}>
-                  <Ionicons name="sparkles" size={18} color="#D88727" />
+                  <Ionicons name="checkmark-circle" size={19} color="#D88727" />
                 </View>
                 <View>
                   <Text style={styles.mapFinishKicker}>TRAIL GOAL</Text>
@@ -210,6 +198,60 @@ export default function QuackResponse() {
           </View>
         </ScrollView>
       </ImageBackground>
+
+      <Modal
+        visible={guideVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setGuideVisible(false)}
+      >
+        <View style={styles.guideOverlay}>
+          <Pressable style={styles.guideDismissArea} onPress={() => setGuideVisible(false)} />
+          <View style={styles.guideCard}>
+            <View style={styles.guideTopRow}>
+              <View style={styles.guideIcon}>
+                <Ionicons name="book-outline" size={23} color="#6E4BC6" />
+              </View>
+              <Pressable onPress={() => setGuideVisible(false)} style={styles.guideClose}>
+                <Ionicons name="close" size={20} color="#5C4865" />
+              </Pressable>
+            </View>
+
+            <Text style={styles.guideKicker}>QUACKRESPONSE GUIDE</Text>
+            <Text style={styles.guideTitle}>Build natural Japanese replies</Text>
+            <Text style={styles.guideText}>
+              Follow the mission map in order. Each activity develops a different response skill.
+            </Text>
+
+            <View style={styles.guideSteps}>
+              <View style={styles.guideStep}>
+                <View style={[styles.guideStepNumber, { backgroundColor: '#6E4BC6' }]}>
+                  <Text style={styles.guideStepNumberText}>1</Text>
+                </View>
+                <View style={styles.guideStepCopy}>
+                  <Text style={styles.guideStepTitle}>Guided Response</Text>
+                  <Text style={styles.guideStepText}>Learn how a natural reply is formed with helpful cues.</Text>
+                </View>
+              </View>
+              <View style={styles.guideStep}>
+                <View style={[styles.guideStepNumber, styles.guideStepNumberLocked]}>
+                  <Ionicons name="lock-closed" size={13} color="#FFFFFF" />
+                </View>
+                <View style={styles.guideStepCopy}>
+                  <Text style={styles.guideStepTitle}>Locked missions</Text>
+                  <Text style={styles.guideStepText}>Timed and multi-step challenges will open through progression later.</Text>
+                </View>
+              </View>
+            </View>
+
+            <Pressable onPress={() => setGuideVisible(false)} style={styles.guideButton}>
+              <Text style={styles.guideButtonText}>VIEW MISSION MAP</Text>
+              <Ionicons name="arrow-forward" size={17} color="#FFFFFF" />
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
