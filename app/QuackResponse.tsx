@@ -73,14 +73,31 @@ export default function QuackResponse() {
             </View>
           </View>
 
+          <View style={styles.questBoard}>
+            <View style={styles.questBoardPatternOne} />
+            <View style={styles.questBoardPatternTwo} />
+            <View style={styles.questBoardCopy}>
+              <Text style={styles.questBoardKicker}>RESPONSE QUEST</Text>
+              <Text style={styles.questBoardTitle}>Choose your next reply mission</Text>
+              <Text style={styles.questBoardText}>
+                Begin with guided practice. Each completed stage opens a harder response challenge.
+              </Text>
+            </View>
+            <View style={styles.questProgressMedallion}>
+              <Text style={styles.questProgressValue}>1</Text>
+              <View style={styles.questProgressDivider} />
+              <Text style={styles.questProgressTotal}>3</Text>
+            </View>
+          </View>
+
           <View style={styles.mapSectionHeading}>
             <View>
-              <Text style={styles.mapSectionKicker}>YOUR JOURNEY</Text>
-              <Text style={styles.mapSectionTitle}>Response mission trail</Text>
+              <Text style={styles.mapSectionKicker}>MISSION MAP</Text>
+              <Text style={styles.mapSectionTitle}>Follow the response trail</Text>
             </View>
             <View style={styles.mapReadyPill}>
-              <View style={styles.mapReadyDot} />
-              <Text style={styles.mapReadyText}>1 OPEN</Text>
+              <Ionicons name="sparkles" size={12} color="#6E4BC6" />
+              <Text style={styles.mapReadyText}>1 AVAILABLE</Text>
             </View>
           </View>
 
@@ -88,24 +105,21 @@ export default function QuackResponse() {
             <View style={styles.mapTrailLine} />
 
             {games.map((game, index) => (
-              <View
-                key={game.title}
-                style={[
-                  styles.mapNodeRow,
-                  index % 2 === 1 && styles.mapNodeRowRight,
-                ]}
-              >
-                <View
-                  style={[
-                    styles.mapCheckpoint,
-                    { backgroundColor: game.locked ? '#B8AFBC' : game.color },
-                  ]}
-                >
-                  {game.locked ? (
-                    <Ionicons name="lock-closed" size={18} color="#FFFFFF" />
-                  ) : (
-                    <Text style={styles.mapCheckpointNumber}>0{index + 1}</Text>
-                  )}
+              <View key={game.title} style={styles.mapNodeRow}>
+                <View style={styles.mapCheckpointColumn}>
+                  <View
+                    style={[
+                      styles.mapCheckpoint,
+                      { backgroundColor: game.locked ? '#B8AFBC' : game.color },
+                    ]}
+                  >
+                    {game.locked ? (
+                      <Ionicons name="lock-closed" size={19} color="#FFFFFF" />
+                    ) : (
+                      <Ionicons name="flag" size={20} color="#FFFFFF" />
+                    )}
+                  </View>
+                  <Text style={styles.mapCheckpointLabel}>0{index + 1}</Text>
                 </View>
 
                 <Pressable
@@ -113,65 +127,41 @@ export default function QuackResponse() {
                   onPress={() => launch(game)}
                   style={({ pressed }) => [
                     styles.mapMissionCard,
-                    index % 2 === 1 && styles.mapMissionCardRight,
                     game.locked && styles.mapMissionCardLocked,
                     pressed && styles.mapMissionCardPressed,
                   ]}
                 >
-                  <View
-                    style={[
-                      styles.mapMissionAccent,
-                      { backgroundColor: game.color },
-                    ]}
-                  />
-                  <View
-                    style={[
-                      styles.mapMissionLandscape,
-                      { backgroundColor: game.tint },
-                    ]}
-                  >
-                    <View
-                      style={[
-                        styles.mapLandscapeSun,
-                        { backgroundColor: `${game.color}22` },
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.mapLandscapeHillBack,
-                        { backgroundColor: `${game.color}18` },
-                      ]}
-                    />
-                    <View
-                      style={[
-                        styles.mapLandscapeHillFront,
-                        { backgroundColor: `${game.color}2B` },
-                      ]}
-                    />
+                  <View style={[styles.mapMissionColorRail, { backgroundColor: game.color }]} />
+                  <View style={[styles.mapMissionArt, { backgroundColor: game.tint }]}>
+                    <View style={[styles.mapArtRingLarge, { borderColor: `${game.color}28` }]} />
+                    <View style={[styles.mapArtRingSmall, { backgroundColor: `${game.color}18` }]} />
+                    <Text style={[styles.mapArtCharacter, { color: `${game.color}1F` }]}>
+                      {index === 0 ? '答' : index === 1 ? '速' : '会'}
+                    </Text>
                     <Image
                       source={game.mascot}
-                      style={[
-                        styles.mapMissionMascot,
-                        game.locked && styles.mapMissionMascotLocked,
-                      ]}
+                      style={[styles.mapMissionMascot, game.locked && styles.mapMissionMascotLocked]}
                       resizeMode="contain"
                     />
-                    <View style={styles.mapModePill}>
-                      <Ionicons name={game.icon} size={13} color={game.color} />
-                      <Text style={[styles.mapModeText, { color: game.color }]}>
-                        {game.label}
-                      </Text>
+                    <View style={[styles.mapStageBadge, { backgroundColor: game.color }]}>
+                      <Text style={styles.mapStageBadgeText}>STAGE {index + 1}</Text>
                     </View>
-                    {game.locked && (
-                      <View style={styles.mapLockedSeal}>
-                        <Ionicons name="lock-closed" size={16} color="#675A6D" />
-                        <Text style={styles.mapLockedSealText}>LOCKED PATH</Text>
-                      </View>
-                    )}
                   </View>
 
                   <View style={styles.mapMissionContent}>
-                    <Text style={styles.mapMissionStep}>CHECKPOINT {index + 1}</Text>
+                    <View style={styles.mapMissionHeaderRow}>
+                      <View style={[styles.mapModeIcon, { backgroundColor: game.tint }]}>
+                        <Ionicons name={game.icon} size={17} color={game.color} />
+                      </View>
+                      <Text style={[styles.mapModeText, { color: game.color }]}>{game.label}</Text>
+                      {game.locked && (
+                        <View style={styles.mapLockedPill}>
+                          <Ionicons name="lock-closed" size={10} color="#756B79" />
+                          <Text style={styles.mapLockedPillText}>LOCKED</Text>
+                        </View>
+                      )}
+                    </View>
+
                     <Text style={styles.mapMissionTitle}>{game.title}</Text>
                     <Text style={styles.mapMissionSubtitle}>{game.subtitle}</Text>
                     <Text style={styles.mapMissionDescription}>{game.description}</Text>
@@ -179,11 +169,11 @@ export default function QuackResponse() {
                     <View style={styles.mapMissionFooter}>
                       <View style={styles.mapMissionActionCopy}>
                         <Text style={[styles.mapStartText, { color: game.locked ? '#8D8491' : game.color }]}>
-                          {game.locked ? 'COMPLETE THE PREVIOUS MISSION' : 'START MISSION'}
+                          {game.locked ? 'FINISH THE PREVIOUS STAGE' : 'BEGIN GUIDED MISSION'}
                         </Text>
-                        {game.locked && (
-                          <Text style={styles.mapUnlockHint}>Progression opens here later</Text>
-                        )}
+                        <Text style={styles.mapUnlockHint}>
+                          {game.locked ? 'This trail is not available yet' : 'Practice at your own pace'}
+                        </Text>
                       </View>
                       <View
                         style={[
@@ -192,8 +182,8 @@ export default function QuackResponse() {
                         ]}
                       >
                         <Ionicons
-                          name={game.locked ? 'lock-closed' : 'arrow-forward'}
-                          size={18}
+                          name={game.locked ? 'lock-closed' : 'play'}
+                          size={17}
                           color="#FFFFFF"
                         />
                       </View>

@@ -321,7 +321,7 @@ export default StyleSheet.create({
 
   mapBackgroundWash: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(251, 248, 255, 0.72)',
+    backgroundColor: 'rgba(251, 248, 255, 0.76)',
   },
 
   mapScroll: {
@@ -384,6 +384,112 @@ export default StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'Jua',
     fontSize: 15,
+  },
+
+  questBoard: {
+    minHeight: 174,
+    marginTop: 18,
+    borderRadius: 28,
+    overflow: 'hidden',
+    backgroundColor: '#4C2365',
+    borderWidth: 2,
+    borderColor: '#D7BCE8',
+    paddingHorizontal: 21,
+    paddingVertical: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#32143E',
+    shadowOpacity: 0.18,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 7,
+  },
+
+  questBoardPatternOne: {
+    position: 'absolute',
+    width: 190,
+    height: 190,
+    borderRadius: 95,
+    right: -45,
+    top: -75,
+    borderWidth: 25,
+    borderColor: 'rgba(255,255,255,0.06)',
+  },
+
+  questBoardPatternTwo: {
+    position: 'absolute',
+    width: 135,
+    height: 135,
+    borderRadius: 68,
+    right: 42,
+    bottom: -92,
+    backgroundColor: 'rgba(170,104,218,0.18)',
+  },
+
+  questBoardCopy: {
+    flex: 1,
+    paddingRight: 14,
+    zIndex: 2,
+  },
+
+  questBoardKicker: {
+    color: '#A9E67E',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.3,
+  },
+
+  questBoardTitle: {
+    color: '#FFFFFF',
+    fontFamily: 'Jua',
+    fontSize: 23,
+    lineHeight: 28,
+    marginTop: 7,
+  },
+
+  questBoardText: {
+    color: 'rgba(255,255,255,0.76)',
+    fontSize: 10,
+    lineHeight: 15,
+    marginTop: 7,
+    maxWidth: 360,
+  },
+
+  questProgressMedallion: {
+    width: 70,
+    height: 96,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 5,
+    borderColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+    shadowColor: '#1F0B29',
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+
+  questProgressValue: {
+    color: '#6E4BC6',
+    fontFamily: 'Jua',
+    fontSize: 25,
+    lineHeight: 28,
+  },
+
+  questProgressDivider: {
+    width: 25,
+    height: 2,
+    borderRadius: 2,
+    backgroundColor: '#E1D6E8',
+    marginVertical: 3,
+  },
+
+  questProgressTotal: {
+    color: '#8B7C91',
+    fontFamily: 'Jua',
+    fontSize: 13,
   },
 
   mapHero: {
@@ -494,8 +600,8 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    marginTop: 24,
-    marginBottom: 20,
+    marginTop: 28,
+    marginBottom: 18,
   },
 
   mapSectionKicker: {
@@ -539,20 +645,19 @@ export default StyleSheet.create({
 
   mapTrail: {
     position: 'relative',
-    paddingBottom: 8,
+    paddingBottom: 10,
   },
 
   mapTrailLine: {
     position: 'absolute',
-    top: 44,
-    bottom: 68,
-    left: '50%',
-    width: 11,
-    marginLeft: -5.5,
+    top: 31,
+    bottom: 70,
+    left: 25,
+    width: 8,
     borderRadius: 99,
-    backgroundColor: '#B988DF',
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
+    backgroundColor: '#C39BE0',
+    borderWidth: 2,
+    borderColor: '#FDFBFF',
     shadowColor: '#7130A2',
     shadowOpacity: 0.22,
     shadowRadius: 7,
@@ -561,24 +666,28 @@ export default StyleSheet.create({
 
   mapNodeRow: {
     width: '100%',
+    flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 34,
+    marginBottom: 22,
     position: 'relative',
   },
 
   mapNodeRowRight: {
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
+  },
+
+  mapCheckpointColumn: {
+    width: 58,
+    alignItems: 'center',
+    paddingTop: 24,
+    zIndex: 8,
   },
 
   mapCheckpoint: {
-    position: 'absolute',
-    top: 42,
-    left: '50%',
-    marginLeft: -27,
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    borderWidth: 6,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 5,
     borderColor: '#FAF7FC',
     alignItems: 'center',
     justifyContent: 'center',
@@ -590,6 +699,18 @@ export default StyleSheet.create({
     elevation: 7,
   },
 
+  mapCheckpointLabel: {
+    color: '#6F5C78',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    marginTop: 5,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 99,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+
   mapCheckpointNumber: {
     color: '#FFFFFF',
     fontFamily: 'Jua',
@@ -598,8 +719,8 @@ export default StyleSheet.create({
   },
 
   mapMissionCard: {
-    width: '84%',
-    borderRadius: 24,
+    flex: 1,
+    borderRadius: 26,
     backgroundColor: 'rgba(255,255,255,0.97)',
     borderWidth: 2,
     borderColor: '#D9C4E8',
@@ -612,7 +733,7 @@ export default StyleSheet.create({
   },
 
   mapMissionCardRight: {
-    alignSelf: 'flex-end',
+    alignSelf: 'stretch',
   },
 
   mapMissionCardPressed: {
@@ -632,11 +753,54 @@ export default StyleSheet.create({
     width: '100%',
   },
 
+  mapMissionColorRail: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 7,
+    zIndex: 5,
+  },
+
   mapMissionLandscape: {
     height: 124,
     overflow: 'hidden',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(76,45,88,0.10)',
+  },
+
+  mapMissionArt: {
+    height: 118,
+    overflow: 'hidden',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(76,45,88,0.10)',
+  },
+
+  mapArtRingLarge: {
+    position: 'absolute',
+    width: 155,
+    height: 155,
+    borderRadius: 78,
+    borderWidth: 24,
+    right: -22,
+    top: -51,
+  },
+
+  mapArtRingSmall: {
+    position: 'absolute',
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    left: 23,
+    bottom: -50,
+  },
+
+  mapArtCharacter: {
+    position: 'absolute',
+    left: 22,
+    top: 21,
+    fontFamily: 'Jua',
+    fontSize: 72,
   },
 
   mapLandscapeSun: {
@@ -671,13 +835,29 @@ export default StyleSheet.create({
   mapMissionMascot: {
     position: 'absolute',
     right: 12,
-    bottom: -4,
-    width: 116,
-    height: 126,
+    bottom: -7,
+    width: 108,
+    height: 118,
   },
 
   mapMissionMascotLocked: {
-    opacity: 0.42,
+    opacity: 0.38,
+  },
+
+  mapStageBadge: {
+    position: 'absolute',
+    left: 17,
+    top: 14,
+    borderRadius: 99,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+
+  mapStageBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 7,
+    fontWeight: '900',
+    letterSpacing: 0.8,
   },
 
   mapModePill: {
@@ -699,6 +879,39 @@ export default StyleSheet.create({
     fontSize: 7,
     fontWeight: '900',
     letterSpacing: 0.7,
+  },
+
+  mapMissionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 32,
+  },
+
+  mapModeIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+
+  mapLockedPill: {
+    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: 99,
+    backgroundColor: '#EFECEF',
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+  },
+
+  mapLockedPillText: {
+    color: '#756B79',
+    fontSize: 6,
+    fontWeight: '900',
+    letterSpacing: 0.6,
   },
 
   mapLockedSeal: {
@@ -728,9 +941,9 @@ export default StyleSheet.create({
   },
 
   mapMissionContent: {
-    paddingHorizontal: 17,
-    paddingTop: 15,
-    paddingBottom: 15,
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    paddingBottom: 16,
   },
 
   mapMissionStep: {
@@ -743,8 +956,8 @@ export default StyleSheet.create({
   mapMissionTitle: {
     color: '#3C2548',
     fontFamily: 'Jua',
-    fontSize: 24,
-    marginTop: 3,
+    fontSize: 23,
+    marginTop: 11,
   },
 
   mapMissionSubtitle: {
