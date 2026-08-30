@@ -37,6 +37,7 @@ type Question = {
 };
 
 const pirateDeck = require('../assets/quacksituate/pirate-rescue/pirate-ship-deck.png');
+const plankOverSea = require('../assets/quacksituate/pirate-rescue/plank-over-sea-v2.png');
 const pirate = require('../assets/quacksituate/pirate-rescue/pirate-neutral.png');
 const tiedAhiru = require('../assets/quacksituate/pirate-rescue/tied-ahiru-worried.png');
 const angelAhiru = require('../assets/Angel.png');
@@ -50,6 +51,61 @@ const sceneImages: Record<string, any> = {
   home: require('../assets/words3_image/house.png'),
 };
 const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
+
+function MovingSprite({ source, style, urgent = false }: {
+  source: any;
+  style: any;
+  urgent?: boolean;
+}) {
+  const bob = useRef(new Animated.Value(0)).current;
+  const sway = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.parallel([
+        Animated.sequence([
+          Animated.timing(bob, {
+            toValue: urgent ? -9 : -4,
+            duration: urgent ? 360 : 720,
+            useNativeDriver: true,
+          }),
+          Animated.timing(bob, {
+            toValue: 0,
+            duration: urgent ? 360 : 720,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.sequence([
+          Animated.timing(sway, {
+            toValue: urgent ? 1.5 : 0.6,
+            duration: urgent ? 420 : 900,
+            useNativeDriver: true,
+          }),
+          Animated.timing(sway, {
+            toValue: urgent ? -1.5 : -0.6,
+            duration: urgent ? 420 : 900,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [bob, sway, urgent]);
+
+  const rotate = sway.interpolate({
+    inputRange: [-2, 2],
+    outputRange: ['-2deg', '2deg'],
+  });
+
+  return (
+    <Animated.Image
+      source={source}
+      style={[style, { transform: [{ translateY: bob }, { rotate }] }]}
+      resizeMode="contain"
+    />
+  );
+}
 
 function ReactionModal({ visible, correct, failed, danger, selected, question, onContinue }: {
   visible: boolean;
@@ -90,7 +146,7 @@ function ReactionModal({ visible, correct, failed, danger, selected, question, o
       <View style={styles.reactionShade}>
         <View style={styles.reactionCard}>
           <ImageBackground
-            source={pirateDeck}
+            source={plankOverSea}
             style={styles.reactionScene}
             imageStyle={styles.reactionSceneImage}
           >
@@ -101,11 +157,11 @@ function ReactionModal({ visible, correct, failed, danger, selected, question, o
               resizeMode="contain"
             />
             <Animated.Image
-              source={failed ? angelAhiru : correct ? happyAhiru : tiedAhiru}
+              source={correct ? happyAhiru : tiedAhiru}
               style={[
                 styles.reactionAhiru,
                 {
-                  right: 20 - danger * 12,
+                  left: `${52 + danger * 25}%`,
                   transform: [{ translateX: ahiruX }],
                 },
               ]}
@@ -169,6 +225,8 @@ export default function QuackSituateRecognition() {
   const [hardMistakes, setHardMistakes] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [phase, setPhase] = useState<'intro' | 'quiz' | 'gameover'>('intro');
+  const [introStep, setIntroStep] = useState(0);
+  const [typedNarration, setTypedNarration] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [hintVisible, setHintVisible] = useState(false);
@@ -182,6 +240,7 @@ export default function QuackSituateRecognition() {
   const [isExiting, setIsExiting] = useState(false);
   const musicRef = useRef<Audio.Sound | null>(null);
   const sfxRef = useRef<Audio.Sound | null>(null);
+  const angelRise = useRef(new Animated.Value(240)).current;
   const storageKey = `ahiru-rescue:${String(user?.email || 'guest').toLowerCase()}`;
 
   useEffect(() => {
@@ -230,6 +289,40 @@ export default function QuackSituateRecognition() {
       if (sound) void sound.stopAsync().finally(() => sound.unloadAsync());
     };
   }, [phase]);
+
+  useEffect(() => {
+    const narration = 'A sudden storm carries Ahiru onto a pirate ship far from shore. At the end of the deck, a sea monster ties Ahiru to a plank suspended above the waves. Only your knowledge of natural Japanese can stop the plank from moving.';
+    if (phase !== 'intro' || introStep !== 0) return;
+    setTypedNarration('');
+    let position = 0;
+    const timer = setInterval(() => {
+      position += 1;
+      setTypedNarration(narration.slice(0, position));
+      if (position >= narration.length) clearInterval(timer);
+    }, 19);
+    return () => clearInterval(timer);
+  }, [introStep, phase]);
+
+  useEffect(() => {
+    if (phase !== 'gameover') return;
+    angelRise.setValue(260);
+    Animated.sequence([
+      Animated.delay(380),
+      Animated.timing(angelRise, {
+        toValue: 0,
+        duration: 1250,
+        useNativeDriver: true,
+      }),
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(angelRise, { toValue: -12, duration: 650, useNativeDriver: true }),
+          Animated.timing(angelRise, { toValue: 0, duration: 650, useNativeDriver: true }),
+        ]),
+        { iterations: 2 },
+      ),
+    ]).start();
+    void playSfx(require('../assets/audio/sfx/incorrect.mp3'));
+  }, [angelRise, phase]);
 
   useEffect(() => {
     if (!questions.length || phase !== 'quiz') return;
@@ -361,28 +454,72 @@ export default function QuackSituateRecognition() {
 
   if (phase === 'intro') {
     return (
-      <ImageBackground source={pirateDeck} style={styles.storyScreen} resizeMode="cover">
-        <View style={styles.storyShade} />
+      <Pressable style={styles.storyScreen} onPress={() => introStep < 3 && setIntroStep((value) => value + 1)}>
+        <Image source={introStep === 0 ? pirateDeck : plankOverSea} style={styles.storyFullBackground} resizeMode="cover" />
+        <View style={introStep === 0 ? styles.storyShade : styles.storyDarkShade} />
         <Pressable style={styles.storyBack} onPress={() => router.back()}><BackIcon width={22} height={22} fill="#432653" /></Pressable>
-        <View style={styles.storyBadge}><Ionicons name="boat-outline" size={15} color="#7B45D1" /><Text style={styles.storyBadgeText}>AHIRU RESCUE</Text></View>
-        <View style={styles.storyCharacters}><Image source={pirate} style={styles.storyPirate} resizeMode="contain" /><Image source={tiedAhiru} style={styles.storyAhiru} resizeMode="contain" /></View>
-        <View style={styles.storyPanel}>
-          <Text style={styles.storyEyebrow}>PHRASE OR PLANK!</Text>
-          <Text style={styles.storyTitle}>Save Ahiru with natural Japanese.</Text>
-          <Text style={styles.storyBody}>“Choose wisely!” the pirate laughs. Every wrong phrase pushes Ahiru closer to the edge. Clear Starter, survive Hard mode, and set Ahiru free.</Text>
-          <View style={styles.storyRules}><View style={styles.storyRule}><Ionicons name="heart" size={17} color="#65A936" /><Text style={styles.storyRuleText}>6 chances in Starter</Text></View><View style={styles.storyRule}><Ionicons name="flame" size={17} color="#E58B2A" /><Text style={styles.storyRuleText}>3 chances in Hard</Text></View></View>
-          <Pressable style={styles.primaryButton} onPress={() => setPhase('quiz')}><Text style={styles.primaryButtonText}>{index > 0 ? 'CONTINUE RESCUE' : 'START RESCUE'}</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable>
-        </View>
-      </ImageBackground>
+        <View style={styles.storyBadge}><Ionicons name="boat-outline" size={15} color="#7B45D1" /><Text style={styles.storyBadgeText}>AHIRU RESCUE · PHRASE OR PLANK!</Text></View>
+
+        {introStep === 1 && (
+          <>
+            <MovingSprite source={tiedAhiru} style={styles.introSoloAhiru} urgent />
+            <View style={[styles.characterDialogue, styles.ahiruDialogue]}>
+              <Text style={styles.dialogueSpeaker}>AHIRU</Text>
+              <Text style={styles.dialogueJapanese}>たすけて！</Text>
+              <Text style={styles.dialogueRomaji}>Tasukete! · Help me!</Text>
+            </View>
+          </>
+        )}
+
+        {introStep === 2 && (
+          <>
+            <MovingSprite source={pirate} style={styles.introSoloPirate} urgent />
+            <View style={[styles.characterDialogue, styles.pirateDialogue]}>
+              <Text style={styles.dialogueSpeaker}>THE PHRASE PIRATE</Text>
+              <Text style={styles.dialogueJapanese}>正しいことばをえらべ！</Text>
+              <Text style={styles.dialogueRomaji}>Choose the right phrase—or the plank moves!</Text>
+            </View>
+          </>
+        )}
+
+        {introStep === 3 && (
+          <>
+            <View style={styles.storyCharacters}>
+              <MovingSprite source={pirate} style={styles.storyPirate} />
+              <MovingSprite source={tiedAhiru} style={styles.storyAhiru} urgent />
+            </View>
+            <View style={styles.storyPanel}>
+              <Text style={styles.storyEyebrow}>THE RESCUE RULES</Text>
+              <Text style={styles.storyTitle}>Your phrases decide Ahiru’s fate.</Text>
+              <Text style={styles.storyBody}>Each wrong answer triggers the pirate’s push at the sea edge. Six mistakes end Starter mode; only three are allowed in Hard mode.</Text>
+              <View style={styles.storyRules}><View style={styles.storyRule}><Ionicons name="heart" size={17} color="#65A936" /><Text style={styles.storyRuleText}>6 Starter lives</Text></View><View style={styles.storyRule}><Ionicons name="flame" size={17} color="#E58B2A" /><Text style={styles.storyRuleText}>3 Hard lives</Text></View></View>
+              <Pressable style={styles.primaryButton} onPress={() => setPhase('quiz')}><Text style={styles.primaryButtonText}>{index > 0 ? 'CONTINUE RESCUE' : 'BEGIN THE RESCUE'}</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable>
+            </View>
+          </>
+        )}
+
+        {introStep === 0 && (
+          <View style={styles.narrationPanel}>
+            <Text style={styles.narrationEyebrow}>A STORM AT SEA</Text>
+            <Text style={styles.narrationText}>{typedNarration}</Text>
+            <Text style={styles.narrationContinue}>Tap to continue  ›</Text>
+          </View>
+        )}
+        {introStep > 0 && introStep < 3 && <Text style={styles.sceneTap}>Tap to continue  ›</Text>}
+      </Pressable>
     );
   }
 
   if (phase === 'gameover') {
     return (
-      <ImageBackground source={pirateDeck} style={styles.storyScreen} resizeMode="cover">
+      <ImageBackground source={plankOverSea} style={styles.storyScreen} resizeMode="cover">
         <View style={styles.storyDarkShade} />
         <Image source={pirate} style={styles.gameOverPirate} resizeMode="contain" />
-        <Image source={angelAhiru} style={styles.gameOverAngel} resizeMode="contain" />
+        <Animated.Image
+          source={angelAhiru}
+          style={[styles.gameOverAngel, { transform: [{ translateY: angelRise }] }]}
+          resizeMode="contain"
+        />
         <View style={styles.storyPanel}>
           <Text style={styles.storyEyebrow}>SPLASH! · RESCUE FAILED</Text>
           <Text style={styles.storyTitle}>Ahiru needs another hero.</Text>
@@ -403,15 +540,23 @@ export default function QuackSituateRecognition() {
           <View style={styles.missionBadge}><Ionicons name="boat" size={17} color="#FFF" /><Text style={styles.missionNumber}>{String(index + 1).padStart(2, '0')}</Text></View>
         </View>
 
-        <ImageBackground source={pirateDeck} style={styles.dangerScene} imageStyle={styles.dangerSceneImage}>
-          <View style={styles.dangerShade} />
-          <Image source={pirate} style={styles.dangerPirate} resizeMode="contain" />
-          <Image source={tiedAhiru} style={[styles.dangerAhiru, { right: 22 - danger * 18 }]} resizeMode="contain" />
-          <View style={styles.chancePill}><Ionicons name="heart" size={14} color="#D44965" /><Text style={styles.chanceText}>SAVE AHIRU · {chances} {chances === 1 ? 'chance' : 'chances'}</Text></View>
-          <View style={styles.plankTrack}><View style={[styles.plankDanger, { width: `${danger * 100}%` }]} /></View>
-        </ImageBackground>
-
         <View style={styles.statusRow}><View style={[styles.levelPill, isHard && styles.hardPill]}><Ionicons name={isHard ? 'flame' : 'leaf'} size={13} color={isHard ? '#D87D19' : '#65A936'} /><Text style={[styles.levelPillText, isHard && styles.hardPillText]}>{isHard ? 'HARD DECK' : 'STARTER DECK'}</Text></View><Text style={styles.phaseText}>{phaseNumber} / {phaseTotal}</Text><View style={styles.scorePill}><Ionicons name="star" size={14} color="#E29A17" /><Text style={styles.scoreText}>{correctCount * 100}</Text></View></View>
+        <View style={styles.quizLivesCard}>
+          <View>
+            <Text style={styles.quizLivesEyebrow}>RESCUE LIVES</Text>
+            <Text style={styles.quizLivesText}>{chances} {chances === 1 ? 'chance remains' : 'chances remain'}</Text>
+          </View>
+          <View style={styles.lifeIcons}>
+            {Array.from({ length: maxMistakes }).map((_, lifeIndex) => (
+              <Ionicons
+                key={lifeIndex}
+                name={lifeIndex < chances ? 'heart' : 'heart-dislike'}
+                size={17}
+                color={lifeIndex < chances ? '#D94C66' : '#C9BECF'}
+              />
+            ))}
+          </View>
+        </View>
         <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%` }]} /></View>
         <View style={styles.introCopy}><Text style={styles.introTitle}>Choose the phrase. Save Ahiru.</Text><Text style={styles.introText}>Use the relationship and scene clues before the pirate moves the plank.</Text></View>
 
