@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { router } from 'expo-router';
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -37,20 +37,15 @@ type Question = {
   explanation: string;
 };
 
-const pirateDeck = require('../assets/quacksituate/pirate-rescue/pirate-ship-deck.png');
-const rescueOcean = require('../assets/quacksituate/pirate-rescue/rescue-ocean-mountains.png');
-const rescueShip = require('../assets/quacksituate/pirate-rescue/ship-foreground.png');
-const pirate = require('../assets/quacksituate/pirate-rescue/pirate-idle-cage-drop.png');
-const pirateBlink = require('../assets/quacksituate/pirate-rescue/pirate-blink-cage-drop.png');
-const pirateAngry = require('../assets/quacksituate/pirate-rescue/pirate-angry-cage-drop.png');
+const pirateDeck = require('../assets/quacksituate/pirate-rescue/pirate-deck-open-sea.png');
+const plankProp = require('../assets/quacksituate/pirate-rescue/plank-prop.png');
+const pirate = require('../assets/quacksituate/pirate-rescue/pirate-neutral.png');
+const piratePush = require('../assets/quacksituate/pirate-rescue/pirate-push.png');
 const pirateLaugh = require('../assets/quacksituate/pirate-rescue/pirate-laugh.png');
-const cageAhiruIdle = require('../assets/quacksituate/pirate-rescue/cage-ahiru-idle.png');
-const cageAhiruBlink = require('../assets/quacksituate/pirate-rescue/cage-ahiru-blink.png');
-const cageAhiruCry = require('../assets/quacksituate/pirate-rescue/cage-ahiru-cry.png');
-const cageAhiruSmile = require('../assets/quacksituate/pirate-rescue/cage-ahiru-smile.png');
-const rescueSeaLayer = require('../assets/quacksituate/pirate-rescue/rescue-sea-layer.png');
-const piratePortPlatform = require('../assets/quacksituate/pirate-rescue/pirate-port-platform.png');
-const cageRopeBreaking = require('../assets/quacksituate/pirate-rescue/cage-rope-breaking.png');
+const pirateTauntOpen = require('../assets/quacksituate/pirate-rescue/pirate-taunt-open.png');
+const tiedAhiru = require('../assets/quacksituate/pirate-rescue/tied-ahiru-worried.png');
+const tiedAhiruHelp = require('../assets/quacksituate/pirate-rescue/tied-ahiru-help.png');
+const tiedAhiruEdge = require('../assets/quacksituate/pirate-rescue/tied-ahiru-edge.png');
 const angelAhiru = require('../assets/Angel.png');
 const happyAhiru = require('../assets/hello.png');
 const sceneImages: Record<string, any> = {
@@ -68,104 +63,133 @@ function PirateActor({
   style,
   actionKey = 0,
   onImpact,
+  contactDistance = 44,
 }: {
   action: 'idle' | 'laugh' | 'push';
   style: any;
   actionKey?: number;
   onImpact?: () => void;
+  contactDistance?: number;
 }) {
-  const [frameName, setFrameName] = useState<'neutral' | 'blink' | 'angry' | 'laugh'>('neutral');
+  const lunge = useRef(new Animated.Value(0)).current;
+  const motion = useRef(new Animated.Value(0)).current;
+  const [frameName, setFrameName] = useState<'neutral' | 'push' | 'laugh' | 'taunt'>('neutral');
 
   useEffect(() => {
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    if (action === 'push') {
-      setFrameName('angry');
-      if (onImpact) timers.push(setTimeout(onImpact, 360));
-      timers.push(setTimeout(() => setFrameName('laugh'), 520));
-      timers.push(setTimeout(() => setFrameName('neutral'), 980));
-    } else if (action === 'laugh') {
-      setFrameName('laugh');
-      timers.push(setTimeout(() => setFrameName('blink'), 520));
-      timers.push(setTimeout(() => setFrameName('laugh'), 720));
-      timers.push(setTimeout(() => setFrameName('neutral'), 1280));
-    } else {
-      setFrameName('neutral');
-      timers.push(setTimeout(() => setFrameName('blink'), 1750));
-      timers.push(setTimeout(() => setFrameName('neutral'), 1980));
+    lunge.stopAnimation();
+    motion.stopAnimation();
+    lunge.setValue(0);
+    motion.setValue(0);
+    setFrameName(action === 'laugh' ? 'laugh' : action === 'push' ? 'push' : 'neutral');
+
+    let impactTimer: ReturnType<typeof setTimeout> | undefined;
+    let laughTimer: ReturnType<typeof setTimeout> | undefined;
+    let resetTimer: ReturnType<typeof setTimeout> | undefined;
+    const sequence = action === 'push'
+      ? Animated.sequence([
+          Animated.timing(motion, { toValue: -1, duration: 150, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+          Animated.timing(lunge, { toValue: 1, duration: 235, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
+          Animated.delay(180),
+          Animated.timing(lunge, { toValue: 0, duration: 310, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+          Animated.timing(motion, { toValue: 0, duration: 120, useNativeDriver: true }),
+        ])
+      : action === 'laugh'
+        ? Animated.sequence([
+            Animated.timing(motion, { toValue: 1, duration: 150, useNativeDriver: true }),
+            Animated.timing(motion, { toValue: 0, duration: 150, useNativeDriver: true }),
+            Animated.timing(motion, { toValue: 1, duration: 150, useNativeDriver: true }),
+            Animated.timing(motion, { toValue: 0, duration: 150, useNativeDriver: true }),
+          ])
+        : Animated.sequence([
+            Animated.delay(700),
+            Animated.timing(motion, { toValue: 0.55, duration: 160, useNativeDriver: true }),
+            Animated.timing(motion, { toValue: 0, duration: 160, useNativeDriver: true }),
+          ]);
+
+    if (action === 'push' && onImpact) {
+      impactTimer = setTimeout(onImpact, 375);
+      laughTimer = setTimeout(() => setFrameName('taunt'), 610);
+      resetTimer = setTimeout(() => setFrameName('laugh'), 790);
     }
+    sequence.start(({ finished }) => {
+      if (finished && action === 'idle') setFrameName('neutral');
+    });
     return () => {
-      timers.forEach(clearTimeout);
+      sequence.stop();
+      if (impactTimer) clearTimeout(impactTimer);
+      if (laughTimer) clearTimeout(laughTimer);
+      if (resetTimer) clearTimeout(resetTimer);
     };
-  }, [action, actionKey, onImpact]);
+  }, [action, actionKey, lunge, motion, onImpact]);
 
-  const frameSource = frameName === 'blink'
-    ? pirateBlink
-    : frameName === 'angry'
-      ? pirateAngry
-      : frameName === 'laugh'
-        ? pirateLaugh
-      : pirate;
-
-  return (
-    <View pointerEvents="none" style={style}>
-      <Animated.Image source={frameSource} resizeMode="contain" style={styles.pirateFrame} />
-    </View>
-  );
-}
-
-function CageActor({ mood, style, dropY, fall }: {
-  mood: 'idle' | 'smile' | 'cry';
-  style: any;
-  dropY: Animated.AnimatedInterpolation<number>;
-  fall: Animated.Value;
-}) {
-  const [frameSource, setFrameSource] = useState(cageAhiruIdle);
-
-  useEffect(() => {
-    const baseSource = mood === 'smile'
-      ? cageAhiruSmile
-      : mood === 'cry'
-        ? cageAhiruCry
-        : cageAhiruIdle;
-    setFrameSource(baseSource);
-    const reactionTimer = setTimeout(
-      () => setFrameSource(cageAhiruBlink),
-      mood === 'cry' ? 760 : 1850,
-    );
-    const restoreTimer = setTimeout(
-      () => setFrameSource(baseSource),
-      mood === 'cry' ? 970 : 2050,
-    );
-    return () => {
-      clearTimeout(reactionTimer);
-      clearTimeout(restoreTimer);
-    };
-  }, [mood]);
+  const translateX = lunge.interpolate({ inputRange: [0, 1], outputRange: [0, contactDistance] });
+  const translateY = motion.interpolate({ inputRange: [-1, 0, 1], outputRange: [2, 0, -5] });
+  const rotate = motion.interpolate({ inputRange: [-1, 0, 1], outputRange: ['-4deg', '0deg', '3deg'] });
+  const frames = [
+    { name: 'neutral', source: pirate },
+    { name: 'push', source: piratePush },
+    { name: 'laugh', source: pirateLaugh },
+    { name: 'taunt', source: pirateTauntOpen },
+  ] as const;
 
   return (
     <Animated.View
+      pointerEvents="none"
       style={[
         style,
         {
           transform: [
-            { translateY: Animated.add(dropY, fall.interpolate({ inputRange: [0, 0.18, 1], outputRange: [0, -10, 360] })) },
+            { translateX },
+            { translateY },
+            { rotate },
           ],
-          opacity: fall.interpolate({ inputRange: [0, 0.72, 1], outputRange: [1, 1, 0] }),
         },
       ]}
     >
-      <Animated.Image source={frameSource} style={styles.cageSprite} resizeMode="contain" />
+      {frames.map((frame) => (
+        <Image
+          key={frame.name}
+          source={frame.source}
+          resizeMode="contain"
+          fadeDuration={0}
+          style={[
+            styles.pirateFrame,
+            { opacity: frameName === frame.name ? 1 : 0 },
+          ]}
+        />
+      ))}
     </Animated.View>
   );
 }
 
-function RescueEnvironment() {
+function AhiruActor({ source, style, pushX, tilt, hit, fall }: {
+  source: any;
+  style: any;
+  pushX: Animated.AnimatedInterpolation<number>;
+  tilt: Animated.AnimatedInterpolation<string>;
+  hit: Animated.Value;
+  fall: Animated.Value;
+}) {
+  const shakeX = hit.interpolate({ inputRange: [0, 0.35, 0.7, 1], outputRange: [0, 9, -7, 0] });
+  const shakeScale = hit.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 0.92, 1] });
   return (
-    <>
-      <Image source={rescueOcean} style={styles.rescueEnvironment} resizeMode="cover" />
-      <Image source={rescueShip} style={styles.rescueShipForeground} resizeMode="contain" />
-      <Image source={rescueSeaLayer} style={styles.rescueSeaAsset} resizeMode="stretch" />
-    </>
+    <Animated.Image
+      source={source}
+      style={[
+        style,
+        {
+          transform: [
+            { translateX: Animated.add(pushX, shakeX) },
+            { rotate: tilt },
+            { scale: shakeScale },
+            { translateY: fall.interpolate({ inputRange: [0, 0.18, 1], outputRange: [0, -12, 300] }) },
+            { rotate: fall.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '28deg'] }) },
+          ],
+          opacity: fall.interpolate({ inputRange: [0, 0.72, 1], outputRange: [1, 1, 0] }),
+        },
+      ]}
+      resizeMode="contain"
+    />
   );
 }
 
@@ -182,29 +206,21 @@ function RescueStage({
   actionKey?: number;
   falling?: boolean;
 }) {
-  const [stageHeight, setStageHeight] = useState(320);
-  const drop = useRef(new Animated.Value(0)).current;
-  const ropeDrop = useRef(new Animated.Value(0)).current;
+  const [stageWidth, setStageWidth] = useState(360);
+  const push = useRef(new Animated.Value(0)).current;
   const oceanSway = useRef(new Animated.Value(0)).current;
+  const impact = useRef(new Animated.Value(0)).current;
+  const hit = useRef(new Animated.Value(0)).current;
   const fall = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const nextDanger = Math.min(1, danger);
-    Animated.parallel([
-      Animated.timing(drop, {
-        toValue: nextDanger,
-        duration: 620,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(ropeDrop, {
-        toValue: nextDanger,
-        duration: 620,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }),
-    ]).start();
-  }, [danger, drop, ropeDrop]);
+    Animated.timing(push, {
+      toValue: Math.min(1, danger),
+      duration: 620,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [danger, push]);
 
   useEffect(() => {
     if (!falling) {
@@ -221,6 +237,19 @@ function RescueStage({
       }),
     ]).start();
   }, [fall, falling]);
+
+  const playImpact = useCallback(() => {
+    impact.setValue(0);
+    hit.setValue(0);
+    Animated.sequence([
+      Animated.timing(impact, { toValue: 1, duration: 90, useNativeDriver: true }),
+      Animated.timing(impact, { toValue: 0, duration: 260, useNativeDriver: true }),
+    ]).start();
+    Animated.sequence([
+      Animated.timing(hit, { toValue: 1, duration: 105, useNativeDriver: true }),
+      Animated.timing(hit, { toValue: 0, duration: 230, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    ]).start();
+  }, [hit, impact]);
 
   useEffect(() => {
     const sea = Animated.loop(
@@ -247,81 +276,77 @@ function RescueStage({
     };
   }, [oceanSway]);
 
-  // Keep the cage visible while each lost life lowers it toward the water.
-  const cageTravel = Math.min(118, Math.max(72, stageHeight * 0.32));
-  const cageY = drop.interpolate({
+  const ahiruTravel = Math.max(56, stageWidth * 0.31);
+  const ahiruX = push.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, cageTravel],
+    outputRange: [0, ahiruTravel],
   });
-  const ropeHeight = ropeDrop.interpolate({
+  const ahiruTilt = push.interpolate({
     inputRange: [0, 1],
-    outputRange: [48, 48 + cageTravel],
+    outputRange: ['0deg', '8deg'],
   });
   const seaY = oceanSway.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -4],
   });
-  const cageMood = mode === 'failed' || danger >= 0.5
-    ? 'cry'
-    : pirateAction === 'idle' && danger < 0.18
-      ? 'smile'
-      : 'idle';
+  const ahiruSource = mode === 'failed' || danger >= 0.72
+    ? tiedAhiruEdge
+    : danger >= 0.3
+      ? tiedAhiruHelp
+      : tiedAhiru;
 
   return (
     <View
       style={styles.rescueStage}
-      onLayout={(event) => setStageHeight(event.nativeEvent.layout.height)}
+      onLayout={(event) => setStageWidth(event.nativeEvent.layout.width)}
     >
-      <RescueEnvironment />
+      <Image source={pirateDeck} style={styles.rescueEnvironment} resizeMode="cover" />
       <Animated.View style={[styles.seaGlint, { transform: [{ translateY: seaY }] }]} />
-      <View style={styles.rescueMechanism}>
-        <Image source={piratePortPlatform} style={styles.portPlatformSprite} resizeMode="contain" />
+      <View style={styles.plankRig}>
+        <Image source={plankProp} style={styles.plankProp} resizeMode="contain" />
         <PirateActor
-          action={mode === 'failed' ? 'laugh' : pirateAction}
+          action={mode === 'failed' ? 'push' : pirateAction}
           style={styles.rescuePirate}
           actionKey={actionKey}
+          onImpact={pirateAction === 'push' || mode === 'failed' ? playImpact : undefined}
+          contactDistance={Math.max(34, stageWidth * 0.12)}
         />
-        <View style={styles.pulleyBeam} />
-        {!falling && (
-          <Animated.View
-            pointerEvents="none"
-            style={[styles.dynamicCageRope, { height: ropeHeight }]}
-          >
-            <View style={styles.ropeHighlight} />
-          </Animated.View>
-        )}
-        {falling && (
-          <Animated.Image
-            source={cageRopeBreaking}
-            style={[
-              styles.breakingRopeSprite,
-              { opacity: fall.interpolate({ inputRange: [0, 0.18, 0.7, 1], outputRange: [0, 1, 0.7, 0] }) },
-            ]}
-            resizeMode="contain"
-          />
-        )}
-        <CageActor
-          mood={cageMood}
-          style={styles.rescueCage}
-          dropY={cageY}
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.pushImpact,
+            {
+              opacity: impact,
+              transform: [{ scale: impact.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1.35] }) }],
+            },
+          ]}
+        >
+          <Ionicons name="flash" size={30} color="#FFE36D" />
+        </Animated.View>
+        <AhiruActor
+          source={ahiruSource}
+          style={styles.rescueAhiru}
+          pushX={ahiruX}
+          tilt={ahiruTilt}
+          hit={hit}
           fall={fall}
         />
       </View>
       <View style={styles.edgeMarker}>
-        <Ionicons name="water" size={12} color="#FFF" />
-        <Text style={styles.edgeMarkerText}>SEA BELOW</Text>
+        <Ionicons name="warning" size={12} color="#FFF" />
+        <Text style={styles.edgeMarkerText}>PLANK EDGE</Text>
       </View>
-      <View style={styles.dropMeter}>
-        <View style={styles.dropMeterSafe} />
-        <View style={styles.dropMeterRisk} />
+      <View style={styles.rescueMeter}>
+        <View style={styles.rescueMeterSafe} />
+        <View style={styles.rescueMeterRisk} />
         <Animated.View
           style={[
             styles.rescueMeterToken,
             {
               transform: [{
-                translateY: drop.interpolate({
+                translateX: push.interpolate({
                   inputRange: [0, 1],
-                  outputRange: [0, 72],
+                  outputRange: [0, Math.max(90, stageWidth - 105)],
                 }),
               }],
             },
@@ -329,26 +354,6 @@ function RescueStage({
         >
           <Ionicons name="paw" size={12} color="#FFF" />
         </Animated.View>
-      </View>
-    </View>
-  );
-}
-
-function RescueAftermathStage({ actionKey }: { actionKey: number }) {
-  return (
-    <View style={styles.rescueStage}>
-      <RescueEnvironment />
-      <View style={styles.rescueMechanism}>
-        <Image source={piratePortPlatform} style={styles.portPlatformSprite} resizeMode="contain" />
-        <PirateActor
-          action="laugh"
-          style={styles.rescuePirate}
-          actionKey={actionKey}
-        />
-      </View>
-      <View style={styles.aftermathWaterline}>
-        <Ionicons name="water" size={13} color="#FFFFFF" />
-        <Text style={styles.aftermathWaterlineText}>THE CAGE HAS FALLEN</Text>
       </View>
     </View>
   );
@@ -370,24 +375,23 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
         <View style={styles.reactionCard}>
           <View style={styles.reactionScene}>
             <RescueStage
-              danger={danger}
+              danger={correct ? Math.max(0, danger - 0.12) : danger}
               mode={failed ? 'failed' : 'live'}
               pirateAction={correct ? 'idle' : 'push'}
               actionKey={actionKey}
-              falling={failed}
             />
             <View style={[styles.reactionTag, correct ? styles.reactionTagGood : styles.reactionTagWrong]}>
               <Text style={styles.reactionTagText}>
-                {correct ? '+100 · CAGE HELD' : failed ? 'THE ROPE BROKE!' : 'CAGE LOWERED'}
+                {correct ? '+100 · PIRATE BLOCKED' : failed ? 'THE FINAL PUSH!' : 'PIRATE PUSHED AHIRU'}
               </Text>
             </View>
           </View>
           <View style={styles.reactionCopy}>
             <Text style={[styles.modalEyebrow, !correct && styles.wrongEyebrow]}>
-              {correct ? 'AHIRU IS SAFER' : failed ? 'RESCUE FAILED' : 'ONE LEVEL LOWER'}
+              {correct ? 'AHIRU IS SAFER' : failed ? 'RESCUE FAILED' : 'PIRATE’S PUSH'}
             </Text>
             <Text style={styles.modalTitle}>
-              {correct ? 'That phrase fits!' : failed ? 'The rescue line has given way.' : 'Ahiru is one step closer to the waves.'}
+              {correct ? 'That phrase fits!' : failed ? 'The plank gave way!' : 'Not the safest reply'}
             </Text>
             {!correct && (
               <>
@@ -413,7 +417,7 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
             )}
             <Pressable style={styles.primaryButton} onPress={onContinue}>
               <Text style={styles.primaryButtonText}>
-                {failed ? 'FOLLOW AHIRU' : 'CONTINUE RESCUE'}
+                {failed ? 'SEE WHAT HAPPENED' : 'CONTINUE RESCUE'}
               </Text>
               <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
             </Pressable>
@@ -435,7 +439,6 @@ export default function QuackSituateRecognition() {
   const [hintsUsed, setHintsUsed] = useState(0);
   const [phase, setPhase] = useState<'intro' | 'quiz' | 'gameover'>('intro');
   const [introStep, setIntroStep] = useState(0);
-  const [briefingStep, setBriefingStep] = useState(0);
   const [typedNarration, setTypedNarration] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -451,72 +454,39 @@ export default function QuackSituateRecognition() {
   const musicRef = useRef<Audio.Sound | null>(null);
   const sfxRef = useRef<Audio.Sound | null>(null);
   const feedbackSfxTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const remoteSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const angelRise = useRef(new Animated.Value(240)).current;
+  const angelOpacity = useRef(new Animated.Value(0)).current;
+  const [gameOverStageHeight, setGameOverStageHeight] = useState(420);
   const storageKey = `ahiru-rescue:${String(user?.email || 'guest').toLowerCase()}`;
 
   useEffect(() => {
     let mounted = true;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 9000);
-
-    const restore = async () => {
-      try {
-        const response = await fetch(
-          `${expoconfig.API_URL}/api/situational/questions?gameType=RECOGNITION&activeOnly=true`,
-          { signal: controller.signal },
-        );
-        if (!response.ok) throw new Error('questions');
-        const data: Question[] = await response.json();
+    fetch(`${expoconfig.API_URL}/api/situational/questions?gameType=RECOGNITION&activeOnly=true`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error();
+        return response.json();
+      })
+      .then(async (data: Question[]) => {
+        if (!mounted) return;
         const ordered = [...data]
           .sort((a, b) => a.order - b.order)
           .map((item) => ({ ...item, choices: shuffle(item.choices) }));
-        if (!mounted) return;
         setQuestions(ordered);
         setError(ordered.length ? '' : 'No published rescue missions were found.');
-
-        const localValue = await AsyncStorage.getItem(storageKey);
-        let run = localValue ? JSON.parse(localValue) : null;
-        if (user?.email) {
-          try {
-            const runResponse = await fetch(
-              `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=RECOGNITION`,
-              { signal: controller.signal },
-            );
-            if (runResponse.ok && runResponse.status !== 204) {
-              run = await runResponse.json();
-            }
-          } catch {
-            // Offline/local fallback intentionally retained.
-          }
-        }
-        if (run && ordered.length) {
-          const restoredIndex = Number(run.questionIndex ?? run.index) || 0;
-          setIndex(Math.min(restoredIndex, ordered.length - 1));
+        const saved = await AsyncStorage.getItem(storageKey);
+        if (saved && ordered.length) {
+          const run = JSON.parse(saved);
+          setIndex(Math.min(Number(run.index) || 0, ordered.length - 1));
           setCorrectCount(Number(run.correctCount) || 0);
           setEasyMistakes(Number(run.easyMistakes) || 0);
           setHardMistakes(Number(run.hardMistakes) || 0);
           setHintsUsed(Number(run.hintsUsed) || 0);
-          // Always present the story prologue and tutorial when the mission is opened.
-          // The run itself remains restored, so BEGIN/CONTINUE still resumes the exact trial.
-          setIntroStep(0);
-          setTypedNarration('');
-          setPhase('intro');
         }
-      } catch {
-        if (mounted) setError('The rescue missions took too long to load. Please try again.');
-      } finally {
-        clearTimeout(timeout);
-        if (mounted) setLoading(false);
-      }
-    };
-    void restore();
-    return () => {
-      mounted = false;
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [storageKey, user?.email]);
+      })
+      .catch(() => mounted && setError('Start the updated JapLearn backend to load rescue missions.'))
+      .finally(() => mounted && setLoading(false));
+    return () => { mounted = false; };
+  }, [storageKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -552,7 +522,7 @@ export default function QuackSituateRecognition() {
   }, [introStep, phase]);
 
   useEffect(() => {
-    const narration = 'Across the Sea of Words, a pirate monster has captured Ahiru and locked the little bird inside a hanging cage. From a small port above the waves, the pirate controls the rope. Every unnatural reply lowers the cage toward the sea, while every natural Japanese phrase keeps Ahiru safe. Choose carefully before the final rope gives way.';
+    const narration = 'Dark clouds gather above the Sea of Words as Ahiru’s tiny boat drifts off course. A shadowy pirate ship cuts through the mist and pulls Ahiru aboard. On its storm-worn deck, the Phrase Pirate binds Ahiru at the start of a plank hanging over the waves. Each unnatural reply will let the pirate push Ahiru closer to the edge—but every natural Japanese phrase will stop the next shove.';
     if (phase !== 'intro' || introStep !== 0) return;
     setTypedNarration('');
     let position = 0;
@@ -566,47 +536,30 @@ export default function QuackSituateRecognition() {
 
   useEffect(() => {
     if (phase !== 'gameover') return;
-    angelRise.setValue(520);
+    angelRise.setValue(0);
+    angelOpacity.setValue(1);
     Animated.sequence([
-      Animated.delay(280),
+      Animated.delay(1200),
       Animated.timing(angelRise, {
-        toValue: -920,
-        duration: 3200,
+        toValue: -(gameOverStageHeight + 190),
+        duration: 6200,
         easing: Easing.inOut(Easing.cubic),
         useNativeDriver: true,
       }),
     ]).start();
     void playSfx(require('../assets/audio/sfx/incorrect.mp3'));
-  }, [angelRise, phase]);
+  }, [angelOpacity, angelRise, gameOverStageHeight, phase]);
 
   useEffect(() => {
     if (!questions.length || phase !== 'quiz') return;
-    const run = {
+    void AsyncStorage.setItem(storageKey, JSON.stringify({
       index,
-      questionIndex: index,
       correctCount,
       easyMistakes,
       hardMistakes,
       hintsUsed,
-    };
-    void AsyncStorage.setItem(storageKey, JSON.stringify(run));
-    if (!user?.email) return;
-    if (remoteSaveTimer.current) clearTimeout(remoteSaveTimer.current);
-    remoteSaveTimer.current = setTimeout(() => {
-      void fetch(`${expoconfig.API_URL}/api/situational/runs/current`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...run,
-          email: user.email,
-          gameType: 'RECOGNITION',
-        }),
-      }).catch(() => undefined);
-    }, 450);
-    return () => {
-      if (remoteSaveTimer.current) clearTimeout(remoteSaveTimer.current);
-    };
-  }, [index, correctCount, easyMistakes, hardMistakes, hintsUsed, phase, questions.length, storageKey, user?.email]);
+    }));
+  }, [index, correctCount, easyMistakes, hardMistakes, hintsUsed, phase, questions.length, storageKey]);
 
   const question = questions[index];
   const isHard = question?.difficulty === 'HARD';
@@ -617,26 +570,6 @@ export default function QuackSituateRecognition() {
   const progress = questions.length ? ((index + 1) / questions.length) * 100 : 0;
   const phaseTotal = isHard ? 10 : 15;
   const phaseNumber = isHard ? index - 14 : index + 1;
-  const briefing = [
-    {
-      icon: 'eye-outline' as const,
-      eyebrow: 'STEP 1 OF 3 · READ',
-      title: 'Study the moment.',
-      body: 'Notice the place, the relationship, and who is speaking before choosing a reply.',
-    },
-    {
-      icon: 'chatbubble-ellipses-outline' as const,
-      eyebrow: 'STEP 2 OF 3 · RESPOND',
-      title: 'Choose what sounds natural.',
-      body: 'Compare the Japanese phrases carefully. The best response should fit both the scene and its level of politeness.',
-    },
-    {
-      icon: 'shield-checkmark-outline' as const,
-      eyebrow: 'STEP 3 OF 3 · RESCUE',
-      title: 'Keep Ahiru above the waves.',
-      body: 'A natural phrase holds the cage steady. A mistake lowers it one level toward the sea.',
-    },
-  ][briefingStep];
   const sceneImage = useMemo(() => {
     if (question?.imageUrl) {
       return {
@@ -697,10 +630,6 @@ export default function QuackSituateRecognition() {
         }),
       });
       await AsyncStorage.removeItem(storageKey);
-      await fetch(
-        `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=RECOGNITION`,
-        { method: 'DELETE' },
-      ).catch(() => undefined);
     } finally {
       setSaving(false);
     }
@@ -726,12 +655,6 @@ export default function QuackSituateRecognition() {
 
   const resetGame = async () => {
     await AsyncStorage.removeItem(storageKey);
-    if (user?.email) {
-      await fetch(
-        `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=RECOGNITION`,
-        { method: 'DELETE' },
-      ).catch(() => undefined);
-    }
     setIndex(0);
     setCorrectCount(0);
     setEasyMistakes(0);
@@ -747,8 +670,8 @@ export default function QuackSituateRecognition() {
         color="#7B45D1"
         icon="boat-outline"
         title="Rescue paused"
-        subtitle="Your mission marker is secure. Ahiru will be waiting at this exact trial."
-        status="SECURING YOUR MISSION"
+        subtitle="Your place is saved. Return anytime to continue saving Ahiru."
+        status="ROLLING UP THE RESCUE MAP"
         onComplete={() => router.replace({ pathname: '/QuackSituate', params: { skipLoading: '1' } })}
       />
     );
@@ -766,15 +689,15 @@ export default function QuackSituateRecognition() {
         <Image source={pirateDeck} style={styles.storyFullBackground} resizeMode="cover" />
         <View style={introStep === 0 ? styles.storyShade : styles.storyDarkShade} />
         <Pressable style={styles.storyBack} onPress={() => router.back()}><BackIcon width={22} height={22} fill="#432653" /></Pressable>
-        <View style={styles.storyBadge}><Ionicons name="lock-closed-outline" size={15} color="#7B45D1" /><Text style={styles.storyBadgeText}>AHIRU RESCUE · CAGE DROP</Text></View>
+        <View style={styles.storyBadge}><Ionicons name="boat-outline" size={15} color="#7B45D1" /><Text style={styles.storyBadgeText}>AHIRU RESCUE · PHRASE OR PLANK!</Text></View>
 
         {introStep === 1 && (
           <>
             <View style={styles.introStageWrap}><RescueStage danger={0.08} mode="intro" pirateAction="idle" /></View>
             <View style={[styles.characterDialogue, styles.ahiruDialogue]}>
               <Text style={styles.dialogueSpeaker}>AHIRU</Text>
-              <Text style={styles.dialogueJapanese}>たすけて！ おりが海に落ちちゃう！</Text>
-              <Text style={styles.dialogueRomaji}>Tasukete! Ori ga umi ni ochichau!</Text>
+              <Text style={styles.dialogueJapanese}>たすけて！ 海に落ちちゃう！</Text>
+              <Text style={styles.dialogueRomaji}>Tasukete! Umi ni ochichau! · Help! I’m going to fall!</Text>
             </View>
           </>
         )}
@@ -783,9 +706,9 @@ export default function QuackSituateRecognition() {
           <>
             <View style={styles.introStageWrap}><RescueStage danger={0.28} mode="intro" pirateAction="laugh" /></View>
             <View style={[styles.characterDialogue, styles.pirateDialogue]}>
-              <Text style={styles.dialogueSpeaker}>PIRATE MONSTER</Text>
-              <Text style={styles.dialogueJapanese}>ハハハ！ まちがえたら、おりを下げるぞ！</Text>
-              <Text style={styles.dialogueRomaji}>Hahaha! Machigaetara, ori o sageru zo!</Text>
+              <Text style={styles.dialogueSpeaker}>THE PHRASE PIRATE</Text>
+              <Text style={styles.dialogueJapanese}>正しいことばをえらべ！</Text>
+              <Text style={styles.dialogueRomaji}>Choose the phrase that fits—or Ahiru moves closer to the sea!</Text>
             </View>
           </>
         )}
@@ -793,51 +716,24 @@ export default function QuackSituateRecognition() {
         {introStep === 3 && (
           <>
             <View style={styles.introStageWrap}><RescueStage danger={0.36} mode="intro" pirateAction="push" actionKey={introStep} /></View>
-            <View style={[styles.storyPanel, styles.briefingPanel]}>
-              <View style={styles.tutorialHeading}>
-                <View style={styles.tutorialIconPurple}>
-                  <Ionicons name={briefing.icon} size={22} color="#FFFFFF" />
-                </View>
-                <View style={styles.tutorialHeadingCopy}>
-                  <Text style={styles.storyEyebrowAccent}>RESCUE BRIEFING</Text>
-                  <Text style={styles.briefingTitle}>{briefing.title}</Text>
-                </View>
+            <View style={styles.storyPanel}>
+              <Text style={styles.storyEyebrow}>HOW THE RESCUE WORKS</Text>
+              <Text style={styles.storyTitle}>Three steps. One rescue.</Text>
+              <View style={styles.rescueSteps}>
+                <View style={styles.rescueStep}><Text style={styles.rescueStepNumber}>1</Text><Text style={styles.rescueStepText}>READ THE SCENE</Text></View>
+                <View style={styles.rescueStep}><Text style={styles.rescueStepNumber}>2</Text><Text style={styles.rescueStepText}>PICK NATURALLY</Text></View>
+                <View style={styles.rescueStep}><Text style={styles.rescueStepNumber}>3</Text><Text style={styles.rescueStepText}>SAVE AHIRU</Text></View>
               </View>
-              <View style={styles.briefingProgress}>
-                {[0, 1, 2].map((step) => (
-                  <View key={step} style={[styles.briefingProgressDot, step <= briefingStep && styles.briefingProgressDotActive]} />
-                ))}
-              </View>
-              <Text style={styles.briefingStepLabel}>{briefing.eyebrow}</Text>
-              <Text style={styles.briefingBody}>{briefing.body}</Text>
-              {briefingStep === 2 && (
-                <View style={styles.storyRules}>
-                  <View style={[styles.storyRule, styles.briefingRule]}><Ionicons name="heart" size={17} color="#84D943" /><Text style={styles.briefingRuleText}>6 Starter lives</Text></View>
-                  <View style={[styles.storyRule, styles.briefingRule]}><Ionicons name="flame" size={17} color="#E58B2A" /><Text style={styles.briefingRuleText}>3 Hard lives</Text></View>
-                </View>
-              )}
-              <Pressable
-                style={styles.primaryButton}
-                onPress={() => {
-                  if (briefingStep < 2) {
-                    setBriefingStep((value) => value + 1);
-                    return;
-                  }
-                  setPhase('quiz');
-                }}
-              >
-                <Text style={styles.primaryButtonText}>
-                  {briefingStep < 2 ? 'NEXT BRIEFING STEP' : index > 0 ? 'CONTINUE THE MISSION' : 'BEGIN THE RESCUE'}
-                </Text>
-                <Ionicons name="arrow-forward" size={18} color="#FFF" />
-              </Pressable>
+              <Text style={styles.storyBody}>Read the relationship, choose the natural phrase, and stop each pirate shove before Ahiru reaches the sea.</Text>
+              <View style={styles.storyRules}><View style={styles.storyRule}><Ionicons name="heart" size={17} color="#65A936" /><Text style={styles.storyRuleText}>6 Starter lives</Text></View><View style={styles.storyRule}><Ionicons name="flame" size={17} color="#E58B2A" /><Text style={styles.storyRuleText}>3 Hard lives</Text></View></View>
+              <Pressable style={styles.primaryButton} onPress={() => setPhase('quiz')}><Text style={styles.primaryButtonText}>{index > 0 ? 'CONTINUE RESCUE' : 'BEGIN THE RESCUE'}</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable>
             </View>
           </>
         )}
 
         {introStep === 0 && (
           <View style={styles.narrationPanel}>
-            <Text style={styles.narrationEyebrow}>PROLOGUE · THE HANGING CAGE</Text>
+            <Text style={styles.narrationEyebrow}>PROLOGUE · THE PHRASE PIRATE</Text>
             <Text style={styles.narrationText}>{typedNarration}</Text>
             <Text style={styles.narrationContinue}>Tap to continue  ›</Text>
           </View>
@@ -851,29 +747,32 @@ export default function QuackSituateRecognition() {
     return (
       <ImageBackground source={pirateDeck} style={styles.storyScreen} resizeMode="cover">
         <View style={styles.storyDarkShade} />
-        <View style={styles.gameOverStage}><RescueAftermathStage actionKey={index + 1000} /></View>
-        <Animated.Image
-          source={angelAhiru}
-          style={[styles.gameOverAngel, { transform: [{ translateY: angelRise }] }]}
-          resizeMode="contain"
-        />
+        <View
+          style={styles.gameOverStage}
+          onLayout={(event) => setGameOverStageHeight(event.nativeEvent.layout.height)}
+        >
+          <RescueStage danger={1} mode="failed" pirateAction="push" actionKey={index + 1000} falling />
+          <Animated.Image
+            source={angelAhiru}
+            style={[styles.gameOverAngel, { opacity: angelOpacity, transform: [{ translateY: angelRise }] }]}
+            resizeMode="contain"
+            fadeDuration={0}
+          />
+        </View>
         <View style={styles.storyPanel}>
-          <View style={styles.endingHeader}>
-            <View style={styles.failureSeal}><Ionicons name="water" size={24} color="#FFFFFF" /></View>
-            <View style={styles.endingHeaderCopy}>
-              <Text style={[styles.storyEyebrow, styles.failureEyebrow]}>RESCUE ATTEMPT ENDED</Text>
-              <Text style={styles.endingTitle}>Ahiru needs a new rescue plan.</Text>
-            </View>
+          <Text style={styles.storyEyebrow}>SPLASH! · RESCUE FAILED</Text>
+          <Text style={styles.storyTitle}>Ahiru needs another hero.</Text>
+          <Text style={styles.storyBody}>Review the social clues and try again. This unfinished run was not submitted.</Text>
+          <View style={styles.endingActions}>
+            <Pressable style={styles.endingPrimaryButton} onPress={() => void resetGame()}>
+              <Ionicons name="refresh" size={18} color="#FFF" />
+              <Text style={styles.endingPrimaryText}>TRY AGAIN</Text>
+            </Pressable>
+            <Pressable style={styles.endingSecondaryButton} onPress={() => setIsExiting(true)}>
+              <Ionicons name="map-outline" size={18} color="#6E3E87" />
+              <Text style={styles.endingSecondaryText}>RETURN TO MISSION MAP</Text>
+            </Pressable>
           </View>
-          <View style={[styles.endingMessage, styles.endingMessagePurple]}>
-            <Ionicons name="compass-outline" size={20} color="#8423D9" />
-            <View style={styles.endingMessageCopy}>
-              <Text style={styles.endingMessageTitle}>Prepare for another attempt</Text>
-              <Text style={[styles.endingMessageText, styles.endingMessageTextPurple]}>Review the speaker, setting, and polite tone. Your next choices can guide Ahiru safely home.</Text>
-            </View>
-          </View>
-          <Pressable style={styles.primaryButton} onPress={() => void resetGame()}><Text style={styles.primaryButtonText}>TRY THE MISSION AGAIN</Text><Ionicons name="refresh" size={18} color="#FFF" /></Pressable>
-          <Pressable style={styles.modalSecondary} onPress={() => setIsExiting(true)}><Text style={styles.modalSecondaryText}>Back to mission selection</Text></Pressable>
         </View>
       </ImageBackground>
     );
@@ -886,25 +785,11 @@ export default function QuackSituateRecognition() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topRow}>
           <Pressable style={styles.backButton} onPress={() => setExitVisible(true)}><BackIcon width={19} height={19} fill="#462A5E" /></Pressable>
-          <View style={styles.brandBlock}>
-            <Text style={styles.brandEyebrow}>AHIRU RESCUE</Text>
-            <Text style={styles.brandTitle}>Cage Drop</Text>
-            <View style={styles.headerMissionMeta}>
-              <View style={[styles.levelPill, isHard && styles.hardPill]}>
-                <Ionicons name={isHard ? 'flame' : 'leaf'} size={12} color={isHard ? '#D87D19' : '#65A936'} />
-                <Text style={[styles.levelPillText, isHard && styles.hardPillText]}>
-                  {isHard ? 'HARD DECK' : 'STARTER DECK'}
-                </Text>
-              </View>
-              <Text style={styles.phaseText}>{phaseNumber} / {phaseTotal}</Text>
-            </View>
-          </View>
-          <View style={styles.missionScoreBadge}>
-            <Ionicons name="star" size={16} color="#FFD86A" />
-            <Text style={styles.missionScoreValue}>{correctCount * 100}</Text>
-            <Text style={styles.missionScoreLabel}>SCORE</Text>
-          </View>
+          <View style={styles.brandBlock}><Text style={styles.brandEyebrow}>AHIRU RESCUE</Text><Text style={styles.brandTitle}>Phrase or Plank!</Text></View>
+          <View style={styles.missionBadge}><Ionicons name="boat" size={17} color="#FFF" /><Text style={styles.missionNumber}>{String(index + 1).padStart(2, '0')}</Text></View>
         </View>
+
+        <View style={styles.statusRow}><View style={[styles.levelPill, isHard && styles.hardPill]}><Ionicons name={isHard ? 'flame' : 'leaf'} size={13} color={isHard ? '#D87D19' : '#65A936'} /><Text style={[styles.levelPillText, isHard && styles.hardPillText]}>{isHard ? 'HARD DECK' : 'STARTER DECK'}</Text></View><Text style={styles.phaseText}>{phaseNumber} / {phaseTotal}</Text><View style={styles.scorePill}><Ionicons name="star" size={14} color="#E29A17" /><Text style={styles.scoreText}>{correctCount * 100}</Text></View></View>
         <View style={styles.quizLivesCard}>
           <View>
             <Text style={styles.quizLivesEyebrow}>RESCUE LIVES</Text>
@@ -922,7 +807,7 @@ export default function QuackSituateRecognition() {
           </View>
         </View>
         <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%` }]} /></View>
-        <View style={styles.introCopy}><Text style={styles.introTitle}>Choose the phrase. Hold the cage.</Text><Text style={styles.introText}>Use the relationship and scene clues before the pirate lowers Ahiru toward the sea.</Text></View>
+        <View style={styles.introCopy}><Text style={styles.introTitle}>Choose the phrase. Save Ahiru.</Text><Text style={styles.introText}>Use the relationship and scene clues before the pirate moves the plank.</Text></View>
 
         <View style={styles.sceneCard}>
           <View style={styles.sceneMedia}><Image source={sceneImage} style={styles.sceneBackdrop} resizeMode="cover" blurRadius={10} /><View style={styles.sceneBackdropTint} /><Image source={sceneImage} style={styles.scenePicture} resizeMode="contain" /><View style={styles.locationPill}><Ionicons name="location" size={14} color="#FFF" /><Text style={styles.locationText}>{question.location}</Text></View></View>
@@ -946,8 +831,8 @@ export default function QuackSituateRecognition() {
         onContinue={continueAfterFeedback}
       />
       <Modal transparent visible={levelVisible} animationType="fade"><View style={styles.modalShade}><View style={styles.levelCard}><View style={styles.hardIcon}><Ionicons name="flame" size={34} color="#FFF" /></View><Text style={styles.levelEyebrow}>STARTER DECK CLEARED</Text><Text style={styles.levelTitle}>The pirate raises the stakes</Text><Text style={styles.levelBody}>Hard mode gives only three chances. Read every social cue closely.</Text><View style={styles.levelStats}><Text>15 trials cleared</Text><Text>{correctCount} correct</Text></View><Pressable style={styles.primaryButton} onPress={() => { setLevelVisible(false); setIndex(15); }}><Text style={styles.primaryButtonText}>BEGIN HARD RESCUE</Text><Ionicons name="flame" size={18} color="#FFF" /></Pressable></View></View></Modal>
-      <Modal transparent visible={completeVisible} animationType="fade"><View style={styles.modalShade}><View style={[styles.modalCard, styles.successCard]}><View style={styles.successHalo}><Image source={happyAhiru} style={styles.successMascot} resizeMode="contain" /></View><View style={styles.successRibbon}><Ionicons name="shield-checkmark" size={14} color="#FFFFFF" /><Text style={styles.successRibbonText}>RESCUE COMPLETE</Text></View><Text style={styles.modalTitle}>Ahiru is safely back on deck!</Text><View style={styles.scoreMedallion}><Text style={styles.finalScore}>{correctCount * 100}</Text><Text style={styles.scoreMedallionLabel}>POINTS</Text></View><View style={styles.successStats}><View style={styles.successStat}><Text style={styles.successStatValue}>{correctCount}</Text><Text style={styles.successStatLabel}>NATURAL PHRASES</Text></View><View style={styles.successStatDivider} /><View style={styles.successStat}><Text style={styles.successStatValue}>{questions.length}</Text><Text style={styles.successStatLabel}>TOTAL TRIALS</Text></View></View><Text style={styles.modalBody}>{saving ? 'Securing your rescue record...' : 'Your result is now reflected in QuackProgress and your teacher’s report.'}</Text><Pressable disabled={saving} style={styles.primaryButton} onPress={() => { setCompleteVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>CONTINUE TO YOUR REPORT</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable></View></View></Modal>
-      <Modal transparent visible={exitVisible} animationType="fade" onRequestClose={() => setExitVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIconSoft, styles.pauseIcon]}><Ionicons name="bookmark-outline" size={28} color="#8423D9" /></View><Text style={styles.modalEyebrow}>PAUSE THIS MISSION?</Text><Text style={styles.modalTitle}>Save your progress for later.</Text><Text style={styles.modalBody}>Your current trial, score, and remaining lives will be restored when you return.</Text><Pressable style={styles.primaryButton} onPress={() => { setExitVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>SAVE &amp; RETURN</Text></Pressable><Pressable style={styles.modalSecondary} onPress={() => setExitVisible(false)}><Text style={styles.modalSecondaryText}>Continue playing</Text></Pressable></View></View></Modal>
+      <Modal transparent visible={completeVisible} animationType="fade"><View style={styles.modalShade}><View style={styles.modalCard}><Image source={happyAhiru} style={styles.feedbackMascot} resizeMode="contain" /><Text style={styles.modalEyebrow}>AHIRU RESCUED!</Text><Text style={styles.modalTitle}>Phrase or Plank complete</Text><Text style={styles.finalScore}>{correctCount * 100}</Text><Text style={styles.finalScoreLabel}>points · {correctCount}/{questions.length} correct</Text><Text style={styles.modalBody}>{saving ? 'Saving your rescue report...' : 'Recorded in QuackProgress and available to your teacher.'}</Text><Pressable disabled={saving} style={styles.primaryButton} onPress={() => { setCompleteVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>VIEW RESCUE REPORT</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable></View></View></Modal>
+      <Modal transparent visible={exitVisible} animationType="fade" onRequestClose={() => setExitVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={styles.modalIconSoft}><Ionicons name="bookmark-outline" size={28} color="#8423D9" /></View><Text style={styles.modalEyebrow}>PAUSE THE RESCUE?</Text><Text style={styles.modalTitle}>Your place will be saved</Text><Text style={styles.modalBody}>Continue later from this exact trial with the same score and remaining chances.</Text><Pressable style={styles.primaryButton} onPress={() => { setExitVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>SAVE & EXIT</Text></Pressable><Pressable style={styles.modalSecondary} onPress={() => setExitVisible(false)}><Text style={styles.modalSecondaryText}>Keep rescuing Ahiru</Text></Pressable></View></View></Modal>
     </View>
   );
 }
