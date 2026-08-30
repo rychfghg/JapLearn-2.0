@@ -9,7 +9,7 @@ import expoconfig from '../expoconfig';
 import { stylesRecognition as styles } from '../styles/stylesQuackSituateRecognition';
 
 type Choice = { japanese: string; romaji: string };
-type Question = { id: string; difficulty: 'STARTER' | 'HARD'; order: number; location: string; sceneKey: string; scenario: string; hint: string; choices: Choice[]; correctAnswer: string; explanation: string };
+type Question = { id: string; difficulty: 'STARTER' | 'HARD'; order: number; location: string; sceneKey: string; imageUrl?: string; imageAlt?: string; scenario: string; hint: string; choices: Choice[]; correctAnswer: string; explanation: string };
 
 const sceneImages: Record<string, any> = {
   school: require('../assets/quacksituate/recognition-school-hallway-v2.png'),
@@ -58,7 +58,16 @@ export default function QuackSituateRecognition() {
   const progress = questions.length ? ((index + 1) / questions.length) * 100 : 0;
   const phaseTotal = question?.difficulty === 'HARD' ? 10 : 15;
   const phaseNumber = question?.difficulty === 'HARD' ? index - 14 : index + 1;
-  const sceneImage = useMemo(() => sceneImages[question?.sceneKey] || sceneImages.school, [question?.sceneKey]);
+  const sceneImage = useMemo(() => {
+    if (question?.imageUrl) {
+      return {
+        uri: question.imageUrl.startsWith('http')
+          ? question.imageUrl
+          : `${expoconfig.API_URL}${question.imageUrl}`,
+      };
+    }
+    return sceneImages[question?.sceneKey] || sceneImages.school;
+  }, [question?.imageUrl, question?.sceneKey]);
 
   const submit = () => {
     if (!selected || !question) return;
