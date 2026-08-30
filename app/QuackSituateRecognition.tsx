@@ -233,18 +233,28 @@ function RescueStage({
 }) {
   const [stageHeight, setStageHeight] = useState(320);
   const drop = useRef(new Animated.Value(0)).current;
+  const ropeDrop = useRef(new Animated.Value(0)).current;
   const oceanSway = useRef(new Animated.Value(0)).current;
   const hit = useRef(new Animated.Value(0)).current;
   const fall = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(drop, {
-      toValue: Math.min(1, danger),
-      duration: 620,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [danger, drop]);
+    const nextDanger = Math.min(1, danger);
+    Animated.parallel([
+      Animated.timing(drop, {
+        toValue: nextDanger,
+        duration: 620,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(ropeDrop, {
+        toValue: nextDanger,
+        duration: 620,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [danger, drop, ropeDrop]);
 
   useEffect(() => {
     if (!falling) {
@@ -307,6 +317,10 @@ function RescueStage({
     inputRange: [0, 1],
     outputRange: [0, cageTravel],
   });
+  const ropeHeight = ropeDrop.interpolate({
+    inputRange: [0, 1],
+    outputRange: [48, 48 + cageTravel],
+  });
   const seaY = oceanSway.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -4],
@@ -334,6 +348,14 @@ function RescueStage({
           contactDistance={0}
         />
         <View style={styles.pulleyBeam} />
+        {!falling && (
+          <Animated.View
+            pointerEvents="none"
+            style={[styles.dynamicCageRope, { height: ropeHeight }]}
+          >
+            <View style={styles.ropeHighlight} />
+          </Animated.View>
+        )}
         {falling && (
           <Animated.Image
             source={cageRopeBreaking}
@@ -406,12 +428,6 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
                 {correct ? '+100 · CAGE HELD' : failed ? 'THE ROPE BROKE!' : 'CAGE LOWERED'}
               </Text>
             </View>
-            {correct && (
-              <View style={styles.reactionDialogueCompact}>
-                <Text style={styles.reactionDialogueSpeaker}>AHIRU</Text>
-                <Text style={styles.reactionDialogueText}>やった！ たすかった！</Text>
-              </View>
-            )}
           </View>
           <View style={styles.reactionCopy}>
             <Text style={[styles.modalEyebrow, !correct && styles.wrongEyebrow]}>
@@ -866,11 +882,25 @@ export default function QuackSituateRecognition() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topRow}>
           <Pressable style={styles.backButton} onPress={() => setExitVisible(true)}><BackIcon width={19} height={19} fill="#462A5E" /></Pressable>
-          <View style={styles.brandBlock}><Text style={styles.brandEyebrow}>AHIRU RESCUE</Text><Text style={styles.brandTitle}>Cage Drop</Text></View>
-          <View style={styles.missionBadge}><Ionicons name="boat" size={17} color="#FFF" /><Text style={styles.missionNumber}>{String(index + 1).padStart(2, '0')}</Text></View>
+          <View style={styles.brandBlock}>
+            <Text style={styles.brandEyebrow}>AHIRU RESCUE</Text>
+            <Text style={styles.brandTitle}>Cage Drop</Text>
+            <View style={styles.headerMissionMeta}>
+              <View style={[styles.levelPill, isHard && styles.hardPill]}>
+                <Ionicons name={isHard ? 'flame' : 'leaf'} size={12} color={isHard ? '#D87D19' : '#65A936'} />
+                <Text style={[styles.levelPillText, isHard && styles.hardPillText]}>
+                  {isHard ? 'HARD DECK' : 'STARTER DECK'}
+                </Text>
+              </View>
+              <Text style={styles.phaseText}>{phaseNumber} / {phaseTotal}</Text>
+            </View>
+          </View>
+          <View style={styles.missionScoreBadge}>
+            <Ionicons name="star" size={16} color="#FFD86A" />
+            <Text style={styles.missionScoreValue}>{correctCount * 100}</Text>
+            <Text style={styles.missionScoreLabel}>SCORE</Text>
+          </View>
         </View>
-
-        <View style={styles.statusRow}><View style={[styles.levelPill, isHard && styles.hardPill]}><Ionicons name={isHard ? 'flame' : 'leaf'} size={13} color={isHard ? '#D87D19' : '#65A936'} /><Text style={[styles.levelPillText, isHard && styles.hardPillText]}>{isHard ? 'HARD DECK' : 'STARTER DECK'}</Text></View><Text style={styles.phaseText}>{phaseNumber} / {phaseTotal}</Text><View style={styles.scorePill}><Ionicons name="star" size={14} color="#E29A17" /><Text style={styles.scoreText}>{correctCount * 100}</Text></View></View>
         <View style={styles.quizLivesCard}>
           <View>
             <Text style={styles.quizLivesEyebrow}>RESCUE LIVES</Text>
