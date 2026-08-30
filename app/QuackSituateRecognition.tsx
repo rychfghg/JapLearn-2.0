@@ -43,9 +43,13 @@ const rescueShip = require('../assets/quacksituate/pirate-rescue/ship-foreground
 const pirate = require('../assets/quacksituate/pirate-rescue/pirate-idle-cage-drop.png');
 const pirateBlink = require('../assets/quacksituate/pirate-rescue/pirate-blink-cage-drop.png');
 const pirateAngry = require('../assets/quacksituate/pirate-rescue/pirate-angry-cage-drop.png');
-const tiedAhiru = require('../assets/quacksituate/pirate-rescue/tied-ahiru-worried.png');
-const tiedAhiruHelp = require('../assets/quacksituate/pirate-rescue/tied-ahiru-help.png');
-const tiedAhiruEdge = require('../assets/quacksituate/pirate-rescue/tied-ahiru-edge.png');
+const cageAhiruIdle = require('../assets/quacksituate/pirate-rescue/cage-ahiru-idle.png');
+const cageAhiruBlink = require('../assets/quacksituate/pirate-rescue/cage-ahiru-blink.png');
+const cageAhiruCry = require('../assets/quacksituate/pirate-rescue/cage-ahiru-cry.png');
+const cageAhiruSmile = require('../assets/quacksituate/pirate-rescue/cage-ahiru-smile.png');
+const rescueSeaLayer = require('../assets/quacksituate/pirate-rescue/rescue-sea-layer.png');
+const piratePortPlatform = require('../assets/quacksituate/pirate-rescue/pirate-port-platform.png');
+const cageRopeBreaking = require('../assets/quacksituate/pirate-rescue/cage-rope-breaking.png');
 const angelAhiru = require('../assets/Angel.png');
 const happyAhiru = require('../assets/hello.png');
 const sceneImages: Record<string, any> = {
@@ -158,25 +162,30 @@ function PirateActor({
   );
 }
 
-function CageActor({ source, style, dropY, hit, fall }: {
-  source: any;
+function CageActor({ mood, style, dropY, hit, fall }: {
+  mood: 'idle' | 'smile' | 'cry';
   style: any;
   dropY: Animated.AnimatedInterpolation<number>;
   hit: Animated.Value;
   fall: Animated.Value;
 }) {
-  const [frameSource, setFrameSource] = useState(source);
+  const [frameSource, setFrameSource] = useState(cageAhiruIdle);
 
   useEffect(() => {
-    setFrameSource(source);
-    if (source === tiedAhiruEdge) return;
-    const reactionTimer = setTimeout(() => setFrameSource(tiedAhiruHelp), 2350);
-    const restoreTimer = setTimeout(() => setFrameSource(source), 2590);
+    const baseSource = mood === 'smile'
+      ? cageAhiruSmile
+      : mood === 'cry'
+        ? cageAhiruCry
+        : cageAhiruIdle;
+    setFrameSource(baseSource);
+    if (mood === 'cry') return;
+    const reactionTimer = setTimeout(() => setFrameSource(cageAhiruBlink), 1850);
+    const restoreTimer = setTimeout(() => setFrameSource(baseSource), 2050);
     return () => {
       clearTimeout(reactionTimer);
       clearTimeout(restoreTimer);
     };
-  }, [source]);
+  }, [mood]);
 
   const shakeX = hit.interpolate({ inputRange: [0, 0.35, 0.7, 1], outputRange: [0, 6, -5, 0] });
   const cageTilt = hit.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['0deg', '-3deg', '0deg'] });
@@ -194,21 +203,7 @@ function CageActor({ source, style, dropY, hit, fall }: {
         },
       ]}
     >
-      <Animated.View
-        style={[
-          styles.cageRope,
-          { opacity: fall.interpolate({ inputRange: [0, 0.2, 1], outputRange: [1, 0, 0] }) },
-        ]}
-      />
-      <View style={styles.cageBody}>
-        <Animated.Image source={frameSource} style={styles.cageAhiru} resizeMode="contain" />
-        <View style={[styles.cageBar, styles.cageBarOne]} />
-        <View style={[styles.cageBar, styles.cageBarTwo]} />
-        <View style={[styles.cageBar, styles.cageBarThree]} />
-        <View style={[styles.cageBar, styles.cageBarFour]} />
-        <View style={styles.cageTop} />
-        <View style={styles.cageFloor} />
-      </View>
+      <Animated.Image source={frameSource} style={styles.cageSprite} resizeMode="contain" />
     </Animated.View>
   );
 }
@@ -218,6 +213,7 @@ function RescueEnvironment() {
     <>
       <Image source={rescueOcean} style={styles.rescueEnvironment} resizeMode="cover" />
       <Image source={rescueShip} style={styles.rescueShipForeground} resizeMode="contain" />
+      <Image source={rescueSeaLayer} style={styles.rescueSeaAsset} resizeMode="stretch" />
     </>
   );
 }
@@ -315,11 +311,11 @@ function RescueStage({
     inputRange: [0, 1],
     outputRange: [0, -4],
   });
-  const ahiruSource = mode === 'failed' || danger >= 0.72
-    ? tiedAhiruEdge
-    : danger >= 0.3
-      ? tiedAhiruHelp
-      : tiedAhiru;
+  const cageMood = mode === 'failed' || danger >= 0.5
+    ? 'cry'
+    : pirateAction === 'idle' && danger < 0.18
+      ? 'smile'
+      : 'idle';
 
   return (
     <View
@@ -329,7 +325,7 @@ function RescueStage({
       <RescueEnvironment />
       <Animated.View style={[styles.seaGlint, { transform: [{ translateY: seaY }] }]} />
       <View style={styles.rescueMechanism}>
-        <View style={styles.portPlatform} />
+        <Image source={piratePortPlatform} style={styles.portPlatformSprite} resizeMode="contain" />
         <PirateActor
           action={mode === 'failed' ? 'laugh' : pirateAction === 'push' ? 'laugh' : pirateAction}
           style={styles.rescuePirate}
@@ -338,8 +334,18 @@ function RescueStage({
           contactDistance={0}
         />
         <View style={styles.pulleyBeam} />
+        {falling && (
+          <Animated.Image
+            source={cageRopeBreaking}
+            style={[
+              styles.breakingRopeSprite,
+              { opacity: fall.interpolate({ inputRange: [0, 0.18, 0.7, 1], outputRange: [0, 1, 0.7, 0] }) },
+            ]}
+            resizeMode="contain"
+          />
+        )}
         <CageActor
-          source={ahiruSource}
+          mood={cageMood}
           style={styles.rescueCage}
           dropY={cageY}
           hit={hit}
