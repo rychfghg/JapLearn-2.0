@@ -387,7 +387,7 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
               {correct ? 'AHIRU IS SAFER' : failed ? 'RESCUE FAILED' : 'ONE LEVEL LOWER'}
             </Text>
             <Text style={styles.modalTitle}>
-              {correct ? 'That phrase fits!' : failed ? 'The cage dropped into the sea!' : 'The pirate lowered Ahiru’s cage'}
+              {correct ? 'That phrase fits!' : failed ? 'The rescue line has given way.' : 'Ahiru is one step closer to the waves.'}
             </Text>
             {!correct && (
               <>
@@ -413,7 +413,7 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
             )}
             <Pressable style={styles.primaryButton} onPress={onContinue}>
               <Text style={styles.primaryButtonText}>
-                {failed ? 'SEE WHAT HAPPENED' : 'CONTINUE RESCUE'}
+                {failed ? 'FOLLOW AHIRU' : 'CONTINUE RESCUE'}
               </Text>
               <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
             </Pressable>
@@ -435,6 +435,7 @@ export default function QuackSituateRecognition() {
   const [hintsUsed, setHintsUsed] = useState(0);
   const [phase, setPhase] = useState<'intro' | 'quiz' | 'gameover'>('intro');
   const [introStep, setIntroStep] = useState(0);
+  const [briefingStep, setBriefingStep] = useState(0);
   const [typedNarration, setTypedNarration] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -616,6 +617,26 @@ export default function QuackSituateRecognition() {
   const progress = questions.length ? ((index + 1) / questions.length) * 100 : 0;
   const phaseTotal = isHard ? 10 : 15;
   const phaseNumber = isHard ? index - 14 : index + 1;
+  const briefing = [
+    {
+      icon: 'eye-outline' as const,
+      eyebrow: 'STEP 1 OF 3 · READ',
+      title: 'Study the moment.',
+      body: 'Notice the place, the relationship, and who is speaking before choosing a reply.',
+    },
+    {
+      icon: 'chatbubble-ellipses-outline' as const,
+      eyebrow: 'STEP 2 OF 3 · RESPOND',
+      title: 'Choose what sounds natural.',
+      body: 'Compare the Japanese phrases carefully. The best response should fit both the scene and its level of politeness.',
+    },
+    {
+      icon: 'shield-checkmark-outline' as const,
+      eyebrow: 'STEP 3 OF 3 · RESCUE',
+      title: 'Keep Ahiru above the waves.',
+      body: 'A natural phrase holds the cage steady. A mistake lowers it one level toward the sea.',
+    },
+  ][briefingStep];
   const sceneImage = useMemo(() => {
     if (question?.imageUrl) {
       return {
@@ -772,24 +793,44 @@ export default function QuackSituateRecognition() {
         {introStep === 3 && (
           <>
             <View style={styles.introStageWrap}><RescueStage danger={0.36} mode="intro" pirateAction="push" actionKey={introStep} /></View>
-            <View style={styles.storyPanel}>
+            <View style={[styles.storyPanel, styles.briefingPanel]}>
               <View style={styles.tutorialHeading}>
-                <View style={styles.tutorialIcon}>
-                  <Ionicons name="shield-checkmark" size={22} color="#FFFFFF" />
+                <View style={styles.tutorialIconPurple}>
+                  <Ionicons name={briefing.icon} size={22} color="#FFFFFF" />
                 </View>
                 <View style={styles.tutorialHeadingCopy}>
-                  <Text style={styles.storyEyebrow}>RESCUE BRIEFING</Text>
-                  <Text style={styles.storyTitle}>Hold the cage above the waves.</Text>
+                  <Text style={styles.storyEyebrowAccent}>RESCUE BRIEFING</Text>
+                  <Text style={styles.briefingTitle}>{briefing.title}</Text>
                 </View>
               </View>
-              <View style={styles.rescueSteps}>
-                <View style={styles.rescueStep}><View style={styles.rescueStepNumber}><Ionicons name="eye" size={13} color="#FFFFFF" /></View><Text style={styles.rescueStepText}>READ THE MOMENT</Text></View>
-                <View style={styles.rescueStep}><View style={styles.rescueStepNumber}><Ionicons name="chatbubble-ellipses" size={13} color="#FFFFFF" /></View><Text style={styles.rescueStepText}>CHOOSE NATURALLY</Text></View>
-                <View style={styles.rescueStep}><View style={styles.rescueStepNumber}><Ionicons name="lock-open" size={13} color="#FFFFFF" /></View><Text style={styles.rescueStepText}>KEEP AHIRU SAFE</Text></View>
+              <View style={styles.briefingProgress}>
+                {[0, 1, 2].map((step) => (
+                  <View key={step} style={[styles.briefingProgressDot, step <= briefingStep && styles.briefingProgressDotActive]} />
+                ))}
               </View>
-              <Text style={styles.storyBody}>Study who is speaking, where the moment happens, and the level of politeness it needs. A natural phrase holds the cage steady. Each mistake lowers it closer to the sea.</Text>
-              <View style={styles.storyRules}><View style={styles.storyRule}><Ionicons name="heart" size={17} color="#65A936" /><Text style={styles.storyRuleText}>6 Starter lives</Text></View><View style={styles.storyRule}><Ionicons name="flame" size={17} color="#E58B2A" /><Text style={styles.storyRuleText}>3 Hard lives</Text></View></View>
-              <Pressable style={styles.primaryButton} onPress={() => setPhase('quiz')}><Text style={styles.primaryButtonText}>{index > 0 ? 'RETURN TO THE MISSION' : 'START THE RESCUE'}</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable>
+              <Text style={styles.briefingStepLabel}>{briefing.eyebrow}</Text>
+              <Text style={styles.briefingBody}>{briefing.body}</Text>
+              {briefingStep === 2 && (
+                <View style={styles.storyRules}>
+                  <View style={[styles.storyRule, styles.briefingRule]}><Ionicons name="heart" size={17} color="#84D943" /><Text style={styles.briefingRuleText}>6 Starter lives</Text></View>
+                  <View style={[styles.storyRule, styles.briefingRule]}><Ionicons name="flame" size={17} color="#E58B2A" /><Text style={styles.briefingRuleText}>3 Hard lives</Text></View>
+                </View>
+              )}
+              <Pressable
+                style={styles.primaryButton}
+                onPress={() => {
+                  if (briefingStep < 2) {
+                    setBriefingStep((value) => value + 1);
+                    return;
+                  }
+                  setPhase('quiz');
+                }}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {briefingStep < 2 ? 'NEXT BRIEFING STEP' : index > 0 ? 'CONTINUE THE MISSION' : 'BEGIN THE RESCUE'}
+                </Text>
+                <Ionicons name="arrow-forward" size={18} color="#FFF" />
+              </Pressable>
             </View>
           </>
         )}
@@ -820,16 +861,19 @@ export default function QuackSituateRecognition() {
           <View style={styles.endingHeader}>
             <View style={styles.failureSeal}><Ionicons name="water" size={24} color="#FFFFFF" /></View>
             <View style={styles.endingHeaderCopy}>
-              <Text style={[styles.storyEyebrow, styles.failureEyebrow]}>MISSION INTERRUPTED</Text>
-              <Text style={styles.storyTitle}>The cage slipped beneath the waves.</Text>
+              <Text style={[styles.storyEyebrow, styles.failureEyebrow]}>RESCUE ATTEMPT ENDED</Text>
+              <Text style={styles.endingTitle}>Ahiru needs a new rescue plan.</Text>
             </View>
           </View>
-          <View style={styles.endingMessage}>
-            <Ionicons name="compass-outline" size={20} color="#297C99" />
-            <Text style={styles.endingMessageText}>Ahiru needs another attempt. Review the relationship, setting, and polite tone before choosing each phrase.</Text>
+          <View style={[styles.endingMessage, styles.endingMessagePurple]}>
+            <Ionicons name="compass-outline" size={20} color="#8423D9" />
+            <View style={styles.endingMessageCopy}>
+              <Text style={styles.endingMessageTitle}>Prepare for another attempt</Text>
+              <Text style={[styles.endingMessageText, styles.endingMessageTextPurple]}>Review the speaker, setting, and polite tone. Your next choices can guide Ahiru safely home.</Text>
+            </View>
           </View>
-          <Pressable style={styles.primaryButton} onPress={() => void resetGame()}><Text style={styles.primaryButtonText}>RESTART THE RESCUE</Text><Ionicons name="refresh" size={18} color="#FFF" /></Pressable>
-          <Pressable style={styles.modalSecondary} onPress={() => setIsExiting(true)}><Text style={styles.modalSecondaryText}>Return to the mission map</Text></Pressable>
+          <Pressable style={styles.primaryButton} onPress={() => void resetGame()}><Text style={styles.primaryButtonText}>TRY THE MISSION AGAIN</Text><Ionicons name="refresh" size={18} color="#FFF" /></Pressable>
+          <Pressable style={styles.modalSecondary} onPress={() => setIsExiting(true)}><Text style={styles.modalSecondaryText}>Back to mission selection</Text></Pressable>
         </View>
       </ImageBackground>
     );
@@ -903,7 +947,7 @@ export default function QuackSituateRecognition() {
       />
       <Modal transparent visible={levelVisible} animationType="fade"><View style={styles.modalShade}><View style={styles.levelCard}><View style={styles.hardIcon}><Ionicons name="flame" size={34} color="#FFF" /></View><Text style={styles.levelEyebrow}>STARTER DECK CLEARED</Text><Text style={styles.levelTitle}>The pirate raises the stakes</Text><Text style={styles.levelBody}>Hard mode gives only three chances. Read every social cue closely.</Text><View style={styles.levelStats}><Text>15 trials cleared</Text><Text>{correctCount} correct</Text></View><Pressable style={styles.primaryButton} onPress={() => { setLevelVisible(false); setIndex(15); }}><Text style={styles.primaryButtonText}>BEGIN HARD RESCUE</Text><Ionicons name="flame" size={18} color="#FFF" /></Pressable></View></View></Modal>
       <Modal transparent visible={completeVisible} animationType="fade"><View style={styles.modalShade}><View style={[styles.modalCard, styles.successCard]}><View style={styles.successHalo}><Image source={happyAhiru} style={styles.successMascot} resizeMode="contain" /></View><View style={styles.successRibbon}><Ionicons name="shield-checkmark" size={14} color="#FFFFFF" /><Text style={styles.successRibbonText}>RESCUE COMPLETE</Text></View><Text style={styles.modalTitle}>Ahiru is safely back on deck!</Text><View style={styles.scoreMedallion}><Text style={styles.finalScore}>{correctCount * 100}</Text><Text style={styles.scoreMedallionLabel}>POINTS</Text></View><View style={styles.successStats}><View style={styles.successStat}><Text style={styles.successStatValue}>{correctCount}</Text><Text style={styles.successStatLabel}>NATURAL PHRASES</Text></View><View style={styles.successStatDivider} /><View style={styles.successStat}><Text style={styles.successStatValue}>{questions.length}</Text><Text style={styles.successStatLabel}>TOTAL TRIALS</Text></View></View><Text style={styles.modalBody}>{saving ? 'Securing your rescue record...' : 'Your result is now reflected in QuackProgress and your teacher’s report.'}</Text><Pressable disabled={saving} style={styles.primaryButton} onPress={() => { setCompleteVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>CONTINUE TO YOUR REPORT</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable></View></View></Modal>
-      <Modal transparent visible={exitVisible} animationType="fade" onRequestClose={() => setExitVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIconSoft, styles.pauseIcon]}><Ionicons name="bookmark" size={28} color="#167795" /></View><Text style={styles.modalEyebrow}>LEAVE THE DECK FOR NOW?</Text><Text style={styles.modalTitle}>We’ll mark your exact place.</Text><Text style={styles.modalBody}>Your current trial, score, and remaining chances will be waiting when you return.</Text><Pressable style={styles.primaryButton} onPress={() => { setExitVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>MARK MY PLACE</Text></Pressable><Pressable style={styles.modalSecondary} onPress={() => setExitVisible(false)}><Text style={styles.modalSecondaryText}>Stay with the rescue</Text></Pressable></View></View></Modal>
+      <Modal transparent visible={exitVisible} animationType="fade" onRequestClose={() => setExitVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIconSoft, styles.pauseIcon]}><Ionicons name="bookmark-outline" size={28} color="#8423D9" /></View><Text style={styles.modalEyebrow}>PAUSE THIS MISSION?</Text><Text style={styles.modalTitle}>Save your progress for later.</Text><Text style={styles.modalBody}>Your current trial, score, and remaining lives will be restored when you return.</Text><Pressable style={styles.primaryButton} onPress={() => { setExitVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>SAVE &amp; RETURN</Text></Pressable><Pressable style={styles.modalSecondary} onPress={() => setExitVisible(false)}><Text style={styles.modalSecondaryText}>Continue playing</Text></Pressable></View></View></Modal>
     </View>
   );
 }
