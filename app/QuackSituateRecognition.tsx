@@ -387,22 +387,22 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
             />
             <View style={[styles.reactionTag, correct ? styles.reactionTagGood : styles.reactionTagWrong]}>
               <Text style={styles.reactionTagText}>
-                {correct ? '+100 · PIRATE BLOCKED' : failed ? 'THE FINAL PUSH!' : 'PIRATE PUSHED AHIRU'}
+                {correct ? '+100 · PUSH BLOCKED' : failed ? 'THE FINAL STEP!' : 'ONE STEP CLOSER'}
               </Text>
             </View>
-            <View style={styles.reactionDialogue}>
-              <Text style={styles.reactionDialogueSpeaker}>{correct ? 'AHIRU' : 'PHRASE PIRATE'}</Text>
-              <Text style={styles.reactionDialogueText}>
-                {correct ? 'やった！ たすかった！' : failed ? 'ハハハ！ これで終わりだ！' : 'ハハハ！ もう一歩だ！'}
-              </Text>
-            </View>
+            {correct && (
+              <View style={styles.reactionDialogueCompact}>
+                <Text style={styles.reactionDialogueSpeaker}>AHIRU</Text>
+                <Text style={styles.reactionDialogueText}>やった！ たすかった！</Text>
+              </View>
+            )}
           </View>
           <View style={styles.reactionCopy}>
             <Text style={[styles.modalEyebrow, !correct && styles.wrongEyebrow]}>
-              {correct ? 'AHIRU IS SAFER' : failed ? 'RESCUE FAILED' : 'PIRATE’S PUSH'}
+              {correct ? 'AHIRU IS SAFER' : failed ? 'RESCUE FAILED' : 'THE PLANK MOVED'}
             </Text>
             <Text style={styles.modalTitle}>
-              {correct ? 'That phrase fits!' : failed ? 'The plank gave way!' : 'Not the safest reply'}
+              {correct ? 'That phrase fits!' : failed ? 'Ahiru fell from the plank!' : 'Ahiru moved closer to the edge'}
             </Text>
             {!correct && (
               <>
@@ -512,7 +512,11 @@ export default function QuackSituateRecognition() {
           setEasyMistakes(Number(run.easyMistakes) || 0);
           setHardMistakes(Number(run.hardMistakes) || 0);
           setHintsUsed(Number(run.hintsUsed) || 0);
-          setPhase('quiz');
+          // Always present the story prologue and tutorial when the mission is opened.
+          // The run itself remains restored, so BEGIN/CONTINUE still resumes the exact trial.
+          setIntroStep(0);
+          setTypedNarration('');
+          setPhase('intro');
         }
       } catch {
         if (mounted) setError('The rescue missions took too long to load. Please try again.');
