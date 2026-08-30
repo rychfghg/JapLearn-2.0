@@ -452,7 +452,8 @@ export default function QuackSituateRecognition() {
   const sfxRef = useRef<Audio.Sound | null>(null);
   const feedbackSfxTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const remoteSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const angelRise = useRef(new Animated.Value(240)).current;
+  const angelRise = useRef(new Animated.Value(0)).current;
+  const [gameOverStageHeight, setGameOverStageHeight] = useState(0);
   const storageKey = `ahiru-rescue:${String(user?.email || 'guest').toLowerCase()}`;
 
   useEffect(() => {
@@ -565,19 +566,20 @@ export default function QuackSituateRecognition() {
   }, [introStep, phase]);
 
   useEffect(() => {
-    if (phase !== 'gameover') return;
-    angelRise.setValue(520);
+    if (phase !== 'gameover' || gameOverStageHeight <= 0) return;
+    angelRise.setValue(0);
     Animated.sequence([
-      Animated.delay(280),
+      Animated.delay(650),
       Animated.timing(angelRise, {
-        toValue: -920,
-        duration: 3200,
-        easing: Easing.inOut(Easing.cubic),
+        // The sprite begins below this container and leaves through its top.
+        toValue: -(gameOverStageHeight + 220),
+        duration: 8200,
+        easing: Easing.inOut(Easing.sin),
         useNativeDriver: true,
       }),
     ]).start();
     void playSfx(require('../assets/audio/sfx/incorrect.mp3'));
-  }, [angelRise, phase]);
+  }, [angelRise, gameOverStageHeight, phase]);
 
   useEffect(() => {
     if (!questions.length || phase !== 'quiz') return;
@@ -851,12 +853,17 @@ export default function QuackSituateRecognition() {
     return (
       <ImageBackground source={pirateDeck} style={styles.storyScreen} resizeMode="cover">
         <View style={styles.storyDarkShade} />
-        <View style={styles.gameOverStage}><RescueAftermathStage actionKey={index + 1000} /></View>
-        <Animated.Image
-          source={angelAhiru}
-          style={[styles.gameOverAngel, { transform: [{ translateY: angelRise }] }]}
-          resizeMode="contain"
-        />
+        <View
+          style={styles.gameOverStage}
+          onLayout={(event) => setGameOverStageHeight(event.nativeEvent.layout.height)}
+        >
+          <RescueAftermathStage actionKey={index + 1000} />
+          <Animated.Image
+            source={angelAhiru}
+            style={[styles.gameOverAngel, { transform: [{ translateY: angelRise }] }]}
+            resizeMode="contain"
+          />
+        </View>
         <View style={styles.storyPanel}>
           <View style={styles.endingHeader}>
             <View style={styles.failureSeal}><Ionicons name="water" size={24} color="#FFFFFF" /></View>
@@ -882,7 +889,6 @@ export default function QuackSituateRecognition() {
   return (
     <View style={styles.screen}>
       <Image source={pirateDeck} style={styles.quizEnvironment} resizeMode="cover" />
-      <View pointerEvents="none" style={styles.quizEnvironmentTint} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topRow}>
           <Pressable style={styles.backButton} onPress={() => setExitVisible(true)}><BackIcon width={19} height={19} fill="#462A5E" /></Pressable>
