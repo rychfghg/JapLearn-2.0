@@ -13,6 +13,9 @@ const missions = [
 ] as const;
 
 const POLITENESS_LEVEL_ROUTE = '/QuackSituateFormalLevels' as const;
+const rescuePlank = require('../assets/quacksituate/pirate-rescue/plank-prop.png');
+const rescuePirate = require('../assets/quacksituate/pirate-rescue/pirate-push.png');
+const rescueAhiru = require('../assets/quacksituate/pirate-rescue/tied-ahiru-help.png');
 
 export default function QuackSituate() {
   const { skipLoading } = useLocalSearchParams<{ skipLoading?: string }>();
@@ -133,6 +136,74 @@ export default function QuackSituate() {
               imageStyle={styles.questMissionImage}
               resizeMode="cover"
             >
+              {index === 0 && (
+                <View
+                  pointerEvents="none"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    width: '58%',
+                    zIndex: 1,
+                  }}
+                >
+                  <Image
+                    source={rescuePlank}
+                    resizeMode="contain"
+                    style={{
+                      position: 'absolute',
+                      right: -30,
+                      bottom: -1,
+                      width: '116%',
+                      height: '44%',
+                      transform: [{ rotate: '-2deg' }],
+                    }}
+                  />
+                  <Image
+                    source={rescuePirate}
+                    resizeMode="contain"
+                    style={{
+                      position: 'absolute',
+                      left: -25,
+                      bottom: 36,
+                      width: '58%',
+                      height: '72%',
+                    }}
+                  />
+                  <Animated.Image
+                    source={rescueAhiru}
+                    resizeMode="contain"
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      bottom: 30,
+                      width: '54%',
+                      height: '64%',
+                      transform: [{ scale: pulseAnim }],
+                    }}
+                  />
+                  <View
+                    style={{
+                      position: 'absolute',
+                      right: 8,
+                      bottom: 13,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 4,
+                      paddingHorizontal: 7,
+                      paddingVertical: 4,
+                      borderRadius: 999,
+                      backgroundColor: 'rgba(193,47,75,.92)',
+                    }}
+                  >
+                    <Ionicons name="warning" size={10} color="#FFFFFF" />
+                    <Text style={{ color: '#FFFFFF', fontSize: 6, fontWeight: '900', letterSpacing: .7 }}>
+                      SAVE AHIRU
+                    </Text>
+                  </View>
+                </View>
+              )}
               <View style={styles.questMissionCover}>
                 <View style={styles.questMissionShade} />
 
