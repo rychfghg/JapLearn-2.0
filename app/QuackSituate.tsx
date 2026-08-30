@@ -7,7 +7,7 @@ import QuackSituateMissionLoader from '../components/QuackSituateMissionLoader';
 import styles from '../styles/stylesQuackSituate';
 
 const missions = [
-  { title: 'Ahiru Rescue', subtitle: 'Phrase or Plank!', description: 'Choose natural Japanese before the pirate pushes Ahiru off the plank.', objective: 'Save Ahiru with the right phrase', difficulty: 'RESCUE', route: '/QuackSituateRecognition', icon: 'boat-outline', action: 'PIRATE QUEST', color: '#65A936', tint: '#EAF5E3', character: '救', image: require('../assets/quacksituate/pirate-rescue/pirate-ship-deck.png') },
+  { title: 'Ahiru Rescue', subtitle: 'Phrase or Plank!', description: 'Choose natural Japanese before the pirate pushes Ahiru off the plank.', objective: 'Save Ahiru with the right phrase', difficulty: 'RESCUE', route: '/QuackSituateRecognition', icon: 'boat-outline', action: 'PIRATE QUEST', color: '#65A936', tint: '#EAF5E3', character: '救', image: require('../assets/quacksituate/pirate-rescue/pirate-deck-open-sea.png') },
   { title: 'Expression Match', subtitle: 'Connect phrase to scene', description: 'Match useful Japanese expressions with the situation where they belong.', objective: 'Connect each scene and phrase', difficulty: 'MATCH', route: '/QuackSituateMatchingLevels', icon: 'git-compare-outline', action: 'MATCH GAME', color: '#D88727', tint: '#FFF0DC', character: '合', image: require('../assets/quacksituate/cards/expression-match-mission.png') },
   { title: 'Politeness', subtitle: 'Choose the right tone', description: 'Decide which level of politeness fits the person and the moment.', objective: 'Read the relationship and tone', difficulty: 'SOCIAL', route: '/QuackSituateFormalLevels', icon: 'people-outline', action: 'TONE QUEST', color: '#8423D9', tint: '#F0E4FA', character: '礼', image: require('../assets/quacksituate/cards/politeness-mission.png') },
 ] as const;
@@ -24,6 +24,17 @@ export default function QuackSituate() {
   const [launchingMission, setLaunchingMission] = useState<(typeof missions)[number] | null>(null);
   const [showFieldNote, setShowFieldNote] = useState(true);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const rescueMotion = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const animation = Animated.sequence([
+      Animated.delay(500),
+      Animated.timing(rescueMotion, { toValue: 1, duration: 420, useNativeDriver: true }),
+      Animated.timing(rescueMotion, { toValue: 0, duration: 320, useNativeDriver: true }),
+    ]);
+    animation.start();
+    return () => animation.stop();
+  }, [rescueMotion]);
 
   useEffect(() => {
     if (skipLoading === '1') {
@@ -165,9 +176,9 @@ export default function QuackSituate() {
                     resizeMode="contain"
                     style={{
                       position: 'absolute',
-                      left: -25,
+                      left: -12,
                       bottom: 36,
-                      width: '58%',
+                      width: '62%',
                       height: '72%',
                     }}
                   />
@@ -176,13 +187,43 @@ export default function QuackSituate() {
                     resizeMode="contain"
                     style={{
                       position: 'absolute',
-                      right: 0,
+                      right: 2,
                       bottom: 30,
                       width: '54%',
                       height: '64%',
-                      transform: [{ scale: pulseAnim }],
+                      transform: [
+                        {
+                          translateX: rescueMotion.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: [0, 5],
+                          }),
+                        },
+                        {
+                          rotate: rescueMotion.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: ['-1deg', '2deg'],
+                          }),
+                        },
+                      ],
                     }}
                   />
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 8,
+                      paddingHorizontal: 8,
+                      paddingVertical: 5,
+                      borderRadius: 999,
+                      backgroundColor: 'rgba(30,12,39,.78)',
+                      borderWidth: 1,
+                      borderColor: 'rgba(255,255,255,.5)',
+                    }}
+                  >
+                    <Text style={{ color: '#FFE36D', fontSize: 7, fontWeight: '900', letterSpacing: .8 }}>
+                      PHRASE OR PLANK!
+                    </Text>
+                  </View>
                   <View
                     style={{
                       position: 'absolute',

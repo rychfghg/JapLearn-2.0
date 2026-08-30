@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { router } from 'expo-router';
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -37,11 +37,12 @@ type Question = {
   explanation: string;
 };
 
-const pirateDeck = require('../assets/quacksituate/pirate-rescue/pirate-ship-deck.png');
+const pirateDeck = require('../assets/quacksituate/pirate-rescue/pirate-deck-open-sea.png');
 const plankProp = require('../assets/quacksituate/pirate-rescue/plank-prop.png');
 const pirate = require('../assets/quacksituate/pirate-rescue/pirate-neutral.png');
 const piratePush = require('../assets/quacksituate/pirate-rescue/pirate-push.png');
 const pirateLaugh = require('../assets/quacksituate/pirate-rescue/pirate-laugh.png');
+const pirateTauntOpen = require('../assets/quacksituate/pirate-rescue/pirate-taunt-open.png');
 const tiedAhiru = require('../assets/quacksituate/pirate-rescue/tied-ahiru-worried.png');
 const tiedAhiruHelp = require('../assets/quacksituate/pirate-rescue/tied-ahiru-help.png');
 const tiedAhiruEdge = require('../assets/quacksituate/pirate-rescue/tied-ahiru-edge.png');
@@ -57,164 +58,80 @@ const sceneImages: Record<string, any> = {
 };
 const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
 
-function MovingSprite({ source, style, urgent = false }: {
-  source: any;
-  style: any;
-  urgent?: boolean;
-}) {
-  const bob = useRef(new Animated.Value(0)).current;
-  const sway = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.parallel([
-        Animated.sequence([
-          Animated.timing(bob, {
-            toValue: urgent ? -9 : -4,
-            duration: urgent ? 360 : 720,
-            useNativeDriver: true,
-          }),
-          Animated.timing(bob, {
-            toValue: 0,
-            duration: urgent ? 360 : 720,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.sequence([
-          Animated.timing(sway, {
-            toValue: urgent ? 1.5 : 0.6,
-            duration: urgent ? 420 : 900,
-            useNativeDriver: true,
-          }),
-          Animated.timing(sway, {
-            toValue: urgent ? -1.5 : -0.6,
-            duration: urgent ? 420 : 900,
-            useNativeDriver: true,
-          }),
-        ]),
-      ]),
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [bob, sway, urgent]);
-
-  const rotate = sway.interpolate({
-    inputRange: [-2, 2],
-    outputRange: ['-2deg', '2deg'],
-  });
-
-  return (
-    <Animated.Image
-      source={source}
-      style={[style, { transform: [{ translateY: bob }, { rotate }] }]}
-      resizeMode="contain"
-    />
-  );
-}
-
 function PirateActor({
   action,
   style,
+  actionKey = 0,
+  onImpact,
+  contactDistance = 44,
 }: {
   action: 'idle' | 'laugh' | 'push';
   style: any;
+  actionKey?: number;
+  onImpact?: () => void;
+  contactDistance?: number;
 }) {
-  const frame = useRef(new Animated.Value(action === 'idle' ? 0 : 1)).current;
   const lunge = useRef(new Animated.Value(0)).current;
-  const sway = useRef(new Animated.Value(0)).current;
+  const motion = useRef(new Animated.Value(0)).current;
+  const [frameName, setFrameName] = useState<'neutral' | 'push' | 'laugh' | 'taunt'>('neutral');
 
   useEffect(() => {
-    frame.stopAnimation();
     lunge.stopAnimation();
-    sway.stopAnimation();
-    frame.setValue(action === 'idle' ? 0 : 1);
+    motion.stopAnimation();
     lunge.setValue(0);
-    sway.setValue(0);
+    motion.setValue(0);
+    setFrameName(action === 'laugh' ? 'laugh' : action === 'push' ? 'push' : 'neutral');
 
-    const motion = action === 'push'
-      ? Animated.loop(
-          Animated.sequence([
-            Animated.parallel([
-              Animated.timing(frame, {
-                toValue: 1,
-                duration: 90,
-                useNativeDriver: true,
-              }),
-              Animated.timing(lunge, {
-                toValue: 1,
-                duration: 260,
-                easing: Easing.out(Easing.cubic),
-                isInteraction: false,
-                useNativeDriver: true,
-              }),
-            ]),
-            Animated.delay(280),
-            Animated.parallel([
-              Animated.timing(frame, {
-                toValue: 0,
-                duration: 120,
-                useNativeDriver: true,
-              }),
-              Animated.timing(lunge, {
-                toValue: 0,
-                duration: 420,
-                easing: Easing.inOut(Easing.sin),
-                isInteraction: false,
-                useNativeDriver: true,
-              }),
-            ]),
-            Animated.delay(520),
-          ]),
-        )
+    let impactTimer: ReturnType<typeof setTimeout> | undefined;
+    let laughTimer: ReturnType<typeof setTimeout> | undefined;
+    let resetTimer: ReturnType<typeof setTimeout> | undefined;
+    const sequence = action === 'push'
+      ? Animated.sequence([
+          Animated.timing(motion, { toValue: -1, duration: 150, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+          Animated.timing(lunge, { toValue: 1, duration: 235, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
+          Animated.delay(180),
+          Animated.timing(lunge, { toValue: 0, duration: 310, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+          Animated.timing(motion, { toValue: 0, duration: 120, useNativeDriver: true }),
+        ])
       : action === 'laugh'
-        ? Animated.loop(
-            Animated.sequence([
-              Animated.timing(frame, {
-                toValue: 1,
-                duration: 170,
-                useNativeDriver: true,
-              }),
-              Animated.delay(260),
-              Animated.timing(frame, {
-                toValue: 0,
-                duration: 170,
-                useNativeDriver: true,
-              }),
-              Animated.delay(240),
-            ]),
-          )
-        : Animated.loop(
-            Animated.sequence([
-              Animated.timing(sway, {
-                toValue: 1,
-                duration: 1250,
-                easing: Easing.inOut(Easing.sin),
-                isInteraction: false,
-                useNativeDriver: true,
-              }),
-              Animated.timing(sway, {
-                toValue: 0,
-                duration: 1250,
-                easing: Easing.inOut(Easing.sin),
-                isInteraction: false,
-                useNativeDriver: true,
-              }),
-            ]),
-          );
+        ? Animated.sequence([
+            Animated.timing(motion, { toValue: 1, duration: 150, useNativeDriver: true }),
+            Animated.timing(motion, { toValue: 0, duration: 150, useNativeDriver: true }),
+            Animated.timing(motion, { toValue: 1, duration: 150, useNativeDriver: true }),
+            Animated.timing(motion, { toValue: 0, duration: 150, useNativeDriver: true }),
+          ])
+        : Animated.sequence([
+            Animated.delay(700),
+            Animated.timing(motion, { toValue: 0.55, duration: 160, useNativeDriver: true }),
+            Animated.timing(motion, { toValue: 0, duration: 160, useNativeDriver: true }),
+          ]);
 
-    motion.start();
-    return () => motion.stop();
-  }, [action, frame, lunge, sway]);
+    if (action === 'push' && onImpact) {
+      impactTimer = setTimeout(onImpact, 375);
+      laughTimer = setTimeout(() => setFrameName('taunt'), 610);
+      resetTimer = setTimeout(() => setFrameName('laugh'), 790);
+    }
+    sequence.start(({ finished }) => {
+      if (finished && action === 'idle') setFrameName('neutral');
+    });
+    return () => {
+      sequence.stop();
+      if (impactTimer) clearTimeout(impactTimer);
+      if (laughTimer) clearTimeout(laughTimer);
+      if (resetTimer) clearTimeout(resetTimer);
+    };
+  }, [action, actionKey, lunge, motion, onImpact]);
 
-  const neutralOpacity = action === 'idle'
-    ? 1
-    : frame.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
-  const actionOpacity = action === 'idle'
-    ? 0
-    : frame;
-  const translateX = lunge.interpolate({ inputRange: [0, 1], outputRange: [0, 18] });
-  const translateY = sway.interpolate({ inputRange: [0, 1], outputRange: [0, -3] });
-  const rotate = sway.interpolate({ inputRange: [0, 1], outputRange: ['-1deg', '1deg'] });
+  const translateX = lunge.interpolate({ inputRange: [0, 1], outputRange: [0, contactDistance] });
+  const translateY = motion.interpolate({ inputRange: [-1, 0, 1], outputRange: [2, 0, -5] });
+  const rotate = motion.interpolate({ inputRange: [-1, 0, 1], outputRange: ['-4deg', '0deg', '3deg'] });
+  const frameSource = frameName === 'push'
+    ? piratePush
+    : frameName === 'laugh'
+      ? pirateLaugh
+      : frameName === 'taunt'
+        ? pirateTauntOpen
+        : pirate;
 
   return (
     <Animated.View
@@ -230,17 +147,39 @@ function PirateActor({
         },
       ]}
     >
-      <Animated.Image
-        source={pirate}
-        resizeMode="contain"
-        style={[styles.pirateFrame, { opacity: neutralOpacity }]}
-      />
-      <Animated.Image
-        source={action === 'push' ? piratePush : pirateLaugh}
-        resizeMode="contain"
-        style={[styles.pirateFrame, { opacity: actionOpacity }]}
-      />
+      <Animated.Image source={frameSource} resizeMode="contain" style={styles.pirateFrame} />
     </Animated.View>
+  );
+}
+
+function AhiruActor({ source, style, pushX, tilt, hit, fall }: {
+  source: any;
+  style: any;
+  pushX: Animated.AnimatedInterpolation<number>;
+  tilt: Animated.AnimatedInterpolation<string>;
+  hit: Animated.Value;
+  fall: Animated.Value;
+}) {
+  const shakeX = hit.interpolate({ inputRange: [0, 0.35, 0.7, 1], outputRange: [0, 9, -7, 0] });
+  const shakeScale = hit.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 0.92, 1] });
+  return (
+    <Animated.Image
+      source={source}
+      style={[
+        style,
+        {
+          transform: [
+            { translateX: Animated.add(pushX, shakeX) },
+            { rotate: tilt },
+            { scale: shakeScale },
+            { translateY: fall.interpolate({ inputRange: [0, 0.18, 1], outputRange: [0, -12, 300] }) },
+            { rotate: fall.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '28deg'] }) },
+          ],
+          opacity: fall.interpolate({ inputRange: [0, 0.72, 1], outputRange: [1, 1, 0] }),
+        },
+      ]}
+      resizeMode="contain"
+    />
   );
 }
 
@@ -248,14 +187,21 @@ function RescueStage({
   danger,
   mode = 'live',
   pirateAction = 'idle',
+  actionKey = 0,
+  falling = false,
 }: {
   danger: number;
   mode?: 'intro' | 'live' | 'failed';
   pirateAction?: 'idle' | 'laugh' | 'push';
+  actionKey?: number;
+  falling?: boolean;
 }) {
   const [stageWidth, setStageWidth] = useState(360);
   const push = useRef(new Animated.Value(0)).current;
   const oceanSway = useRef(new Animated.Value(0)).current;
+  const impact = useRef(new Animated.Value(0)).current;
+  const hit = useRef(new Animated.Value(0)).current;
+  const fall = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(push, {
@@ -265,6 +211,35 @@ function RescueStage({
       useNativeDriver: true,
     }).start();
   }, [danger, push]);
+
+  useEffect(() => {
+    if (!falling) {
+      fall.setValue(0);
+      return;
+    }
+    Animated.sequence([
+      Animated.delay(680),
+      Animated.timing(fall, {
+        toValue: 1,
+        duration: 720,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fall, falling]);
+
+  const playImpact = useCallback(() => {
+    impact.setValue(0);
+    hit.setValue(0);
+    Animated.sequence([
+      Animated.timing(impact, { toValue: 1, duration: 90, useNativeDriver: true }),
+      Animated.timing(impact, { toValue: 0, duration: 260, useNativeDriver: true }),
+    ]).start();
+    Animated.sequence([
+      Animated.timing(hit, { toValue: 1, duration: 105, useNativeDriver: true }),
+      Animated.timing(hit, { toValue: 0, duration: 230, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+    ]).start();
+  }, [hit, impact]);
 
   useEffect(() => {
     const sea = Animated.loop(
@@ -322,19 +297,29 @@ function RescueStage({
         <PirateActor
           action={mode === 'failed' ? 'push' : pirateAction}
           style={styles.rescuePirate}
+          actionKey={actionKey}
+          onImpact={pirateAction === 'push' || mode === 'failed' ? playImpact : undefined}
+          contactDistance={Math.max(34, stageWidth * 0.12)}
         />
-        <Animated.Image
-          source={ahiruSource}
+        <Animated.View
+          pointerEvents="none"
           style={[
-            styles.rescueAhiru,
+            styles.pushImpact,
             {
-              transform: [
-                { translateX: ahiruX },
-                { rotate: ahiruTilt },
-              ],
+              opacity: impact,
+              transform: [{ scale: impact.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1.35] }) }],
             },
           ]}
-          resizeMode="contain"
+        >
+          <Ionicons name="flash" size={30} color="#FFE36D" />
+        </Animated.View>
+        <AhiruActor
+          source={ahiruSource}
+          style={styles.rescueAhiru}
+          pushX={ahiruX}
+          tilt={ahiruTilt}
+          hit={hit}
+          fall={fall}
         />
       </View>
       <View style={styles.edgeMarker}>
@@ -364,11 +349,12 @@ function RescueStage({
   );
 }
 
-function ReactionModal({ visible, correct, failed, danger, selected, question, onContinue }: {
+function ReactionModal({ visible, correct, failed, danger, actionKey, selected, question, onContinue }: {
   visible: boolean;
   correct: boolean;
   failed: boolean;
   danger: number;
+  actionKey: number;
   selected: Choice | null;
   question: Question;
   onContinue: () => void;
@@ -382,6 +368,7 @@ function ReactionModal({ visible, correct, failed, danger, selected, question, o
               danger={correct ? Math.max(0, danger - 0.12) : danger}
               mode={failed ? 'failed' : 'live'}
               pirateAction={correct ? 'idle' : 'push'}
+              actionKey={actionKey}
             />
             <View style={[styles.reactionTag, correct ? styles.reactionTagGood : styles.reactionTagWrong]}>
               <Text style={styles.reactionTagText}>
@@ -456,7 +443,9 @@ export default function QuackSituateRecognition() {
   const [isExiting, setIsExiting] = useState(false);
   const musicRef = useRef<Audio.Sound | null>(null);
   const sfxRef = useRef<Audio.Sound | null>(null);
+  const feedbackSfxTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const angelRise = useRef(new Animated.Value(240)).current;
+  const angelOpacity = useRef(new Animated.Value(0)).current;
   const storageKey = `ahiru-rescue:${String(user?.email || 'guest').toLowerCase()}`;
 
   useEffect(() => {
@@ -505,6 +494,22 @@ export default function QuackSituateRecognition() {
     };
   }, []);
 
+  useEffect(() => () => {
+    feedbackSfxTimers.current.forEach(clearTimeout);
+    feedbackSfxTimers.current = [];
+  }, []);
+
+  useEffect(() => {
+    if (phase !== 'intro') return;
+    if (introStep === 1) void playSfx(require('../assets/audio/sfx/incorrect_sfx.mp3'));
+    if (introStep === 2) void playSfx(require('../assets/audio/sfx/quackmanselect.mp3'));
+    if (introStep === 3) {
+      feedbackSfxTimers.current.push(setTimeout(() => {
+        void playSfx(require('../assets/audio/sfx/whack.mp3'));
+      }, 370));
+    }
+  }, [introStep, phase]);
+
   useEffect(() => {
     const narration = 'Dark clouds gather above the Sea of Words as Ahiru’s tiny boat drifts off course. A shadowy pirate ship cuts through the mist and pulls Ahiru aboard. On its storm-worn deck, the Phrase Pirate binds Ahiru at the start of a plank hanging over the waves. Each unnatural reply will let the pirate push Ahiru closer to the edge—but every natural Japanese phrase will stop the next shove.';
     if (phase !== 'intro' || introStep !== 0) return;
@@ -521,23 +526,26 @@ export default function QuackSituateRecognition() {
   useEffect(() => {
     if (phase !== 'gameover') return;
     angelRise.setValue(260);
+    angelOpacity.setValue(0);
     Animated.sequence([
-      Animated.delay(380),
-      Animated.timing(angelRise, {
-        toValue: 0,
-        duration: 1250,
-        useNativeDriver: true,
-      }),
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(angelRise, { toValue: -12, duration: 650, useNativeDriver: true }),
-          Animated.timing(angelRise, { toValue: 0, duration: 650, useNativeDriver: true }),
-        ]),
-        { iterations: 2 },
-      ),
+      Animated.delay(1550),
+      Animated.parallel([
+        Animated.timing(angelRise, {
+          toValue: 20,
+          duration: 1050,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(angelOpacity, { toValue: 1, duration: 420, useNativeDriver: true }),
+      ]),
+      Animated.delay(850),
+      Animated.parallel([
+        Animated.timing(angelRise, { toValue: -180, duration: 1200, easing: Easing.in(Easing.quad), useNativeDriver: true }),
+        Animated.timing(angelOpacity, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ]),
     ]).start();
     void playSfx(require('../assets/audio/sfx/incorrect.mp3'));
-  }, [angelRise, phase]);
+  }, [angelOpacity, angelRise, phase]);
 
   useEffect(() => {
     if (!questions.length || phase !== 'quiz') return;
@@ -590,7 +598,12 @@ export default function QuackSituateRecognition() {
     } else {
       if (isHard) setHardMistakes(nextMistakes);
       else setEasyMistakes(nextMistakes);
-      void playSfx(require('../assets/audio/sfx/incorrect_sfx.mp3'));
+      feedbackSfxTimers.current.push(setTimeout(() => {
+        void playSfx(require('../assets/audio/sfx/whack.mp3'));
+      }, 370));
+      feedbackSfxTimers.current.push(setTimeout(() => {
+        void playSfx(require('../assets/audio/sfx/quackmanselect.mp3'));
+      }, 760));
     }
     setFeedbackVisible(true);
   };
@@ -699,11 +712,16 @@ export default function QuackSituateRecognition() {
 
         {introStep === 3 && (
           <>
-            <View style={styles.introStageWrap}><RescueStage danger={0.36} mode="intro" pirateAction="push" /></View>
+            <View style={styles.introStageWrap}><RescueStage danger={0.36} mode="intro" pirateAction="push" actionKey={introStep} /></View>
             <View style={styles.storyPanel}>
               <Text style={styles.storyEyebrow}>HOW THE RESCUE WORKS</Text>
-              <Text style={styles.storyTitle}>Read the scene. Choose naturally. Stop the push.</Text>
-              <Text style={styles.storyBody}>Every trial gives a real-life Japanese situation. A natural phrase blocks the pirate and earns 100 points. A wrong phrase makes the pirate push Ahiru one step toward the plank’s edge.</Text>
+              <Text style={styles.storyTitle}>Three steps. One rescue.</Text>
+              <View style={styles.rescueSteps}>
+                <View style={styles.rescueStep}><Text style={styles.rescueStepNumber}>1</Text><Text style={styles.rescueStepText}>READ THE SCENE</Text></View>
+                <View style={styles.rescueStep}><Text style={styles.rescueStepNumber}>2</Text><Text style={styles.rescueStepText}>PICK NATURALLY</Text></View>
+                <View style={styles.rescueStep}><Text style={styles.rescueStepNumber}>3</Text><Text style={styles.rescueStepText}>SAVE AHIRU</Text></View>
+              </View>
+              <Text style={styles.storyBody}>Read the relationship, choose the natural phrase, and stop each pirate shove before Ahiru reaches the sea.</Text>
               <View style={styles.storyRules}><View style={styles.storyRule}><Ionicons name="heart" size={17} color="#65A936" /><Text style={styles.storyRuleText}>6 Starter lives</Text></View><View style={styles.storyRule}><Ionicons name="flame" size={17} color="#E58B2A" /><Text style={styles.storyRuleText}>3 Hard lives</Text></View></View>
               <Pressable style={styles.primaryButton} onPress={() => setPhase('quiz')}><Text style={styles.primaryButtonText}>{index > 0 ? 'CONTINUE RESCUE' : 'BEGIN THE RESCUE'}</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable>
             </View>
@@ -726,10 +744,10 @@ export default function QuackSituateRecognition() {
     return (
       <ImageBackground source={pirateDeck} style={styles.storyScreen} resizeMode="cover">
         <View style={styles.storyDarkShade} />
-        <View style={styles.gameOverStage}><RescueStage danger={1} mode="failed" /></View>
+        <View style={styles.gameOverStage}><RescueStage danger={1} mode="failed" pirateAction="push" actionKey={index + 1000} falling /></View>
         <Animated.Image
           source={angelAhiru}
-          style={[styles.gameOverAngel, { transform: [{ translateY: angelRise }] }]}
+          style={[styles.gameOverAngel, { opacity: angelOpacity, transform: [{ translateY: angelRise }] }]}
           resizeMode="contain"
         />
         <View style={styles.storyPanel}>
@@ -785,7 +803,16 @@ export default function QuackSituateRecognition() {
       </ScrollView>
 
       <Modal transparent visible={hintVisible} animationType="fade" onRequestClose={() => setHintVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={styles.modalIconSoft}><Ionicons name="bulb-outline" size={29} color="#D88B19" /></View><Text style={styles.modalEyebrow}>RESCUE HINT</Text><Text style={styles.modalTitle}>Read the social clue</Text><Text style={styles.modalBody}>{question.hint}</Text><Pressable style={styles.modalSecondary} onPress={() => setHintVisible(false)}><Text style={styles.modalSecondaryText}>Back to the rescue</Text></Pressable></View></View></Modal>
-      <ReactionModal visible={feedbackVisible} correct={lastCorrect} failed={lastFailed} danger={danger} selected={selected} question={question} onContinue={continueAfterFeedback} />
+      <ReactionModal
+        visible={feedbackVisible}
+        correct={lastCorrect}
+        failed={lastFailed}
+        danger={lastCorrect ? danger : Math.min(1, danger + (1 / maxMistakes))}
+        actionKey={index + mistakes * 100}
+        selected={selected}
+        question={question}
+        onContinue={continueAfterFeedback}
+      />
       <Modal transparent visible={levelVisible} animationType="fade"><View style={styles.modalShade}><View style={styles.levelCard}><View style={styles.hardIcon}><Ionicons name="flame" size={34} color="#FFF" /></View><Text style={styles.levelEyebrow}>STARTER DECK CLEARED</Text><Text style={styles.levelTitle}>The pirate raises the stakes</Text><Text style={styles.levelBody}>Hard mode gives only three chances. Read every social cue closely.</Text><View style={styles.levelStats}><Text>15 trials cleared</Text><Text>{correctCount} correct</Text></View><Pressable style={styles.primaryButton} onPress={() => { setLevelVisible(false); setIndex(15); }}><Text style={styles.primaryButtonText}>BEGIN HARD RESCUE</Text><Ionicons name="flame" size={18} color="#FFF" /></Pressable></View></View></Modal>
       <Modal transparent visible={completeVisible} animationType="fade"><View style={styles.modalShade}><View style={styles.modalCard}><Image source={happyAhiru} style={styles.feedbackMascot} resizeMode="contain" /><Text style={styles.modalEyebrow}>AHIRU RESCUED!</Text><Text style={styles.modalTitle}>Phrase or Plank complete</Text><Text style={styles.finalScore}>{correctCount * 100}</Text><Text style={styles.finalScoreLabel}>points · {correctCount}/{questions.length} correct</Text><Text style={styles.modalBody}>{saving ? 'Saving your rescue report...' : 'Recorded in QuackProgress and available to your teacher.'}</Text><Pressable disabled={saving} style={styles.primaryButton} onPress={() => { setCompleteVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>VIEW RESCUE REPORT</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable></View></View></Modal>
       <Modal transparent visible={exitVisible} animationType="fade" onRequestClose={() => setExitVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={styles.modalIconSoft}><Ionicons name="bookmark-outline" size={28} color="#8423D9" /></View><Text style={styles.modalEyebrow}>PAUSE THE RESCUE?</Text><Text style={styles.modalTitle}>Your place will be saved</Text><Text style={styles.modalBody}>Continue later from this exact trial with the same score and remaining chances.</Text><Pressable style={styles.primaryButton} onPress={() => { setExitVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>SAVE & EXIT</Text></Pressable><Pressable style={styles.modalSecondary} onPress={() => setExitVisible(false)}><Text style={styles.modalSecondaryText}>Keep rescuing Ahiru</Text></Pressable></View></View></Modal>
