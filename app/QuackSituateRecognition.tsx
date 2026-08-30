@@ -38,6 +38,8 @@ type Question = {
 };
 
 const pirateDeck = require('../assets/quacksituate/pirate-rescue/pirate-ship-deck.png');
+const rescueOcean = require('../assets/quacksituate/pirate-rescue/rescue-ocean-mountains.png');
+const rescueShip = require('../assets/quacksituate/pirate-rescue/ship-foreground.png');
 const plankProp = require('../assets/quacksituate/pirate-rescue/plank-prop.png');
 const pirate = require('../assets/quacksituate/pirate-rescue/pirate-neutral.png');
 const piratePush = require('../assets/quacksituate/pirate-rescue/pirate-push.png');
@@ -85,6 +87,8 @@ function PirateActor({
     let impactTimer: ReturnType<typeof setTimeout> | undefined;
     let laughTimer: ReturnType<typeof setTimeout> | undefined;
     let resetTimer: ReturnType<typeof setTimeout> | undefined;
+    let idleBlinkTimer: ReturnType<typeof setTimeout> | undefined;
+    let idleResetTimer: ReturnType<typeof setTimeout> | undefined;
     const sequence = action === 'push'
       ? Animated.sequence([
           Animated.timing(motion, { toValue: -1, duration: 150, easing: Easing.out(Easing.quad), useNativeDriver: true }),
@@ -111,6 +115,10 @@ function PirateActor({
       laughTimer = setTimeout(() => setFrameName('taunt'), 610);
       resetTimer = setTimeout(() => setFrameName('laugh'), 790);
     }
+    if (action === 'idle') {
+      idleBlinkTimer = setTimeout(() => setFrameName('taunt'), 1900);
+      idleResetTimer = setTimeout(() => setFrameName('neutral'), 2090);
+    }
     sequence.start(({ finished }) => {
       if (finished && action === 'idle') setFrameName('neutral');
     });
@@ -119,6 +127,8 @@ function PirateActor({
       if (impactTimer) clearTimeout(impactTimer);
       if (laughTimer) clearTimeout(laughTimer);
       if (resetTimer) clearTimeout(resetTimer);
+      if (idleBlinkTimer) clearTimeout(idleBlinkTimer);
+      if (idleResetTimer) clearTimeout(idleResetTimer);
     };
   }, [action, actionKey, lunge, motion, onImpact]);
 
@@ -160,11 +170,24 @@ function AhiruActor({ source, style, pushX, tilt, hit, fall }: {
   hit: Animated.Value;
   fall: Animated.Value;
 }) {
+  const [frameSource, setFrameSource] = useState(source);
+
+  useEffect(() => {
+    setFrameSource(source);
+    if (source === tiedAhiruEdge) return;
+    const reactionTimer = setTimeout(() => setFrameSource(tiedAhiruHelp), 2350);
+    const restoreTimer = setTimeout(() => setFrameSource(source), 2590);
+    return () => {
+      clearTimeout(reactionTimer);
+      clearTimeout(restoreTimer);
+    };
+  }, [source]);
+
   const shakeX = hit.interpolate({ inputRange: [0, 0.35, 0.7, 1], outputRange: [0, 9, -7, 0] });
   const shakeScale = hit.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 0.92, 1] });
   return (
     <Animated.Image
-      source={source}
+      source={frameSource}
       style={[
         style,
         {
@@ -180,6 +203,15 @@ function AhiruActor({ source, style, pushX, tilt, hit, fall }: {
       ]}
       resizeMode="contain"
     />
+  );
+}
+
+function RescueEnvironment() {
+  return (
+    <>
+      <Image source={rescueOcean} style={styles.rescueEnvironment} resizeMode="cover" />
+      <Image source={rescueShip} style={styles.rescueShipForeground} resizeMode="contain" />
+    </>
   );
 }
 
@@ -285,7 +317,7 @@ function RescueStage({
       style={styles.rescueStage}
       onLayout={(event) => setStageWidth(event.nativeEvent.layout.width)}
     >
-      <Image source={pirateDeck} style={styles.rescueEnvironment} resizeMode="cover" />
+      <RescueEnvironment />
       <Animated.View style={[styles.seaGlint, { transform: [{ translateY: seaY }] }]} />
       <View style={styles.plankRig}>
         <Image source={plankProp} style={styles.plankProp} resizeMode="contain" />

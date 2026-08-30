@@ -24,17 +24,6 @@ export default function QuackSituate() {
   const [launchingMission, setLaunchingMission] = useState<(typeof missions)[number] | null>(null);
   const [showFieldNote, setShowFieldNote] = useState(true);
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const rescueMotion = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const animation = Animated.sequence([
-      Animated.delay(500),
-      Animated.timing(rescueMotion, { toValue: 1, duration: 420, useNativeDriver: true }),
-      Animated.timing(rescueMotion, { toValue: 0, duration: 320, useNativeDriver: true }),
-    ]);
-    animation.start();
-    return () => animation.stop();
-  }, [rescueMotion]);
 
   useEffect(() => {
     if (skipLoading === '1') {
@@ -155,7 +144,7 @@ export default function QuackSituate() {
                     top: 0,
                     right: 0,
                     bottom: 0,
-                    width: '58%',
+                    width: '52%',
                     zIndex: 1,
                   }}
                 >
@@ -164,9 +153,9 @@ export default function QuackSituate() {
                     resizeMode="contain"
                     style={{
                       position: 'absolute',
-                      right: -30,
+                      right: -25,
                       bottom: -1,
-                      width: '116%',
+                      width: '112%',
                       height: '44%',
                       transform: [{ rotate: '-2deg' }],
                     }}
@@ -176,35 +165,22 @@ export default function QuackSituate() {
                     resizeMode="contain"
                     style={{
                       position: 'absolute',
-                      left: -12,
+                      left: -4,
                       bottom: 36,
-                      width: '62%',
+                      width: '58%',
                       height: '72%',
                     }}
                   />
-                  <Animated.Image
+                  <Image
                     source={rescueAhiru}
                     resizeMode="contain"
                     style={{
                       position: 'absolute',
-                      right: 2,
+                      right: -1,
                       bottom: 30,
-                      width: '54%',
+                      width: '51%',
                       height: '64%',
-                      transform: [
-                        {
-                          translateX: rescueMotion.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: [0, 5],
-                          }),
-                        },
-                        {
-                          rotate: rescueMotion.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: ['-1deg', '2deg'],
-                          }),
-                        },
-                      ],
+                      transform: [{ rotate: '0deg' }],
                     }}
                   />
                   <View
