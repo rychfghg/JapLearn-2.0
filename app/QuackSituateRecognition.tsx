@@ -37,7 +37,7 @@ type Question = {
   explanation: string;
 };
 
-const pirateDeck = require('../assets/quacksituate/pirate-rescue/pirate-deck-open-sea.png');
+const pirateDeck = require('../assets/quacksituate/pirate-rescue/pirate-ship-deck.png');
 const plankProp = require('../assets/quacksituate/pirate-rescue/plank-prop.png');
 const pirate = require('../assets/quacksituate/pirate-rescue/pirate-neutral.png');
 const piratePush = require('../assets/quacksituate/pirate-rescue/pirate-push.png');
@@ -199,7 +199,6 @@ function RescueStage({
   const [stageWidth, setStageWidth] = useState(360);
   const push = useRef(new Animated.Value(0)).current;
   const oceanSway = useRef(new Animated.Value(0)).current;
-  const impact = useRef(new Animated.Value(0)).current;
   const hit = useRef(new Animated.Value(0)).current;
   const fall = useRef(new Animated.Value(0)).current;
 
@@ -229,17 +228,12 @@ function RescueStage({
   }, [fall, falling]);
 
   const playImpact = useCallback(() => {
-    impact.setValue(0);
     hit.setValue(0);
-    Animated.sequence([
-      Animated.timing(impact, { toValue: 1, duration: 90, useNativeDriver: true }),
-      Animated.timing(impact, { toValue: 0, duration: 260, useNativeDriver: true }),
-    ]).start();
     Animated.sequence([
       Animated.timing(hit, { toValue: 1, duration: 105, useNativeDriver: true }),
       Animated.timing(hit, { toValue: 0, duration: 230, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
     ]).start();
-  }, [hit, impact]);
+  }, [hit]);
 
   useEffect(() => {
     const sea = Animated.loop(
@@ -266,7 +260,8 @@ function RescueStage({
     };
   }, [oceanSway]);
 
-  const ahiruTravel = Math.max(56, stageWidth * 0.31);
+  // Discrete danger targets keep Ahiru completely visible until the final fall.
+  const ahiruTravel = Math.min(82, Math.max(42, stageWidth * 0.2));
   const ahiruX = push.interpolate({
     inputRange: [0, 1],
     outputRange: [0, ahiruTravel],
@@ -299,20 +294,8 @@ function RescueStage({
           style={styles.rescuePirate}
           actionKey={actionKey}
           onImpact={pirateAction === 'push' || mode === 'failed' ? playImpact : undefined}
-          contactDistance={Math.max(34, stageWidth * 0.12)}
+          contactDistance={Math.min(54, Math.max(36, stageWidth * 0.105))}
         />
-        <Animated.View
-          pointerEvents="none"
-          style={[
-            styles.pushImpact,
-            {
-              opacity: impact,
-              transform: [{ scale: impact.interpolate({ inputRange: [0, 1], outputRange: [0.55, 1.35] }) }],
-            },
-          ]}
-        >
-          <Ionicons name="flash" size={30} color="#FFE36D" />
-        </Animated.View>
         <AhiruActor
           source={ahiruSource}
           style={styles.rescueAhiru}
@@ -365,7 +348,7 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
         <View style={styles.reactionCard}>
           <View style={styles.reactionScene}>
             <RescueStage
-              danger={correct ? Math.max(0, danger - 0.12) : danger}
+              danger={danger}
               mode={failed ? 'failed' : 'live'}
               pirateAction={correct ? 'idle' : 'push'}
               actionKey={actionKey}
@@ -373,6 +356,12 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
             <View style={[styles.reactionTag, correct ? styles.reactionTagGood : styles.reactionTagWrong]}>
               <Text style={styles.reactionTagText}>
                 {correct ? '+100 · PIRATE BLOCKED' : failed ? 'THE FINAL PUSH!' : 'PIRATE PUSHED AHIRU'}
+              </Text>
+            </View>
+            <View style={styles.reactionDialogue}>
+              <Text style={styles.reactionDialogueSpeaker}>{correct ? 'AHIRU' : 'PHRASE PIRATE'}</Text>
+              <Text style={styles.reactionDialogueText}>
+                {correct ? 'やった！ たすかった！' : failed ? 'ハハハ！ これで終わりだ！' : 'ハハハ！ もう一歩だ！'}
               </Text>
             </View>
           </View>
@@ -444,38 +433,69 @@ export default function QuackSituateRecognition() {
   const musicRef = useRef<Audio.Sound | null>(null);
   const sfxRef = useRef<Audio.Sound | null>(null);
   const feedbackSfxTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const remoteSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const angelRise = useRef(new Animated.Value(240)).current;
   const angelOpacity = useRef(new Animated.Value(0)).current;
   const storageKey = `ahiru-rescue:${String(user?.email || 'guest').toLowerCase()}`;
 
   useEffect(() => {
     let mounted = true;
-    fetch(`${expoconfig.API_URL}/api/situational/questions?gameType=RECOGNITION&activeOnly=true`)
-      .then(async (response) => {
-        if (!response.ok) throw new Error();
-        return response.json();
-      })
-      .then(async (data: Question[]) => {
-        if (!mounted) return;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 9000);
+
+    const restore = async () => {
+      try {
+        const response = await fetch(
+          `${expoconfig.API_URL}/api/situational/questions?gameType=RECOGNITION&activeOnly=true`,
+          { signal: controller.signal },
+        );
+        if (!response.ok) throw new Error('questions');
+        const data: Question[] = await response.json();
         const ordered = [...data]
           .sort((a, b) => a.order - b.order)
           .map((item) => ({ ...item, choices: shuffle(item.choices) }));
+        if (!mounted) return;
         setQuestions(ordered);
         setError(ordered.length ? '' : 'No published rescue missions were found.');
-        const saved = await AsyncStorage.getItem(storageKey);
-        if (saved && ordered.length) {
-          const run = JSON.parse(saved);
-          setIndex(Math.min(Number(run.index) || 0, ordered.length - 1));
+
+        const localValue = await AsyncStorage.getItem(storageKey);
+        let run = localValue ? JSON.parse(localValue) : null;
+        if (user?.email) {
+          try {
+            const runResponse = await fetch(
+              `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=RECOGNITION`,
+              { signal: controller.signal },
+            );
+            if (runResponse.ok && runResponse.status !== 204) {
+              run = await runResponse.json();
+            }
+          } catch {
+            // Offline/local fallback intentionally retained.
+          }
+        }
+        if (run && ordered.length) {
+          const restoredIndex = Number(run.questionIndex ?? run.index) || 0;
+          setIndex(Math.min(restoredIndex, ordered.length - 1));
           setCorrectCount(Number(run.correctCount) || 0);
           setEasyMistakes(Number(run.easyMistakes) || 0);
           setHardMistakes(Number(run.hardMistakes) || 0);
           setHintsUsed(Number(run.hintsUsed) || 0);
+          setPhase('quiz');
         }
-      })
-      .catch(() => mounted && setError('Start the updated JapLearn backend to load rescue missions.'))
-      .finally(() => mounted && setLoading(false));
-    return () => { mounted = false; };
-  }, [storageKey]);
+      } catch {
+        if (mounted) setError('The rescue missions took too long to load. Please try again.');
+      } finally {
+        clearTimeout(timeout);
+        if (mounted) setLoading(false);
+      }
+    };
+    void restore();
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [storageKey, user?.email]);
 
   useEffect(() => {
     let cancelled = false;
@@ -549,14 +569,32 @@ export default function QuackSituateRecognition() {
 
   useEffect(() => {
     if (!questions.length || phase !== 'quiz') return;
-    void AsyncStorage.setItem(storageKey, JSON.stringify({
+    const run = {
       index,
+      questionIndex: index,
       correctCount,
       easyMistakes,
       hardMistakes,
       hintsUsed,
-    }));
-  }, [index, correctCount, easyMistakes, hardMistakes, hintsUsed, phase, questions.length, storageKey]);
+    };
+    void AsyncStorage.setItem(storageKey, JSON.stringify(run));
+    if (!user?.email) return;
+    if (remoteSaveTimer.current) clearTimeout(remoteSaveTimer.current);
+    remoteSaveTimer.current = setTimeout(() => {
+      void fetch(`${expoconfig.API_URL}/api/situational/runs/current`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...run,
+          email: user.email,
+          gameType: 'RECOGNITION',
+        }),
+      }).catch(() => undefined);
+    }, 450);
+    return () => {
+      if (remoteSaveTimer.current) clearTimeout(remoteSaveTimer.current);
+    };
+  }, [index, correctCount, easyMistakes, hardMistakes, hintsUsed, phase, questions.length, storageKey, user?.email]);
 
   const question = questions[index];
   const isHard = question?.difficulty === 'HARD';
@@ -627,6 +665,10 @@ export default function QuackSituateRecognition() {
         }),
       });
       await AsyncStorage.removeItem(storageKey);
+      await fetch(
+        `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=RECOGNITION`,
+        { method: 'DELETE' },
+      ).catch(() => undefined);
     } finally {
       setSaving(false);
     }
@@ -652,6 +694,12 @@ export default function QuackSituateRecognition() {
 
   const resetGame = async () => {
     await AsyncStorage.removeItem(storageKey);
+    if (user?.email) {
+      await fetch(
+        `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=RECOGNITION`,
+        { method: 'DELETE' },
+      ).catch(() => undefined);
+    }
     setIndex(0);
     setCorrectCount(0);
     setEasyMistakes(0);
@@ -694,7 +742,6 @@ export default function QuackSituateRecognition() {
             <View style={[styles.characterDialogue, styles.ahiruDialogue]}>
               <Text style={styles.dialogueSpeaker}>AHIRU</Text>
               <Text style={styles.dialogueJapanese}>たすけて！ 海に落ちちゃう！</Text>
-              <Text style={styles.dialogueRomaji}>Tasukete! Umi ni ochichau! · Help! I’m going to fall!</Text>
             </View>
           </>
         )}
@@ -704,8 +751,7 @@ export default function QuackSituateRecognition() {
             <View style={styles.introStageWrap}><RescueStage danger={0.28} mode="intro" pirateAction="laugh" /></View>
             <View style={[styles.characterDialogue, styles.pirateDialogue]}>
               <Text style={styles.dialogueSpeaker}>THE PHRASE PIRATE</Text>
-              <Text style={styles.dialogueJapanese}>正しいことばをえらべ！</Text>
-              <Text style={styles.dialogueRomaji}>Choose the phrase that fits—or Ahiru moves closer to the sea!</Text>
+              <Text style={styles.dialogueJapanese}>ハハハ！ まちがえたら一歩だ！</Text>
             </View>
           </>
         )}
