@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { router } from 'expo-router';
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -43,6 +43,7 @@ const rescueShip = require('../assets/quacksituate/pirate-rescue/ship-foreground
 const pirate = require('../assets/quacksituate/pirate-rescue/pirate-idle-cage-drop.png');
 const pirateBlink = require('../assets/quacksituate/pirate-rescue/pirate-blink-cage-drop.png');
 const pirateAngry = require('../assets/quacksituate/pirate-rescue/pirate-angry-cage-drop.png');
+const pirateLaugh = require('../assets/quacksituate/pirate-rescue/pirate-laugh.png');
 const cageAhiruIdle = require('../assets/quacksituate/pirate-rescue/cage-ahiru-idle.png');
 const cageAhiruBlink = require('../assets/quacksituate/pirate-rescue/cage-ahiru-blink.png');
 const cageAhiruCry = require('../assets/quacksituate/pirate-rescue/cage-ahiru-cry.png');
@@ -67,106 +68,55 @@ function PirateActor({
   style,
   actionKey = 0,
   onImpact,
-  contactDistance = 44,
 }: {
   action: 'idle' | 'laugh' | 'push';
   style: any;
   actionKey?: number;
   onImpact?: () => void;
-  contactDistance?: number;
 }) {
-  const lunge = useRef(new Animated.Value(0)).current;
-  const motion = useRef(new Animated.Value(0)).current;
-  const [frameName, setFrameName] = useState<'neutral' | 'blink' | 'angry'>('neutral');
+  const [frameName, setFrameName] = useState<'neutral' | 'blink' | 'angry' | 'laugh'>('neutral');
 
   useEffect(() => {
-    lunge.stopAnimation();
-    motion.stopAnimation();
-    lunge.setValue(0);
-    motion.setValue(0);
-    setFrameName(action === 'idle' ? 'neutral' : 'angry');
-
-    let impactTimer: ReturnType<typeof setTimeout> | undefined;
-    let laughTimer: ReturnType<typeof setTimeout> | undefined;
-    let resetTimer: ReturnType<typeof setTimeout> | undefined;
-    let idleBlinkTimer: ReturnType<typeof setTimeout> | undefined;
-    let idleResetTimer: ReturnType<typeof setTimeout> | undefined;
-    const sequence = action === 'push'
-      ? Animated.sequence([
-          Animated.timing(motion, { toValue: -1, duration: 150, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-          Animated.timing(lunge, { toValue: 1, duration: 235, easing: Easing.in(Easing.cubic), useNativeDriver: true }),
-          Animated.delay(180),
-          Animated.timing(lunge, { toValue: 0, duration: 310, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-          Animated.timing(motion, { toValue: 0, duration: 120, useNativeDriver: true }),
-        ])
-      : action === 'laugh'
-        ? Animated.sequence([
-            Animated.timing(motion, { toValue: 1, duration: 150, useNativeDriver: true }),
-            Animated.timing(motion, { toValue: 0, duration: 150, useNativeDriver: true }),
-            Animated.timing(motion, { toValue: 1, duration: 150, useNativeDriver: true }),
-            Animated.timing(motion, { toValue: 0, duration: 150, useNativeDriver: true }),
-          ])
-        : Animated.sequence([
-            Animated.delay(700),
-            Animated.timing(motion, { toValue: 0.55, duration: 160, useNativeDriver: true }),
-            Animated.timing(motion, { toValue: 0, duration: 160, useNativeDriver: true }),
-          ]);
-
-    if (action === 'push' && onImpact) {
-      impactTimer = setTimeout(onImpact, 375);
-      laughTimer = setTimeout(() => setFrameName('angry'), 610);
-      resetTimer = setTimeout(() => setFrameName('neutral'), 980);
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    if (action === 'push') {
+      setFrameName('angry');
+      if (onImpact) timers.push(setTimeout(onImpact, 360));
+      timers.push(setTimeout(() => setFrameName('laugh'), 520));
+      timers.push(setTimeout(() => setFrameName('neutral'), 980));
+    } else if (action === 'laugh') {
+      setFrameName('laugh');
+      timers.push(setTimeout(() => setFrameName('blink'), 520));
+      timers.push(setTimeout(() => setFrameName('laugh'), 720));
+      timers.push(setTimeout(() => setFrameName('neutral'), 1280));
+    } else {
+      setFrameName('neutral');
+      timers.push(setTimeout(() => setFrameName('blink'), 1750));
+      timers.push(setTimeout(() => setFrameName('neutral'), 1980));
     }
-    if (action === 'idle') {
-      idleBlinkTimer = setTimeout(() => setFrameName('blink'), 1900);
-      idleResetTimer = setTimeout(() => setFrameName('neutral'), 2090);
-    }
-    sequence.start(({ finished }) => {
-      if (finished && action === 'idle') setFrameName('neutral');
-    });
     return () => {
-      sequence.stop();
-      if (impactTimer) clearTimeout(impactTimer);
-      if (laughTimer) clearTimeout(laughTimer);
-      if (resetTimer) clearTimeout(resetTimer);
-      if (idleBlinkTimer) clearTimeout(idleBlinkTimer);
-      if (idleResetTimer) clearTimeout(idleResetTimer);
+      timers.forEach(clearTimeout);
     };
-  }, [action, actionKey, lunge, motion, onImpact]);
+  }, [action, actionKey, onImpact]);
 
-  const translateX = lunge.interpolate({ inputRange: [0, 1], outputRange: [0, contactDistance] });
-  const translateY = motion.interpolate({ inputRange: [-1, 0, 1], outputRange: [2, 0, -5] });
-  const rotate = motion.interpolate({ inputRange: [-1, 0, 1], outputRange: ['-4deg', '0deg', '3deg'] });
   const frameSource = frameName === 'blink'
     ? pirateBlink
     : frameName === 'angry'
       ? pirateAngry
+      : frameName === 'laugh'
+        ? pirateLaugh
       : pirate;
 
   return (
-    <Animated.View
-      pointerEvents="none"
-      style={[
-        style,
-        {
-          transform: [
-            { translateX },
-            { translateY },
-            { rotate },
-          ],
-        },
-      ]}
-    >
+    <View pointerEvents="none" style={style}>
       <Animated.Image source={frameSource} resizeMode="contain" style={styles.pirateFrame} />
-    </Animated.View>
+    </View>
   );
 }
 
-function CageActor({ mood, style, dropY, hit, fall }: {
+function CageActor({ mood, style, dropY, fall }: {
   mood: 'idle' | 'smile' | 'cry';
   style: any;
   dropY: Animated.AnimatedInterpolation<number>;
-  hit: Animated.Value;
   fall: Animated.Value;
 }) {
   const [frameSource, setFrameSource] = useState(cageAhiruIdle);
@@ -178,17 +128,20 @@ function CageActor({ mood, style, dropY, hit, fall }: {
         ? cageAhiruCry
         : cageAhiruIdle;
     setFrameSource(baseSource);
-    if (mood === 'cry') return;
-    const reactionTimer = setTimeout(() => setFrameSource(cageAhiruBlink), 1850);
-    const restoreTimer = setTimeout(() => setFrameSource(baseSource), 2050);
+    const reactionTimer = setTimeout(
+      () => setFrameSource(cageAhiruBlink),
+      mood === 'cry' ? 760 : 1850,
+    );
+    const restoreTimer = setTimeout(
+      () => setFrameSource(baseSource),
+      mood === 'cry' ? 970 : 2050,
+    );
     return () => {
       clearTimeout(reactionTimer);
       clearTimeout(restoreTimer);
     };
   }, [mood]);
 
-  const shakeX = hit.interpolate({ inputRange: [0, 0.35, 0.7, 1], outputRange: [0, 6, -5, 0] });
-  const cageTilt = hit.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['0deg', '-3deg', '0deg'] });
   return (
     <Animated.View
       style={[
@@ -196,8 +149,6 @@ function CageActor({ mood, style, dropY, hit, fall }: {
         {
           transform: [
             { translateY: Animated.add(dropY, fall.interpolate({ inputRange: [0, 0.18, 1], outputRange: [0, -10, 360] })) },
-            { translateX: shakeX },
-            { rotate: cageTilt },
           ],
           opacity: fall.interpolate({ inputRange: [0, 0.72, 1], outputRange: [1, 1, 0] }),
         },
@@ -235,7 +186,6 @@ function RescueStage({
   const drop = useRef(new Animated.Value(0)).current;
   const ropeDrop = useRef(new Animated.Value(0)).current;
   const oceanSway = useRef(new Animated.Value(0)).current;
-  const hit = useRef(new Animated.Value(0)).current;
   const fall = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -271,20 +221,6 @@ function RescueStage({
       }),
     ]).start();
   }, [fall, falling]);
-
-  const playImpact = useCallback(() => {
-    hit.setValue(0);
-    Animated.sequence([
-      Animated.timing(hit, { toValue: 1, duration: 105, useNativeDriver: true }),
-      Animated.timing(hit, { toValue: 0, duration: 230, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
-    ]).start();
-  }, [hit]);
-
-  useEffect(() => {
-    if (pirateAction !== 'push' && mode !== 'failed') return;
-    const impactTimer = setTimeout(playImpact, 340);
-    return () => clearTimeout(impactTimer);
-  }, [actionKey, mode, pirateAction, playImpact]);
 
   useEffect(() => {
     const sea = Animated.loop(
@@ -341,11 +277,9 @@ function RescueStage({
       <View style={styles.rescueMechanism}>
         <Image source={piratePortPlatform} style={styles.portPlatformSprite} resizeMode="contain" />
         <PirateActor
-          action={mode === 'failed' ? 'laugh' : pirateAction === 'push' ? 'laugh' : pirateAction}
+          action={mode === 'failed' ? 'laugh' : pirateAction}
           style={styles.rescuePirate}
           actionKey={actionKey}
-          onImpact={pirateAction === 'push' || mode === 'failed' ? playImpact : undefined}
-          contactDistance={0}
         />
         <View style={styles.pulleyBeam} />
         {!falling && (
@@ -370,7 +304,6 @@ function RescueStage({
           mood={cageMood}
           style={styles.rescueCage}
           dropY={cageY}
-          hit={hit}
           fall={fall}
         />
       </View>
@@ -396,6 +329,26 @@ function RescueStage({
         >
           <Ionicons name="paw" size={12} color="#FFF" />
         </Animated.View>
+      </View>
+    </View>
+  );
+}
+
+function RescueAftermathStage({ actionKey }: { actionKey: number }) {
+  return (
+    <View style={styles.rescueStage}>
+      <RescueEnvironment />
+      <View style={styles.rescueMechanism}>
+        <Image source={piratePortPlatform} style={styles.portPlatformSprite} resizeMode="contain" />
+        <PirateActor
+          action="laugh"
+          style={styles.rescuePirate}
+          actionKey={actionKey}
+        />
+      </View>
+      <View style={styles.aftermathWaterline}>
+        <Ionicons name="water" size={13} color="#FFFFFF" />
+        <Text style={styles.aftermathWaterlineText}>THE CAGE HAS FALLEN</Text>
       </View>
     </View>
   );
@@ -499,7 +452,6 @@ export default function QuackSituateRecognition() {
   const feedbackSfxTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const remoteSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const angelRise = useRef(new Animated.Value(240)).current;
-  const angelOpacity = useRef(new Animated.Value(0)).current;
   const storageKey = `ahiru-rescue:${String(user?.email || 'guest').toLowerCase()}`;
 
   useEffect(() => {
@@ -613,27 +565,18 @@ export default function QuackSituateRecognition() {
 
   useEffect(() => {
     if (phase !== 'gameover') return;
-    angelRise.setValue(260);
-    angelOpacity.setValue(0);
+    angelRise.setValue(520);
     Animated.sequence([
-      Animated.delay(1550),
-      Animated.parallel([
-        Animated.timing(angelRise, {
-          toValue: 20,
-          duration: 1050,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: true,
-        }),
-        Animated.timing(angelOpacity, { toValue: 1, duration: 420, useNativeDriver: true }),
-      ]),
-      Animated.delay(850),
-      Animated.parallel([
-        Animated.timing(angelRise, { toValue: -180, duration: 1200, easing: Easing.in(Easing.quad), useNativeDriver: true }),
-        Animated.timing(angelOpacity, { toValue: 0, duration: 900, useNativeDriver: true }),
-      ]),
+      Animated.delay(280),
+      Animated.timing(angelRise, {
+        toValue: -920,
+        duration: 3200,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: true,
+      }),
     ]).start();
     void playSfx(require('../assets/audio/sfx/incorrect.mp3'));
-  }, [angelOpacity, angelRise, phase]);
+  }, [angelRise, phase]);
 
   useEffect(() => {
     if (!questions.length || phase !== 'quiz') return;
@@ -867,10 +810,10 @@ export default function QuackSituateRecognition() {
     return (
       <ImageBackground source={pirateDeck} style={styles.storyScreen} resizeMode="cover">
         <View style={styles.storyDarkShade} />
-        <View style={styles.gameOverStage}><RescueStage danger={1} mode="failed" pirateAction="push" actionKey={index + 1000} falling /></View>
+        <View style={styles.gameOverStage}><RescueAftermathStage actionKey={index + 1000} /></View>
         <Animated.Image
           source={angelAhiru}
-          style={[styles.gameOverAngel, { opacity: angelOpacity, transform: [{ translateY: angelRise }] }]}
+          style={[styles.gameOverAngel, { transform: [{ translateY: angelRise }] }]}
           resizeMode="contain"
         />
         <View style={styles.storyPanel}>
