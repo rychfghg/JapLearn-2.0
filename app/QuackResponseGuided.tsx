@@ -48,6 +48,14 @@ type StoryNode = {
   secondaryExpressionKey?: string;
   backgroundKey?: string;
   audioUrl?: string;
+  bgmUrl?: string;
+  bgmEnabled?: boolean;
+  bgmVolume?: number;
+  bgmFadeMs?: number;
+  hint?: string;
+  hintPenalty?: number;
+  characterPosition?: CharacterPosition;
+  secondaryCharacterPosition?: CharacterPosition;
   spritesVisible?: boolean;
   tapToContinue?: boolean;
   shuffleChoices?: boolean;
@@ -62,8 +70,13 @@ type Chapter = {
   learningObjectives: string[];
   startNodeId: string;
   order: number;
+  bgmUrl?: string;
+  bgmEnabled?: boolean;
+  bgmVolume?: number;
+  bgmFadeMs?: number;
   nodes: StoryNode[];
 };
+type CharacterPosition = 'LEFT' | 'CENTER_LEFT' | 'CENTER' | 'CENTER_RIGHT' | 'RIGHT';
 type AnswerRecord = {
   nodeId: string;
   prompt: string;
@@ -112,6 +125,15 @@ const sprites: Record<string, Record<string, any>> = {
     SMILE: require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png'),
     CORRECT: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png'),
     WRONG: require('../assets/img/Sumi_PoseB_WinterUni_Frown.png'),
+    HAPPY: require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png'),
+    SURPRISED: require('../assets/img/Sumi_PoseB_WinterUni_Open_Blush.png'),
+    CONFUSED: require('../assets/img/Sumi_PoseB_WinterUni_Frown_Blush.png'),
+    WORRIED: require('../assets/img/Sumi_PoseB_WinterUni_Frown.png'),
+    SAD: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Frown.png'),
+    EMBARRASSED: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile_Blush.png'),
+    ANNOYED: require('../assets/img/Sumi_PoseB_WinterUni_Frown_Blush.png'),
+    ANGRY: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Frown_Blush.png'),
+    SERIOUS: require('../assets/img/Sumi_PoseB_WinterUni_Frown.png'),
   },
   HARU: {
     NEUTRAL: require('../assets/img/Sprite Male Dark Hair Neu01.png'),
@@ -119,7 +141,22 @@ const sprites: Record<string, Record<string, any>> = {
     SMILE: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
     CORRECT: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
     WRONG: require('../assets/img/Sprite Male Dark Hair Sad01.png'),
+    HAPPY: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
+    SURPRISED: require('../assets/img/Sprite Male Dark Hair Apo01.png'),
+    CONFUSED: require('../assets/img/Sprite Male Dark Hair Con01.png'),
+    WORRIED: require('../assets/img/Sprite Male Dark Hair Sad01.png'),
+    SAD: require('../assets/img/Sprite Male Dark Hair Sad01.png'),
+    EMBARRASSED: require('../assets/img/Sprite Male Dark Hair Sly01.png'),
+    ANNOYED: require('../assets/img/Sprite Male Dark Hair Ann01.png'),
+    ANGRY: require('../assets/img/Sprite Male Dark Hair Ang01.png'),
+    SERIOUS: require('../assets/img/Sprite Male Dark Hair Neu01.png'),
   },
+};
+
+const bundledBgm: Record<string, any> = {
+  calm: require('../assets/audio/sfx/quiz.mp3'),
+  busy: require('../assets/audio/sfx/quackmanbg.mp3'),
+  ending: require('../assets/audio/sfx/quiz.mp3'),
 };
 
 const evaluationTheme: Record<Evaluation, { label: string; color: string; icon: any }> = {
@@ -139,6 +176,28 @@ const shuffle = <T,>(items: T[]) => {
   return copy;
 };
 
+const positionStyleFor = (position?: CharacterPosition, fallback?: any) => {
+  switch (position) {
+    case 'LEFT': return styles.spriteLeft;
+    case 'CENTER_LEFT': return styles.spriteCenterLeft;
+    case 'CENTER': return styles.spriteCenter;
+    case 'CENTER_RIGHT': return styles.spriteCenterRight;
+    case 'RIGHT': return styles.spriteRight;
+    default: return fallback ?? styles.spriteCenter;
+  }
+};
+
+const choicePositionStyleFor = (position?: CharacterPosition, fallback?: any) => {
+  switch (position) {
+    case 'LEFT': return styles.choicePositionLeft;
+    case 'CENTER_LEFT': return styles.choicePositionCenterLeft;
+    case 'CENTER': return styles.choicePositionCenter;
+    case 'CENTER_RIGHT': return styles.choicePositionCenterRight;
+    case 'RIGHT': return styles.choicePositionRight;
+    default: return fallback ?? styles.choicePositionCenter;
+  }
+};
+
 type SpriteActorProps = {
   characterKey: string;
   expressionKey?: string;
@@ -154,14 +213,15 @@ function SpriteActor({
 }: SpriteActorProps) {
   const expressionOpacity = useRef(new Animated.Value(0)).current;
   const bodyScale = useRef(new Animated.Value(1)).current;
-  const baseSource = sprites[characterKey]?.NEUTRAL;
-  const expressionSource = sprites[characterKey]?.[expressionKey] ?? baseSource;
+  const neutralSource = sprites[characterKey]?.NEUTRAL;
+  const expressionSource = sprites[characterKey]?.[expressionKey] ?? neutralSource;
   const motionSource = characterKey === 'SUMI'
     ? sprites.SUMI.SPEAKING
     : sprites.HARU.SPEAKING;
   const restingMotionSource = characterKey === 'SUMI'
     ? sprites.SUMI.CORRECT
     : sprites.HARU.SMILE;
+  const canUseRestingMotion = ['NEUTRAL', 'SMILE', 'HAPPY', 'CORRECT'].includes(expressionKey);
 
   useEffect(() => {
     expressionOpacity.stopAnimation();
@@ -218,13 +278,17 @@ function SpriteActor({
       ]}
     >
       <Image
-        source={baseSource}
+        source={expressionSource}
         style={styles.spriteLayer}
         resizeMode="contain"
         fadeDuration={0}
       />
       <Animated.Image
-        source={speaking ? motionSource : restingMotionSource ?? expressionSource}
+        source={speaking
+          ? motionSource
+          : canUseRestingMotion
+            ? restingMotionSource ?? neutralSource
+            : expressionSource}
         style={[styles.spriteLayer, { opacity: expressionOpacity }]}
         resizeMode="contain"
         fadeDuration={0}
@@ -248,8 +312,12 @@ export default function ReplyCoachStory() {
   const [saving, setSaving] = useState(false);
   const [typedNarration, setTypedNarration] = useState('');
   const [narrationFinished, setNarrationFinished] = useState(false);
+  const [hintVisible, setHintVisible] = useState(false);
+  const [hintUsed, setHintUsed] = useState(false);
   const fade = useRef(new Animated.Value(0)).current;
   const backgroundMusic = useRef<Audio.Sound | null>(null);
+  const backgroundMusicKey = useRef('');
+  const musicGeneration = useRef(0);
 
   const nodes = useMemo(
     () => new Map((chapter?.nodes ?? []).map((node) => [node.id, node])),
@@ -270,35 +338,83 @@ export default function ReplyCoachStory() {
     void loadStory();
   }, [user?.email]);
 
-  useEffect(() => {
-    let mounted = true;
+  useEffect(() => () => {
+    musicGeneration.current += 1;
+    const sound = backgroundMusic.current;
+    backgroundMusic.current = null;
+    backgroundMusicKey.current = '';
+    if (sound) void sound.stopAsync().finally(() => sound.unloadAsync());
+  }, []);
 
-    const startBackgroundMusic = async () => {
+  useEffect(() => {
+    if (!chapter || !currentNode) return;
+    const enabled = currentNode.bgmEnabled ?? chapter.bgmEnabled ?? true;
+    const configuredUrl = currentNode.bgmUrl || chapter.bgmUrl || 'bundled:calm';
+    const targetVolume = Math.max(0, Math.min(0.35, currentNode.bgmVolume ?? chapter.bgmVolume ?? 0.1));
+    const fadeMs = Math.max(0, currentNode.bgmFadeMs ?? chapter.bgmFadeMs ?? 700);
+    const resolvedUrl = configuredUrl.startsWith('/api/')
+      ? `${expoconfig.API_URL}${configuredUrl}`
+      : configuredUrl;
+    const trackKey = enabled ? resolvedUrl : 'disabled';
+    const generation = ++musicGeneration.current;
+
+    const fadeVolume = async (sound: Audio.Sound, from: number, to: number) => {
+      const steps = fadeMs === 0 ? 1 : 8;
+      for (let step = 1; step <= steps; step += 1) {
+        if (generation !== musicGeneration.current) return;
+        const volume = from + ((to - from) * step) / steps;
+        await sound.setVolumeAsync(volume).catch(() => undefined);
+        if (fadeMs > 0) await new Promise((resolve) => setTimeout(resolve, fadeMs / steps));
+      }
+    };
+
+    const syncMusic = async () => {
       try {
         await Audio.setAudioModeAsync({
           playsInSilentModeIOS: true,
           staysActiveInBackground: false,
           shouldDuckAndroid: true,
         });
-        const { sound } = await Audio.Sound.createAsync(
-          require('../assets/audio/sfx/quiz.mp3'),
-          { isLooping: true, volume: 0.12, shouldPlay: true },
-        );
-        if (mounted) backgroundMusic.current = sound;
-        else await sound.unloadAsync();
+
+        if (backgroundMusicKey.current === trackKey && backgroundMusic.current) {
+          await backgroundMusic.current.setVolumeAsync(targetVolume);
+          const status = await backgroundMusic.current.getStatusAsync();
+          if (status.isLoaded && !status.isPlaying) await backgroundMusic.current.playAsync();
+          return;
+        }
+
+        const previous = backgroundMusic.current;
+        backgroundMusic.current = null;
+        backgroundMusicKey.current = '';
+        if (previous) {
+          await fadeVolume(previous, targetVolume, 0);
+          await previous.stopAsync().catch(() => undefined);
+          await previous.unloadAsync().catch(() => undefined);
+        }
+        if (!enabled || generation !== musicGeneration.current) return;
+
+        const source = resolvedUrl.startsWith('bundled:')
+          ? bundledBgm[resolvedUrl.slice('bundled:'.length)] ?? bundledBgm.calm
+          : { uri: resolvedUrl };
+        const { sound } = await Audio.Sound.createAsync(source, {
+          isLooping: true,
+          volume: fadeMs > 0 ? 0 : targetVolume,
+          shouldPlay: true,
+        });
+        if (generation !== musicGeneration.current) {
+          await sound.unloadAsync();
+          return;
+        }
+        backgroundMusic.current = sound;
+        backgroundMusicKey.current = trackKey;
+        if (fadeMs > 0) await fadeVolume(sound, 0, targetVolume);
       } catch {
-        // The story remains playable when a device blocks background audio.
+        // A failed remote scene track falls back on the next interaction without blocking play.
       }
     };
 
-    void startBackgroundMusic();
-    return () => {
-      mounted = false;
-      const sound = backgroundMusic.current;
-      backgroundMusic.current = null;
-      if (sound) void sound.stopAsync().finally(() => sound.unloadAsync());
-    };
-  }, []);
+    void syncMusic();
+  }, [chapter?.id, currentNode?.id, currentNode?.bgmUrl, currentNode?.bgmEnabled]);
 
   useEffect(() => {
     fade.setValue(0);
@@ -330,6 +446,11 @@ export default function ReplyCoachStory() {
     }, 24);
 
     return () => clearInterval(timer);
+  }, [currentNode?.id]);
+
+  useEffect(() => {
+    setHintVisible(false);
+    setHintUsed(false);
   }, [currentNode?.id]);
 
   const requestJson = async (path: string, options?: RequestInit) => {
@@ -390,7 +511,11 @@ export default function ReplyCoachStory() {
       const response = await requestJson(`/api/reply-coach/attempts/${attempt.id}/answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nodeId: currentNode.id, choiceId: choice.id }),
+        body: JSON.stringify({
+          nodeId: currentNode.id,
+          choiceId: choice.id,
+          hintUsed: String(hintUsed),
+        }),
       });
       setAttempt(response.attempt);
       setSelectedChoice(response.choice);
@@ -521,7 +646,10 @@ export default function ReplyCoachStory() {
                     <SpriteActor
                       characterKey={secondaryChoiceCharacter}
                       expressionKey={currentNode.secondaryExpressionKey}
-                      positionStyle={styles.choiceSpriteLeft}
+                      positionStyle={choicePositionStyleFor(
+                        currentNode.secondaryCharacterPosition,
+                        styles.choiceSpriteLeft,
+                      )}
                       speaking={false}
                     />
                   )}
@@ -529,7 +657,10 @@ export default function ReplyCoachStory() {
                     <SpriteActor
                       characterKey={primaryChoiceCharacter}
                       expressionKey={currentNode.expressionKey}
-                      positionStyle={styles.choiceSpriteRight}
+                      positionStyle={choicePositionStyleFor(
+                        currentNode.characterPosition,
+                        styles.choiceSpriteRight,
+                      )}
                       speaking={false}
                     />
                   )}
@@ -538,7 +669,10 @@ export default function ReplyCoachStory() {
                 <SpriteActor
                   characterKey={displayedCharacter}
                   expressionKey={displayedExpression}
-                  positionStyle={displayedCharacter === 'HARU' ? styles.soloSpriteLeft : styles.soloSpriteRight}
+                  positionStyle={positionStyleFor(
+                    currentNode.characterPosition,
+                    displayedCharacter === 'HARU' ? styles.soloSpriteLeft : styles.soloSpriteRight,
+                  )}
                   speaking={currentNode.type !== 'CHOICE'}
                 />
               ) : null}
@@ -582,6 +716,16 @@ export default function ReplyCoachStory() {
                   <Text style={styles.decisionEyebrow}>YOUR TURN</Text>
                   <Text style={styles.decisionTitle}>{currentNode.title || 'What would you say?'}</Text>
                 </View>
+                <Pressable
+                  style={styles.hintButton}
+                  onPress={() => {
+                    setHintUsed(true);
+                    setHintVisible(true);
+                  }}
+                >
+                  <Ionicons name="bulb-outline" size={18} color="#D58A1E" />
+                  <Text style={styles.hintButtonText}>Hint</Text>
+                </Pressable>
               </View>
               <Text style={styles.decisionPrompt}>{currentNode.text}</Text>
               <View style={styles.choiceList}>
@@ -650,22 +794,7 @@ export default function ReplyCoachStory() {
                     {currentNode.romaji}
                   </Text>
                 )}
-                {isReaction ? (
-                  <>
-                    <Text style={styles.reactionAddress}>{studentName},</Text>
-                    <Text
-                      style={styles.dialogueText}
-                      numberOfLines={2}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.76}
-                      maxFontSizeMultiplier={1.04}
-                    >
-                      {selectedChoice?.reactionText || currentNode.text}
-                    </Text>
-                  </>
-                ) : (
-                  null
-                )}
+                {isReaction && <Text style={styles.reactionAddress}>{studentName}</Text>}
                 <View style={styles.continueRowDark}>
                   <Text style={styles.continueTextDark}>Tap to continue</Text>
                   <Ionicons name="chevron-forward" size={18} color="#8423D9" />
@@ -687,6 +816,32 @@ export default function ReplyCoachStory() {
             </Pressable>
             <Pressable style={styles.secondaryButton} onPress={() => setExitVisible(false)}>
               <Text style={styles.secondaryButtonText}>Continue playing</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={hintVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setHintVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.hintCard}>
+            <View style={styles.hintIcon}>
+              <Ionicons name="bulb-outline" size={30} color="#D58A1E" />
+            </View>
+            <Text style={styles.hintEyebrow}>CONVERSATION CLUE</Text>
+            <Text style={styles.hintTitle}>Notice the relationship</Text>
+            <Text style={styles.hintText}>
+              {currentNode.hint || 'Think about who is speaking, where the conversation happens, and how polite the reply should be.'}
+            </Text>
+            {Boolean(currentNode.hintPenalty) && (
+              <Text style={styles.hintPenalty}>Using this hint adjusts the decision score by {currentNode.hintPenalty} point.</Text>
+            )}
+            <Pressable style={styles.primaryButton} onPress={() => setHintVisible(false)}>
+              <Text style={styles.primaryButtonText}>Return to the scene</Text>
             </Pressable>
           </View>
         </View>
