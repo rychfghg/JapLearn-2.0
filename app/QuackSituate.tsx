@@ -7,14 +7,13 @@ import QuackSituateMissionLoader from '../components/QuackSituateMissionLoader';
 import styles from '../styles/stylesQuackSituate';
 
 const missions = [
-  { title: 'Ahiru Rescue', subtitle: 'Phrase or Plank!', description: 'Choose natural Japanese before the pirate pushes Ahiru off the plank.', objective: 'Save Ahiru with the right phrase', difficulty: 'RESCUE', route: '/QuackSituateRecognition', icon: 'boat-outline', action: 'PIRATE QUEST', color: '#65A936', tint: '#EAF5E3', character: '救', image: require('../assets/quacksituate/pirate-rescue/pirate-ship-deck.png') },
+  { title: 'Cage Drop Rescue', subtitle: 'Keep Ahiru above the sea', description: 'Choose natural Japanese before the pirate lowers Ahiru’s cage into the waves.', objective: 'Hold the cage with the right phrase', difficulty: 'RESCUE', route: '/QuackSituateRecognition', icon: 'lock-closed-outline', action: 'SEA RESCUE', color: '#65A936', tint: '#EAF5E3', character: '救', image: require('../assets/quacksituate/pirate-rescue/pirate-ship-deck.png') },
   { title: 'Expression Match', subtitle: 'Connect phrase to scene', description: 'Match useful Japanese expressions with the situation where they belong.', objective: 'Connect each scene and phrase', difficulty: 'MATCH', route: '/QuackSituateMatchingLevels', icon: 'git-compare-outline', action: 'MATCH GAME', color: '#D88727', tint: '#FFF0DC', character: '合', image: require('../assets/quacksituate/cards/expression-match-mission.png') },
   { title: 'Politeness', subtitle: 'Choose the right tone', description: 'Decide which level of politeness fits the person and the moment.', objective: 'Read the relationship and tone', difficulty: 'SOCIAL', route: '/QuackSituateFormalLevels', icon: 'people-outline', action: 'TONE QUEST', color: '#8423D9', tint: '#F0E4FA', character: '礼', image: require('../assets/quacksituate/cards/politeness-mission.png') },
 ] as const;
 
 const POLITENESS_LEVEL_ROUTE = '/QuackSituateFormalLevels' as const;
-const rescuePlank = require('../assets/quacksituate/pirate-rescue/plank-prop.png');
-const rescuePirate = require('../assets/quacksituate/pirate-rescue/pirate-push.png');
+const rescuePirate = require('../assets/quacksituate/pirate-rescue/pirate-laugh.png');
 const rescueAhiru = require('../assets/quacksituate/pirate-rescue/tied-ahiru-help.png');
 
 export default function QuackSituate() {
@@ -148,41 +147,27 @@ export default function QuackSituate() {
                     zIndex: 1,
                   }}
                 >
-                  <Image
-                    source={rescuePlank}
-                    resizeMode="contain"
-                    style={{
-                      position: 'absolute',
-                      right: -25,
-                      bottom: -1,
-                      width: '112%',
-                      height: '44%',
-                      transform: [{ rotate: '-2deg' }],
-                    }}
-                  />
+                  <View style={{ position: 'absolute', left: -8, bottom: 24, width: '53%', height: 12, borderRadius: 8, backgroundColor: '#8A542E', borderWidth: 2, borderColor: '#D8A358' }} />
                   <Image
                     source={rescuePirate}
                     resizeMode="contain"
                     style={{
                       position: 'absolute',
-                      left: -4,
-                      bottom: 36,
-                      width: '58%',
-                      height: '72%',
-                    }}
-                  />
-                  <Image
-                    source={rescueAhiru}
-                    resizeMode="contain"
-                    style={{
-                      position: 'absolute',
-                      right: -1,
+                      left: -8,
                       bottom: 30,
-                      width: '51%',
-                      height: '64%',
-                      transform: [{ rotate: '0deg' }],
+                      width: '55%',
+                      height: '67%',
                     }}
                   />
+                  <View style={{ position: 'absolute', right: 2, top: 28, width: '43%', height: '61%' }}>
+                    <View style={{ position: 'absolute', top: -28, left: '49%', width: 3, height: 31, backgroundColor: '#3B281D' }} />
+                    <View style={{ flex: 1, borderWidth: 4, borderColor: '#3F2A1D', borderRadius: 6, backgroundColor: 'rgba(233,199,139,.15)', overflow: 'hidden' }}>
+                      <Image source={rescueAhiru} resizeMode="contain" style={{ position: 'absolute', left: '9%', top: '7%', width: '82%', height: '88%' }} />
+                      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '24%', width: 3, backgroundColor: '#4A3426' }} />
+                      <View style={{ position: 'absolute', top: 0, bottom: 0, left: '49%', width: 3, backgroundColor: '#4A3426' }} />
+                      <View style={{ position: 'absolute', top: 0, bottom: 0, right: '24%', width: 3, backgroundColor: '#4A3426' }} />
+                    </View>
+                  </View>
                   <View
                     style={{
                       position: 'absolute',
@@ -197,7 +182,7 @@ export default function QuackSituate() {
                     }}
                   >
                     <Text style={{ color: '#FFE36D', fontSize: 7, fontWeight: '900', letterSpacing: .8 }}>
-                      PHRASE OR PLANK!
+                      CAGE DROP
                     </Text>
                   </View>
                   <View
