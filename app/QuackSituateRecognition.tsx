@@ -55,6 +55,7 @@ const pirateAngel = require('../assets/quacksituate/pirate-rescue/pirate-angel-v
 const angelAhiru = require('../assets/Angel.png');
 const happyAhiru = require('../assets/hello.png');
 const idleAhiru = require('../assets/idle.png');
+const POINTS_PER_CORRECT_ANSWER = 10;
 const sceneImages: Record<string, any> = {
   school: require('../assets/quacksituate/recognition-school-hallway-v2.png'),
   classroom: require('../assets/img/background/classroom a st2 day.png'),
@@ -661,6 +662,8 @@ export default function QuackSituateRecognition() {
   const chances = Math.max(0, maxMistakes - mistakes);
   const danger = maxMistakes ? mistakes / maxMistakes : 0;
   const progress = questions.length ? ((index + 1) / questions.length) * 100 : 0;
+  const score = correctCount * POINTS_PER_CORRECT_ANSWER;
+  const maximumScore = questions.length * POINTS_PER_CORRECT_ANSWER;
   const phaseTotal = isHard ? 10 : 15;
   const phaseNumber = isHard ? index - 14 : index + 1;
   const briefing = [
@@ -736,7 +739,8 @@ export default function QuackSituateRecognition() {
           name: `${user.fname || ''} ${user.lname || ''}`.trim(),
           gameType: 'RECOGNITION',
           difficulty: 'STARTER_AND_HARD',
-          score: correctCount * 100,
+          score,
+          maxScore: maximumScore,
           totalQuestions: questions.length,
           correctAnswers: correctCount,
           completed: true,
@@ -950,8 +954,11 @@ export default function QuackSituateRecognition() {
 
   return (
     <View style={styles.screen}>
-      <Image source={pirateDeck} style={styles.quizEnvironment} resizeMode="cover" />
-      <View pointerEvents="none" style={styles.quizEnvironmentTint} />
+      <View pointerEvents="none" style={styles.quizThemeBackground}>
+        <View style={styles.quizThemeOrbLarge} />
+        <View style={styles.quizThemeOrbSmall} />
+        <View style={styles.quizThemeWave} />
+      </View>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.topRow}>
           <Pressable style={styles.backButton} onPress={() => setExitVisible(true)}><BackIcon width={19} height={19} fill="#462A5E" /></Pressable>
@@ -970,7 +977,7 @@ export default function QuackSituateRecognition() {
           </View>
           <View style={styles.missionScoreBadge}>
             <Ionicons name="star" size={16} color="#FFD86A" />
-            <Text style={styles.missionScoreValue}>{correctCount * 100}</Text>
+            <Text style={styles.missionScoreValue}>{score}</Text>
             <Text style={styles.missionScoreLabel}>SCORE</Text>
           </View>
         </View>
@@ -1015,7 +1022,7 @@ export default function QuackSituateRecognition() {
         onContinue={continueAfterFeedback}
       />
       <Modal transparent visible={levelVisible} animationType="fade"><View style={styles.modalShade}><View style={styles.levelCard}><View style={styles.hardIcon}><Ionicons name="flame" size={34} color="#FFF" /></View><Text style={styles.levelEyebrow}>STARTER DECK CLEARED</Text><Text style={styles.levelTitle}>The pirate raises the stakes</Text><Text style={styles.levelBody}>Hard mode gives only three chances. Read every social cue closely.</Text><View style={styles.levelStats}><Text>15 trials cleared</Text><Text>{correctCount} correct</Text></View><Pressable style={styles.primaryButton} onPress={() => { setLevelVisible(false); setIndex(15); }}><Text style={styles.primaryButtonText}>BEGIN HARD RESCUE</Text><Ionicons name="flame" size={18} color="#FFF" /></Pressable></View></View></Modal>
-      <Modal transparent visible={completeVisible} animationType="fade"><View style={styles.modalShade}><View style={[styles.modalCard, styles.successCard]}><VictoryRescueStage /><View style={styles.successRibbon}><Ionicons name="shield-checkmark" size={14} color="#FFFFFF" /><Text style={styles.successRibbonText}>RESCUE COMPLETE</Text></View><Text style={styles.modalTitle}>Ahiru is safely back on deck!</Text><View style={styles.scoreMedallion}><Text style={styles.finalScore}>{correctCount * 100}</Text><Text style={styles.scoreMedallionLabel}>POINTS</Text></View><View style={styles.successStats}><View style={styles.successStat}><Text style={styles.successStatValue}>{correctCount}</Text><Text style={styles.successStatLabel}>NATURAL PHRASES</Text></View><View style={styles.successStatDivider} /><View style={styles.successStat}><Text style={styles.successStatValue}>{questions.length}</Text><Text style={styles.successStatLabel}>TOTAL TRIALS</Text></View></View><Text style={styles.modalBody}>{saving ? 'Securing your rescue record...' : 'Your result is now reflected in QuackProgress and your teacher’s report.'}</Text><Pressable disabled={saving} style={styles.primaryButton} onPress={() => { setCompleteVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>CONTINUE TO YOUR REPORT</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable></View></View></Modal>
+      <Modal transparent visible={completeVisible} animationType="fade"><View style={styles.modalShade}><View style={[styles.modalCard, styles.successCard]}><VictoryRescueStage /><View style={styles.successRibbon}><Ionicons name="shield-checkmark" size={14} color="#FFFFFF" /><Text style={styles.successRibbonText}>RESCUE COMPLETE</Text></View><Text style={styles.modalTitle}>Ahiru is safely back on deck!</Text><View style={styles.scoreMedallion}><Text style={styles.finalScore}>{score}</Text><Text style={styles.scoreMedallionLabel}>OF {maximumScore} POINTS</Text></View><View style={styles.successStats}><View style={styles.successStat}><Text style={styles.successStatValue}>{correctCount}</Text><Text style={styles.successStatLabel}>NATURAL PHRASES</Text></View><View style={styles.successStatDivider} /><View style={styles.successStat}><Text style={styles.successStatValue}>{questions.length}</Text><Text style={styles.successStatLabel}>TOTAL TRIALS</Text></View></View><Text style={styles.modalBody}>{saving ? 'Securing your rescue record...' : 'Your result is now reflected in QuackProgress and your teacher’s report.'}</Text><Pressable disabled={saving} style={styles.primaryButton} onPress={() => { setCompleteVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>CONTINUE TO YOUR REPORT</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable></View></View></Modal>
       <Modal transparent visible={exitVisible} animationType="fade" onRequestClose={() => setExitVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIconSoft, styles.pauseIcon]}><Ionicons name="bookmark-outline" size={28} color="#8423D9" /></View><Text style={styles.modalEyebrow}>PAUSE THIS MISSION?</Text><Text style={styles.modalTitle}>Save your progress for later.</Text><Text style={styles.modalBody}>Your current trial, score, and remaining lives will be restored when you return.</Text><Pressable style={styles.primaryButton} onPress={() => { setExitVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>SAVE &amp; RETURN</Text></Pressable><Pressable style={styles.modalSecondary} onPress={() => setExitVisible(false)}><Text style={styles.modalSecondaryText}>Continue playing</Text></Pressable></View></View></Modal>
     </View>
   );

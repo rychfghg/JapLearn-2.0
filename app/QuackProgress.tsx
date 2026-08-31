@@ -29,6 +29,7 @@ export default function QuackProgress() {
   const [guide, setGuide] = useState(0);
   const [quackamoleBest, setQuackamoleBest] = useState(0);
   const [recognitionBest, setRecognitionBest] = useState(0);
+  const [recognitionMaximum, setRecognitionMaximum] = useState(0);
   const [expressionBest, setExpressionBest] = useState(0);
   const [politenessBest, setPolitenessBest] = useState(0);
   const [speakingSummary, setSpeakingSummary] = useState<SpeakingSummary>({ sessions: 0, seconds: 0 });
@@ -58,7 +59,11 @@ export default function QuackProgress() {
       .catch((error) => console.log('Quack-a-Mole score fetch error:', error.message));
     fetch(`${expoconfig.API_URL}/api/situational/best?email=${encodeURIComponent(email)}&gameType=RECOGNITION`)
       .then((response) => response.status === 204 ? null : response.json())
-      .then((record) => record && setRecognitionBest(record.score || 0))
+      .then((record) => {
+        if (!record) return;
+        setRecognitionBest(record.score || 0);
+        setRecognitionMaximum(record.maxScore || (record.totalQuestions || 0) * 10);
+      })
       .catch((error) => console.log('Recognition score fetch error:', error.message));
     fetch(`${expoconfig.API_URL}/api/situational/best?email=${encodeURIComponent(email)}&gameType=EXPRESSION_MATCH`)
       .then((response) => response.status === 204 ? null : response.json())
@@ -170,7 +175,7 @@ export default function QuackProgress() {
         </View>
         <View style={styles.arcadeBestCard}><Ionicons name="chatbubbles" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>REPLY COACH · {replyCoachSummary.completedChapters} CHAPTERS</Text><Text style={styles.arcadeBestTitle}>Interactive story mastery</Text><Text style={styles.panelSubtitle}>{replyCoachSummary.attempts} completed attempts · {replyCoachSummary.averageScore}% average</Text></View><Text style={styles.arcadeBestValue}>{replyCoachSummary.bestScore}%</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="trophy" size={25} color="#D59A2A" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>ARCADE PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Quack-a-Mole</Text></View><Text style={styles.arcadeBestValue}>{quackamoleBest}</Text></View>
-        <View style={styles.arcadeBestCard}><Ionicons name="eye" size={25} color="#65A936" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>SITUATIONAL PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Recognition</Text></View><Text style={styles.arcadeBestValue}>{recognitionBest}</Text></View>
+        <View style={styles.arcadeBestCard}><Ionicons name="eye" size={25} color="#65A936" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>SITUATIONAL PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Recognition</Text><Text style={styles.panelSubtitle}>10 points for every natural response</Text></View><Text style={styles.arcadeBestValue}>{recognitionBest} / {recognitionMaximum}</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="git-compare" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>MATCHING PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Expression Match</Text></View><Text style={styles.arcadeBestValue}>{expressionBest}</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="people" size={25} color="#D88727" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>TONE QUEST PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Politeness</Text></View><Text style={styles.arcadeBestValue}>{politenessBest}</Text></View>
         <Text style={styles.actionsTitle}>Explore your progress</Text>
