@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import {
-  ImageBackground,
   Modal,
   Pressable,
   SafeAreaView,
@@ -108,11 +107,10 @@ export default function QuackSituateFormalLevels() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ImageBackground
-        source={require('../assets/quacksituate/quacksituate-menu-background-v3.png')}
-        style={styles.background}
-        imageStyle={styles.backgroundImage}
-      >
+      <View style={styles.background}>
+        <View pointerEvents="none" style={styles.sunGlow} />
+        <View pointerEvents="none" style={styles.hillOne} />
+        <View pointerEvents="none" style={styles.hillTwo} />
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
@@ -128,8 +126,14 @@ export default function QuackSituateFormalLevels() {
             </View>
 
             <Pressable style={styles.helpButton} onPress={() => setShowTutorial(true)}>
-              <Ionicons name="help" size={24} color="#8423D9" />
+              <Ionicons name="school-outline" size={23} color="#8423D9" />
+              <View style={styles.guideDot} />
             </Pressable>
+          </View>
+
+          <View style={styles.journeyIntro}>
+            <Text style={styles.journeyIntroKicker}>CLIMB THE SOCIAL LADDER</Text>
+            <Text style={styles.journeyIntroText}>Train your tone as relationships and situations become more formal.</Text>
           </View>
 
           <View style={styles.map}>
@@ -158,9 +162,10 @@ export default function QuackSituateFormalLevels() {
                       },
                     ]}
                   >
+                    <Text style={styles.nodeNumber}>{item.level}</Text>
                     <Ionicons
                       name={unavailable ? 'lock-closed' : completed ? 'checkmark' : item.icon as any}
-                      size={24}
+                      size={17}
                       color="#FFFFFF"
                     />
                   </View>
@@ -300,26 +305,34 @@ export default function QuackSituateFormalLevels() {
         >
           <View style={styles.modalShade}>
             <View style={styles.tutorialCard}>
-              <View style={styles.tutorialIcon}>
-                <Ionicons name="chatbubbles" size={30} color="#8423D9" />
+              <View style={styles.tutorialHeader}>
+                <View style={styles.tutorialIcon}>
+                  <Ionicons name="school-outline" size={27} color="#FFFFFF" />
+                </View>
+                <View style={styles.tutorialHeaderCopy}>
+                  <Text style={styles.tutorialKicker}>TONE QUEST GUIDE</Text>
+                  <Text style={styles.tutorialTitle}>Read the relationship, then choose the tone</Text>
+                </View>
               </View>
-              <Text style={styles.tutorialKicker}>HOW TONE QUEST WORKS</Text>
-              <Text style={styles.tutorialTitle}>Listen before you answer</Text>
               <Text style={styles.tutorialText}>
-                Read the situation, listen to the NPC, then choose the response that fits your relationship and setting. The NPC reacts to your tone and explains a better response when needed.
+                Politeness in Japanese changes with the person, setting, and purpose. Tone Quest teaches you to notice those signals before you respond.
               </Text>
               <View style={styles.tutorialSteps}>
-                <Text>1 · Listen to the full Japanese line</Text>
-                <Text>2 · Open the hint only when needed</Text>
-                <Text>3 · Complete each level to unlock the next</Text>
+                <View style={styles.tutorialStep}><View style={styles.stepIcon}><Ionicons name="eye-outline" size={18} color="#8423D9" /></View><View style={styles.stepCopy}><Text style={styles.stepTitle}>Observe the moment</Text><Text style={styles.stepText}>Check who is speaking, where you are, and how formal the situation feels.</Text></View></View>
+                <View style={styles.stepConnector} />
+                <View style={styles.tutorialStep}><View style={styles.stepIcon}><Ionicons name="volume-high-outline" size={18} color="#8423D9" /></View><View style={styles.stepCopy}><Text style={styles.stepTitle}>Listen for social clues</Text><Text style={styles.stepText}>Hear the NPC’s wording and use the hint when you need guidance—not the answer.</Text></View></View>
+                <View style={styles.stepConnector} />
+                <View style={styles.tutorialStep}><View style={styles.stepIcon}><Ionicons name="chatbubbles-outline" size={18} color="#8423D9" /></View><View style={styles.stepCopy}><Text style={styles.stepTitle}>Choose the fitting response</Text><Text style={styles.stepText}>Select the phrase that respects the relationship and sounds natural in context.</Text></View></View>
+                <View style={styles.stepConnector} />
+                <View style={styles.tutorialStep}><View style={styles.stepIcon}><Ionicons name="bulb-outline" size={18} color="#8423D9" /></View><View style={styles.stepCopy}><Text style={styles.stepTitle}>Learn from the reaction</Text><Text style={styles.stepText}>See how the character responds, review why, and replay any unlocked checkpoint.</Text></View></View>
               </View>
               <Pressable style={styles.tutorialButton} onPress={() => setShowTutorial(false)}>
-                <Text style={styles.tutorialButtonText}>UNDERSTOOD</Text>
+                <Text style={styles.tutorialButtonText}>CONTINUE THE JOURNEY</Text>
               </Pressable>
             </View>
           </View>
         </Modal>
-      </ImageBackground>
+      </View>
     </SafeAreaView>
   );
 }
@@ -331,10 +344,12 @@ const styles = StyleSheet.create({
   },
   background: {
     flex: 1,
+    overflow: 'hidden',
+    backgroundColor: '#FBF8FF',
   },
-  backgroundImage: {
-    opacity: 0.1,
-  },
+  sunGlow: { position: 'absolute', width: 330, height: 330, borderRadius: 165, right: -135, top: -95, backgroundColor: '#EBD9FD' },
+  hillOne: { position: 'absolute', width: 430, height: 240, borderRadius: 220, left: -210, bottom: 130, backgroundColor: '#EDF7E6', transform: [{ rotate: '-10deg' }] },
+  hillTwo: { position: 'absolute', width: 390, height: 230, borderRadius: 210, right: -210, bottom: -70, backgroundColor: '#F4EAFB', transform: [{ rotate: '12deg' }] },
   content: {
     padding: 19,
     paddingBottom: 45,
@@ -363,6 +378,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  guideDot: { position: 'absolute', top: 7, right: 7, width: 9, height: 9, borderRadius: 5, backgroundColor: '#65A936', borderWidth: 2, borderColor: '#FFFFFF' },
   brand: {
     flex: 1,
   },
@@ -377,23 +393,26 @@ const styles = StyleSheet.create({
     fontFamily: 'Jua',
     fontSize: 27,
   },
+  journeyIntro: { marginTop: 25, alignItems: 'center', paddingHorizontal: 26 },
+  journeyIntroKicker: { color: '#65A936', fontSize: 9, fontWeight: '900', letterSpacing: 1.25 },
+  journeyIntroText: { marginTop: 5, maxWidth: 345, color: '#796D7E', fontSize: 12, lineHeight: 18, textAlign: 'center' },
   map: {
     position: 'relative',
-    alignItems: 'center',
-    paddingTop: 54,
+    alignItems: 'stretch',
+    paddingTop: 34,
     paddingBottom: 18,
+    paddingLeft: 55,
   },
   mapRope: {
     position: 'absolute',
-    left: '50%',
-    marginLeft: -6,
+    left: 28,
     top: 46,
-    bottom: 54,
-    width: 12,
+    bottom: 48,
+    width: 7,
     borderRadius: 10,
-    backgroundColor: '#C59BE5',
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
+    backgroundColor: '#D5BDE7',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,.9)',
     shadowColor: '#71349D',
     shadowOpacity: 0.22,
     shadowRadius: 7,
@@ -401,24 +420,23 @@ const styles = StyleSheet.create({
   },
   stageRow: {
     width: '100%',
-    minHeight: 218,
-    alignItems: 'center',
+    minHeight: 188,
+    alignItems: 'stretch',
     justifyContent: 'flex-start',
     position: 'relative',
-    marginBottom: 18,
+    marginBottom: 23,
   },
   stageRowRight: {
-    alignItems: 'center',
+    alignItems: 'stretch',
   },
   stageNode: {
     position: 'absolute',
-    top: 0,
-    left: '50%',
-    marginLeft: -34,
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    borderWidth: 7,
+    top: 48,
+    left: -55,
+    width: 58,
+    height: 58,
+    borderRadius: 20,
+    borderWidth: 6,
     borderColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
@@ -432,16 +450,16 @@ const styles = StyleSheet.create({
     },
     elevation: 7,
   },
+  nodeNumber: { position: 'absolute', top: 2, right: 5, color: 'rgba(255,255,255,.72)', fontFamily: 'Jua', fontSize: 10 },
   stageCard: {
-    width: '92%',
-    minHeight: 174,
-    marginTop: 34,
-    borderRadius: 28,
+    width: '100%',
+    minHeight: 176,
+    borderRadius: 25,
     backgroundColor: 'rgba(255,255,255,0.98)',
     borderWidth: 2,
     borderColor: '#DFCEE8',
     paddingHorizontal: 18,
-    paddingTop: 39,
+    paddingTop: 17,
     paddingBottom: 17,
     shadowColor: '#462652',
     shadowOpacity: 0.14,
@@ -594,7 +612,7 @@ const styles = StyleSheet.create({
     color: '#432750',
     fontFamily: 'Jua',
     fontSize: 25,
-    textAlign: 'center',
+    textAlign: 'left',
     marginTop: 11,
     zIndex: 2,
   },
@@ -602,7 +620,7 @@ const styles = StyleSheet.create({
     color: '#827585',
     fontSize: 10,
     lineHeight: 16,
-    textAlign: 'center',
+    textAlign: 'left',
     marginTop: 4,
     zIndex: 2,
   },
@@ -641,17 +659,18 @@ const styles = StyleSheet.create({
     maxWidth: 430,
     borderRadius: 29,
     backgroundColor: '#FFFFFF',
-    padding: 25,
-    alignItems: 'center',
+    maxHeight: '92%',
+    padding: 22,
   },
+  tutorialHeader: { flexDirection: 'row', alignItems: 'center' },
+  tutorialHeaderCopy: { flex: 1, marginLeft: 13 },
   tutorialIcon: {
-    width: 66,
-    height: 66,
-    borderRadius: 22,
-    backgroundColor: '#F0E4FA',
+    width: 54,
+    height: 54,
+    borderRadius: 18,
+    backgroundColor: '#8423D9',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 13,
   },
   tutorialKicker: {
     color: '#65A936',
@@ -662,25 +681,30 @@ const styles = StyleSheet.create({
   tutorialTitle: {
     color: '#432750',
     fontFamily: 'Jua',
-    fontSize: 27,
-    textAlign: 'center',
-    marginTop: 4,
+    fontSize: 20,
+    lineHeight: 24,
+    marginTop: 3,
   },
   tutorialText: {
     color: '#7E7182',
     fontSize: 12,
     lineHeight: 19,
-    textAlign: 'center',
+    textAlign: 'left',
     marginTop: 8,
   },
   tutorialSteps: {
     width: '100%',
-    gap: 8,
     borderRadius: 18,
     backgroundColor: '#F8F3FA',
     padding: 15,
     marginTop: 16,
   },
+  tutorialStep: { flexDirection: 'row', alignItems: 'flex-start' },
+  stepIcon: { width: 34, height: 34, borderRadius: 12, backgroundColor: '#EEE4F8', alignItems: 'center', justifyContent: 'center' },
+  stepCopy: { flex: 1, marginLeft: 10 },
+  stepTitle: { color: '#432750', fontFamily: 'Jua', fontSize: 14 },
+  stepText: { marginTop: 2, color: '#7B6E7F', fontSize: 10.5, lineHeight: 15 },
+  stepConnector: { width: 2, height: 9, marginLeft: 16, backgroundColor: '#D9C7E8' },
   tutorialButton: {
     width: '100%',
     height: 53,
