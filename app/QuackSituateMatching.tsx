@@ -16,6 +16,7 @@ import {
   View,
 } from 'react-native';
 import QuackSituateExit from '../components/QuackSituateExit';
+import { createExpressionMatchFallback } from '../data/expressionMatchFallback';
 import expoconfig from '../expoconfig';
 import { loadBundledSound } from '../utils/nativeAudio';
 
@@ -257,9 +258,28 @@ export default function QuackSituateMatching() {
         }
 
         const all: Moment[] = await response.json();
-        const selected = all
+        const published = all
           .filter(item => item.level === level && item.setNumber === setNumber)
+          .filter(item => {
+            const choices = Array.isArray(item.choices) ? item.choices : [];
+            const hasCorrectAnswer = choices.some(
+              choice => choice.japanese === item.correctAnswer,
+            );
+            const hasAlternative = choices.some(
+              choice => choice.japanese !== item.correctAnswer,
+            );
+
+            return Boolean(
+              item.scenario &&
+              item.secondaryScenario &&
+              hasCorrectAnswer &&
+              hasAlternative,
+            );
+          })
           .slice(0, 20);
+        const selected = published.length >= 2
+          ? published
+          : createExpressionMatchFallback(level);
 
         if (active) setMoments(selected);
 
@@ -301,7 +321,7 @@ export default function QuackSituateMatching() {
         incorrectSound.current = loaded[2].sound;
       } catch {
         if (active) {
-          setMoments([]);
+          setMoments(createExpressionMatchFallback(level));
         }
       } finally {
         if (active) {
