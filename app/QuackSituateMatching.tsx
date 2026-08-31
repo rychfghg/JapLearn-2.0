@@ -158,7 +158,11 @@ export default function QuackSituateMatching() {
   const correctSound = useRef<Audio.Sound | null>(null);
   const incorrectSound = useRef<Audio.Sound | null>(null);
 
-  const current = moments[momentIndex];
+  // Keep the final loaded moment mounted while the results modal is visible.
+  // A checkpoint index must never replace valid content with the empty screen.
+  const current = moments.length > 0
+    ? moments[Math.min(momentIndex, moments.length - 1)]
+    : undefined;
   const currentAnswer = current ? getAnswer(current) : null;
   const answeredCount = correctCount + mistakes;
   const accuracy = answeredCount > 0 ? correctCount / answeredCount : 0;
@@ -274,7 +278,9 @@ export default function QuackSituateMatching() {
           const runResponse = await fetch(
             `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
           );
-          if (active && runResponse.ok) {
+          // 204 means there is no unfinished checkpoint. It has no JSON body
+          // and is the normal state for a fresh game or replay.
+          if (active && runResponse.ok && runResponse.status !== 204) {
             const run = await runResponse.json();
             const savedQuestionIndex = Math.max(0, Number(run.questionIndex) || 0);
             const resumeIndex = Math.min(savedQuestionIndex, selected.length - 1);
@@ -426,14 +432,10 @@ export default function QuackSituateMatching() {
 
   useEffect(() => {
     if (!showResult || attemptStored || saving) return;
-    let active = true;
     setSaving(true);
     void storeCompletedAttempt()
       .catch(() => {})
-      .finally(() => {
-        if (active) setSaving(false);
-      });
-    return () => { active = false; };
+      .finally(() => setSaving(false));
   }, [attemptStored, showResult]);
 
   const saveAndLeave = async () => {
@@ -496,7 +498,7 @@ export default function QuackSituateMatching() {
     );
   }
 
-  if (!current || !currentAnswer) {
+  if (moments.length === 0 || !current || !currentAnswer) {
     return (
       <SafeAreaView style={styles.loading}>
         <Ionicons name="images-outline" size={38} color="#7652E8" />
