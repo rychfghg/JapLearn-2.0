@@ -17,11 +17,11 @@ import Svg, { Path } from 'react-native-svg';
 import expoconfig from '../expoconfig';
 
 const levels = [
-  { level: 1, sets: 3, title: 'First Encounters', topic: 'Greetings, thanks, and farewells', color: '#6CB33F', side: 'left' },
-  { level: 2, sets: 3, title: 'Daily Moments', topic: 'School, meals, and home routines', color: '#E38B25', side: 'right' },
-  { level: 3, sets: 3, title: 'Social Streets', topic: 'Introductions, work, and travel', color: '#8A20E8', side: 'left' },
-  { level: 4, sets: 5, title: 'Nuance Garden', topic: 'Intermediate social situations', color: '#D65083', side: 'right' },
-  { level: 5, sets: 10, title: 'Master Summit', topic: 'Hard mixed-context trials', color: '#55318C', side: 'left' },
+  { level: 1, sets: 3, title: 'Hello Steps', topic: 'Match greetings, thanks, and farewells', color: '#6CB33F', side: 'left' },
+  { level: 2, sets: 3, title: 'Gesture Street', topic: 'Read school, meal, and home moments', color: '#E38B25', side: 'right' },
+  { level: 3, sets: 3, title: 'Social Signals', topic: 'Match introductions, work, and travel', color: '#7652E8', side: 'left' },
+  { level: 4, sets: 5, title: 'Nuance Garden', topic: 'Notice subtler gestures and relationships', color: '#D65083', side: 'right' },
+  { level: 5, sets: 10, title: 'Gesture Mastery', topic: 'Clear fast mixed-context moments', color: '#55318C', side: 'left' },
 ] as const;
 
 export default function QuackSituateMatchingLevels() {
@@ -60,7 +60,7 @@ export default function QuackSituateMatchingLevels() {
             </Pressable>
             <View style={styles.brandCopy}>
               <Text style={styles.eyebrow}>EXPRESSION MATCH</Text>
-              <Text style={styles.title}>Journey map</Text>
+              <Text style={styles.title}>Gesture trail</Text>
             </View>
             <Pressable
               style={styles.mapIcon}
@@ -110,7 +110,7 @@ export default function QuackSituateMatchingLevels() {
                 return (
                   <View key={item.level} style={[styles.stopRow, isLeft ? styles.stopLeft : styles.stopRight]}>
                     <View style={[styles.levelNode, { backgroundColor: locked ? '#B8AFBC' : item.color }]}>
-                      <Ionicons name={locked ? 'lock-closed' : completed === item.sets ? 'trophy' : 'flag'} size={20} color="#FFF" />
+                      <Ionicons name={locked ? 'lock-closed' : completed === item.sets ? 'trophy' : 'hand-left'} size={20} color="#FFF" />
                       <Text style={styles.levelNumber}>{item.level}</Text>
                     </View>
 
@@ -168,17 +168,17 @@ export default function QuackSituateMatchingLevels() {
               <View style={styles.tutorialIcon}>
                 <Ionicons name="git-compare" size={27} color="#FFFFFF" />
               </View>
-              <Text style={styles.tutorialKicker}>HOW EXPRESSION MATCH WORKS</Text>
-              <Text style={styles.tutorialTitle}>Connect every scene</Text>
+              <Text style={styles.tutorialKicker}>HOW THE GESTURE TRAIL WORKS</Text>
+              <Text style={styles.tutorialTitle}>Move the natural phrase</Text>
               <Text style={styles.tutorialText}>
-                Drag a rope from each Japanese expression to the scene where it naturally belongs.
-                Complete every connection before checking your answer.
+                Read the moment, study Ahiru’s gesture, and drag the Japanese phrase upward onto the scene.
+                You can also tap a phrase. Audio, pictures, hints, and new moments come from Admin.
               </Text>
               <Pressable
                 style={styles.tutorialButton}
                 onPress={() => setShowTutorial(false)}
               >
-                <Text style={styles.tutorialButtonText}>START THE TRAIL</Text>
+                <Text style={styles.tutorialButtonText}>ENTER THE GESTURE TRAIL</Text>
               </Pressable>
             </View>
           </View>

@@ -1,28 +1,44 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
-import { loadBundledSound } from '../utils/nativeAudio';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Image, ImageBackground, Modal, PanResponder, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import expoconfig from '../expoconfig';
+import {
+  ActivityIndicator,
+  Animated,
+  Image,
+  ImageBackground,
+  Modal,
+  PanResponder,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import QuackSituateExit from '../components/QuackSituateExit';
+import expoconfig from '../expoconfig';
+import { loadBundledSound } from '../utils/nativeAudio';
 
 type Choice = { japanese: string; romaji: string };
-type Pair = {
+type Moment = {
   id: string;
   level: number;
   setNumber: number;
   topic: string;
+  location: string;
   sceneKey: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  audioUrl?: string;
   scenario: string;
+  hint: string;
   correctAnswer: string;
   explanation: string;
   choices: Choice[];
 };
 
-const sceneImages: Record<string, any> = {
+const fallbackScenes: Record<string, any> = {
   school: require('../assets/img/background/school a hallway st2 day.png'),
   classroom: require('../assets/img/background/classroom a st2 day.png'),
   station: require('../assets/img/background/train_scene day.png'),
@@ -30,40 +46,45 @@ const sceneImages: Record<string, any> = {
   meal: require('../assets/img/background/kitchen dining day.png'),
   home: require('../assets/img/background/house a day.png'),
 };
-const ropeColors = ['#D95476', '#7652BA', '#3197A3', '#E08A2C', '#729A43'];
+const ahiruGestures = [
+  require('../assets/hello.png'),
+  require('../assets/idle.png'),
+  require('../assets/talk.png'),
+];
 const shuffle = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
+const mediaUrl = (url?: string) => !url ? '' : url.startsWith('http') ? url : `${expoconfig.API_URL}${url}`;
 
-type DragSocketProps = {
-  color: string;
-  connected: boolean;
-  startX: number;
-  startY: number;
-  onStart: () => void;
-  onMove: (x: number, y: number) => void;
-  onRelease: (x: number, y: number) => void;
-};
-
-function DragSocket({ color, connected, startX, startY, onStart, onMove, onRelease }: DragSocketProps) {
+function PhraseChip({ choice, disabled, onDrop }: { choice: Choice; disabled: boolean; onDrop: (choice: Choice) => void }) {
+  const position = useRef(new Animated.ValueXY()).current;
+  const scale = useRef(new Animated.Value(1)).current;
+  const reset = useCallback(() => {
+    Animated.parallel([
+      Animated.spring(position, { toValue: { x: 0, y: 0 }, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
+    ]).start();
+  }, [position, scale]);
   const responder = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onStartShouldSetPanResponderCapture: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponderCapture: () => true,
-    onShouldBlockNativeResponder: () => true,
-    onPanResponderGrant: onStart,
-    onPanResponderMove: (_, gesture) => onMove(startX + gesture.dx, startY + gesture.dy),
-    onPanResponderRelease: (_, gesture) => onRelease(startX + gesture.dx, startY + gesture.dy),
-    onPanResponderTerminate: (_, gesture) => onRelease(startX + gesture.dx, startY + gesture.dy),
-  }), [onMove, onRelease, onStart, startX, startY]);
+    onStartShouldSetPanResponder: () => !disabled,
+    onMoveShouldSetPanResponder: (_, gesture) => !disabled && (Math.abs(gesture.dx) > 4 || Math.abs(gesture.dy) > 4),
+    onPanResponderGrant: () => Animated.spring(scale, { toValue: 1.08, useNativeDriver: true }).start(),
+    onPanResponderMove: Animated.event([null, { dx: position.x, dy: position.y }], { useNativeDriver: false }),
+    onPanResponderRelease: (_, gesture) => {
+      if (gesture.dy < -70) onDrop(choice);
+      reset();
+    },
+    onPanResponderTerminate: reset,
+  }), [choice, disabled, onDrop, position, reset, scale]);
 
   return (
-    <View
+    <Animated.View
       {...responder.panHandlers}
-      hitSlop={14}
-      style={[styles.leftSocket, styles.dragSurface, { borderColor: color }, connected && { backgroundColor: color }]}
+      style={[styles.phraseChip, { transform: [{ translateX: position.x }, { translateY: position.y }, { scale }] }]}
     >
-      <View style={[styles.socketCore, { backgroundColor: color }]} />
-    </View>
+      <Pressable disabled={disabled} onPress={() => onDrop(choice)} style={styles.phraseChipPressable}>
+        <Text style={styles.phraseJapanese}>{choice.japanese}</Text>
+        <Ionicons name="apps" size={15} color="#D7C9FF" />
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -71,31 +92,30 @@ export default function QuackSituateMatching() {
   const params = useLocalSearchParams<{ level?: string; set?: string }>();
   const level = Math.max(1, Number(params.level) || 1);
   const setNumber = Math.max(1, Number(params.set) || 1);
-  const { width } = useWindowDimensions();
-  const compact = width < 430;
-
-  const [pairs, setPairs] = useState<Pair[]>([]);
-  const [scenes, setScenes] = useState<Pair[]>([]);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [matches, setMatches] = useState<Record<number, number>>({});
-  const [dragRope, setDragRope] = useState<{ expressionIndex: number; x: number; y: number } | null>(null);
-  const [incorrectLinks, setIncorrectLinks] = useState<number[]>([]);
-  const [mistakes, setMistakes] = useState(0);
+  const [moments, setMoments] = useState<Moment[]>([]);
+  const [momentIndex, setMomentIndex] = useState(0);
+  const [options, setOptions] = useState<Choice[]>([]);
   const [loading, setLoading] = useState(true);
+  const [locked, setLocked] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [wrongMoments, setWrongMoments] = useState<string[]>([]);
+  const [showHint, setShowHint] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showExit, setShowExit] = useState(false);
-  const [showReview, setShowReview] = useState(false);
+  const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
-
   const music = useRef<Audio.Sound | null>(null);
+  const momentAudio = useRef<Audio.Sound | null>(null);
   const correctSound = useRef<Audio.Sound | null>(null);
   const incorrectSound = useRef<Audio.Sound | null>(null);
+  const current = moments[momentIndex];
+  const stars = mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1;
+  const score = Math.max(0, moments.length * 20 - mistakes * 5);
 
   const stopAudio = useCallback(async (unload = false) => {
-    const sounds = [music.current, correctSound.current, incorrectSound.current];
-    await Promise.all(sounds.map(async sound => {
+    await Promise.all([music.current, momentAudio.current, correctSound.current, incorrectSound.current].map(async sound => {
       if (!sound) return;
       try {
         await sound.stopAsync();
@@ -104,6 +124,7 @@ export default function QuackSituateMatching() {
     }));
     if (unload) {
       music.current = null;
+      momentAudio.current = null;
       correctSound.current = null;
       incorrectSound.current = null;
     }
@@ -113,24 +134,23 @@ export default function QuackSituateMatching() {
 
   useEffect(() => {
     let active = true;
-    (async () => {
+    void (async () => {
       try {
         const response = await fetch(`${expoconfig.API_URL}/api/situational/questions?gameType=EXPRESSION_MATCH`);
         if (!response.ok) throw new Error('Expression Match could not load.');
-        const all: Pair[] = await response.json();
-        const current = all.filter(item => item.level === level && item.setNumber === setNumber);
-        if (active) {
-          setPairs(current);
-          setScenes(shuffle(current));
-        }
+        const all: Moment[] = await response.json();
+        const selected = all.filter(item => item.level === level && item.setNumber === setNumber);
+        if (active) setMoments(selected);
         const loaded = await Promise.all([
-          loadBundledSound(require('../assets/audio/sfx/quiz.mp3'), { isLooping: true, volume: 0.13, shouldPlay: true }),
+          loadBundledSound(require('../assets/audio/sfx/quiz.mp3'), { isLooping: true, volume: 0.1, shouldPlay: true }),
           loadBundledSound(require('../assets/audio/sfx/correct_sfx.mp3')),
           loadBundledSound(require('../assets/audio/sfx/incorrect_sfx.mp3')),
         ]);
         music.current = loaded[0].sound;
         correctSound.current = loaded[1].sound;
         incorrectSound.current = loaded[2].sound;
+      } catch {
+        if (active) setMoments([]);
       } finally {
         if (active) setLoading(false);
       }
@@ -141,55 +161,59 @@ export default function QuackSituateMatching() {
     };
   }, [level, setNumber, stopAudio]);
 
-  const makeConnection = (sceneIndex: number) => {
-    if (selected === null) return;
-    setMatches(current => {
-      const next = { ...current };
-      Object.keys(next).forEach(key => {
-        if (next[Number(key)] === sceneIndex) delete next[Number(key)];
-      });
-      next[selected] = sceneIndex;
-      return next;
-    });
-    setIncorrectLinks(current => current.filter(index => index !== selected));
-    setSelected(null);
+  useEffect(() => {
+    if (!current) return;
+    const pool = moments.map(moment => {
+      const found = moment.choices?.find(choice => choice.japanese === moment.correctAnswer);
+      return found || { japanese: moment.correctAnswer, romaji: moment.correctAnswer };
+    }).filter((choice, index, items) => items.findIndex(item => item.japanese === choice.japanese) === index);
+    const correct = current.choices?.find(choice => choice.japanese === current.correctAnswer) || {
+      japanese: current.correctAnswer,
+      romaji: current.correctAnswer,
+    };
+    const distractors = shuffle(pool.filter(choice => choice.japanese !== current.correctAnswer)).slice(0, 3);
+    setOptions(shuffle([correct, ...distractors]));
+    setShowHint(false);
+    setLocked(false);
+  }, [current, moments]);
+
+  const playMomentAudio = async () => {
+    if (!current?.audioUrl) return;
+    try {
+      await momentAudio.current?.unloadAsync();
+      const loaded = await Audio.Sound.createAsync({ uri: mediaUrl(current.audioUrl) }, { shouldPlay: true, volume: 1 });
+      momentAudio.current = loaded.sound;
+    } catch {}
   };
 
-  const connectDraggedRope = (expressionIndex: number, x: number, y: number, boardWidth: number, cardHeight: number) => {
-    setDragRope(null);
-    const firstCenter = 112 + (cardHeight - 28) / 2;
-    const sceneIndex = Math.round((y - firstCenter) / cardHeight);
-    const reachedSceneColumn = x >= boardWidth * 0.56;
-    if (!reachedSceneColumn || sceneIndex < 0 || sceneIndex >= scenes.length) return;
-
-    setMatches(current => {
-      const next = { ...current };
-      Object.keys(next).forEach(key => {
-        if (next[Number(key)] === sceneIndex) delete next[Number(key)];
-      });
-      next[expressionIndex] = sceneIndex;
-      return next;
-    });
-    setIncorrectLinks(current => current.filter(index => index !== expressionIndex));
-    setSelected(null);
-  };
-
-  const checkMatches = async () => {
-    if (Object.keys(matches).length < pairs.length) return;
-    const wrong = pairs.map((pair, index) => pair.id === scenes[matches[index]]?.id ? -1 : index).filter(index => index >= 0);
-    if (wrong.length) {
-      setMistakes(value => value + wrong.length);
-      setIncorrectLinks(wrong);
-      setShowReview(true);
-      await incorrectSound.current?.replayAsync();
+  const choose = useCallback(async (choice: Choice) => {
+    if (!current || locked) return;
+    setLocked(true);
+    if (choice.japanese === current.correctAnswer) {
+      setFeedback('correct');
+      await correctSound.current?.replayAsync();
       return;
     }
-    setIncorrectLinks([]);
-    await correctSound.current?.replayAsync();
-    setShowResult(true);
+    setMistakes(value => value + 1);
+    setWrongMoments(items => items.includes(current.id) ? items : [...items, current.id]);
+    setFeedback('incorrect');
+    await incorrectSound.current?.replayAsync();
+  }, [current, locked]);
+
+  const continueAfterFeedback = () => {
+    const correct = feedback === 'correct';
+    setFeedback(null);
+    if (!correct) {
+      setLocked(false);
+      return;
+    }
+    if (momentIndex + 1 >= moments.length) {
+      setShowResult(true);
+      return;
+    }
+    setMomentIndex(index => index + 1);
   };
 
-  const score = Math.max(0, pairs.length * 20 - mistakes * 5);
   const saveAndLeave = async () => {
     setSaving(true);
     try {
@@ -205,10 +229,10 @@ export default function QuackSituateMatching() {
           difficulty: level === 5 ? 'HARD' : level >= 3 ? 'INTERMEDIATE' : 'STARTER',
           level,
           setNumber,
-          topic: pairs[0]?.topic,
+          topic: moments[0]?.topic,
           score,
-          totalQuestions: pairs.length,
-          correctAnswers: pairs.length,
+          totalQuestions: moments.length,
+          correctAnswers: Math.max(0, moments.length - wrongMoments.length),
           completed: true,
         }),
       });
@@ -225,243 +249,154 @@ export default function QuackSituateMatching() {
     setIsExiting(true);
   };
 
-  const resetBoard = () => {
-    setMatches({});
-    setSelected(null);
-    setIncorrectLinks([]);
-    setMistakes(0);
-    setScenes(shuffle(pairs));
-  };
-
-  const cardHeight = compact ? 132 : 128;
-  const boardWidth = Math.min(760, width - 22);
-  const ropePaths = useMemo(() => Object.entries(matches).map(([left, right]) => ({
-    left: Number(left),
-    right,
-    color: ropeColors[Number(left) % ropeColors.length],
-  })), [matches]);
-
-  if (isExiting) return <QuackSituateExit color="#D88727" icon="git-compare-outline" title="Ropes safely tied" subtitle="Your expression matches are ready in your journey record." status="ROLLING UP THE MATCHING ROPES" onComplete={() => router.replace('/QuackSituateMatchingLevels')} />;
-
+  if (isExiting) {
+    return <QuackSituateExit color="#7652E8" icon="hand-left-outline" title="Gesture trail saved" subtitle="Your Expression Match result is ready in QuackProgress." status="RETURNING TO THE GESTURE MAP" onComplete={() => router.replace('/QuackSituateMatchingLevels')} />;
+  }
   if (loading) {
-    return <SafeAreaView style={styles.loading}><ActivityIndicator size="large" color="#8A20E8" /><Text style={styles.loadingText}>Preparing the matching trail…</Text></SafeAreaView>;
+    return <SafeAreaView style={styles.loading}><ActivityIndicator size="large" color="#7652E8" /><Text style={styles.loadingText}>Preparing gesture moments…</Text></SafeAreaView>;
+  }
+  if (!current) {
+    return (
+      <SafeAreaView style={styles.loading}>
+        <Ionicons name="images-outline" size={38} color="#7652E8" />
+        <Text style={styles.emptyTitle}>This set is being prepared</Text>
+        <Text style={styles.emptyText}>Publish Expression Match moments for Level {level}, Set {setNumber} in Admin.</Text>
+        <Pressable style={styles.primaryButton} onPress={() => router.replace('/QuackSituateMatchingLevels')}><Text style={styles.primaryButtonText}>RETURN TO MAP</Text></Pressable>
+      </SafeAreaView>
+    );
   }
 
+  const remoteScene = current.imageUrl ? { uri: mediaUrl(current.imageUrl) } : fallbackScenes[current.sceneKey] || fallbackScenes.school;
   return (
     <SafeAreaView style={styles.safe}>
-      <ImageBackground source={require('../assets/quacksituate/quacksituate-menu-background-v3.png')} style={styles.background} imageStyle={styles.backgroundImage}>
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} scrollEnabled={!dragRope}>
-          <View style={styles.topBar}>
-            <Pressable style={styles.iconButton} onPress={() => setShowExit(true)}>
-              <Ionicons name="arrow-back" size={24} color="#442454" />
-            </Pressable>
-            <View style={styles.headerCopy}>
-              <Text style={styles.headerKicker}>ROPE QUEST · {pairs[0]?.topic || 'EXPRESSION MATCH'}</Text>
-              <Text style={styles.headerTitle}>Expression Match</Text>
-              <Text style={styles.headerSubtitle}>Build every connection, then check your board.</Text>
-            </View>
-            <Pressable style={styles.helpButton} onPress={() => setShowHelp(true)}>
-              <Ionicons name="help-circle" size={26} color="#8A20E8" />
-            </Pressable>
+      <View style={styles.stage}>
+        <ImageBackground source={require('../assets/quacksituate/quacksituate-menu-background-v3.png')} style={StyleSheet.absoluteFill} imageStyle={styles.pageBackground} />
+        <View style={styles.topBar}>
+          <Pressable style={styles.roundButton} onPress={() => setShowExit(true)}><Ionicons name="arrow-back" size={23} color="#FFFFFF" /></Pressable>
+          <View style={styles.progressArea}>
+            <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${((momentIndex + 1) / moments.length) * 100}%` }]} /></View>
+            <Text style={styles.progressText}>{momentIndex + 1}/{moments.length}</Text>
           </View>
+          <View style={styles.stars}>{[1, 2, 3].map(star => <Ionicons key={star} name={star <= stars ? 'star' : 'star-outline'} size={20} color={star <= stars ? '#FFD65A' : '#9781D8'} />)}</View>
+        </View>
 
-          <View style={styles.statusRow}>
-            <View style={styles.levelBadge}><Text style={styles.levelLabel}>LEVEL</Text><Text style={styles.levelValue}>{level}</Text><Text style={styles.levelSet}>SET {setNumber}</Text></View>
-            <View style={styles.missionStatus}><View style={styles.statusDot} /><View><Text style={styles.statusKicker}>MATCHING BOARD</Text><Text style={styles.statusText}>{Object.keys(matches).length} of {pairs.length} ropes placed</Text></View></View>
-            <View style={styles.scoreBadge}><Ionicons name="star" size={18} color="#D99A2B" /><Text style={styles.scoreText}>{score}</Text></View>
-          </View>
+        <View style={styles.heading}>
+          <Text style={styles.kicker}>GESTURE MOMENT · {current.location || current.topic}</Text>
+          <Text style={styles.instruction}>Move the phrase to the matching moment</Text>
+        </View>
 
-          <View style={[styles.board, { width: boardWidth, minHeight: pairs.length * cardHeight + 84 }]}>
-            <View style={styles.boardHeader}>
-              <View><Text style={styles.boardKicker}>CONNECT THE MOMENT</Text><Text style={styles.boardTitle}>Phrase to scene</Text></View>
-              <Ionicons name="git-compare" size={25} color="#8A20E8" />
-            </View>
-            <View style={styles.columnLabels}><Text style={styles.columnLabel}>EXPRESSIONS</Text><Text style={styles.columnLabel}>SCENES</Text></View>
+        <View style={styles.sceneCard}>
+          <Image source={remoteScene} style={styles.sceneImage} resizeMode="cover" />
+          <View style={styles.sceneShade} />
+          <Image source={ahiruGestures[momentIndex % ahiruGestures.length]} style={styles.ahiru} resizeMode="contain" />
+          <View style={styles.locationPill}><Ionicons name="location" size={15} color="#FFFFFF" /><Text style={styles.locationText}>{current.location || 'Japanese moment'}</Text></View>
+          {current.audioUrl ? <Pressable style={styles.audioButton} onPress={playMomentAudio}><Ionicons name="volume-high" size={24} color="#FFFFFF" /></Pressable> : null}
+        </View>
 
-            <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width={boardWidth} height={pairs.length * cardHeight + 84}>
-              {ropePaths.map(path => {
-                const startY = 112 + path.left * cardHeight + (cardHeight - 28) / 2;
-                const endY = 112 + path.right * cardHeight + (cardHeight - 28) / 2;
-                const rope = `M ${boardWidth * 0.395} ${startY} C ${boardWidth * 0.48} ${startY}, ${boardWidth * 0.52} ${endY}, ${boardWidth * 0.605} ${endY}`;
-                return (
-                  <React.Fragment key={path.left}>
-                    <Path d={rope} stroke="#4A2C42" strokeWidth="10" strokeLinecap="round" fill="none" opacity="0.16" />
-                    <Path d={rope} stroke={path.color} strokeWidth="7" strokeLinecap="round" fill="none" />
-                    <Path d={rope} stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="5 9" fill="none" opacity="0.5" />
-                  </React.Fragment>
-                );
-              })}
-              {dragRope && (() => {
-                const startX = boardWidth * 0.395;
-                const startY = 112 + dragRope.expressionIndex * cardHeight + (cardHeight - 28) / 2;
-                const controlX = Math.max(startX + 22, (startX + dragRope.x) / 2);
-                const liveRope = `M ${startX} ${startY} C ${controlX} ${startY}, ${controlX} ${dragRope.y}, ${dragRope.x} ${dragRope.y}`;
-                return (
-                  <React.Fragment>
-                    <Path d={liveRope} stroke="#4A2C42" strokeWidth="11" strokeLinecap="round" fill="none" opacity="0.18" />
-                    <Path d={liveRope} stroke={ropeColors[dragRope.expressionIndex % ropeColors.length]} strokeWidth="8" strokeLinecap="round" fill="none" />
-                    <Path d={liveRope} stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="5 9" fill="none" opacity="0.55" />
-                  </React.Fragment>
-                );
-              })()}
-            </Svg>
+        <View style={styles.promptCard}>
+          <View style={styles.promptIcon}><Ionicons name="chatbubble-ellipses" size={20} color="#7652E8" /></View>
+          <Text style={styles.prompt}>{current.scenario}</Text>
+          <Pressable style={styles.hintButton} onPress={() => setShowHint(value => !value)}><Ionicons name="bulb-outline" size={17} color="#7652E8" /><Text style={styles.hintButtonText}>Hint</Text></Pressable>
+        </View>
+        {showHint ? <View style={styles.hintCard}><Text style={styles.hintText}>{current.hint}</Text></View> : null}
+        <View style={styles.dropGuide}><Ionicons name="arrow-up" size={16} color="#D8CCFF" /><Text style={styles.dropGuideText}>DRAG UP TO MATCH · OR TAP A PHRASE</Text></View>
+        <View style={styles.phraseTray}>{options.map(choice => <PhraseChip key={`${current.id}-${choice.japanese}`} choice={choice} disabled={locked} onDrop={choose} />)}</View>
+        <Pressable style={styles.helpButton} onPress={() => setShowHelp(true)}><Ionicons name="help" size={20} color="#7652E8" /></Pressable>
+      </View>
 
-            <View style={styles.columns}>
-              <View style={styles.column}>
-                {pairs.map((pair, index) => {
-                  const connected = matches[index] !== undefined;
-                  const wrong = incorrectLinks.includes(index);
-                  return (
-                    <Pressable
-                      key={pair.id}
-                      onPress={() => setSelected(index)}
-                      style={[
-                        styles.phraseCard,
-                        { height: cardHeight - 28 },
-                        selected === index && styles.selectedCard,
-                        connected && { borderColor: ropeColors[index % ropeColors.length] },
-                        wrong && styles.wrongCard,
-                      ]}
-                    >
-                      <View style={[styles.numberBadge, { backgroundColor: ropeColors[index % ropeColors.length] }]}><Text style={styles.numberText}>{index + 1}</Text></View>
-                      <Text numberOfLines={2} adjustsFontSizeToFit style={styles.japanese}>{pair.correctAnswer}</Text>
-                      <Text numberOfLines={1} style={styles.romaji}>{pair.choices?.[0]?.romaji}</Text>
-                      <Text style={styles.tapLabel}>{connected ? 'Tap to reconnect' : selected === index ? 'Choose a scene' : 'Tap to connect'}</Text>
-                      <DragSocket
-                        color={ropeColors[index % ropeColors.length]}
-                        connected={connected}
-                        startX={boardWidth * 0.395}
-                        startY={112 + index * cardHeight + (cardHeight - 28) / 2}
-                        onStart={() => {
-                          setSelected(index);
-                          setDragRope({ expressionIndex: index, x: boardWidth * 0.395, y: 112 + index * cardHeight + (cardHeight - 28) / 2 });
-                        }}
-                        onMove={(x, y) => setDragRope({ expressionIndex: index, x, y })}
-                        onRelease={(x, y) => connectDraggedRope(index, x, y, boardWidth, cardHeight)}
-                      />
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              <View style={styles.column}>
-                {scenes.map((scene, index) => {
-                  const occupied = Object.values(matches).includes(index);
-                  return (
-                    <Pressable key={scene.id} onPress={() => makeConnection(index)} style={[styles.sceneCard, { height: cardHeight - 28 }, occupied && styles.sceneOccupied]}>
-                      <Image source={sceneImages[scene.sceneKey] || sceneImages.school} style={styles.sceneImage} resizeMode="cover" />
-                      <View style={styles.sceneShade} />
-                      <View style={styles.sceneLetter}><Text style={styles.sceneLetterText}>{String.fromCharCode(65 + index)}</Text></View>
-                      <View style={styles.sceneCaption}><Text numberOfLines={3} style={styles.sceneText}>{scene.scenario}</Text></View>
-                      <View style={styles.rightSocket} />
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.bottomActions}>
-            <Pressable style={styles.resetButton} onPress={resetBoard}><Ionicons name="refresh" size={21} color="#D65373" /><Text style={styles.resetText}>Reset</Text></Pressable>
-            <Pressable disabled={Object.keys(matches).length < pairs.length} style={[styles.checkButton, Object.keys(matches).length < pairs.length && styles.checkDisabled]} onPress={checkMatches}>
-              <Ionicons name="checkmark-circle" size={22} color="#FFF" />
-              <View><Text style={styles.checkText}>CHECK MATCHES</Text><Text style={styles.checkSubtext}>{Object.keys(matches).length < pairs.length ? `${pairs.length - Object.keys(matches).length} rope${pairs.length - Object.keys(matches).length === 1 ? '' : 's'} remaining` : 'Board ready'}</Text></View>
-            </Pressable>
-          </View>
-        </ScrollView>
-      </ImageBackground>
-
-      <Modal visible={showHelp} transparent animationType="fade" onRequestClose={() => setShowHelp(false)}>
-        <View style={styles.modalShade}><View style={styles.modalCard}><View style={styles.modalIcon}><Ionicons name="git-compare" size={31} color="#FFF" /></View><Text style={styles.modalKicker}>HOW TO PLAY</Text><Text style={styles.modalTitle}>Build the whole rope board</Text><Text style={styles.modalText}>1. Hold the colored rope socket beside an expression.{`\n`}2. Drag the live rope to any scene and release it.{`\n`}3. Drag again whenever you want to reconnect it.{`\n`}4. Connect everything before checking.{`\n\n`}You can also tap a phrase and then a scene.</Text><Pressable style={styles.modalPrimary} onPress={() => setShowHelp(false)}><Text style={styles.modalPrimaryText}>Got it</Text></Pressable></View></View>
+      <Modal visible={feedback !== null} transparent animationType="fade">
+        <View style={styles.modalShade}><View style={styles.feedbackCard}>
+          <View style={[styles.feedbackIcon, feedback === 'correct' ? styles.correctIcon : styles.incorrectIcon]}><Ionicons name={feedback === 'correct' ? 'checkmark' : 'refresh'} size={31} color="#FFFFFF" /></View>
+          <Text style={styles.feedbackKicker}>{feedback === 'correct' ? 'NATURAL MATCH' : 'TRY THE MOMENT AGAIN'}</Text>
+          <Text style={styles.feedbackTitle}>{feedback === 'correct' ? current.correctAnswer : 'That phrase fits another scene.'}</Text>
+          <Text style={styles.feedbackText}>{current.explanation}</Text>
+          <Pressable style={styles.primaryButton} onPress={continueAfterFeedback}><Text style={styles.primaryButtonText}>{feedback === 'correct' ? 'NEXT MOMENT' : 'TRY AGAIN'}</Text><Ionicons name="arrow-forward" size={19} color="#FFFFFF" /></Pressable>
+        </View></View>
       </Modal>
 
-      <Modal visible={showExit} transparent animationType="fade" onRequestClose={() => setShowExit(false)}>
-        <View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIcon, styles.exitIcon]}><Ionicons name="pause" size={31} color="#FFF" /></View><Text style={styles.modalKicker}>MISSION PAUSED</Text><Text style={styles.modalTitle}>Leave this matching set?</Text><Text style={styles.modalText}>Your unfinished ropes will not be saved. The game music will stop immediately when you exit.</Text><Pressable style={styles.modalPrimary} onPress={() => setShowExit(false)}><Text style={styles.modalPrimaryText}>Continue matching</Text></Pressable><Pressable style={styles.modalSecondary} onPress={confirmExit}><Text style={styles.modalSecondaryText}>Exit to level map</Text></Pressable></View></View>
-      </Modal>
-
-      <Modal visible={showReview} transparent animationType="fade" onRequestClose={() => setShowReview(false)}>
-        <View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIcon, styles.reviewIcon]}><Ionicons name="trail-sign" size={31} color="#FFF" /></View><Text style={styles.modalKicker}>ROPE CHECK</Text><Text style={styles.modalTitle}>A few ropes need another look</Text><Text style={styles.modalText}>The incorrect phrase cards are marked in rose. Close this message, tap each marked phrase, and reconnect it to another scene.</Text><Pressable style={styles.modalPrimary} onPress={() => setShowReview(false)}><Text style={styles.modalPrimaryText}>Repair my ropes</Text></Pressable></View></View>
+      <Modal visible={showHelp} transparent animationType="fade">
+        <View style={styles.modalShade}><View style={styles.feedbackCard}>
+          <View style={styles.feedbackIcon}><Ionicons name="hand-left" size={29} color="#FFFFFF" /></View>
+          <Text style={styles.feedbackKicker}>HOW TO PLAY</Text><Text style={styles.feedbackTitle}>Read, listen, and match</Text>
+          <Text style={styles.feedbackText}>Study Ahiru’s gesture and the situation. Drag a Japanese phrase upward onto the scene, or tap it. New pictures, hints, audio, and moments can be published from Admin.</Text>
+          <Pressable style={styles.primaryButton} onPress={() => setShowHelp(false)}><Text style={styles.primaryButtonText}>CONTINUE</Text></Pressable>
+        </View></View>
       </Modal>
 
       <Modal visible={showResult} transparent animationType="fade">
-        <View style={styles.modalShade}><View style={styles.modalCard}><View style={styles.modalIcon}><Ionicons name="trophy" size={34} color="#FFF" /></View><Text style={styles.modalKicker}>SET CLEARED</Text><Text style={styles.modalTitle}>Every phrase found its moment!</Text><Text style={styles.resultScore}>{score} points</Text><Text style={styles.modalText}>Your result will update Expression Match mastery, QuackProgress analytics, and your teacher’s record.</Text><Pressable disabled={saving} style={styles.modalPrimary} onPress={saveAndLeave}><Text style={styles.modalPrimaryText}>{saving ? 'Saving progress…' : 'Continue journey'}</Text></Pressable></View></View>
+        <View style={styles.modalShade}><View style={styles.feedbackCard}>
+          <View style={[styles.feedbackIcon, styles.correctIcon]}><Ionicons name="trophy" size={30} color="#FFFFFF" /></View>
+          <Text style={styles.feedbackKicker}>GESTURE TRAIL COMPLETE</Text><Text style={styles.feedbackTitle}>{score} points</Text>
+          <View style={styles.resultStars}>{[1, 2, 3].map(star => <Ionicons key={star} name={star <= stars ? 'star' : 'star-outline'} size={31} color="#F4B52E" />)}</View>
+          <Text style={styles.feedbackText}>{moments.length - wrongMoments.length} of {moments.length} moments matched without a retry. This result updates QuackProgress and teacher reports.</Text>
+          <Pressable disabled={saving} style={styles.primaryButton} onPress={saveAndLeave}><Text style={styles.primaryButtonText}>{saving ? 'SAVING…' : 'SAVE & RETURN TO MAP'}</Text></Pressable>
+        </View></View>
+      </Modal>
+
+      <Modal visible={showExit} transparent animationType="fade">
+        <View style={styles.modalShade}><View style={styles.feedbackCard}>
+          <View style={styles.feedbackIcon}><Ionicons name="pause" size={29} color="#FFFFFF" /></View>
+          <Text style={styles.feedbackKicker}>LEAVE THIS SET?</Text><Text style={styles.feedbackTitle}>Pause the gesture trail</Text>
+          <Text style={styles.feedbackText}>This unfinished set will not be recorded. You can return and start it again anytime.</Text>
+          <View style={styles.exitRow}><Pressable style={styles.secondaryButton} onPress={() => setShowExit(false)}><Text style={styles.secondaryButtonText}>KEEP PLAYING</Text></Pressable><Pressable style={styles.primaryButtonSmall} onPress={confirmExit}><Text style={styles.primaryButtonText}>LEAVE SET</Text></Pressable></View>
+        </View></View>
       </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FAF7FC' },
-  background: { flex: 1 },
-  backgroundImage: { opacity: 0.12 },
-  scroll: { padding: 11, paddingBottom: 44, alignItems: 'center' },
-  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FAF7FC' },
-  loadingText: { fontFamily: 'Jua', fontSize: 17, color: '#4B2D59', marginTop: 14 },
-  topBar: { width: '100%', maxWidth: 760, flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: 'rgba(255,255,255,.95)', borderRadius: 25, padding: 11, borderWidth: 1, borderColor: '#E9DDEB' },
-  iconButton: { width: 53, height: 53, borderRadius: 18, backgroundColor: '#F7F1F9', alignItems: 'center', justifyContent: 'center' },
-  headerCopy: { flex: 1 },
-  headerKicker: { fontSize: 8, fontWeight: '900', letterSpacing: 1.2, color: '#65A936' },
-  headerTitle: { fontFamily: 'Jua', fontSize: 25, color: '#42264F' },
-  headerSubtitle: { fontSize: 10, color: '#837687' },
-  helpButton: { width: 49, height: 49, borderRadius: 17, backgroundColor: '#F1E3FC', alignItems: 'center', justifyContent: 'center' },
-  statusRow: { width: '100%', maxWidth: 760, flexDirection: 'row', gap: 8, marginVertical: 11, alignItems: 'stretch' },
-  levelBadge: { width: 65, borderRadius: 19, backgroundColor: '#552E68', alignItems: 'center', justifyContent: 'center', padding: 7 },
-  levelLabel: { fontSize: 7, fontWeight: '900', color: '#DDBEF1', letterSpacing: 1 },
-  levelValue: { fontFamily: 'Jua', fontSize: 23, color: '#FFF' },
-  levelSet: { fontSize: 8, color: '#FFF' },
-  missionStatus: { flex: 1, borderRadius: 19, backgroundColor: '#FFF', flexDirection: 'row', gap: 9, alignItems: 'center', paddingHorizontal: 13 },
-  statusDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: '#65A936' },
-  statusKicker: { fontSize: 8, fontWeight: '900', color: '#8A20E8', letterSpacing: 1 },
-  statusText: { fontFamily: 'Jua', fontSize: 13, color: '#4A3056' },
-  scoreBadge: { minWidth: 68, borderRadius: 19, backgroundColor: '#FFF4D9', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 5 },
-  scoreText: { fontFamily: 'Jua', fontSize: 19, color: '#5C3B61' },
-  board: { backgroundColor: 'rgba(255,252,248,.98)', borderRadius: 30, padding: 12, borderWidth: 1, borderColor: '#E7D9E8', overflow: 'hidden', shadowColor: '#3C2346', shadowOpacity: 0.09, shadowRadius: 16 },
-  boardHeader: { height: 47, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 7 },
-  boardKicker: { fontSize: 8, fontWeight: '900', letterSpacing: 1.2, color: '#65A936' },
-  boardTitle: { fontFamily: 'Jua', fontSize: 19, color: '#482B54' },
-  columnLabels: { height: 40, flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: '8%', alignItems: 'center' },
-  columnLabel: { fontSize: 10, fontWeight: '900', letterSpacing: 1.1, color: '#75647C' },
-  columns: { flexDirection: 'row', justifyContent: 'space-between', gap: '23%' },
-  column: { width: '38.5%', gap: 28 },
-  phraseCard: { backgroundColor: '#FFF', borderRadius: 22, borderWidth: 2, borderColor: '#EBDDEA', padding: 10, justifyContent: 'center', alignItems: 'center', shadowColor: '#482A54', shadowOpacity: 0.06, shadowRadius: 8 },
-  selectedCard: { borderColor: '#8A20E8', backgroundColor: '#F8EEFF', transform: [{ scale: 1.025 }] },
-  wrongCard: { borderColor: '#D95372', backgroundColor: '#FFF1F4' },
-  numberBadge: { position: 'absolute', left: 7, top: 7, width: 25, height: 25, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  numberText: { fontFamily: 'Jua', fontSize: 12, color: '#FFF' },
-  japanese: { fontSize: 18, lineHeight: 25, color: '#3D2845', textAlign: 'center', fontWeight: '600', maxWidth: '94%' },
-  romaji: { fontSize: 11, color: '#756978', marginTop: 4 },
-  tapLabel: { position: 'absolute', bottom: 7, fontSize: 8, fontWeight: '800', color: '#9B8DA0', letterSpacing: 0.4 },
-  leftSocket: { position: 'absolute', right: -13, width: 26, height: 26, borderRadius: 13, borderWidth: 4, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', zIndex: 8 },
-  dragSurface: { cursor: 'grab', touchAction: 'none', userSelect: 'none' } as any,
-  socketCore: { width: 7, height: 7, borderRadius: 4 },
-  sceneCard: { borderRadius: 22, overflow: 'hidden', backgroundColor: '#DDD', justifyContent: 'flex-end', borderWidth: 2, borderColor: '#DCD4E6', shadowColor: '#482A54', shadowOpacity: 0.08, shadowRadius: 8 },
-  sceneOccupied: { borderColor: '#65A936' },
+  safe: { flex: 1, backgroundColor: '#2D176C' },
+  stage: { flex: 1, backgroundColor: '#4D2BC8', paddingHorizontal: 18, paddingTop: 8, paddingBottom: 18 },
+  pageBackground: { opacity: 0.07, resizeMode: 'cover' },
+  loading: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 28, backgroundColor: '#F8F4FF' },
+  loadingText: { fontFamily: 'Jua', fontSize: 17, color: '#4A2A58' },
+  emptyTitle: { fontFamily: 'Jua', fontSize: 25, color: '#432750', textAlign: 'center' },
+  emptyText: { fontSize: 14, lineHeight: 21, color: '#7B6D82', textAlign: 'center', maxWidth: 380 },
+  topBar: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 54 },
+  roundButton: { width: 48, height: 48, borderRadius: 17, backgroundColor: 'rgba(42,21,103,.72)', alignItems: 'center', justifyContent: 'center' },
+  progressArea: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  progressTrack: { flex: 1, height: 7, borderRadius: 7, backgroundColor: 'rgba(255,255,255,.2)', overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 7, backgroundColor: '#FFD65A' },
+  progressText: { fontFamily: 'Jua', fontSize: 12, color: '#FFFFFF' },
+  stars: { flexDirection: 'row', gap: 1 },
+  heading: { alignItems: 'center', marginTop: 7, marginBottom: 9 },
+  kicker: { fontSize: 9, fontWeight: '900', letterSpacing: 1.3, color: '#CFC3FF' },
+  instruction: { fontFamily: 'Jua', fontSize: 20, lineHeight: 25, color: '#FFFFFF', textAlign: 'center', marginTop: 3 },
+  sceneCard: { flex: 1, minHeight: 190, maxHeight: 320, borderRadius: 28, overflow: 'hidden', borderWidth: 2, borderColor: 'rgba(255,255,255,.38)', backgroundColor: '#3A227A', shadowColor: '#160B40', shadowOpacity: 0.3, shadowRadius: 16, elevation: 7 },
   sceneImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
-  sceneShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(27,16,35,.12)' },
-  sceneLetter: { position: 'absolute', left: 7, top: 7, width: 29, height: 29, borderRadius: 15, backgroundColor: '#6653A5', alignItems: 'center', justifyContent: 'center' },
-  sceneLetterText: { fontFamily: 'Jua', fontSize: 15, color: '#FFF' },
-  sceneCaption: { backgroundColor: 'rgba(255,255,255,.95)', minHeight: 45, justifyContent: 'center', padding: 6 },
-  sceneText: { fontSize: 9, lineHeight: 12, color: '#3C303F', textAlign: 'center' },
-  rightSocket: { position: 'absolute', left: -10, top: '44%', width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFF', borderWidth: 4, borderColor: '#7767B2' },
-  bottomActions: { width: '100%', maxWidth: 760, flexDirection: 'row', gap: 10, marginTop: 13 },
-  resetButton: { width: 96, borderRadius: 18, backgroundColor: '#FFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderWidth: 1, borderColor: '#E9DDEB' },
-  resetText: { fontFamily: 'Jua', fontSize: 14, color: '#D65373' },
-  checkButton: { flex: 1, minHeight: 61, borderRadius: 18, backgroundColor: '#8A20E8', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, shadowColor: '#8A20E8', shadowOpacity: 0.24, shadowRadius: 12 },
-  checkDisabled: { backgroundColor: '#BDB3C3', shadowOpacity: 0 },
-  checkText: { fontFamily: 'Jua', fontSize: 15, color: '#FFF' },
-  checkSubtext: { fontSize: 9, color: '#F4E9FA' },
-  modalShade: { flex: 1, backgroundColor: 'rgba(38,20,46,.62)', alignItems: 'center', justifyContent: 'center', padding: 23 },
-  modalCard: { width: '100%', maxWidth: 420, borderRadius: 31, backgroundColor: '#FFF', padding: 25, alignItems: 'center' },
-  modalIcon: { width: 68, height: 68, borderRadius: 23, backgroundColor: '#8A20E8', alignItems: 'center', justifyContent: 'center' },
-  exitIcon: { backgroundColor: '#D88727' },
-  reviewIcon: { backgroundColor: '#D95372' },
-  modalKicker: { fontSize: 10, fontWeight: '900', letterSpacing: 1.4, color: '#65A936', marginTop: 16 },
-  modalTitle: { fontFamily: 'Jua', fontSize: 25, color: '#42264F', textAlign: 'center', marginTop: 5 },
-  modalText: { fontSize: 13, lineHeight: 21, color: '#786D7C', textAlign: 'center', marginVertical: 13 },
-  resultScore: { fontFamily: 'Jua', fontSize: 22, color: '#D88727', marginTop: 8 },
-  modalPrimary: { width: '100%', borderRadius: 17, backgroundColor: '#8A20E8', padding: 15, alignItems: 'center', marginTop: 4 },
-  modalPrimaryText: { fontFamily: 'Jua', fontSize: 15, color: '#FFF' },
-  modalSecondary: { width: '100%', padding: 14, alignItems: 'center', marginTop: 4 },
-  modalSecondaryText: { fontFamily: 'Jua', fontSize: 14, color: '#D65373' },
+  sceneShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(43,20,90,.18)' },
+  ahiru: { position: 'absolute', alignSelf: 'center', bottom: -4, width: '48%', height: '84%' },
+  locationPill: { position: 'absolute', left: 13, top: 13, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(45,24,92,.82)', paddingHorizontal: 11, paddingVertical: 7, borderRadius: 14 },
+  locationText: { color: '#FFFFFF', fontSize: 11, fontWeight: '800' },
+  audioButton: { position: 'absolute', right: 13, bottom: 13, width: 47, height: 47, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: '#7652E8' },
+  promptCard: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#FFFFFF', marginTop: 10, padding: 12, borderRadius: 20 },
+  promptIcon: { width: 39, height: 39, borderRadius: 13, backgroundColor: '#EEE8FF', alignItems: 'center', justifyContent: 'center' },
+  prompt: { flex: 1, fontFamily: 'Jua', fontSize: 15, lineHeight: 19, color: '#432650' },
+  hintButton: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#F2ECFF', paddingHorizontal: 9, paddingVertical: 8, borderRadius: 12 },
+  hintButtonText: { fontSize: 11, fontWeight: '900', color: '#7652E8' },
+  hintCard: { marginTop: 7, padding: 10, borderRadius: 14, backgroundColor: '#FFF6D9' },
+  hintText: { fontSize: 12, lineHeight: 17, color: '#705522', textAlign: 'center' },
+  dropGuide: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 9 },
+  dropGuideText: { color: '#D8CCFF', fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  phraseTray: { minHeight: 102, marginTop: 7, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignContent: 'center', gap: 8 },
+  phraseChip: { minWidth: '42%', maxWidth: '48%', zIndex: 8 },
+  phraseChipPressable: { minHeight: 46, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,.25)', backgroundColor: 'rgba(67,34,156,.94)', paddingHorizontal: 12, paddingVertical: 7, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 6, shadowColor: '#170B41', shadowOpacity: 0.25, shadowRadius: 8, elevation: 5 },
+  phraseJapanese: { flexShrink: 1, fontFamily: 'Jua', fontSize: 15, color: '#FFFFFF', textAlign: 'center' },
+  helpButton: { position: 'absolute', right: 18, top: 67, width: 39, height: 39, borderRadius: 14, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  modalShade: { flex: 1, backgroundColor: 'rgba(25,12,55,.66)', alignItems: 'center', justifyContent: 'center', padding: 22 },
+  feedbackCard: { width: '100%', maxWidth: 430, borderRadius: 29, backgroundColor: '#FFFDF9', padding: 24, alignItems: 'center', shadowColor: '#190D31', shadowOpacity: 0.28, shadowRadius: 22, elevation: 10 },
+  feedbackIcon: { width: 60, height: 60, borderRadius: 20, backgroundColor: '#7652E8', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  correctIcon: { backgroundColor: '#62B53A' },
+  incorrectIcon: { backgroundColor: '#E06B70' },
+  feedbackKicker: { fontSize: 10, fontWeight: '900', letterSpacing: 1.3, color: '#62A936', textAlign: 'center' },
+  feedbackTitle: { fontFamily: 'Jua', fontSize: 25, lineHeight: 31, color: '#432750', textAlign: 'center', marginTop: 5 },
+  feedbackText: { marginTop: 10, fontSize: 14, lineHeight: 21, color: '#76697B', textAlign: 'center' },
+  primaryButton: { width: '100%', minHeight: 54, borderRadius: 18, backgroundColor: '#7652E8', marginTop: 21, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+  primaryButtonSmall: { flex: 1, minHeight: 50, borderRadius: 16, backgroundColor: '#7652E8', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  primaryButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900', letterSpacing: 0.7, textAlign: 'center' },
+  secondaryButton: { flex: 1, minHeight: 50, borderRadius: 16, backgroundColor: '#F0EAF5', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  secondaryButtonText: { color: '#563963', fontSize: 11, fontWeight: '900', textAlign: 'center' },
+  exitRow: { width: '100%', flexDirection: 'row', gap: 10, marginTop: 21 },
+  resultStars: { flexDirection: 'row', gap: 6, marginTop: 12 },
 });
-

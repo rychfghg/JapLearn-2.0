@@ -37,6 +37,17 @@ type Question = {
   explanation: string;
 };
 
+type RescueRun = {
+  index: number;
+  questionIndex: number;
+  correctCount: number;
+  easyMistakes: number;
+  hardMistakes: number;
+  hintsUsed: number;
+  savedAt?: number;
+  updatedAt?: string;
+};
+
 const pirateDeck = require('../assets/quacksituate/pirate-rescue/pirate-ship-deck.png');
 const rescueOcean = require('../assets/quacksituate/pirate-rescue/rescue-ocean-mountains.png');
 const rescueShip = require('../assets/quacksituate/pirate-rescue/ship-foreground.png');
@@ -501,6 +512,35 @@ export default function QuackSituateRecognition() {
   const [gameOverStageHeight, setGameOverStageHeight] = useState(0);
   const storageKey = `ahiru-rescue:${String(user?.email || 'guest').toLowerCase()}`;
 
+  const makeRunSnapshot = (savedAt = Date.now()): RescueRun => ({
+    index,
+    questionIndex: index,
+    correctCount,
+    easyMistakes,
+    hardMistakes,
+    hintsUsed,
+    savedAt,
+  });
+
+  const saveCurrentRunNow = async (run = makeRunSnapshot()) => {
+    await AsyncStorage.setItem(storageKey, JSON.stringify(run));
+    if (!user?.email) return;
+    const response = await fetch(`${expoconfig.API_URL}/api/situational/runs/current`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: user.email,
+        gameType: 'RECOGNITION',
+        questionIndex: run.questionIndex,
+        correctCount: run.correctCount,
+        easyMistakes: run.easyMistakes,
+        hardMistakes: run.hardMistakes,
+        hintsUsed: run.hintsUsed,
+      }),
+    });
+    if (!response.ok) throw new Error('Unable to save the current rescue run.');
+  };
+
   useEffect(() => {
     let mounted = true;
     const controller = new AbortController();
@@ -522,7 +562,8 @@ export default function QuackSituateRecognition() {
         setError(ordered.length ? '' : 'No published rescue missions were found.');
 
         const localValue = await AsyncStorage.getItem(storageKey);
-        let run = localValue ? JSON.parse(localValue) : null;
+        const localRun: RescueRun | null = localValue ? JSON.parse(localValue) : null;
+        let remoteRun: RescueRun | null = null;
         if (user?.email) {
           try {
             const runResponse = await fetch(
@@ -530,18 +571,25 @@ export default function QuackSituateRecognition() {
               { signal: controller.signal },
             );
             if (runResponse.ok && runResponse.status !== 204) {
-              run = await runResponse.json();
+              remoteRun = await runResponse.json();
             }
           } catch {
             // Offline/local fallback intentionally retained.
           }
         }
+        const localSavedAt = Number(localRun?.savedAt) || 0;
+        const remoteSavedAt = remoteRun?.updatedAt
+          ? new Date(remoteRun.updatedAt).getTime()
+          : 0;
+        const run = localRun && localSavedAt >= remoteSavedAt
+          ? localRun
+          : remoteRun || localRun;
         if (run && ordered.length) {
           const restoredIndex = Number(run.questionIndex ?? run.index) || 0;
           setIndex(Math.min(restoredIndex, ordered.length - 1));
           setCorrectCount(Number(run.correctCount) || 0);
-          setEasyMistakes(Number(run.easyMistakes) || 0);
-          setHardMistakes(Number(run.hardMistakes) || 0);
+          setEasyMistakes(Math.min(6, Math.max(0, Number(run.easyMistakes) || 0)));
+          setHardMistakes(Math.min(3, Math.max(0, Number(run.hardMistakes) || 0)));
           setHintsUsed(Number(run.hintsUsed) || 0);
           // Always present the story prologue and tutorial when the mission is opened.
           // The run itself remains restored, so BEGIN/CONTINUE still resumes the exact trial.
@@ -628,14 +676,7 @@ export default function QuackSituateRecognition() {
 
   useEffect(() => {
     if (!questions.length || phase !== 'quiz') return;
-    const run = {
-      index,
-      questionIndex: index,
-      correctCount,
-      easyMistakes,
-      hardMistakes,
-      hintsUsed,
-    };
+    const run = makeRunSnapshot();
     void AsyncStorage.setItem(storageKey, JSON.stringify(run));
     if (!user?.email) return;
     if (remoteSaveTimer.current) clearTimeout(remoteSaveTimer.current);
@@ -644,9 +685,13 @@ export default function QuackSituateRecognition() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...run,
           email: user.email,
           gameType: 'RECOGNITION',
+          questionIndex: run.questionIndex,
+          correctCount: run.correctCount,
+          easyMistakes: run.easyMistakes,
+          hardMistakes: run.hardMistakes,
+          hintsUsed: run.hintsUsed,
         }),
       }).catch(() => undefined);
     }, 450);
@@ -775,13 +820,20 @@ export default function QuackSituateRecognition() {
   };
 
   const resetGame = async () => {
-    await AsyncStorage.removeItem(storageKey);
-    if (user?.email) {
-      await fetch(
-        `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=RECOGNITION`,
-        { method: 'DELETE' },
-      ).catch(() => undefined);
-    }
+    if (remoteSaveTimer.current) clearTimeout(remoteSaveTimer.current);
+    const freshRun: RescueRun = {
+      index: 0,
+      questionIndex: 0,
+      correctCount: 0,
+      easyMistakes: 0,
+      hardMistakes: 0,
+      hintsUsed: 0,
+      savedAt: Date.now(),
+    };
+    await saveCurrentRunNow(freshRun).catch(async () => {
+      // A new local run still takes priority if the user is temporarily offline.
+      await AsyncStorage.setItem(storageKey, JSON.stringify(freshRun));
+    });
     setIndex(0);
     setCorrectCount(0);
     setEasyMistakes(0);
@@ -789,6 +841,13 @@ export default function QuackSituateRecognition() {
     setHintsUsed(0);
     setSelected(null);
     setPhase('quiz');
+  };
+
+  const pauseAndExit = async () => {
+    if (remoteSaveTimer.current) clearTimeout(remoteSaveTimer.current);
+    await saveCurrentRunNow().catch(() => undefined);
+    setExitVisible(false);
+    setIsExiting(true);
   };
 
   if (isExiting) {
@@ -1052,7 +1111,7 @@ export default function QuackSituateRecognition() {
       />
       <Modal transparent visible={levelVisible} animationType="fade"><View style={styles.modalShade}><View style={styles.levelCard}><View style={styles.hardIcon}><Ionicons name="flame" size={34} color="#FFF" /></View><Text style={styles.levelEyebrow}>STARTER DECK CLEARED</Text><Text style={styles.levelTitle}>The pirate raises the stakes</Text><Text style={styles.levelBody}>Hard mode gives only three chances. Read every social cue closely.</Text><View style={styles.levelStats}><Text>15 trials cleared</Text><Text>{correctCount} correct</Text></View><Pressable style={styles.primaryButton} onPress={() => { setLevelVisible(false); setIndex(15); }}><Text style={styles.primaryButtonText}>BEGIN HARD RESCUE</Text><Ionicons name="flame" size={18} color="#FFF" /></Pressable></View></View></Modal>
       <Modal transparent visible={completeVisible} animationType="fade"><View style={styles.modalShade}><View style={[styles.modalCard, styles.successCard]}><VictoryRescueStage /><View style={styles.successRibbon}><Ionicons name="shield-checkmark" size={14} color="#FFFFFF" /><Text style={styles.successRibbonText}>RESCUE COMPLETE</Text></View><Text style={styles.modalTitle}>Ahiru is safely back on deck!</Text><View style={styles.scoreMedallion}><Text style={styles.finalScore}>{score}</Text><Text style={styles.scoreMedallionLabel}>OF {maximumScore} POINTS</Text></View><View style={styles.successStats}><View style={styles.successStat}><Text style={styles.successStatValue}>{correctCount}</Text><Text style={styles.successStatLabel}>NATURAL PHRASES</Text></View><View style={styles.successStatDivider} /><View style={styles.successStat}><Text style={styles.successStatValue}>{questions.length}</Text><Text style={styles.successStatLabel}>TOTAL TRIALS</Text></View></View><Text style={styles.modalBody}>{saving ? 'Securing your rescue record...' : 'Your result is now reflected in QuackProgress and your teacher’s report.'}</Text><Pressable disabled={saving} style={styles.primaryButton} onPress={() => { setCompleteVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>CONTINUE TO YOUR REPORT</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable></View></View></Modal>
-      <Modal transparent visible={exitVisible} animationType="fade" onRequestClose={() => setExitVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIconSoft, styles.pauseIcon]}><Ionicons name="bookmark-outline" size={28} color="#8423D9" /></View><Text style={styles.modalEyebrow}>PAUSE THIS MISSION?</Text><Text style={styles.modalTitle}>Save your progress for later.</Text><Text style={styles.modalBody}>Your current trial, score, and remaining lives will be restored when you return.</Text><Pressable style={styles.primaryButton} onPress={() => { setExitVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>SAVE &amp; RETURN</Text></Pressable><Pressable style={styles.modalSecondary} onPress={() => setExitVisible(false)}><Text style={styles.modalSecondaryText}>Continue playing</Text></Pressable></View></View></Modal>
+      <Modal transparent visible={exitVisible} animationType="fade" onRequestClose={() => setExitVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIconSoft, styles.pauseIcon]}><Ionicons name="bookmark-outline" size={28} color="#8423D9" /></View><Text style={styles.modalEyebrow}>PAUSE THIS MISSION?</Text><Text style={styles.modalTitle}>Save your progress for later.</Text><Text style={styles.modalBody}>Your current trial, score, and remaining lives will be restored when you return.</Text><Pressable style={styles.primaryButton} onPress={() => void pauseAndExit()}><Text style={styles.primaryButtonText}>SAVE &amp; RETURN</Text></Pressable><Pressable style={styles.modalSecondary} onPress={() => setExitVisible(false)}><Text style={styles.modalSecondaryText}>Continue playing</Text></Pressable></View></View></Modal>
     </View>
   );
 }
