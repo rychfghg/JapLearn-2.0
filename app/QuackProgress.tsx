@@ -31,6 +31,8 @@ export default function QuackProgress() {
   const [recognitionBest, setRecognitionBest] = useState(0);
   const [recognitionMaximum, setRecognitionMaximum] = useState(0);
   const [expressionBest, setExpressionBest] = useState(0);
+  const [expressionAverage, setExpressionAverage] = useState(0);
+  const [expressionAttempts, setExpressionAttempts] = useState(0);
   const [politenessBest, setPolitenessBest] = useState(0);
   const [speakingSummary, setSpeakingSummary] = useState<SpeakingSummary>({ sessions: 0, seconds: 0 });
   const [replyCoachSummary, setReplyCoachSummary] = useState<ReplyCoachSummary>({ completedChapters: 0, attempts: 0, bestScore: 0, averageScore: 0 });
@@ -69,6 +71,13 @@ export default function QuackProgress() {
       .then((response) => response.status === 204 ? null : response.json())
       .then((record) => record && setExpressionBest(record.score || 0))
       .catch((error) => console.log('Expression Match score fetch error:', error.message));
+    fetch(`${expoconfig.API_URL}/api/situational/expression-match/progress?email=${encodeURIComponent(email)}`)
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Expression Match progress unavailable')))
+      .then((record) => {
+        setExpressionAverage(record.averageAccuracy || 0);
+        setExpressionAttempts(record.attempts || 0);
+      })
+      .catch((error) => console.log('Expression Match summary fetch error:', error.message));
     fetch(`${expoconfig.API_URL}/api/situational/best?email=${encodeURIComponent(email)}&gameType=POLITENESS`)
       .then((response) => response.status === 204 ? null : response.json())
       .then((record) => record && setPolitenessBest(record.score || 0))
@@ -176,7 +185,7 @@ export default function QuackProgress() {
         <View style={styles.arcadeBestCard}><Ionicons name="chatbubbles" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>REPLY COACH · {replyCoachSummary.completedChapters} CHAPTERS</Text><Text style={styles.arcadeBestTitle}>Interactive story mastery</Text><Text style={styles.panelSubtitle}>{replyCoachSummary.attempts} completed attempts · {replyCoachSummary.averageScore}% average</Text></View><Text style={styles.arcadeBestValue}>{replyCoachSummary.bestScore}%</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="trophy" size={25} color="#D59A2A" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>ARCADE PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Quack-a-Mole</Text></View><Text style={styles.arcadeBestValue}>{quackamoleBest}</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="eye" size={25} color="#65A936" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>SITUATIONAL PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Recognition</Text><Text style={styles.panelSubtitle}>10 points for every natural response</Text></View><Text style={styles.arcadeBestValue}>{recognitionBest} / {recognitionMaximum}</Text></View>
-        <View style={styles.arcadeBestCard}><Ionicons name="git-compare" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>MATCHING PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Expression Match</Text></View><Text style={styles.arcadeBestValue}>{expressionBest}</Text></View>
+        <View style={styles.arcadeBestCard}><Ionicons name="git-compare" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>MATCHING PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Expression Match</Text><Text style={styles.panelSubtitle}>{expressionAttempts} plays · {expressionAverage}% average</Text></View><Text style={styles.arcadeBestValue}>{expressionBest}</Text></View>
         <View style={styles.arcadeBestCard}><Ionicons name="people" size={25} color="#D88727" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>TONE QUEST PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Politeness</Text></View><Text style={styles.arcadeBestValue}>{politenessBest}</Text></View>
         <Text style={styles.actionsTitle}>Explore your progress</Text>
         <Pressable style={styles.featureGreen} onPress={() => router.push('/QuackProgressProgression')}><View style={styles.featureIcon}><Ionicons name="trending-up-outline" size={25} color="#FFFFFF" /></View><View style={styles.featureCopy}><Text style={styles.featureTitle}>Progression & Reinforcement</Text><Text style={styles.featureText}>View mastery stages, repeated mistakes, and retry activities.</Text></View><Ionicons name="arrow-forward-circle" size={27} color="#65A936" /></Pressable>

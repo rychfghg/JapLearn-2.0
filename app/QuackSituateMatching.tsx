@@ -149,6 +149,7 @@ export default function QuackSituateMatching() {
   const [showExit, setShowExit] = useState(false);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [attemptStored, setAttemptStored] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -159,9 +160,6 @@ export default function QuackSituateMatching() {
 
   const current = moments[momentIndex];
   const currentAnswer = current ? getAnswer(current) : null;
-  const alternativeAnswer = current?.choices?.find(
-    choice => choice.japanese !== current.correctAnswer,
-  ) || null;
   const answeredCount = correctCount + mistakes;
   const accuracy = answeredCount > 0 ? correctCount / answeredCount : 0;
   const stars = answeredCount === 0
@@ -253,26 +251,20 @@ export default function QuackSituateMatching() {
 
         const all: Moment[] = await response.json();
         const published = all
-          .filter(item => item.level === level && item.setNumber === setNumber)
+          .filter(item => item.level === level)
           .filter(item => {
             const choices = Array.isArray(item.choices) ? item.choices : [];
             const hasCorrectAnswer = choices.some(
               choice => choice.japanese === item.correctAnswer,
             );
-            const hasAlternative = choices.some(
-              choice => choice.japanese !== item.correctAnswer,
-            );
-
             return Boolean(
               item.scenario &&
               item.secondaryScenario &&
               item.imageUrl &&
               item.secondaryImageUrl &&
-              hasCorrectAnswer &&
-              hasAlternative,
+              hasCorrectAnswer,
             );
-          })
-          .slice(0, 20);
+          });
         const selected = published;
 
         if (active) setMoments(selected);
@@ -290,10 +282,22 @@ export default function QuackSituateMatching() {
               selected.length,
               Math.max(0, Number(run.correctCount) || 0),
             );
-            setMomentIndex(resumeIndex);
-            setCorrectCount(resumedCorrect);
-            setMistakes(Math.max(0, savedQuestionIndex - resumedCorrect));
-            setShowResult(savedQuestionIndex >= selected.length);
+            if (savedQuestionIndex >= selected.length) {
+              // A completed run is not resumable. Attempts are stored separately,
+              // so clear stale run state and begin a clean, replayable round.
+              await fetch(
+                `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
+                { method: 'DELETE' },
+              );
+              setMomentIndex(0);
+              setCorrectCount(0);
+              setMistakes(0);
+              setShowResult(false);
+            } else {
+              setMomentIndex(resumeIndex);
+              setCorrectCount(resumedCorrect);
+              setMistakes(Math.max(0, savedQuestionIndex - resumedCorrect));
+            }
           }
         }
 
@@ -385,41 +389,79 @@ export default function QuackSituateMatching() {
     setMomentIndex(index => index + 1);
   };
 
+  const storeCompletedAttempt = async () => {
+    const user = await getUser();
+
+    const response = await fetch(`${expoconfig.API_URL}/api/situational/attempts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: user.email,
+        name: [user.fname, user.lname].filter(Boolean).join(' '),
+        gameType: 'EXPRESSION_MATCH',
+        difficulty: level === 3 ? 'HARD' : level === 2 ? 'INTERMEDIATE' : 'STARTER',
+        level,
+        setNumber,
+        topic: moments[0]?.topic,
+        score,
+        maxScore: moments.length * 10,
+        totalQuestions: moments.length,
+        correctAnswers: correctCount,
+        stars,
+        completed: true,
+      }),
+    });
+    if (!response.ok) throw new Error(`Attempt save failed: ${response.status}`);
+
+    await fetch(
+      `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
+      { method: 'DELETE' },
+    );
+    setAttemptStored(true);
+  };
+
+  const ensureCompletedAttempt = async () => {
+    if (!attemptStored) await storeCompletedAttempt();
+  };
+
+  useEffect(() => {
+    if (!showResult || attemptStored || saving) return;
+    let active = true;
+    setSaving(true);
+    void storeCompletedAttempt()
+      .catch(() => {})
+      .finally(() => {
+        if (active) setSaving(false);
+      });
+    return () => { active = false; };
+  }, [attemptStored, showResult]);
+
   const saveAndLeave = async () => {
     setSaving(true);
 
     try {
-      const user = await getUser();
-
-      await fetch(`${expoconfig.API_URL}/api/situational/attempts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: user.email,
-          name: [user.fname, user.lname].filter(Boolean).join(' '),
-          gameType: 'EXPRESSION_MATCH',
-          difficulty: level === 3 ? 'HARD' : level === 2 ? 'INTERMEDIATE' : 'STARTER',
-          level,
-          setNumber,
-          topic: moments[0]?.topic,
-          score,
-          maxScore: moments.length * 10,
-          totalQuestions: moments.length,
-          correctAnswers: correctCount,
-          stars,
-          completed: true,
-        }),
-      });
-
-      await fetch(
-        `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
-        { method: 'DELETE' },
-      );
-
+      await ensureCompletedAttempt();
       await stopAudio(true);
       setIsExiting(true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const replay = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await ensureCompletedAttempt();
+      setMomentIndex(0);
+      setCorrectCount(0);
+      setMistakes(0);
+      setFeedback(null);
+      setShowHint(false);
+      setLocked(false);
+      setShowResult(false);
+      setAttemptStored(false);
+      setCorrectPosition(Math.random() > 0.5 ? 'top' : 'bottom');
     } finally {
       setSaving(false);
     }
@@ -454,13 +496,13 @@ export default function QuackSituateMatching() {
     );
   }
 
-  if (!current || !currentAnswer || !alternativeAnswer) {
+  if (!current || !currentAnswer) {
     return (
       <SafeAreaView style={styles.loading}>
         <Ionicons name="images-outline" size={38} color="#7652E8" />
         <Text style={styles.emptyTitle}>This challenge is being prepared</Text>
         <Text style={styles.emptyText}>
-          Publish at least two Expression Match moments for this difficulty in Admin.
+          Publish at least one complete Expression Match moment for this difficulty in Admin.
         </Text>
         <Pressable
           style={styles.primaryButton}
@@ -661,10 +703,20 @@ export default function QuackSituateMatching() {
             <Pressable
               disabled={saving}
               style={styles.primaryButton}
-              onPress={saveAndLeave}
+              onPress={replay}
             >
               <Text style={styles.primaryButtonText}>
-                {saving ? 'SAVING…' : 'SAVE & RETURN'}
+                {saving ? 'SAVING…' : 'PLAY AGAIN'}
+              </Text>
+              <Ionicons name="refresh" size={19} color="#FFFFFF" />
+            </Pressable>
+            <Pressable
+              disabled={saving}
+              style={styles.resultReturnButton}
+              onPress={saveAndLeave}
+            >
+              <Text style={styles.resultReturnText}>
+                RETURN TO SITUATION TRAIL
               </Text>
             </Pressable>
           </View>
@@ -705,6 +757,8 @@ const styles = StyleSheet.create({
   stage: { flex: 1, backgroundColor: '#4C28C8', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 12 },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, padding: 28, backgroundColor: '#F8F4FF' },
   loadingText: { fontFamily: 'Jua', fontSize: 17, color: '#4A2A58' },
+  resultReturnButton: { marginTop: 11, minHeight: 46, alignItems: 'center', justifyContent: 'center' },
+  resultReturnText: { color: '#7652E8', fontSize: 11, fontWeight: '900', letterSpacing: 0.7 },
   emptyTitle: { fontFamily: 'Jua', fontSize: 25, color: '#432750', textAlign: 'center' },
   emptyText: { fontSize: 14, lineHeight: 21, color: '#7B6D82', textAlign: 'center', maxWidth: 380 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 50 },
