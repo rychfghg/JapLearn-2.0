@@ -930,26 +930,50 @@ export default function QuackSituateRecognition() {
             resizeMode="contain"
           />
         </View>
-        <View style={styles.storyPanel}>
-          <View style={styles.endingHeader}>
-            <View style={styles.failureSeal}><Ionicons name="water" size={24} color="#FFFFFF" /></View>
+        <View style={[styles.storyPanel, styles.failurePanel]}>
+          <View style={styles.failureHeading}>
+            <View style={styles.failureSeal}>
+              <Ionicons name="shield-outline" size={23} color="#FFFFFF" />
+            </View>
             <View style={styles.endingHeaderCopy}>
-              <Text style={[styles.storyEyebrow, styles.failureEyebrow]}>MISSION PAUSED</Text>
-              <Text style={styles.endingTitle}>The rescue is not over yet.</Text>
+              <Text style={styles.failureEyebrow}>RESCUE REPORT</Text>
+              <Text style={styles.endingTitle}>Ahiru is counting on you.</Text>
             </View>
           </View>
-          <View style={[styles.endingMessage, styles.endingMessagePurple]}>
-            <Ionicons name="compass-outline" size={20} color="#8423D9" />
-            <View style={styles.endingMessageCopy}>
-              <Text style={styles.endingMessageTitle}>Plan your next rescue</Text>
-              <Text style={[styles.endingMessageText, styles.endingMessageTextPurple]}>Look closely at who is speaking, where the conversation happens, and which level of politeness feels natural. Every thoughtful reply brings Ahiru closer to safety.</Text>
+
+          <View style={styles.failureStatusCard}>
+            <View style={styles.failureStatusMarker} />
+            <View style={styles.failureStatusCopy}>
+              <Text style={styles.failureStatusLabel}>MISSION STATUS</Text>
+              <Text style={styles.failureStatusTitle}>Rescue incomplete</Text>
+              <Text style={styles.failureStatusText}>
+                Regroup, read the situation carefully, and return with a stronger reply.
+              </Text>
             </View>
           </View>
+
+          <Text style={styles.failureChecklistLabel}>YOUR NEXT-ATTEMPT CHECKLIST</Text>
+          <View style={styles.failureChecklist}>
+            <View style={styles.failureChecklistItem}>
+              <Ionicons name="person-outline" size={15} color="#8423D9" />
+              <Text style={styles.failureChecklistText}>Speaker</Text>
+            </View>
+            <View style={styles.failureChecklistItem}>
+              <Ionicons name="location-outline" size={15} color="#8423D9" />
+              <Text style={styles.failureChecklistText}>Setting</Text>
+            </View>
+            <View style={styles.failureChecklistItem}>
+              <Ionicons name="chatbubble-ellipses-outline" size={15} color="#8423D9" />
+              <Text style={styles.failureChecklistText}>Tone</Text>
+            </View>
+          </View>
+
           <Pressable style={styles.primaryButton} onPress={() => void resetGame()}>
-            <Text style={styles.primaryButtonText}>RESTART THE RESCUE</Text>
+            <Text style={styles.primaryButtonText}>BEGIN A NEW RESCUE</Text>
             <Ionicons name="refresh" size={18} color="#FFF" />
           </Pressable>
-          <Pressable style={styles.modalSecondary} onPress={() => setIsExiting(true)}>
+          <Pressable style={styles.failureSecondaryButton} onPress={() => setIsExiting(true)}>
+            <Ionicons name="map-outline" size={16} color="#75428D" />
             <Text style={styles.modalSecondaryText}>Return to mission map</Text>
           </Pressable>
         </View>
