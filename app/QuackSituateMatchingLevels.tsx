@@ -13,15 +13,36 @@ import {
   Text,
   View,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import expoconfig from '../expoconfig';
 
-const levels = [
-  { level: 1, sets: 3, title: 'Hello Steps', topic: 'Match greetings, thanks, and farewells', color: '#6CB33F', side: 'left' },
-  { level: 2, sets: 3, title: 'Gesture Street', topic: 'Read school, meal, and home moments', color: '#E38B25', side: 'right' },
-  { level: 3, sets: 3, title: 'Social Signals', topic: 'Match introductions, work, and travel', color: '#7652E8', side: 'left' },
-  { level: 4, sets: 5, title: 'Nuance Garden', topic: 'Notice subtler gestures and relationships', color: '#D65083', side: 'right' },
-  { level: 5, sets: 10, title: 'Gesture Mastery', topic: 'Clear fast mixed-context moments', color: '#55318C', side: 'left' },
+const difficulties = [
+  {
+    level: 1,
+    title: 'Easy',
+    subtitle: 'Everyday greetings and clear gestures',
+    detail: '5 gesture moments',
+    icon: 'hand-left-outline' as const,
+    color: '#6CB33F',
+    tint: '#EFF8E9',
+  },
+  {
+    level: 2,
+    title: 'Medium',
+    subtitle: 'School, work, and social situations',
+    detail: '5 gesture moments',
+    icon: 'people-outline' as const,
+    color: '#E38B25',
+    tint: '#FFF4E5',
+  },
+  {
+    level: 3,
+    title: 'Hard',
+    subtitle: 'Subtle gestures and natural expressions',
+    detail: '5 gesture moments',
+    icon: 'trophy-outline' as const,
+    color: '#8A20E8',
+    tint: '#F3E9FC',
+  },
 ] as const;
 
 export default function QuackSituateMatchingLevels() {
@@ -34,10 +55,13 @@ export default function QuackSituateMatchingLevels() {
     AsyncStorage.getItem('user').then(async value => {
       try {
         const email = value ? JSON.parse(value).email : '';
-        const response = await fetch(`${expoconfig.API_URL}/api/situational/expression-match/progress?email=${encodeURIComponent(email)}`);
+        const response = await fetch(
+          `${expoconfig.API_URL}/api/situational/expression-match/progress?email=${encodeURIComponent(email)}`,
+        );
+
         if (response.ok) {
           const data = await response.json();
-          setUnlocked(data.unlockedLevel || 1);
+          setUnlocked(Math.min(3, data.unlockedLevel || 1));
           setCompletedSets(data.completedSets || []);
         }
       } finally {
@@ -53,103 +77,145 @@ export default function QuackSituateMatchingLevels() {
         style={styles.background}
         imageStyle={styles.backgroundImage}
       >
-        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.topBar}>
-            <Pressable style={styles.backButton} onPress={() => router.replace('/QuackSituate')}>
+            <Pressable
+              style={styles.backButton}
+              onPress={() => router.replace('/QuackSituate')}
+            >
               <Ionicons name="arrow-back" size={23} color="#442454" />
             </Pressable>
+
             <View style={styles.brandCopy}>
               <Text style={styles.eyebrow}>EXPRESSION MATCH</Text>
-              <Text style={styles.title}>Gesture trail</Text>
+              <Text style={styles.title}>Choose your challenge</Text>
             </View>
+
             <Pressable
-              style={styles.mapIcon}
+              style={styles.helpButton}
               onPress={() => setShowTutorial(true)}
             >
-              <Ionicons name="help" size={24} color="#8A20E8" />
+              <Ionicons name="information-circle-outline" size={26} color="#8A20E8" />
             </Pressable>
           </View>
 
-          {loading ? (
-            <ActivityIndicator size="large" color="#8A20E8" style={styles.loader} />
-          ) : (
-            <View style={styles.map}>
-              <Svg pointerEvents="none" style={StyleSheet.absoluteFill} viewBox="0 0 400 850" preserveAspectRatio="none">
-                <Path
-                  d="M 46 94 C 175 94, 225 261, 354 261 S 175 428, 46 428 S 225 595, 354 595 S 175 762, 46 762"
-                  stroke="#6B422D"
-                  strokeWidth="18"
-                  strokeLinecap="round"
-                  fill="none"
-                  opacity="0.24"
-                />
-                <Path
-                  d="M 46 94 C 175 94, 225 261, 354 261 S 175 428, 46 428 S 225 595, 354 595 S 175 762, 46 762"
-                  stroke="#C89B72"
-                  strokeWidth="11"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                <Path
-                  d="M 46 94 C 175 94, 225 261, 354 261 S 175 428, 46 428 S 225 595, 354 595 S 175 762, 46 762"
-                  stroke="#F6DFC2"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeDasharray="5 12"
-                  fill="none"
-                />
-              </Svg>
+          <Text style={styles.intro}>
+            Match one spoken phrase to the gesture that expresses it.
+          </Text>
 
-              {levels.map(item => {
+          {loading ? (
+            <ActivityIndicator
+              size="large"
+              color="#8A20E8"
+              style={styles.loader}
+            />
+          ) : (
+            <View style={styles.journey}>
+              <View style={styles.trailLine} />
+
+              {difficulties.map((item, index) => {
                 const locked = item.level > unlocked;
-                const completed = Array.from({ length: item.sets }, (_, index) =>
-                  completedSets.includes(`${item.level}-${index + 1}`),
-                ).filter(Boolean).length;
-                const isLeft = item.side === 'left';
+                const completed = completedSets.some(key => key.startsWith(`${item.level}-`));
 
                 return (
-                  <View key={item.level} style={[styles.stopRow, isLeft ? styles.stopLeft : styles.stopRight]}>
-                    <View style={[styles.levelNode, { backgroundColor: locked ? '#B8AFBC' : item.color }]}>
-                      <Ionicons name={locked ? 'lock-closed' : completed === item.sets ? 'trophy' : 'hand-left'} size={20} color="#FFF" />
-                      <Text style={styles.levelNumber}>{item.level}</Text>
+                  <View key={item.title} style={styles.difficultyRow}>
+                    <View
+                      style={[
+                        styles.node,
+                        {
+                          backgroundColor: locked ? '#BDB5C1' : item.color,
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={locked ? 'lock-closed' : completed ? 'checkmark' : item.icon}
+                        size={24}
+                        color="#FFFFFF"
+                      />
                     </View>
 
-                    <View style={styles.nodeBridge}>
-                      <View style={styles.nodeBridgeCore} />
-                    </View>
-
-                    <View style={[styles.levelCard, { borderColor: locked ? '#DED7E1' : `${item.color}55` }, locked && styles.lockedCard]}>
-                      <View style={styles.cardTop}>
-                        <View>
-                          <Text style={[styles.levelLabel, { color: locked ? '#8D858F' : item.color }]}>LEVEL {item.level}</Text>
-                          <Text style={styles.levelTitle}>{item.title}</Text>
+                    <Pressable
+                      disabled={locked}
+                      onPress={() => {
+                        router.push({
+                          pathname: '/QuackSituateMatching',
+                          params: {
+                            level: String(item.level),
+                            set: '1',
+                          },
+                        });
+                      }}
+                      style={[
+                        styles.difficultyCard,
+                        {
+                          borderColor: locked ? '#DDD7E0' : `${item.color}55`,
+                          backgroundColor: locked ? '#F3F0F4' : '#FFFFFF',
+                        },
+                      ]}
+                    >
+                      <View style={styles.cardHeader}>
+                        <View
+                          style={[
+                            styles.iconTile,
+                            {
+                              backgroundColor: locked ? '#E7E2E8' : item.tint,
+                            },
+                          ]}
+                        >
+                          <Ionicons
+                            name={locked ? 'lock-closed-outline' : item.icon}
+                            size={25}
+                            color={locked ? '#A69EA9' : item.color}
+                          />
                         </View>
-                        <Text style={styles.setCount}>{completed}/{item.sets}</Text>
-                      </View>
-                      <Text style={styles.levelTopic}>{item.topic}</Text>
 
-                      <View style={styles.setTrail}>
-                        {Array.from({ length: item.sets }, (_, index) => {
-                          const done = completedSets.includes(`${item.level}-${index + 1}`);
-                          return (
-                            <Pressable
-                              key={index}
-                              disabled={locked}
-                              onPress={() => router.push({ pathname: '/QuackSituateMatching', params: { level: String(item.level), set: String(index + 1) } })}
-                              style={[
-                                styles.setNode,
-                                { borderColor: locked ? '#CAC3CC' : item.color },
-                                done && { backgroundColor: item.color },
-                              ]}
-                            >
-                              <Text style={[styles.setNodeText, done && styles.setNodeTextDone]}>{index + 1}</Text>
-                            </Pressable>
-                          );
-                        })}
+                        <View style={styles.cardCopy}>
+                          <Text
+                            style={[
+                              styles.difficultyTitle,
+                              locked && styles.lockedText,
+                            ]}
+                          >
+                            {item.title}
+                          </Text>
+                          <Text style={styles.difficultySubtitle}>
+                            {item.subtitle}
+                          </Text>
+                        </View>
+
+                        <View
+                          style={[
+                            styles.actionButton,
+                            {
+                              backgroundColor: locked ? '#D9D3DB' : item.color,
+                            },
+                          ]}
+                        >
+                          <Ionicons
+                            name={locked ? 'lock-closed' : 'arrow-forward'}
+                            size={20}
+                            color="#FFFFFF"
+                          />
+                        </View>
                       </View>
 
-                      {locked && <Text style={styles.lockText}>Clear the previous destination to unlock</Text>}
-                    </View>
+                      <View style={styles.cardFooter}>
+                        <Text style={styles.detail}>{item.detail}</Text>
+                        <Text
+                          style={[
+                            styles.status,
+                            {
+                              color: locked ? '#908792' : item.color,
+                            },
+                          ]}
+                        >
+                          {locked ? 'LOCKED' : completed ? 'REPLAY' : index === 0 ? 'START' : 'UNLOCKED'}
+                        </Text>
+                      </View>
+                    </Pressable>
                   </View>
                 );
               })}
@@ -166,19 +232,18 @@ export default function QuackSituateMatchingLevels() {
           <View style={styles.modalShade}>
             <View style={styles.tutorialCard}>
               <View style={styles.tutorialIcon}>
-                <Ionicons name="git-compare" size={27} color="#FFFFFF" />
+                <Ionicons name="hand-left-outline" size={28} color="#FFFFFF" />
               </View>
-              <Text style={styles.tutorialKicker}>HOW THE GESTURE TRAIL WORKS</Text>
-              <Text style={styles.tutorialTitle}>Move the natural phrase</Text>
+              <Text style={styles.tutorialKicker}>HOW TO PLAY</Text>
+              <Text style={styles.tutorialTitle}>Match phrase and gesture</Text>
               <Text style={styles.tutorialText}>
-                Read the moment, study Ahiru’s gesture, and drag the Japanese phrase upward onto the scene.
-                You can also tap a phrase. Audio, pictures, hints, and new moments come from Admin.
+                Listen to the Japanese phrase, then drag the single phrase tile to the upper or lower gesture that matches it. Each difficulty unlocks after the previous challenge is cleared.
               </Text>
               <Pressable
                 style={styles.tutorialButton}
                 onPress={() => setShowTutorial(false)}
               >
-                <Text style={styles.tutorialButtonText}>ENTER THE GESTURE TRAIL</Text>
+                <Text style={styles.tutorialButtonText}>GOT IT</Text>
               </Pressable>
             </View>
           </View>
@@ -191,94 +256,37 @@ export default function QuackSituateMatchingLevels() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#FAF7FC' },
   background: { flex: 1 },
-  backgroundImage: { opacity: 0.13 },
-  content: { padding: 18, paddingBottom: 56 },
-  topBar: { flexDirection: 'row', alignItems: 'center', gap: 13, marginBottom: 16 },
-  backButton: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#35203F', shadowOpacity: 0.12, shadowRadius: 12 },
+  backgroundImage: { opacity: 0.12 },
+  content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 52 },
+  topBar: { flexDirection: 'row', alignItems: 'center', gap: 13 },
+  backButton: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#35203F', shadowOpacity: 0.12, shadowRadius: 12 },
   brandCopy: { flex: 1 },
   eyebrow: { fontSize: 10, fontWeight: '800', letterSpacing: 1.5, color: '#65A936' },
-  title: { fontFamily: 'Jua', fontSize: 28, color: '#40254E' },
-  mapIcon: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#F1E4FC', alignItems: 'center', justifyContent: 'center' },
+  title: { fontFamily: 'Jua', fontSize: 25, color: '#40254E' },
+  helpButton: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#F1E4FC', alignItems: 'center', justifyContent: 'center' },
+  intro: { marginTop: 18, marginBottom: 18, fontSize: 13, lineHeight: 20, color: '#776A7C' },
   loader: { marginTop: 60 },
-  map: { minHeight: 850, width: '100%', maxWidth: 520, alignSelf: 'center', paddingVertical: 14 },
-  stopRow: { position: 'relative', minHeight: 160, width: '100%', paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', marginBottom: 7 },
-  stopLeft: { justifyContent: 'flex-start' },
-  stopRight: { justifyContent: 'flex-start', flexDirection: 'row-reverse' },
-  levelNode: { width: 64, height: 64, borderRadius: 32, borderWidth: 6, borderColor: '#FFF', alignItems: 'center', justifyContent: 'center', zIndex: 4, shadowColor: '#422451', shadowOpacity: 0.22, shadowRadius: 11, elevation: 5 },
-  levelNumber: { position: 'absolute', bottom: 5, right: 8, fontFamily: 'Jua', color: '#FFF', fontSize: 12 },
-  nodeBridge: { width: 20, height: 16, marginHorizontal: -3, zIndex: 2, backgroundColor: '#C89B72', borderTopWidth: 3, borderBottomWidth: 3, borderColor: '#8B6046', justifyContent: 'center' },
-  nodeBridgeCore: { height: 2, backgroundColor: '#F6DFC2', opacity: 0.9 },
-  levelCard: { width: '72%', minHeight: 126, backgroundColor: 'rgba(255,255,255,.97)', borderRadius: 25, padding: 17, borderWidth: 1.5, shadowColor: '#422451', shadowOpacity: 0.11, shadowRadius: 15, shadowOffset: { width: 0, height: 7 }, elevation: 3 },
-  lockedCard: { opacity: 0.72 },
-  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  levelLabel: { fontSize: 9, fontWeight: '900', letterSpacing: 1.3 },
-  levelTitle: { fontFamily: 'Jua', fontSize: 21, color: '#442651', marginTop: 2 },
-  setCount: { fontFamily: 'Jua', fontSize: 14, color: '#77687D', backgroundColor: '#F5EFF7', paddingHorizontal: 9, paddingVertical: 5, borderRadius: 11 },
-  levelTopic: { fontSize: 11, color: '#827587', marginTop: 3 },
-  setTrail: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 14 },
-  setNode: { width: 36, height: 36, borderRadius: 13, borderWidth: 2, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
-  setNodeText: { fontFamily: 'Jua', fontSize: 12, color: '#4B3157' },
-  setNodeTextDone: { color: '#FFF' },
-  lockText: { fontSize: 9, color: '#8C838E', marginTop: 10 },
-  modalShade: {
-    flex: 1,
-    backgroundColor: 'rgba(35, 18, 44, 0.58)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  tutorialCard: {
-    width: '100%',
-    maxWidth: 430,
-    borderRadius: 30,
-    backgroundColor: '#FFFDF9',
-    padding: 26,
-    alignItems: 'center',
-    shadowColor: '#291533',
-    shadowOpacity: 0.25,
-    shadowRadius: 22,
-  },
-  tutorialIcon: {
-    width: 58,
-    height: 58,
-    borderRadius: 20,
-    backgroundColor: '#8A20E8',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  tutorialKicker: {
-    fontSize: 10,
-    fontWeight: '900',
-    letterSpacing: 1.2,
-    color: '#65A936',
-  },
-  tutorialTitle: {
-    fontFamily: 'Jua',
-    fontSize: 27,
-    color: '#432750',
-    marginTop: 7,
-  },
-  tutorialText: {
-    marginTop: 10,
-    color: '#776A7C',
-    fontSize: 14,
-    lineHeight: 22,
-    textAlign: 'center',
-  },
-  tutorialButton: {
-    width: '100%',
-    marginTop: 22,
-    minHeight: 54,
-    borderRadius: 18,
-    backgroundColor: '#8A20E8',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tutorialButtonText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 0.8,
-  },
+  journey: { position: 'relative', width: '100%', maxWidth: 520, alignSelf: 'center', gap: 22, paddingVertical: 8 },
+  trailLine: { position: 'absolute', left: 30, top: 42, bottom: 42, width: 7, borderRadius: 7, backgroundColor: '#D8C7E5' },
+  difficultyRow: { flexDirection: 'row', alignItems: 'center' },
+  node: { width: 60, height: 60, borderRadius: 30, borderWidth: 6, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', zIndex: 2, shadowColor: '#422451', shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 },
+  difficultyCard: { flex: 1, minHeight: 142, marginLeft: 12, borderRadius: 25, borderWidth: 1.5, padding: 16, shadowColor: '#422451', shadowOpacity: 0.11, shadowRadius: 15, shadowOffset: { width: 0, height: 7 }, elevation: 3 },
+  cardHeader: { flexDirection: 'row', alignItems: 'center' },
+  iconTile: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  cardCopy: { flex: 1, marginLeft: 12 },
+  difficultyTitle: { fontFamily: 'Jua', fontSize: 23, color: '#442651' },
+  lockedText: { color: '#928A95' },
+  difficultySubtitle: { marginTop: 2, fontSize: 11, lineHeight: 16, color: '#827587' },
+  actionButton: { width: 39, height: 39, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  cardFooter: { marginTop: 15, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#EEE8F0', flexDirection: 'row', justifyContent: 'space-between' },
+  detail: { fontSize: 10, color: '#887C8C' },
+  status: { fontSize: 10, fontWeight: '900', letterSpacing: 0.9 },
+  modalShade: { flex: 1, backgroundColor: 'rgba(35,18,44,.58)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  tutorialCard: { width: '100%', maxWidth: 430, borderRadius: 30, backgroundColor: '#FFFDF9', padding: 26, alignItems: 'center' },
+  tutorialIcon: { width: 58, height: 58, borderRadius: 20, backgroundColor: '#8A20E8', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  tutorialKicker: { fontSize: 10, fontWeight: '900', letterSpacing: 1.2, color: '#65A936' },
+  tutorialTitle: { fontFamily: 'Jua', fontSize: 26, color: '#432750', marginTop: 7, textAlign: 'center' },
+  tutorialText: { marginTop: 10, color: '#776A7C', fontSize: 14, lineHeight: 22, textAlign: 'center' },
+  tutorialButton: { width: '100%', marginTop: 22, minHeight: 54, borderRadius: 18, backgroundColor: '#8A20E8', alignItems: 'center', justifyContent: 'center' },
+  tutorialButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '900', letterSpacing: 0.8 },
 });
