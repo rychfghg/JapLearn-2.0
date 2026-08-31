@@ -137,8 +137,6 @@ export default function QuackSituateFormalLevels() {
           </View>
 
           <View style={styles.map}>
-            <View style={styles.mapRope} />
-
             {POLITENESS_LEVELS.map((item, index) => {
               const locked = item.level > unlockedLevel;
               const unpublished = publishedLevels !== null && !publishedLevels.has(item.level);
@@ -149,47 +147,21 @@ export default function QuackSituateFormalLevels() {
               return (
                 <View
                   key={item.level}
-                  style={[
-                    styles.stageRow,
-                    index % 2 === 1 && styles.stageRowRight,
-                  ]}
+                  style={[styles.questStop, index % 2 === 1 ? styles.questStopRight : styles.questStopLeft]}
                 >
-                  <View
-                    style={[
-                      styles.stageNode,
-                      {
-                        backgroundColor: unavailable ? '#BDB4C0' : item.color,
-                      },
-                    ]}
-                  >
-                    <Text style={styles.nodeNumber}>{item.level}</Text>
-                    <Ionicons
-                      name={unavailable ? 'lock-closed' : completed ? 'checkmark' : item.icon as any}
-                      size={17}
-                      color="#FFFFFF"
-                    />
-                  </View>
+                  {index > 0 ? <View style={[styles.routeBridge, index % 2 === 1 ? styles.routeBridgeRight : styles.routeBridgeLeft]} /> : null}
 
                   <Pressable
                     disabled={unavailable}
                     style={({ pressed }) => [
-                      styles.stageCard,
-                      unavailable && styles.stageCardLocked,
-                      pressed && !unavailable && styles.stageCardPressed,
+                      styles.island,
+                      unavailable && styles.islandLocked,
+                      pressed && !unavailable && styles.islandPressed,
                     ]}
                     onPress={() => openLevel(item.level)}
                   >
-                    <View
-                      pointerEvents="none"
-                      style={[
-                        styles.japaneseMotif,
-                        {
-                          backgroundColor: unavailable
-                            ? 'rgba(157,147,160,0.08)'
-                            : `${item.color}12`,
-                        },
-                      ]}
-                    >
+                    <View style={[styles.islandSky, { backgroundColor: unavailable ? '#ECE8ED' : `${item.color}15` }]}>
+                      <View style={[styles.islandSun, { backgroundColor: unavailable ? '#D8D2DA' : `${item.color}35` }]} />
                       {index === 0 && (
                         <>
                           <View style={[styles.sakuraPetal, styles.sakuraPetalOne]} />
@@ -227,68 +199,28 @@ export default function QuackSituateFormalLevels() {
                       >
                         {index === 0 ? '礼' : index === 1 ? '縁' : '敬'}
                       </Text>
+                      <View style={[styles.islandGround, { backgroundColor: unavailable ? '#D7D1D9' : `${item.color}24` }]} />
                     </View>
 
-                    <View style={styles.stageTopRow}>
-                      <View
-                        style={[
-                          styles.levelTag,
-                          {
-                            backgroundColor: unavailable ? '#EEE9EF' : `${item.color}18`,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.levelTagText,
-                            {
-                              color: unavailable ? '#8D838F' : item.color,
-                            },
-                          ]}
-                        >
-                          LEVEL {item.level} · {item.difficulty}
-                        </Text>
+                    <View style={styles.islandBody}>
+                      <View style={[styles.checkpointSeal, { backgroundColor: unavailable ? '#AAA1AD' : item.color }]}>
+                        <Text style={styles.checkpointNumber}>0{item.level}</Text>
+                        <Ionicons name={unavailable ? 'lock-closed' : completed ? 'checkmark' : item.icon as any} size={18} color="#FFFFFF" />
                       </View>
-                      <Ionicons
-                        name={unavailable ? 'lock-closed-outline' : 'arrow-forward-circle'}
-                        size={25}
-                        color={unavailable ? '#A99FAB' : item.color}
-                      />
+                      <View style={styles.islandCopy}>
+                        <Text style={[styles.islandEyebrow, { color: unavailable ? '#8D838F' : item.color }]}>{item.difficulty} DISTRICT</Text>
+                        <Text style={[styles.islandTitle, unavailable && styles.mutedText]}>{item.name}</Text>
+                        <Text style={[styles.islandDescription, unavailable && styles.mutedText]}>
+                          {index === 0 ? 'Courtesy in familiar everyday moments' : index === 1 ? 'Tone across school, service, and work' : 'Honorific and humble communication'}
+                        </Text>
+                        <View style={styles.islandMeta}><Ionicons name="chatbubble-ellipses-outline" size={13} color={unavailable ? '#99909B' : item.color} /><Text style={styles.islandMetaText}>{item.count} STORY MOMENTS</Text></View>
+                      </View>
+                      <View style={[styles.islandAction, { backgroundColor: unavailable ? '#D5CFD7' : item.color }]}>
+                        <Ionicons name={unavailable ? 'lock-closed' : completed ? 'refresh' : resume ? 'play' : 'arrow-forward'} size={18} color="#FFFFFF" />
+                      </View>
                     </View>
-
-                    <Text style={[styles.stageTitle, unavailable && styles.mutedText]}>
-                      {item.name}
-                    </Text>
-                    <Text style={[styles.stageDescription, unavailable && styles.mutedText]}>
-                      {index === 0
-                        ? 'Everyday greetings and respectful courtesy'
-                        : index === 1
-                          ? 'School, service, and workplace relationships'
-                          : 'Formal, honorific, and humble language'}
-                    </Text>
-
-                    <View style={styles.stageFooter}>
-                      <Text style={[styles.momentCount, unavailable && styles.mutedText]}>
-                        {item.count} story moments
-                      </Text>
-                      <Text
-                        style={[
-                          styles.stageState,
-                          {
-                            color: unavailable ? '#8D838F' : item.color,
-                          },
-                        ]}
-                      >
-                        {unpublished
-                          ? 'UNPUBLISHED'
-                          : locked
-                            ? 'LOCKED'
-                          : completed
-                            ? 'REPLAY'
-                            : resume
-                              ? `CONTINUE ${resume.setNumber + 1}/${item.count}`
-                              : 'START'}
-                      </Text>
+                    <View style={[styles.stateRibbon, { backgroundColor: unavailable ? '#8F8792' : item.color }]}>
+                      <Text style={styles.stateRibbonText}>{unpublished ? 'WAITING FOR PUBLISHED CONTENT' : locked ? 'CLEAR THE PREVIOUS DISTRICT' : completed ? 'CLEARED · PLAY AGAIN' : resume ? `CONTINUE MOMENT ${resume.setNumber + 1}` : 'READY TO BEGIN'}</Text>
                     </View>
                   </Pressable>
                 </View>
@@ -399,10 +331,33 @@ const styles = StyleSheet.create({
   map: {
     position: 'relative',
     alignItems: 'stretch',
-    paddingTop: 34,
-    paddingBottom: 18,
-    paddingLeft: 55,
+    paddingTop: 30,
+    paddingBottom: 30,
   },
+  questStop: { position: 'relative', width: '91%', marginBottom: 62, zIndex: 2 },
+  questStopLeft: { alignSelf: 'flex-start' },
+  questStopRight: { alignSelf: 'flex-end' },
+  routeBridge: { position: 'absolute', top: -57, width: '48%', height: 62, borderWidth: 0, borderTopWidth: 7, borderColor: '#D2B9E5', zIndex: -1 },
+  routeBridgeRight: { left: -4, borderLeftWidth: 7, borderTopLeftRadius: 38, transform: [{ rotate: '-5deg' }] },
+  routeBridgeLeft: { right: -4, borderRightWidth: 7, borderTopRightRadius: 38, transform: [{ rotate: '5deg' }] },
+  island: { overflow: 'hidden', borderRadius: 29, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2D4E8', shadowColor: '#42244E', shadowOpacity: 0.16, shadowRadius: 17, shadowOffset: { width: 0, height: 9 }, elevation: 6 },
+  islandLocked: { backgroundColor: '#F4F1F5', borderColor: '#DDD6DF' },
+  islandPressed: { transform: [{ scale: 0.98 }], opacity: 0.94 },
+  islandSky: { height: 78, overflow: 'hidden', position: 'relative' },
+  islandSun: { position: 'absolute', width: 48, height: 48, borderRadius: 24, right: 22, top: 12 },
+  islandGround: { position: 'absolute', width: '130%', height: 55, borderRadius: 60, left: '-15%', bottom: -35 },
+  islandBody: { minHeight: 145, paddingHorizontal: 15, paddingTop: 14, paddingBottom: 34, flexDirection: 'row', alignItems: 'center' },
+  checkpointSeal: { width: 62, height: 70, borderRadius: 21, alignItems: 'center', justifyContent: 'center', borderWidth: 5, borderColor: '#FFFFFF', marginTop: -47, shadowColor: '#3D2348', shadowOpacity: 0.2, shadowRadius: 10, elevation: 6 },
+  checkpointNumber: { color: 'rgba(255,255,255,.78)', fontFamily: 'Jua', fontSize: 11, marginBottom: 2 },
+  islandCopy: { flex: 1, marginLeft: 13 },
+  islandEyebrow: { fontSize: 8, fontWeight: '900', letterSpacing: 1 },
+  islandTitle: { marginTop: 3, fontFamily: 'Jua', fontSize: 22, color: '#432750' },
+  islandDescription: { marginTop: 3, fontSize: 10.5, lineHeight: 15, color: '#7D7081' },
+  islandMeta: { marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 5 },
+  islandMetaText: { fontSize: 8, fontWeight: '900', letterSpacing: 0.7, color: '#8C7F90' },
+  islandAction: { width: 39, height: 39, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginLeft: 8 },
+  stateRibbon: { position: 'absolute', left: 0, right: 0, bottom: 0, minHeight: 28, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  stateRibbonText: { color: '#FFFFFF', fontSize: 7.5, fontWeight: '900', letterSpacing: 0.8, textAlign: 'center' },
   mapRope: {
     position: 'absolute',
     left: 28,
