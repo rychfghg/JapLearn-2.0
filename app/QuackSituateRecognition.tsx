@@ -934,19 +934,24 @@ export default function QuackSituateRecognition() {
           <View style={styles.endingHeader}>
             <View style={styles.failureSeal}><Ionicons name="water" size={24} color="#FFFFFF" /></View>
             <View style={styles.endingHeaderCopy}>
-              <Text style={[styles.storyEyebrow, styles.failureEyebrow]}>RESCUE ATTEMPT ENDED</Text>
-              <Text style={styles.endingTitle}>Ahiru needs a new rescue plan.</Text>
+              <Text style={[styles.storyEyebrow, styles.failureEyebrow]}>MISSION PAUSED</Text>
+              <Text style={styles.endingTitle}>The rescue is not over yet.</Text>
             </View>
           </View>
           <View style={[styles.endingMessage, styles.endingMessagePurple]}>
             <Ionicons name="compass-outline" size={20} color="#8423D9" />
             <View style={styles.endingMessageCopy}>
-              <Text style={styles.endingMessageTitle}>Prepare for another attempt</Text>
-              <Text style={[styles.endingMessageText, styles.endingMessageTextPurple]}>Review the speaker, setting, and polite tone. Your next choices can guide Ahiru safely home.</Text>
+              <Text style={styles.endingMessageTitle}>Plan your next rescue</Text>
+              <Text style={[styles.endingMessageText, styles.endingMessageTextPurple]}>Look closely at who is speaking, where the conversation happens, and which level of politeness feels natural. Every thoughtful reply brings Ahiru closer to safety.</Text>
             </View>
           </View>
-          <Pressable style={styles.primaryButton} onPress={() => void resetGame()}><Text style={styles.primaryButtonText}>TRY THE MISSION AGAIN</Text><Ionicons name="refresh" size={18} color="#FFF" /></Pressable>
-          <Pressable style={styles.modalSecondary} onPress={() => setIsExiting(true)}><Text style={styles.modalSecondaryText}>Back to mission selection</Text></Pressable>
+          <Pressable style={styles.primaryButton} onPress={() => void resetGame()}>
+            <Text style={styles.primaryButtonText}>RESTART THE RESCUE</Text>
+            <Ionicons name="refresh" size={18} color="#FFF" />
+          </Pressable>
+          <Pressable style={styles.modalSecondary} onPress={() => setIsExiting(true)}>
+            <Text style={styles.modalSecondaryText}>Return to mission map</Text>
+          </Pressable>
         </View>
       </ImageBackground>
     );
