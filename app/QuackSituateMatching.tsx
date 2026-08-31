@@ -33,8 +33,11 @@ type Moment = {
   sceneKey: string;
   imageUrl?: string;
   imageAlt?: string;
+  secondaryImageUrl?: string;
+  secondaryImageAlt?: string;
   audioUrl?: string;
   scenario: string;
+  secondaryScenario?: string;
   hint: string;
   correctAnswer: string;
   explanation: string;
@@ -144,8 +147,8 @@ export default function QuackSituateMatching() {
   const [correctPosition, setCorrectPosition] = useState<TargetPosition>('top');
   const [loading, setLoading] = useState(true);
   const [locked, setLocked] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
   const [mistakes, setMistakes] = useState(0);
-  const [wrongMoments, setWrongMoments] = useState<string[]>([]);
   const [showHint, setShowHint] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [showExit, setShowExit] = useState(false);
@@ -160,13 +163,50 @@ export default function QuackSituateMatching() {
   const incorrectSound = useRef<Audio.Sound | null>(null);
 
   const current = moments[momentIndex];
-  const distractor = moments.length > 1
-    ? moments[(momentIndex + 1) % moments.length]
-    : current;
   const currentAnswer = current ? getAnswer(current) : null;
-  const distractorAnswer = distractor ? getAnswer(distractor) : null;
-  const stars = mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1;
-  const score = Math.max(0, moments.length * 20 - mistakes * 5);
+  const alternativeAnswer = current?.choices?.find(
+    choice => choice.japanese !== current.correctAnswer,
+  ) || null;
+  const answeredCount = correctCount + mistakes;
+  const accuracy = answeredCount > 0 ? correctCount / answeredCount : 0;
+  const stars = answeredCount === 0
+    ? 0
+    : accuracy >= 0.9
+      ? 3
+      : accuracy >= 0.7
+        ? 2
+        : 1;
+  const score = correctCount * 10;
+  const runGameType = `EXPRESSION_MATCH_LEVEL_${level}`;
+
+  const getUser = useCallback(async () => {
+    const stored = await AsyncStorage.getItem('user');
+    return stored ? JSON.parse(stored) : {};
+  }, []);
+
+  const saveRun = useCallback(async (
+    questionIndex: number,
+    savedCorrectCount: number,
+    savedMistakes: number,
+  ) => {
+    try {
+      const user = await getUser();
+      if (!user.email) return;
+      await fetch(`${expoconfig.API_URL}/api/situational/runs/current`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.email,
+          gameType: runGameType,
+          questionIndex,
+          correctCount: savedCorrectCount,
+          easyMistakes: savedMistakes,
+          hardMistakes: level === 3 ? savedMistakes : 0,
+          hintsUsed: 0,
+        }),
+      });
+    } catch {}
+  }, [getUser, level, runGameType]);
 
   const stopAudio = useCallback(async (unload = false) => {
     const sounds = [
@@ -219,10 +259,28 @@ export default function QuackSituateMatching() {
         const all: Moment[] = await response.json();
         const selected = all
           .filter(item => item.level === level && item.setNumber === setNumber)
-          .slice(0, 5);
+          .slice(0, 20);
 
-        if (active) {
-          setMoments(selected);
+        if (active) setMoments(selected);
+
+        const user = await getUser();
+        if (user.email && selected.length > 0) {
+          const runResponse = await fetch(
+            `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
+          );
+          if (active && runResponse.ok) {
+            const run = await runResponse.json();
+            const savedQuestionIndex = Math.max(0, Number(run.questionIndex) || 0);
+            const resumeIndex = Math.min(savedQuestionIndex, selected.length - 1);
+            const resumedCorrect = Math.min(
+              selected.length,
+              Math.max(0, Number(run.correctCount) || 0),
+            );
+            setMomentIndex(resumeIndex);
+            setCorrectCount(resumedCorrect);
+            setMistakes(Math.max(0, savedQuestionIndex - resumedCorrect));
+            setShowResult(savedQuestionIndex >= selected.length);
+          }
         }
 
         const loaded = await Promise.all([
@@ -256,7 +314,7 @@ export default function QuackSituateMatching() {
       active = false;
       void stopAudio(true);
     };
-  }, [level, setNumber, stopAudio]);
+  }, [getUser, level, runGameType, setNumber, stopAudio]);
 
   useEffect(() => {
     setCorrectPosition(Math.random() > 0.5 ? 'top' : 'bottom');
@@ -286,28 +344,26 @@ export default function QuackSituateMatching() {
 
     setLocked(true);
 
-    if (position === correctPosition) {
+    const isCorrect = position === correctPosition;
+    const nextCorrectCount = correctCount + (isCorrect ? 1 : 0);
+    const nextMistakes = mistakes + (isCorrect ? 0 : 1);
+    const nextQuestionIndex = momentIndex + 1;
+
+    if (isCorrect) {
+      setCorrectCount(nextCorrectCount);
       setFeedback('correct');
       await correctSound.current?.replayAsync();
-      return;
+    } else {
+      setMistakes(nextMistakes);
+      setFeedback('incorrect');
+      await incorrectSound.current?.replayAsync();
     }
 
-    setMistakes(value => value + 1);
-    setWrongMoments(items => {
-      return items.includes(current.id) ? items : [...items, current.id];
-    });
-    setFeedback('incorrect');
-    await incorrectSound.current?.replayAsync();
-  }, [correctPosition, current, locked]);
+    await saveRun(nextQuestionIndex, nextCorrectCount, nextMistakes);
+  }, [correctCount, correctPosition, current, locked, mistakes, momentIndex, saveRun]);
 
   const continueAfterFeedback = () => {
-    const isCorrect = feedback === 'correct';
     setFeedback(null);
-
-    if (!isCorrect) {
-      setLocked(false);
-      return;
-    }
 
     if (momentIndex + 1 >= moments.length) {
       setShowResult(true);
@@ -321,8 +377,7 @@ export default function QuackSituateMatching() {
     setSaving(true);
 
     try {
-      const stored = await AsyncStorage.getItem('user');
-      const user = stored ? JSON.parse(stored) : {};
+      const user = await getUser();
 
       await fetch(`${expoconfig.API_URL}/api/situational/attempts`, {
         method: 'POST',
@@ -338,11 +393,18 @@ export default function QuackSituateMatching() {
           setNumber,
           topic: moments[0]?.topic,
           score,
+          maxScore: moments.length * 10,
           totalQuestions: moments.length,
-          correctAnswers: Math.max(0, moments.length - wrongMoments.length),
+          correctAnswers: correctCount,
+          stars,
           completed: true,
         }),
       });
+
+      await fetch(
+        `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
+        { method: 'DELETE' },
+      );
 
       await stopAudio(true);
       setIsExiting(true);
@@ -352,6 +414,7 @@ export default function QuackSituateMatching() {
   };
 
   const confirmExit = async () => {
+    await saveRun(momentIndex, correctCount, mistakes);
     await stopAudio(true);
     setShowExit(false);
     setIsExiting(true);
@@ -363,7 +426,7 @@ export default function QuackSituateMatching() {
         color="#7652E8"
         icon="hand-left-outline"
         title="Expression Match saved"
-        subtitle="Your latest gesture result is ready in QuackProgress."
+        subtitle="Your latest situation-matching result is ready in QuackProgress."
         status="RETURNING TO CHALLENGES"
         onComplete={() => router.replace('/QuackSituateMatchingLevels')}
       />
@@ -374,12 +437,12 @@ export default function QuackSituateMatching() {
     return (
       <SafeAreaView style={styles.loading}>
         <ActivityIndicator size="large" color="#7652E8" />
-        <Text style={styles.loadingText}>Preparing gesture pairs…</Text>
+        <Text style={styles.loadingText}>Preparing situation pairs…</Text>
       </SafeAreaView>
     );
   }
 
-  if (!current || !distractor || !currentAnswer || !distractorAnswer) {
+  if (!current || !currentAnswer || !alternativeAnswer) {
     return (
       <SafeAreaView style={styles.loading}>
         <Ionicons name="images-outline" size={38} color="#7652E8" />
@@ -400,22 +463,22 @@ export default function QuackSituateMatching() {
   const correctImage = current.imageUrl
     ? { uri: mediaUrl(current.imageUrl) }
     : fallbackGestures[momentIndex % fallbackGestures.length];
-  const distractorImage = distractor.imageUrl
-    ? { uri: mediaUrl(distractor.imageUrl) }
+  const alternativeImage = current.secondaryImageUrl
+    ? { uri: mediaUrl(current.secondaryImageUrl) }
     : fallbackGestures[(momentIndex + 1) % fallbackGestures.length];
   const topTarget = correctPosition === 'top'
-    ? { image: correctImage, answer: currentAnswer }
-    : { image: distractorImage, answer: distractorAnswer };
+    ? { image: correctImage, scenario: current.scenario }
+    : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
   const bottomTarget = correctPosition === 'bottom'
-    ? { image: correctImage, answer: currentAnswer }
-    : { image: distractorImage, answer: distractorAnswer };
+    ? { image: correctImage, scenario: current.scenario }
+    : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
 
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.stage}>
         <View style={styles.topBar}>
           <Pressable style={styles.roundButton} onPress={() => setShowExit(true)}>
-            <Ionicons name="pause" size={22} color="#FFFFFF" />
+            <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
           </Pressable>
 
           <View style={styles.progressArea}>
@@ -451,15 +514,14 @@ export default function QuackSituateMatching() {
             {level === 1 ? 'EASY' : level === 2 ? 'MEDIUM' : 'HARD'} · {current.location || current.topic}
           </Text>
           <Text style={styles.instruction}>
-            Move the phrase to the correct gesture
+            Drag the phrase to the situation where it belongs
           </Text>
         </View>
 
         <View style={styles.targetCard}>
-          <Image source={topTarget.image} style={styles.targetImage} resizeMode="cover" />
-          <View style={styles.imageShade} />
+          <Image source={topTarget.image} style={styles.targetImage} resizeMode="contain" />
           <View style={styles.targetLabel}>
-            <Text style={styles.targetJapanese}>{topTarget.answer.japanese}</Text>
+            <Text style={styles.targetScenario}>{topTarget.scenario}</Text>
           </View>
         </View>
 
@@ -488,10 +550,9 @@ export default function QuackSituateMatching() {
         </View>
 
         <View style={styles.targetCard}>
-          <Image source={bottomTarget.image} style={styles.targetImage} resizeMode="cover" />
-          <View style={styles.imageShade} />
+          <Image source={bottomTarget.image} style={styles.targetImage} resizeMode="contain" />
           <View style={styles.targetLabel}>
-            <Text style={styles.targetJapanese}>{bottomTarget.answer.japanese}</Text>
+            <Text style={styles.targetScenario}>{bottomTarget.scenario}</Text>
           </View>
         </View>
 
@@ -528,21 +589,21 @@ export default function QuackSituateMatching() {
               ]}
             >
               <Ionicons
-                name={feedback === 'correct' ? 'checkmark' : 'refresh'}
+                name={feedback === 'correct' ? 'checkmark' : 'close'}
                 size={31}
                 color="#FFFFFF"
               />
             </View>
             <Text style={styles.feedbackKicker}>
-              {feedback === 'correct' ? 'GESTURE MATCHED' : 'LOOK AGAIN'}
+              {feedback === 'correct' ? 'SITUATION MATCHED' : 'NOT THIS SITUATION'}
             </Text>
             <Text style={styles.feedbackTitle}>
-              {feedback === 'correct' ? current.correctAnswer : 'That gesture expresses another phrase.'}
+              {feedback === 'correct' ? current.correctAnswer : 'This phrase belongs with the other situation.'}
             </Text>
             <Text style={styles.feedbackText}>{current.explanation}</Text>
             <Pressable style={styles.primaryButton} onPress={continueAfterFeedback}>
               <Text style={styles.primaryButtonText}>
-                {feedback === 'correct' ? 'NEXT GESTURE' : 'TRY AGAIN'}
+                NEXT SITUATION
               </Text>
               <Ionicons name="arrow-forward" size={19} color="#FFFFFF" />
             </Pressable>
@@ -557,9 +618,9 @@ export default function QuackSituateMatching() {
               <Ionicons name="hand-left-outline" size={29} color="#FFFFFF" />
             </View>
             <Text style={styles.feedbackKicker}>HOW TO PLAY</Text>
-            <Text style={styles.feedbackTitle}>One phrase. Two gestures.</Text>
+            <Text style={styles.feedbackTitle}>One phrase. Two situations.</Text>
             <Text style={styles.feedbackText}>
-              Listen to the Japanese audio, then drag the single phrase tile upward or downward to its matching gesture. Images and audio published in Admin are used automatically.
+              Read both situations, listen to the Japanese phrase, then drag the phrase tile to the picture where that response belongs. Every answer is recorded once, so choose carefully.
             </Text>
             <Pressable style={styles.primaryButton} onPress={() => setShowHelp(false)}>
               <Text style={styles.primaryButtonText}>CONTINUE</Text>
@@ -587,7 +648,7 @@ export default function QuackSituateMatching() {
               ))}
             </View>
             <Text style={styles.feedbackText}>
-              {moments.length - wrongMoments.length} of {moments.length} gestures matched without a retry. This result updates QuackProgress and teacher reports.
+              {correctCount} of {moments.length} situations matched. Your stars, mastery result, and score are stored for QuackProgress and teacher reports.
             </Text>
             <Pressable
               disabled={saving}
@@ -606,12 +667,12 @@ export default function QuackSituateMatching() {
         <View style={styles.modalShade}>
           <View style={styles.feedbackCard}>
             <View style={styles.feedbackIcon}>
-              <Ionicons name="pause" size={29} color="#FFFFFF" />
+              <Ionicons name="arrow-back" size={29} color="#FFFFFF" />
             </View>
-            <Text style={styles.feedbackKicker}>LEAVE THIS CHALLENGE?</Text>
-            <Text style={styles.feedbackTitle}>Pause Expression Match</Text>
+            <Text style={styles.feedbackKicker}>LEAVE THIS JOURNEY?</Text>
+            <Text style={styles.feedbackTitle}>Save your place</Text>
             <Text style={styles.feedbackText}>
-              This unfinished challenge will not be recorded. You can return and start it again anytime.
+              Your current situation, score, and remaining moments will be saved to your account so you can continue on any device.
             </Text>
             <View style={styles.exitRow}>
               <Pressable
@@ -648,11 +709,10 @@ const styles = StyleSheet.create({
   instructionArea: { alignItems: 'center', marginTop: 5, marginBottom: 7 },
   kicker: { fontSize: 9, fontWeight: '900', letterSpacing: 1.2, color: '#D9CFFF' },
   instruction: { fontFamily: 'Jua', fontSize: 18, color: '#FFFFFF', textAlign: 'center', marginTop: 2 },
-  targetCard: { flex: 1, minHeight: 155, maxHeight: 245, borderRadius: 26, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.38)', backgroundColor: '#32196F', shadowColor: '#170B41', shadowOpacity: 0.28, shadowRadius: 13, elevation: 6 },
-  targetImage: { width: '100%', height: '100%' },
-  imageShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(43,20,90,.08)' },
-  targetLabel: { position: 'absolute', alignSelf: 'center', bottom: 9, minWidth: 100, maxWidth: '86%', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 14, backgroundColor: 'rgba(56,29,124,.88)', borderWidth: 1, borderColor: 'rgba(255,255,255,.25)' },
-  targetJapanese: { fontFamily: 'Jua', fontSize: 16, color: '#FFFFFF', textAlign: 'center' },
+  targetCard: { flex: 1, minHeight: 155, maxHeight: 245, padding: 8, borderRadius: 26, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.38)', backgroundColor: 'rgba(255,255,255,.10)', shadowColor: '#170B41', shadowOpacity: 0.28, shadowRadius: 13, elevation: 6 },
+  targetImage: { flex: 1, width: '100%', minHeight: 0 },
+  targetLabel: { alignSelf: 'stretch', minHeight: 36, marginTop: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 13, justifyContent: 'center', backgroundColor: 'rgba(56,29,124,.82)', borderWidth: 1, borderColor: 'rgba(255,255,255,.22)' },
+  targetScenario: { fontSize: 11, lineHeight: 14, color: '#FFFFFF', textAlign: 'center' },
   dragZone: { minHeight: 74, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 13, zIndex: 10 },
   draggablePhrase: { minWidth: 145, maxWidth: '70%', minHeight: 48, paddingHorizontal: 18, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,.32)', backgroundColor: '#6C45D8', flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', shadowColor: '#180C40', shadowOpacity: 0.35, shadowRadius: 10, elevation: 8 },
   draggableText: { flexShrink: 1, fontFamily: 'Jua', fontSize: 17, color: '#FFFFFF', textAlign: 'center' },

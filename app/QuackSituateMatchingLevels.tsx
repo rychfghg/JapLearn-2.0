@@ -4,7 +4,6 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  ImageBackground,
   Modal,
   Pressable,
   SafeAreaView,
@@ -19,8 +18,8 @@ const difficulties = [
   {
     level: 1,
     title: 'Easy',
-    subtitle: 'Everyday greetings and clear gestures',
-    detail: '5 gesture moments',
+    subtitle: 'Clear everyday situations and familiar responses',
+    detail: '20 situations',
     icon: 'hand-left-outline' as const,
     color: '#6CB33F',
     tint: '#EFF8E9',
@@ -28,8 +27,8 @@ const difficulties = [
   {
     level: 2,
     title: 'Medium',
-    subtitle: 'School, work, and social situations',
-    detail: '5 gesture moments',
+    subtitle: 'School, work, service, and social situations',
+    detail: '20 situations',
     icon: 'people-outline' as const,
     color: '#E38B25',
     tint: '#FFF4E5',
@@ -37,8 +36,8 @@ const difficulties = [
   {
     level: 3,
     title: 'Hard',
-    subtitle: 'Subtle gestures and natural expressions',
-    detail: '5 gesture moments',
+    subtitle: 'Formal, nuanced, and context-sensitive situations',
+    detail: '20 situations',
     icon: 'trophy-outline' as const,
     color: '#8A20E8',
     tint: '#F3E9FC',
@@ -72,11 +71,9 @@ export default function QuackSituateMatchingLevels() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ImageBackground
-        source={require('../assets/quacksituate/quacksituate-menu-background-v3.png')}
-        style={styles.background}
-        imageStyle={styles.backgroundImage}
-      >
+      <View style={styles.background}>
+        <View pointerEvents="none" style={styles.topGlow} />
+        <View pointerEvents="none" style={styles.bottomGlow} />
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
@@ -91,7 +88,7 @@ export default function QuackSituateMatchingLevels() {
 
             <View style={styles.brandCopy}>
               <Text style={styles.eyebrow}>EXPRESSION MATCH</Text>
-              <Text style={styles.title}>Choose your challenge</Text>
+              <Text style={styles.title}>Expression Journey</Text>
             </View>
 
             <Pressable
@@ -103,7 +100,7 @@ export default function QuackSituateMatchingLevels() {
           </View>
 
           <Text style={styles.intro}>
-            Match one spoken phrase to the gesture that expresses it.
+            Follow the situation trail. Match each Japanese phrase to the scene where it belongs.
           </Text>
 
           {loading ? (
@@ -115,13 +112,21 @@ export default function QuackSituateMatchingLevels() {
           ) : (
             <View style={styles.journey}>
               <View style={styles.trailLine} />
+              <View style={[styles.trailTurn, styles.trailTurnTop]} />
+              <View style={[styles.trailTurn, styles.trailTurnBottom]} />
 
               {difficulties.map((item, index) => {
                 const locked = item.level > unlocked;
                 const completed = completedSets.some(key => key.startsWith(`${item.level}-`));
 
                 return (
-                  <View key={item.title} style={styles.difficultyRow}>
+                  <View
+                    key={item.title}
+                    style={[
+                      styles.difficultyRow,
+                      index === 1 && styles.difficultyRowMiddle,
+                    ]}
+                  >
                     <View
                       style={[
                         styles.node,
@@ -235,9 +240,9 @@ export default function QuackSituateMatchingLevels() {
                 <Ionicons name="hand-left-outline" size={28} color="#FFFFFF" />
               </View>
               <Text style={styles.tutorialKicker}>HOW TO PLAY</Text>
-              <Text style={styles.tutorialTitle}>Match phrase and gesture</Text>
+              <Text style={styles.tutorialTitle}>Match phrase and situation</Text>
               <Text style={styles.tutorialText}>
-                Listen to the Japanese phrase, then drag the single phrase tile to the upper or lower gesture that matches it. Each difficulty unlocks after the previous challenge is cleared.
+                Read the two situations, listen to the Japanese phrase, and drag it to the scene where it naturally belongs. Each 20-situation journey unlocks the next difficulty.
               </Text>
               <Pressable
                 style={styles.tutorialButton}
@@ -248,15 +253,16 @@ export default function QuackSituateMatchingLevels() {
             </View>
           </View>
         </Modal>
-      </ImageBackground>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FAF7FC' },
-  background: { flex: 1 },
-  backgroundImage: { opacity: 0.12 },
+  safe: { flex: 1, backgroundColor: '#FBF8FF' },
+  background: { flex: 1, overflow: 'hidden', backgroundColor: '#FBF8FF' },
+  topGlow: { position: 'absolute', width: 360, height: 360, borderRadius: 180, right: -130, top: -120, backgroundColor: '#EAD9FF' },
+  bottomGlow: { position: 'absolute', width: 310, height: 310, borderRadius: 155, left: -160, bottom: -85, backgroundColor: '#E9F6DF' },
   content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 52 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: 13 },
   backButton: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#35203F', shadowOpacity: 0.12, shadowRadius: 12 },
@@ -264,13 +270,17 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 10, fontWeight: '800', letterSpacing: 1.5, color: '#65A936' },
   title: { fontFamily: 'Jua', fontSize: 25, color: '#40254E' },
   helpButton: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#F1E4FC', alignItems: 'center', justifyContent: 'center' },
-  intro: { marginTop: 18, marginBottom: 18, fontSize: 13, lineHeight: 20, color: '#776A7C' },
+  intro: { marginTop: 18, marginBottom: 22, padding: 15, borderRadius: 18, backgroundColor: 'rgba(255,255,255,.84)', borderWidth: 1, borderColor: '#EADFF1', fontSize: 13, lineHeight: 20, color: '#6D5D74' },
   loader: { marginTop: 60 },
-  journey: { position: 'relative', width: '100%', maxWidth: 520, alignSelf: 'center', gap: 22, paddingVertical: 8 },
-  trailLine: { position: 'absolute', left: 30, top: 42, bottom: 42, width: 7, borderRadius: 7, backgroundColor: '#D8C7E5' },
+  journey: { position: 'relative', width: '100%', maxWidth: 520, alignSelf: 'center', gap: 25, paddingVertical: 10 },
+  trailLine: { position: 'absolute', left: 30, top: 42, bottom: 42, width: 7, borderRadius: 7, backgroundColor: '#CCB5DF' },
+  trailTurn: { position: 'absolute', left: 30, width: 35, height: 7, borderRadius: 7, backgroundColor: '#CCB5DF' },
+  trailTurnTop: { top: '31%' },
+  trailTurnBottom: { top: '66%' },
   difficultyRow: { flexDirection: 'row', alignItems: 'center' },
+  difficultyRowMiddle: { marginLeft: 25 },
   node: { width: 60, height: 60, borderRadius: 30, borderWidth: 6, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', zIndex: 2, shadowColor: '#422451', shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 },
-  difficultyCard: { flex: 1, minHeight: 142, marginLeft: 12, borderRadius: 25, borderWidth: 1.5, padding: 16, shadowColor: '#422451', shadowOpacity: 0.11, shadowRadius: 15, shadowOffset: { width: 0, height: 7 }, elevation: 3 },
+  difficultyCard: { flex: 1, minHeight: 142, marginLeft: 12, borderRadius: 25, borderWidth: 1.5, padding: 16, shadowColor: '#422451', shadowOpacity: 0.14, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4 },
   cardHeader: { flexDirection: 'row', alignItems: 'center' },
   iconTile: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   cardCopy: { flex: 1, marginLeft: 12 },
