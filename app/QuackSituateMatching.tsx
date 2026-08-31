@@ -16,7 +16,6 @@ import {
   View,
 } from 'react-native';
 import QuackSituateExit from '../components/QuackSituateExit';
-import { createExpressionMatchFallback } from '../data/expressionMatchFallback';
 import expoconfig from '../expoconfig';
 import { loadBundledSound } from '../utils/nativeAudio';
 
@@ -46,11 +45,6 @@ type Moment = {
 };
 
 type TargetPosition = 'top' | 'bottom';
-
-const fallbackGestures = [
-  require('../assets/quacksituate/gestures/gesture-wave.png'),
-  require('../assets/quacksituate/gestures/gesture-bow.png'),
-];
 
 const mediaUrl = (url?: string) => {
   if (!url) return '';
@@ -272,14 +266,14 @@ export default function QuackSituateMatching() {
             return Boolean(
               item.scenario &&
               item.secondaryScenario &&
+              item.imageUrl &&
+              item.secondaryImageUrl &&
               hasCorrectAnswer &&
               hasAlternative,
             );
           })
           .slice(0, 20);
-        const selected = published.length >= 2
-          ? published
-          : createExpressionMatchFallback(level);
+        const selected = published;
 
         if (active) setMoments(selected);
 
@@ -320,9 +314,7 @@ export default function QuackSituateMatching() {
         correctSound.current = loaded[1].sound;
         incorrectSound.current = loaded[2].sound;
       } catch {
-        if (active) {
-          setMoments(createExpressionMatchFallback(level));
-        }
+        if (active) setMoments([]);
       } finally {
         if (active) {
           setLoading(false);
@@ -480,12 +472,8 @@ export default function QuackSituateMatching() {
     );
   }
 
-  const correctImage = current.imageUrl
-    ? { uri: mediaUrl(current.imageUrl) }
-    : fallbackGestures[momentIndex % fallbackGestures.length];
-  const alternativeImage = current.secondaryImageUrl
-    ? { uri: mediaUrl(current.secondaryImageUrl) }
-    : fallbackGestures[(momentIndex + 1) % fallbackGestures.length];
+  const correctImage = { uri: mediaUrl(current.imageUrl) };
+  const alternativeImage = { uri: mediaUrl(current.secondaryImageUrl) };
   const topTarget = correctPosition === 'top'
     ? { image: correctImage, scenario: current.scenario }
     : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
