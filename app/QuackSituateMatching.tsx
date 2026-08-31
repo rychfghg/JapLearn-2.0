@@ -11,6 +11,7 @@ import {
   PanResponder,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -524,6 +525,9 @@ export default function QuackSituateMatching() {
   const bottomTarget = correctPosition === 'bottom'
     ? { image: correctImage, scenario: current.scenario }
     : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
+  const feedbackReason = current.explanation?.trim()
+    || `This expression naturally matches “${current.scenario}” because its tone and meaning fit that social moment.`;
+  const feedbackExample = `In this situation—${current.scenario}—say 「${current.correctAnswer}」 (${currentAnswer.romaji}).`;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -633,32 +637,70 @@ export default function QuackSituateMatching() {
 
       <Modal visible={feedback !== null} transparent animationType="fade">
         <View style={styles.modalShade}>
-          <View style={styles.feedbackCard}>
-            <View
-              style={[
-                styles.feedbackIcon,
-                feedback === 'correct' ? styles.correctIcon : styles.incorrectIcon,
-              ]}
+          <View style={[styles.feedbackCard, styles.learningFeedbackCard]}>
+            <ScrollView
+              style={styles.feedbackScroll}
+              contentContainerStyle={styles.feedbackScrollContent}
+              showsVerticalScrollIndicator={false}
             >
-              <Ionicons
-                name={feedback === 'correct' ? 'checkmark' : 'close'}
-                size={31}
-                color="#FFFFFF"
-              />
+            <View style={[
+              styles.feedbackStatusBar,
+              feedback === 'correct' ? styles.feedbackStatusCorrect : styles.feedbackStatusIncorrect,
+            ]}>
+              <View style={[
+                styles.feedbackStatusIcon,
+                feedback === 'correct' ? styles.correctIcon : styles.incorrectIcon,
+              ]}>
+                <Ionicons
+                  name={feedback === 'correct' ? 'checkmark' : 'close'}
+                  size={22}
+                  color="#FFFFFF"
+                />
+              </View>
+              <View style={styles.feedbackStatusCopy}>
+                <Text style={[
+                  styles.feedbackStatusKicker,
+                  { color: feedback === 'correct' ? '#4A9628' : '#C94F59' },
+                ]}>
+                  {feedback === 'correct' ? 'NATURAL MATCH' : 'LET’S REVIEW THIS MATCH'}
+                </Text>
+                <Text style={styles.feedbackStatusTitle}>
+                  {feedback === 'correct'
+                    ? 'Yes—this fits the situation.'
+                    : 'The phrase belongs with the other picture.'}
+                </Text>
+              </View>
             </View>
-            <Text style={styles.feedbackKicker}>
-              {feedback === 'correct' ? 'SITUATION MATCHED' : 'NOT THIS SITUATION'}
-            </Text>
-            <Text style={styles.feedbackTitle}>
-              {feedback === 'correct' ? current.correctAnswer : 'This phrase belongs with the other situation.'}
-            </Text>
-            <Text style={styles.feedbackText}>{current.explanation}</Text>
+
+            <View style={styles.answerSpotlight}>
+              <Text style={styles.answerSpotlightLabel}>NATURAL PHRASE</Text>
+              <Text style={styles.answerJapanese}>{current.correctAnswer}</Text>
+              <Text style={styles.answerRomaji}>{currentAnswer.romaji}</Text>
+            </View>
+
+            <View style={styles.learningSection}>
+              <View style={styles.learningSectionHeading}>
+                <View style={styles.whyIcon}><Ionicons name="bulb-outline" size={17} color="#7652E8" /></View>
+                <Text style={styles.learningSectionTitle}>Why it fits</Text>
+              </View>
+              <Text style={styles.learningSectionText}>{feedbackReason}</Text>
+            </View>
+
+            <View style={[styles.learningSection, styles.exampleSection]}>
+              <View style={styles.learningSectionHeading}>
+                <View style={styles.exampleIcon}><Ionicons name="chatbubble-ellipses-outline" size={16} color="#4E922F" /></View>
+                <Text style={styles.learningSectionTitle}>Example in context</Text>
+              </View>
+              <Text style={styles.exampleText}>{feedbackExample}</Text>
+            </View>
+
             <Pressable style={styles.primaryButton} onPress={continueAfterFeedback}>
               <Text style={styles.primaryButtonText}>
-                NEXT SITUATION
+                CONTINUE TO NEXT MOMENT
               </Text>
               <Ionicons name="arrow-forward" size={19} color="#FFFFFF" />
             </Pressable>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -791,6 +833,28 @@ const styles = StyleSheet.create({
   hintText: { fontSize: 12, lineHeight: 17, color: '#705522', textAlign: 'center' },
   modalShade: { flex: 1, backgroundColor: 'rgba(25,12,55,.66)', alignItems: 'center', justifyContent: 'center', padding: 22 },
   feedbackCard: { width: '100%', maxWidth: 430, borderRadius: 29, backgroundColor: '#FFFDF9', padding: 24, alignItems: 'center', shadowColor: '#190D31', shadowOpacity: 0.28, shadowRadius: 22, elevation: 10 },
+  learningFeedbackCard: { padding: 18, alignItems: 'stretch', maxHeight: '92%' },
+  feedbackScroll: { width: '100%' },
+  feedbackScrollContent: { paddingBottom: 2 },
+  feedbackStatusBar: { width: '100%', minHeight: 72, borderRadius: 21, padding: 13, flexDirection: 'row', alignItems: 'center', borderWidth: 1 },
+  feedbackStatusCorrect: { backgroundColor: '#F0F9EA', borderColor: '#CEE8BE' },
+  feedbackStatusIncorrect: { backgroundColor: '#FFF0F1', borderColor: '#F2C9CD' },
+  feedbackStatusIcon: { width: 43, height: 43, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  feedbackStatusCopy: { flex: 1, marginLeft: 12 },
+  feedbackStatusKicker: { fontSize: 8.5, fontWeight: '900', letterSpacing: 1 },
+  feedbackStatusTitle: { marginTop: 2, fontFamily: 'Jua', fontSize: 17, lineHeight: 21, color: '#432750' },
+  answerSpotlight: { marginTop: 12, width: '100%', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 12, alignItems: 'center', backgroundColor: '#F3EDFF', borderWidth: 1, borderColor: '#E0D3FA' },
+  answerSpotlightLabel: { fontSize: 8, fontWeight: '900', letterSpacing: 1.1, color: '#7652E8' },
+  answerJapanese: { marginTop: 4, fontFamily: 'Jua', fontSize: 24, lineHeight: 30, color: '#432750', textAlign: 'center' },
+  answerRomaji: { marginTop: 1, fontSize: 12, color: '#766486', textAlign: 'center' },
+  learningSection: { width: '100%', marginTop: 10, borderRadius: 18, padding: 12, backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#EDE5F0' },
+  exampleSection: { backgroundColor: '#F5FAF1', borderColor: '#DCEAD2' },
+  learningSectionHeading: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  whyIcon: { width: 29, height: 29, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#EEE7FC' },
+  exampleIcon: { width: 29, height: 29, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: '#E6F3DD' },
+  learningSectionTitle: { fontFamily: 'Jua', fontSize: 15, color: '#432750' },
+  learningSectionText: { marginTop: 7, fontSize: 12.5, lineHeight: 18, color: '#6F6274' },
+  exampleText: { marginTop: 7, fontSize: 12.5, lineHeight: 18, color: '#52634A' },
   feedbackIcon: { width: 60, height: 60, borderRadius: 20, backgroundColor: '#7652E8', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   correctIcon: { backgroundColor: '#62B53A' },
   incorrectIcon: { backgroundColor: '#E06B70' },
