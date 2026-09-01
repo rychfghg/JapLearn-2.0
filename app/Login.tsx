@@ -20,6 +20,9 @@ import { useClassCode } from '../context/ClassCodeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
+
+//Checking  
+
 const Login = () => {
     const { login } = useContext(AuthContext);
     const { setClassCode } = useClassCode();
