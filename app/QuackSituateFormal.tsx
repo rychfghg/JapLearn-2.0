@@ -15,7 +15,7 @@ import {
   View,
 } from 'react-native';
 import QuackSituateExit from '../components/QuackSituateExit';
-import { POLITENESS_SCENARIOS } from '../data/politenessScenarios';
+import { POLITENESS_SCENARIOS, PolitenessScenario } from '../data/politenessScenarios';
 import expoconfig from '../expoconfig';
 import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
 
@@ -113,6 +113,9 @@ const npcVoices = [
 ];
 
 type StoryPhase = 'speaking' | 'choosing' | 'reaction';
+type RuntimeScenario = PolitenessScenario & { audioUrl?: string; imageUrl?: string; characterKey?: 'SUMI' | 'HARU'; npcRomaji?: string };
+
+const mediaUrl = (value?: string) => !value ? '' : value.startsWith('http') ? value : `${expoconfig.API_URL}${value}`;
 
 export default function QuackSituateFormal() {
   const params = useLocalSearchParams<{
@@ -121,10 +124,47 @@ export default function QuackSituateFormal() {
     resumeScore?: string;
   }>();
   const level = Math.min(3, Math.max(1, Number(params.level) || 1)) as 1 | 2 | 3;
-  const questions = useMemo(
-    () => POLITENESS_SCENARIOS.filter((question) => question.level === level),
-    [level],
-  );
+  const bundledQuestions = useMemo(() => POLITENESS_SCENARIOS.filter((question) => question.level === level), [level]);
+  const [questions, setQuestions] = useState<RuntimeScenario[]>(bundledQuestions);
+
+  useEffect(() => {
+    let active = true;
+    fetch(`${expoconfig.API_URL}/api/situational/questions?gameType=POLITENESS`)
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Politeness content unavailable')))
+      .then((records: any[]) => {
+        const mapped = records
+          .filter((record) => Number(record.level || 1) === level)
+          .map((record, position): RuntimeScenario => ({
+            id: Number(record.order) || position + 1,
+            level,
+            location: record.location || 'Japanese conversation',
+            speaker: record.speaker || (record.characterKey === 'HARU' ? 'Haru' : 'Sumi'),
+            gender: record.characterKey === 'HARU' ? 'male' : 'female',
+            characterKey: record.characterKey === 'HARU' ? 'HARU' : 'SUMI',
+            npcLine: record.npcLine || '',
+            npcRomaji: record.npcRomaji || '',
+            translation: '',
+            prompt: record.scenario || '',
+            hint: record.hint || '',
+            explanation: record.explanation || '',
+            imageUrl: mediaUrl(record.imageUrl),
+            audioUrl: mediaUrl(record.audioUrl),
+            choices: (record.choices || []).map((choice: any) => ({
+              jp: choice.japanese,
+              romaji: choice.romaji,
+              tone: choice.japanese === record.correctAnswer ? 'Polite' : 'Needs adjustment',
+              correct: choice.japanese === record.correctAnswer,
+            })),
+          }))
+          .filter((record) => record.npcLine && record.prompt && record.choices.length >= 3);
+        if (active && mapped.length) {
+          setQuestions(mapped);
+          setIndex((current) => Math.min(current, mapped.length - 1));
+        }
+      })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [level]);
 
   const [index, setIndex] = useState(
     Math.min(
@@ -191,7 +231,7 @@ export default function QuackSituateFormal() {
 
     try {
       const loaded = await loadBundledSound(
-        npcVoices[question.id - 1],
+        question.audioUrl ? { uri: question.audioUrl } : npcVoices[(question.id - 1) % npcVoices.length],
         {
           shouldPlay: true,
           volume: 1,
@@ -382,7 +422,7 @@ export default function QuackSituateFormal() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ImageBackground
-        source={scenes[index % scenes.length]}
+        source={question.imageUrl ? { uri: question.imageUrl } : scenes[index % scenes.length]}
         style={styles.background}
         resizeMode="cover"
       >
@@ -425,8 +465,8 @@ export default function QuackSituateFormal() {
         <View pointerEvents="none" style={styles.characterStage}>
           {characterFrames.map((frame) => (
             <Image
-              key={`${question.gender}-${frame}`}
-              source={people[question.gender][frame]}
+              key={`${question.characterKey || question.gender}-${frame}`}
+              source={people[question.characterKey === 'HARU' ? 'male' : question.characterKey === 'SUMI' ? 'female' : question.gender][frame]}
               style={[
                 styles.characterFrame,
                 frame === activeCharacterFrame
@@ -462,7 +502,7 @@ export default function QuackSituateFormal() {
           {phase !== 'reaction' ? (
             <>
               <Text style={styles.npcJapanese}>{question.npcLine}</Text>
-              <Text style={styles.npcRomaji}>{npcRomaji[question.id - 1]}</Text>
+              <Text style={styles.npcRomaji}>{question.npcRomaji || npcRomaji[(question.id - 1) % npcRomaji.length]}</Text>
               <Text style={styles.translation}>{question.translation}</Text>
             </>
           ) : (

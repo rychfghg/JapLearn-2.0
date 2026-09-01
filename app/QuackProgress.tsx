@@ -112,6 +112,11 @@ export default function QuackProgress() {
         { name: 'Recognition', percentage: data.recognitionAccuracy || 0 },
         { name: 'Expression Match', percentage: data.expressionMatchAccuracy || 0 },
         { name: 'Politeness', percentage: data.politenessAccuracy || 0 },
+        { name: 'Reply Coach', percentage: data.quackResponseAccuracy || 0 },
+        { name: 'QuackTalk', percentage: data.quackTalkAccuracy || 0 },
+        { name: 'Quack-a-Mole', percentage: data.quackamoleAccuracy || 0 },
+        { name: 'Quackman', percentage: data.quackmanAccuracy || 0 },
+        { name: 'QuackSlate', percentage: data.quackslateAccuracy || 0 },
       ];
       const activeMastery = masteryItems.filter((item) => item.percentage > 0);
       const overallMastery = activeMastery.length

@@ -164,7 +164,7 @@ export default function Quackamole() {
     AsyncStorage.setItem(`quackamole_high_score:${user.email.toLowerCase()}`, String(best));
     fetch(`${expoconfig.API_URL}/api/scores/high-score`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: `${user.fname} ${user.lname}`.trim(), email: user.email, game: 'QUACKAMOLE', date: new Date().toISOString(), score }),
+      body: JSON.stringify({ name: `${user.fname} ${user.lname}`.trim(), email: user.email, game: 'QUACKAMOLE', date: new Date().toISOString(), score, maxScore: totalWhacks, correctAnswers: score, totalQuestions: totalWhacks, completed: true, mode: 'SOLO' }),
     }).then((response) => { if (!response.ok) throw new Error(`Score save failed: ${response.status}`); return response.json(); }).then((record) => setHighScore((current) => Math.max(current, record.score || 0))).catch((error) => console.warn(error.message));
   }, [phase]);
 

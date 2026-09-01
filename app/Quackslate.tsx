@@ -405,7 +405,12 @@ const playAnswerSound = async (isCorrect: boolean) => {
                         name: `${user.fname} ${user.lname}`,
                         email: user.email,
                         date: new Date().toISOString().split('T')[0],
-                        score: newScore  // Use the calculated score instead of the state
+                        score: newScore,
+                        maxScore: totalItems || content.length,
+                        correctAnswers: newScore,
+                        totalQuestions: totalItems || content.length,
+                        completed: true,
+                        mode: isSystemMode ? 'SOLO' : 'TEACHER_CODED'
                     };
     
                     try {

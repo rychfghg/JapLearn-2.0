@@ -9,6 +9,7 @@ import expoconfig from '../expoconfig';
 import { router } from 'expo-router';
 import { Audio } from 'expo-av';
 import { loadBundledSound } from '../utils/nativeAudio';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const allRomaji = [
     'a', 'i', 'u', 'e', 'o', 'ka', 'ki', 'ku', 'ke', 'ko', 'sa', 'shi', 'su', 'se', 'so', 'ta', 'chi', 'tsu', 'te', 'to',
@@ -36,6 +37,20 @@ const Quackman = () => {
     const [exitConfirmVisible, setExitConfirmVisible] = useState(false);
     const [characterImage, setCharacterImage] = useState(require('../assets/Idle_TrapDoor.png'));
     const [userInteracted, setUserInteracted] = useState(false); // Track if the user interacted
+    const savedResult = useRef(false);
+
+    useEffect(() => {
+        if (!gameOver || savedResult.current || !data.length) return;
+        savedResult.current = true;
+        AsyncStorage.getItem('user').then((value) => {
+            const player = value ? JSON.parse(value) : null;
+            if (!player?.email) return;
+            return fetch(`${expoconfig.API_URL}/api/scores/high-score`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: `${player.fname || ''} ${player.lname || ''}`.trim(), email: player.email, game: 'QUACKMAN', date: new Date().toISOString(), score: correctAnswersCount, maxScore: data.length, correctAnswers: correctAnswersCount, totalQuestions: data.length, completed: true, mode: 'SOLO' }),
+            });
+        }).catch(() => undefined);
+    }, [gameOver, correctAnswersCount, data.length]);
 
     // Angel animation states
     const [showAngel, setShowAngel] = useState(false);
@@ -376,7 +391,9 @@ const Quackman = () => {
     );
     
     const handleRetry = async () => {
+        savedResult.current = false;
         setGameOver(false);
+        setCorrectAnswersCount(0);
         setCurrentWordIndex(0);
         setAttempts([null, null, null]);
         setInputRomaji([]);

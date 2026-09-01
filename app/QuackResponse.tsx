@@ -97,123 +97,44 @@ export default function QuackResponse() {
             </Pressable>
           </View>
 
-          <View style={styles.mapSectionHeading}>
-            <View><Text style={styles.mapSectionKicker}>STORYBOARD ROUTE</Text><Text style={styles.mapSectionSubcopy}>Each chapter trains a new way to keep Japanese conversation moving.</Text></View>
-            <View style={styles.mapReadyPill}>
-              <Ionicons name="compass-outline" size={13} color="#6E4BC6" />
-              <Text style={styles.mapReadyText}>1 AVAILABLE</Text>
-            </View>
+          <View style={styles.atlasHeading}>
+            <View><Text style={styles.atlasKicker}>CHAPTER ATLAS</Text><Text style={styles.atlasTitle}>Choose where the conversation goes</Text></View>
+            <View style={styles.atlasCounter}><Text style={styles.atlasCounterValue}>{unlockedStages}</Text><Text style={styles.atlasCounterLabel}>OPEN</Text></View>
           </View>
 
-          <View style={styles.mapTrail}>
-            <View style={styles.mapTrailLine} />
-            <View style={styles.trailStartSeal}><Ionicons name="footsteps-outline" size={16} color="#FFFFFF" /></View>
+          <View style={styles.atlasBoard}>
+            <View style={styles.atlasGridLineOne} /><View style={styles.atlasGridLineTwo} />
+            <View style={styles.atlasRouteStem} />
+            <Pressable onPress={() => launch(games[0], false)} style={({pressed})=>[styles.featuredChapter,pressed&&styles.atlasPressed]}>
+              <View style={styles.featuredArt}>
+                <View style={styles.featuredMoon}/><Text style={styles.featuredKanji}>導</Text>
+                <Image source={games[0].mascot} style={styles.featuredMascot} resizeMode="contain" />
+                <View style={styles.nowPlaying}><View style={styles.nowPlayingDot}/><Text style={styles.nowPlayingText}>YOUR ACTIVE CHAPTER</Text></View>
+              </View>
+              <View style={styles.featuredCopy}>
+                <Text style={styles.chapterNumber}>CHAPTER 01 · GUIDED STORY</Text>
+                <Text style={styles.featuredTitle}>{games[0].displayTitle}</Text>
+                <Text style={styles.featuredSubtitle}>{games[0].subtitle}</Text>
+                <Text style={styles.featuredDescription}>{games[0].description}</Text>
+                <View style={styles.featuredAction}><Text style={styles.featuredActionText}>ENTER THE STORY</Text><Ionicons name="arrow-forward" size={17} color="#FFFFFF"/></View>
+              </View>
+            </Pressable>
 
-            {games.map((game, index) => {
-              const missionLocked = index >= unlockedStages;
-              return (
-              <View key={game.title} style={styles.mapNodeRow}>
-                <View style={styles.mapCheckpointColumn}>
-                  <View
-                    style={[
-                      styles.mapCheckpoint,
-                      { backgroundColor: missionLocked ? '#B8AFBC' : game.color },
-                    ]}
-                  >
-                    {missionLocked ? (
-                      <Ionicons name="lock-closed" size={19} color="#FFFFFF" />
-                    ) : (
-                      <Ionicons name="flag" size={20} color="#FFFFFF" />
-                    )}
+            <View style={styles.branchLabel}><View style={styles.branchLine}/><Text style={styles.branchLabelText}>THE STORY BRANCHES NEXT</Text><View style={styles.branchLine}/></View>
+            <View style={styles.chapterBranches}>
+              {games.slice(1).map((game,index)=>{const actualIndex=index+1;const locked=actualIndex>=unlockedStages;return(
+                <Pressable key={game.title} disabled={locked} onPress={()=>launch(game,locked)} style={({pressed})=>[styles.branchChapter,locked&&styles.branchChapterLocked,pressed&&styles.atlasPressed]}>
+                  <View style={[styles.branchArt,{backgroundColor:locked?'#ECE8ED':game.tint}]}>
+                    <Text style={[styles.branchKanji,{color:locked?'#D0C8D2':`${game.color}24`}]}>{actualIndex===1?'速':'会'}</Text>
+                    <Image source={game.mascot} style={[styles.branchMascot,locked&&styles.branchMascotLocked]} resizeMode="contain"/>
+                    <View style={[styles.branchStatus,{backgroundColor:locked?'#8E8491':game.color}]}><Ionicons name={locked?'lock-closed':'play'} size={12} color="#FFFFFF"/><Text style={styles.branchStatusText}>{locked?'LOCKED':'OPEN'}</Text></View>
                   </View>
-                  <Text style={styles.mapCheckpointLabel}>0{index + 1}</Text>
-                </View>
-
-                <Pressable
-                  disabled={missionLocked}
-                  onPress={() => launch(game, missionLocked)}
-                  style={({ pressed }) => [
-                    styles.mapMissionCard,
-                    missionLocked && styles.mapMissionCardLocked,
-                    pressed && styles.mapMissionCardPressed,
-                  ]}
-                >
-                  <View style={[styles.mapMissionColorRail, { backgroundColor: game.color }]} />
-                  <View style={[styles.mapMissionArt, { backgroundColor: game.tint }]}>
-                    <View style={[styles.mapArtRingLarge, { borderColor: `${game.color}28` }]} />
-                    <View style={[styles.mapArtRingSmall, { backgroundColor: `${game.color}18` }]} />
-                    <Text style={[styles.mapArtCharacter, { color: `${game.color}1F` }]}>
-                      {index === 0 ? '答' : index === 1 ? '速' : '会'}
-                    </Text>
-                    <Image
-                      source={game.mascot}
-                      style={[styles.mapMissionMascot, missionLocked && styles.mapMissionMascotLocked]}
-                      resizeMode="contain"
-                    />
-                    <View style={[styles.mapStageBadge, { backgroundColor: game.color }]}>
-                      <Text style={styles.mapStageBadgeText}>STAGE {index + 1}</Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.mapMissionContent}>
-                    <View style={styles.mapMissionHeaderRow}>
-                      <View style={[styles.mapModeIcon, { backgroundColor: game.tint }]}>
-                        <Ionicons name={game.icon} size={17} color={game.color} />
-                      </View>
-                      <Text style={[styles.mapModeText, { color: game.color }]}>{game.label}</Text>
-                      {missionLocked && (
-                        <View style={styles.mapLockedPill}>
-                          <Ionicons name="lock-closed" size={10} color="#756B79" />
-                          <Text style={styles.mapLockedPillText}>LOCKED</Text>
-                        </View>
-                      )}
-                    </View>
-
-                    <Text style={styles.mapMissionTitle}>{game.displayTitle}</Text>
-                    <Text style={styles.mapMissionSubtitle}>{game.subtitle}</Text>
-                    <Text style={styles.mapMissionDescription}>{game.description}</Text>
-
-                    <View style={styles.mapMissionFooter}>
-                      <View style={styles.mapMissionActionCopy}>
-                        <Text style={[styles.mapStartText, { color: missionLocked ? '#8D8491' : game.color }]}>
-                          {missionLocked ? 'FINISH THE PREVIOUS STAGE' : 'BEGIN GUIDED MISSION'}
-                        </Text>
-                        <Text style={styles.mapUnlockHint}>
-                          {missionLocked ? 'Score at least 60% to unlock' : 'Practice at your own pace'}
-                        </Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.mapStartButton,
-                          { backgroundColor: missionLocked ? '#B8AFBC' : game.color },
-                        ]}
-                      >
-                        <Ionicons
-                          name={missionLocked ? 'lock-closed' : 'play'}
-                          size={17}
-                          color="#FFFFFF"
-                        />
-                      </View>
-                    </View>
-                  </View>
+                  <View style={styles.branchCopy}><Text style={[styles.branchMode,{color:locked?'#938A96':game.color}]}>CHAPTER 0{actualIndex+1}</Text><Text style={[styles.branchTitle,locked&&styles.branchMuted]}>{game.displayTitle}</Text><Text style={styles.branchText}>{locked?'Score at least 60% in the previous chapter to continue.':game.subtitle}</Text></View>
                 </Pressable>
-              </View>
-            )})}
-
-            <View style={styles.mapFinishRow}>
-              <View style={styles.mapFinishCheckpoint}>
-                <Ionicons name="trophy" size={20} color="#FFFFFF" />
-              </View>
-              <View style={styles.mapFinish}>
-                <View style={styles.mapFinishIcon}>
-                  <Ionicons name="checkmark-circle" size={19} color="#D88727" />
-                </View>
-                <View>
-                  <Text style={styles.mapFinishKicker}>TRAIL GOAL</Text>
-                  <Text style={styles.mapFinishText}>Speak with confidence</Text>
-                </View>
-              </View>
+              )})}
             </View>
+
+            <View style={styles.atlasDestination}><View style={styles.atlasDestinationIcon}><Ionicons name="trophy" size={23} color="#FFFFFF"/></View><View style={styles.atlasDestinationCopy}><Text style={styles.atlasDestinationKicker}>FINAL DESTINATION</Text><Text style={styles.atlasDestinationTitle}>Speak with confidence</Text><Text style={styles.atlasDestinationText}>Complete the chapters and make natural replies your instinct.</Text></View></View>
           </View>
         </ScrollView>
       </ImageBackground>
