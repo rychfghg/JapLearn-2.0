@@ -19,7 +19,6 @@ import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackResponseGuided';
 import QuackSituateExit from '../components/QuackSituateExit';
-import QuackSituateMissionLoader from '../components/QuackSituateMissionLoader';
 
 type Evaluation = 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'IMPOLITE' | 'RUDE';
 type ChoiceOption = {
@@ -595,16 +594,9 @@ export default function ReplyCoachStory() {
 
   if (loading) {
     return (
-      <QuackSituateMissionLoader
-        action="REPLY COACH STORY"
-        color="#8423D9"
-        description="Preparing your characters, conversation, and saved chapter progress."
-        icon="book-outline"
-        mascot={require('../assets/talk.png')}
-        mode="enter"
-        title="Reply Coach"
-        onComplete={() => undefined}
-      />
+      <View style={styles.loadingScreen}>
+        <ActivityIndicator size="large" color="#8423D9" />
+      </View>
     );
   }
 
