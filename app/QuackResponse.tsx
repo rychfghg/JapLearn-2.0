@@ -6,6 +6,7 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackResponse';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
+import QuackSituateMissionLoader from '../components/QuackSituateMissionLoader';
 
 const games = [
   { title:'Guided Response', displayTitle:'Reply Coach', subtitle:'Build the right reply', description:'Follow helpful cues and learn how natural Japanese responses are formed.', route:'/QuackResponseGuided', icon:'chatbubble-ellipses-outline', label:'GUIDED MODE', color:'#6E4BC6', tint:'#EEE8FC', mascot:require('../assets/talk.png'), locked:false },
@@ -19,7 +20,6 @@ export default function QuackResponse() {
   const [progress,setProgress]=useState(0);
   const [loaded,setLoaded]=useState(skipLoading==='1');
   const [launching,setLaunching]=useState<(typeof games)[number]|null>(null);
-  const [launchProgress,setLaunchProgress]=useState(0);
   const [guideVisible,setGuideVisible]=useState(false);
   const [unlockedStages,setUnlockedStages]=useState(1);
   const pulse=useRef(new Animated.Value(1)).current;
@@ -47,13 +47,12 @@ export default function QuackResponse() {
 
   const launch=(game:(typeof games)[number], locked = game.locked)=>{
     if(launching||locked)return;
-    setLaunching(game);setLaunchProgress(8);let value=8;
-    const timer=setInterval(()=>{value=Math.min(value+12,100);setLaunchProgress(value);if(value>=100){clearInterval(timer);router.push(game.route);setTimeout(()=>{setLaunching(null);setLaunchProgress(0);},350);}},55);
+    setLaunching(game);
   };
 
   if(!loaded)return <View style={styles.premiumLoading}><View style={styles.loadOrbOne}/><View style={styles.loadOrbTwo}/><View style={styles.loadCard}><View style={styles.loadContent}><View style={styles.loadBrand}><Ionicons name="book-outline" size={15} color="#7542BA"/><Text style={styles.loadBrandText}>QUACKRESPONSE · STORY TRAIL</Text></View><View style={styles.storyboardStage}><View style={[styles.storyboardFrame,styles.storyboardFrameLeft]}><Ionicons name="location-outline" size={24} color="#65A936"/><Text style={styles.storyboardFrameText}>SCENE</Text></View><Animated.View style={[styles.storyboardHero,{transform:[{scale:pulse}]}]}><Text style={styles.storyboardKanji}>応</Text><Ionicons name="chatbubbles" size={36} color="#FFF"/></Animated.View><View style={[styles.storyboardFrame,styles.storyboardFrameRight]}><Ionicons name="people-outline" size={24} color="#D88727"/><Text style={styles.storyboardFrameText}>CAST</Text></View><Animated.View style={[styles.storyboardSweep,{transform:[{translateX:shine.interpolate({inputRange:[-1,1],outputRange:[-150,150]})},{rotate:'-12deg'}]}]}/></View><Text style={styles.loadJapanese}>会話の旅を始めよう</Text><Text style={styles.loadKicker}>YOUR STORY IS TAKING SHAPE</Text><Text style={styles.loadTitle}>Preparing the Response Trail</Text><Text style={styles.loadCopy}>Arranging your scenes, companions, and conversation choices.</Text><View style={styles.loadStatus}><Text style={styles.loadStatusText}>{progress<40?'SETTING THE SCENE':progress<80?'GATHERING THE CAST':'OPENING THE TRAIL'}</Text><Text style={styles.loadValue}>{progress}%</Text></View><View style={styles.loadTrack}><View style={[styles.loadFill,{width:`${progress}%`}]}/></View><View style={styles.loadFooter}><Ionicons name="bookmark-outline" size={13} color="#7542BA"/><Text style={styles.loadFooterText}>{progress<50?'Building your chapter route':progress<90?'Almost ready':'Trail ready'}</Text></View></View></View></View>;
 
-  if(launching)return <View style={[styles.gameLoading,{backgroundColor:launching.tint}]}><View style={[styles.gameLoadOrb,styles.gameLoadOrbTop,{backgroundColor:launching.color}]}/><View style={[styles.gameLoadOrb,styles.gameLoadOrbBottom,{backgroundColor:launching.color}]}/><View style={styles.gameLoadCard}><View style={[styles.gameLoadBadge,{backgroundColor:launching.tint}]}><Ionicons name={launching.icon} size={16} color={launching.color}/><Text style={[styles.gameLoadBadgeText,{color:launching.color}]}>{launching.label}</Text></View><View style={styles.gameBadgeStage}><Animated.View style={[styles.gameBadgeGlow,{backgroundColor:`${launching.color}24`,transform:[{scale:pulse}]}]}/><View style={[styles.gameBadgeOuter,{borderColor:`${launching.color}50`}]}><View style={[styles.gameBadgeInner,{backgroundColor:launching.color}]}><Text style={styles.gameBadgeCharacter}>{launching.title==='Guided Response'?'導':launching.title==='Timed Challenge'?'速':'会'}</Text><Ionicons name={launching.icon} size={28} color="#FFF"/></View></View><Animated.View style={[styles.gameBadgeSweep,{transform:[{translateX:shine.interpolate({inputRange:[-1,1],outputRange:[-110,110]})},{rotate:'-18deg'}]}]}/><Image source={launching.mascot} style={styles.gameBadgeMascot} resizeMode="contain"/></View><Text style={styles.gameLoadKicker}>YOUR NEXT PRACTICE</Text><Text style={styles.gameLoadTitle}>{launching.title}</Text><Text style={styles.gameLoadCopy}>{launching.description}</Text><View style={styles.gameLoadStatus}><Text style={styles.gameLoadStatusText}>{launchProgress<45?'Preparing your mission':launchProgress<85?'Setting the challenge':'Mission ready!'}</Text><Text style={[styles.gameLoadValue,{color:launching.color}]}>{launchProgress}%</Text></View><View style={styles.gameLoadTrack}><View style={[styles.gameLoadFill,{width:`${launchProgress}%`,backgroundColor:launching.color}]}/></View><View style={styles.gameLoadNote}><Ionicons name="chatbubble-ellipses-outline" size={14} color={launching.color}/><Text style={styles.gameLoadNoteText}>{launchProgress<45?'Preparing the activity':launchProgress<90?'Loading your challenge':'Ready to start'}</Text></View></View></View>;
+  if(launching)return <QuackSituateMissionLoader action={launching.label} color={launching.color} description={launching.description} icon={launching.icon} mascot={launching.mascot} mode="enter" title={launching.displayTitle} variant="story" onComplete={()=>{const route=launching.route;router.push(route);setTimeout(()=>setLaunching(null),350);}} />;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -97,44 +96,68 @@ export default function QuackResponse() {
             </Pressable>
           </View>
 
-          <View style={styles.atlasHeading}>
-            <View><Text style={styles.atlasKicker}>CHAPTER ATLAS</Text><Text style={styles.atlasTitle}>Choose where the conversation goes</Text></View>
-            <View style={styles.atlasCounter}><Text style={styles.atlasCounterValue}>{unlockedStages}</Text><Text style={styles.atlasCounterLabel}>OPEN</Text></View>
+          <View style={styles.responseJourneyIntro}>
+            <View style={styles.responseJourneyIntroCopy}>
+              <Text style={styles.responseJourneyKicker}>FOLLOW THE RESPONSE TRAIL</Text>
+              <Text style={styles.responseJourneyTitle}>Turn every reply into your next story beat.</Text>
+            </View>
+            <View style={styles.responseJourneyCounter}>
+              <Text style={styles.responseJourneyCounterValue}>{unlockedStages}</Text>
+              <Text style={styles.responseJourneyCounterLabel}>OPEN</Text>
+            </View>
           </View>
 
-          <View style={styles.atlasBoard}>
-            <View style={styles.atlasGridLineOne} /><View style={styles.atlasGridLineTwo} />
-            <View style={styles.atlasRouteStem} />
-            <Pressable onPress={() => launch(games[0], false)} style={({pressed})=>[styles.featuredChapter,pressed&&styles.atlasPressed]}>
-              <View style={styles.featuredArt}>
-                <View style={styles.featuredMoon}/><Text style={styles.featuredKanji}>導</Text>
-                <Image source={games[0].mascot} style={styles.featuredMascot} resizeMode="contain" />
-                <View style={styles.nowPlaying}><View style={styles.nowPlayingDot}/><Text style={styles.nowPlayingText}>YOUR ACTIVE CHAPTER</Text></View>
-              </View>
-              <View style={styles.featuredCopy}>
-                <Text style={styles.chapterNumber}>CHAPTER 01 · GUIDED STORY</Text>
-                <Text style={styles.featuredTitle}>{games[0].displayTitle}</Text>
-                <Text style={styles.featuredSubtitle}>{games[0].subtitle}</Text>
-                <Text style={styles.featuredDescription}>{games[0].description}</Text>
-                <View style={styles.featuredAction}><Text style={styles.featuredActionText}>ENTER THE STORY</Text><Ionicons name="arrow-forward" size={17} color="#FFFFFF"/></View>
-              </View>
-            </Pressable>
+          <View style={styles.responseRoute}>
+            <View pointerEvents="none" style={styles.responseRouteLine} />
+            {games.map((game,index)=>{const locked=index>=unlockedStages;return(
+              <View key={game.title} style={[styles.responseStop,index%2===1&&styles.responseStopRight]}>
+                <View style={[styles.responseCheckpoint,index%2===1&&styles.responseCheckpointRight,locked&&styles.responseCheckpointLocked,{borderColor:locked?'#CFC7D2':game.color}]}>
+                  <Text style={styles.responseCheckpointNumber}>0{index+1}</Text>
+                  <Ionicons name={(locked?'lock-closed':index===0&&unlockedStages>1?'refresh':game.icon) as any} size={17} color="#FFFFFF" />
+                </View>
 
-            <View style={styles.branchLabel}><View style={styles.branchLine}/><Text style={styles.branchLabelText}>THE STORY BRANCHES NEXT</Text><View style={styles.branchLine}/></View>
-            <View style={styles.chapterBranches}>
-              {games.slice(1).map((game,index)=>{const actualIndex=index+1;const locked=actualIndex>=unlockedStages;return(
-                <Pressable key={game.title} disabled={locked} onPress={()=>launch(game,locked)} style={({pressed})=>[styles.branchChapter,locked&&styles.branchChapterLocked,pressed&&styles.atlasPressed]}>
-                  <View style={[styles.branchArt,{backgroundColor:locked?'#ECE8ED':game.tint}]}>
-                    <Text style={[styles.branchKanji,{color:locked?'#D0C8D2':`${game.color}24`}]}>{actualIndex===1?'速':'会'}</Text>
-                    <Image source={game.mascot} style={[styles.branchMascot,locked&&styles.branchMascotLocked]} resizeMode="contain"/>
-                    <View style={[styles.branchStatus,{backgroundColor:locked?'#8E8491':game.color}]}><Ionicons name={locked?'lock-closed':'play'} size={12} color="#FFFFFF"/><Text style={styles.branchStatusText}>{locked?'LOCKED':'OPEN'}</Text></View>
+                <Pressable
+                  disabled={locked}
+                  onPress={()=>launch(game,locked)}
+                  style={({pressed})=>[
+                    styles.responseChapter,
+                    index%2===1&&styles.responseChapterRight,
+                    locked&&styles.responseChapterLocked,
+                    pressed&&!locked&&styles.responseChapterPressed,
+                  ]}
+                >
+                  <View style={[styles.responseChapterArt,{backgroundColor:locked?'#EDE9EF':game.tint}]}>
+                    <View style={[styles.responseChapterHalo,{backgroundColor:locked?'#DAD4DC':`${game.color}22`}]} />
+                    <Text style={[styles.responseChapterKanji,{color:locked?'rgba(130,120,135,.12)':`${game.color}22`}]}>{index===0?'導':index===1?'速':'会'}</Text>
+                    <Image source={game.mascot} style={[styles.responseChapterMascot,locked&&styles.responseChapterMascotLocked]} resizeMode="contain" />
+                    <View style={[styles.responsePageTab,{backgroundColor:locked?'#918894':game.color}]}>
+                      <Text style={styles.responsePageTabText}>{game.label}</Text>
+                    </View>
                   </View>
-                  <View style={styles.branchCopy}><Text style={[styles.branchMode,{color:locked?'#938A96':game.color}]}>CHAPTER 0{actualIndex+1}</Text><Text style={[styles.branchTitle,locked&&styles.branchMuted]}>{game.displayTitle}</Text><Text style={styles.branchText}>{locked?'Score at least 60% in the previous chapter to continue.':game.subtitle}</Text></View>
-                </Pressable>
-              )})}
-            </View>
 
-            <View style={styles.atlasDestination}><View style={styles.atlasDestinationIcon}><Ionicons name="trophy" size={23} color="#FFFFFF"/></View><View style={styles.atlasDestinationCopy}><Text style={styles.atlasDestinationKicker}>FINAL DESTINATION</Text><Text style={styles.atlasDestinationTitle}>Speak with confidence</Text><Text style={styles.atlasDestinationText}>Complete the chapters and make natural replies your instinct.</Text></View></View>
+                  <View style={styles.responseChapterCopy}>
+                    <Text style={[styles.responseChapterEyebrow,{color:locked?'#938A96':game.color}]}>CHAPTER 0{index+1}</Text>
+                    <Text style={[styles.responseChapterTitle,locked&&styles.responseMuted]}>{game.displayTitle}</Text>
+                    <Text style={[styles.responseChapterSubtitle,locked&&styles.responseMuted]}>{game.subtitle}</Text>
+                    <Text style={styles.responseChapterDescription}>{locked?'Earn at least 60% in the previous chapter to continue the trail.':game.description}</Text>
+                    <View style={styles.responseChapterFooter}>
+                      <View style={[styles.responseStatePill,{backgroundColor:locked?'#F0EDF1':`${game.color}12`}]}>
+                        <Ionicons name={locked?'lock-closed-outline':index===0&&unlockedStages>1?'refresh-outline':'book-outline'} size={13} color={locked?'#918894':game.color}/>
+                        <Text style={[styles.responseStateText,{color:locked?'#918894':game.color}]}>{locked?'CLEAR PREVIOUS CHAPTER':index===0&&unlockedStages>1?'PLAY AGAIN':'READY TO BEGIN'}</Text>
+                      </View>
+                      <View style={[styles.responseChapterAction,{backgroundColor:locked?'#C7C0CA':game.color}]}>
+                        <Ionicons name={locked?'lock-closed':'arrow-forward'} size={18} color="#FFFFFF"/>
+                      </View>
+                    </View>
+                  </View>
+                </Pressable>
+              </View>
+            )})}
+
+            <View style={styles.responseDestination}>
+              <View style={styles.responseDestinationSeal}><Ionicons name="ribbon-outline" size={23} color="#FFFFFF"/></View>
+              <View style={styles.responseDestinationCopy}><Text style={styles.responseDestinationKicker}>TRAIL GOAL</Text><Text style={styles.responseDestinationTitle}>Speak with confidence</Text><Text style={styles.responseDestinationText}>Complete every chapter and make natural replies part of your instinct.</Text></View>
+            </View>
           </View>
         </ScrollView>
       </ImageBackground>

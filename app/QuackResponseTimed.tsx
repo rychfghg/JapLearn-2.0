@@ -117,7 +117,7 @@ const QuackResponseTimed = () => {
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.loop(
+    const floatingAnimation = Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
           toValue: -8,
@@ -130,7 +130,9 @@ const QuackResponseTimed = () => {
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    floatingAnimation.start();
+    return () => floatingAnimation.stop();
   }, []);
 
   useEffect(() => {

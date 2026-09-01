@@ -16,6 +16,7 @@ type Props = {
   mascot: number;
   mode: 'enter' | 'exit';
   title: string;
+  variant?: 'mission' | 'story';
   onComplete: () => void;
 };
 
@@ -33,6 +34,7 @@ export default function QuackSituateMissionLoader({
   mascot,
   mode,
   title,
+  variant = 'mission',
   onComplete,
 }: Props) {
   const [progress, setProgress] = useState(8);
@@ -78,7 +80,13 @@ export default function QuackSituateMissionLoader({
     };
   }, [pulse]);
 
-  const status = mode === 'enter'
+  const status = variant === 'story'
+    ? progress < 45
+      ? 'Setting the opening scene'
+      : progress < 85
+        ? 'Inviting your conversation partners'
+        : 'Your chapter is ready!'
+    : mode === 'enter'
     ? progress < 45
       ? 'Preparing your mission'
       : progress < 85
@@ -122,10 +130,20 @@ export default function QuackSituateMissionLoader({
             <Ionicons name={icon} size={34} color="#FFFFFF" />
           </View>
           <Image source={mascot} style={styles.mascot} resizeMode="contain" />
+          {variant === 'story' ? (
+            <>
+              <View style={[styles.storyBubble, styles.storyBubbleLeft]}>
+                <Text style={[styles.storyBubbleText, { color }]}>話そう</Text>
+              </View>
+              <View style={[styles.storyBubble, styles.storyBubbleRight]}>
+                <Ionicons name="chatbubble-ellipses" size={15} color={color} />
+              </View>
+            </>
+          ) : null}
         </Animated.View>
 
         <Text style={styles.kicker}>
-          {mode === 'enter' ? 'YOUR NEXT PRACTICE' : 'MISSION WRAPPED UP'}
+          {variant === 'story' ? 'YOUR NEXT STORY CHAPTER' : mode === 'enter' ? 'YOUR NEXT PRACTICE' : 'MISSION WRAPPED UP'}
         </Text>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.description}>{description}</Text>
@@ -147,8 +165,8 @@ export default function QuackSituateMissionLoader({
         </View>
 
         <View style={[styles.hint, { backgroundColor: tint }]}>
-          <Ionicons name="sparkles" size={14} color={color} />
-          <Text style={styles.hintText}>{status}</Text>
+          <Ionicons name={variant === 'story' ? 'book-outline' : 'sparkles'} size={14} color={color} />
+          <Text style={styles.hintText}>{variant === 'story' ? 'Scenes, dialogue, and choices are falling into place.' : status}</Text>
         </View>
       </View>
     </View>
@@ -235,6 +253,25 @@ const styles = StyleSheet.create({
     width: 92,
     height: 98,
   },
+  storyBubble: {
+    position: 'absolute',
+    minWidth: 48,
+    height: 34,
+    paddingHorizontal: 10,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E3D7E9',
+    shadowColor: '#432750',
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  storyBubbleLeft: { left: 0, top: 29 },
+  storyBubbleRight: { right: 1, top: 10 },
+  storyBubbleText: { fontFamily: 'Jua', fontSize: 11 },
   kicker: {
     color: '#65A936',
     fontSize: 9,
