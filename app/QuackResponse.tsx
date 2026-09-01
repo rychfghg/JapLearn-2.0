@@ -96,17 +96,6 @@ export default function QuackResponse() {
             </Pressable>
           </View>
 
-          <View style={styles.responseJourneyIntro}>
-            <View style={styles.responseJourneyIntroCopy}>
-              <Text style={styles.responseJourneyKicker}>FOLLOW THE RESPONSE TRAIL</Text>
-              <Text style={styles.responseJourneyTitle}>Turn every reply into your next story beat.</Text>
-            </View>
-            <View style={styles.responseJourneyCounter}>
-              <Text style={styles.responseJourneyCounterValue}>{unlockedStages}</Text>
-              <Text style={styles.responseJourneyCounterLabel}>OPEN</Text>
-            </View>
-          </View>
-
           <View style={styles.responseRoute}>
             <View pointerEvents="none" style={styles.responseRouteLine} />
             {games.map((game,index)=>{const locked=index>=unlockedStages;return(

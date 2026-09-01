@@ -18,6 +18,8 @@ import {
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackResponseGuided';
+import QuackSituateExit from '../components/QuackSituateExit';
+import QuackSituateMissionLoader from '../components/QuackSituateMissionLoader';
 
 type Evaluation = 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'IMPOLITE' | 'RUDE';
 type ChoiceOption = {
@@ -339,7 +341,6 @@ export default function ReplyCoachStory() {
     if (exiting) return;
     setExitVisible(false);
     setExiting(true);
-    setTimeout(() => router.replace({ pathname: '/QuackResponse', params: { skipLoading: '1' } }), 1050);
   };
 
   useEffect(() => {
@@ -594,38 +595,29 @@ export default function ReplyCoachStory() {
 
   if (loading) {
     return (
-      <ImageBackground source={backgrounds.station} style={styles.chapterLoading} resizeMode="cover">
-        <View style={styles.chapterLoadingShade} />
-        <View style={styles.chapterLoadingCard}>
-          <View style={styles.chapterLoadingBadge}><Ionicons name="book-outline" size={16} color="#FFFFFF" /><Text style={styles.chapterLoadingBadgeText}>REPLY COACH STORY</Text></View>
-          <View style={styles.chapterPostcard}>
-            <View style={styles.chapterPostcardSun} />
-            <Image source={require('../assets/hello.png')} style={styles.chapterLoadingMascot} resizeMode="contain" />
-            <View style={styles.chapterPostcardStamp}><Text style={styles.chapterPostcardStampText}>第一章</Text></View>
-          </View>
-          <Text style={styles.chapterLoadingKicker}>A NEW CONVERSATION AWAITS</Text>
-          <Text style={styles.chapterLoadingTitle}>Opening your next scene</Text>
-          <Text style={styles.chapterLoadingText}>Setting the location, characters, and choices for your story.</Text>
-          <View style={styles.chapterLoadingTrack}><View style={styles.chapterLoadingFill} /></View>
-          <View style={styles.chapterLoadingSteps}><Text style={styles.chapterLoadingStepActive}>SCENE</Text><Text style={styles.chapterLoadingStep}>CHARACTERS</Text><Text style={styles.chapterLoadingStep}>DIALOGUE</Text></View>
-        </View>
-      </ImageBackground>
+      <QuackSituateMissionLoader
+        action="REPLY COACH STORY"
+        color="#8423D9"
+        description="Preparing your characters, conversation, and saved chapter progress."
+        icon="book-outline"
+        mascot={require('../assets/talk.png')}
+        mode="enter"
+        title="Reply Coach"
+        onComplete={() => undefined}
+      />
     );
   }
 
   if (exiting) {
     return (
-      <View style={styles.storyExitScreen}>
-        <View style={styles.storyExitGlow} />
-        <View style={styles.storyExitCard}>
-          <View style={styles.storyExitBookmark}><Ionicons name="bookmark" size={34} color="#FFFFFF" /></View>
-          <Text style={styles.storyExitKicker}>CHAPTER BOOKMARKED</Text>
-          <Text style={styles.storyExitTitle}>Your place is safe</Text>
-          <Text style={styles.storyExitText}>Closing this scene and returning you to the Response Trail.</Text>
-          <View style={styles.storyExitTrack}><View style={styles.storyExitFill} /></View>
-          <View style={styles.storyExitStatus}><Ionicons name="checkmark-circle" size={17} color="#65A936" /><Text style={styles.storyExitStatusText}>Progress saved · preparing the trail</Text></View>
-        </View>
-      </View>
+      <QuackSituateExit
+        color="#8423D9"
+        icon="bookmark-outline"
+        title="Reply Coach paused"
+        subtitle="Your chapter progress is saved and ready whenever you return."
+        status="SAVING YOUR PLACE"
+        onComplete={() => router.replace({ pathname: '/QuackResponse', params: { skipLoading: '1' } })}
+      />
     );
   }
 
