@@ -37,7 +37,12 @@ export default function QuackSituateMissionLoader({
 }: Props) {
   const [progress, setProgress] = useState(8);
   const pulse = useRef(new Animated.Value(1)).current;
+  const completionRef = useRef(onComplete);
   const tint = getTint(color);
+
+  useEffect(() => {
+    completionRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     const pulseAnimation = Animated.loop(
@@ -61,14 +66,17 @@ export default function QuackSituateMissionLoader({
       setProgress((current) => Math.min(100, current + 12));
     }, 70);
 
-    const completion = setTimeout(onComplete, 850);
+    // Keep the transition independent from parent renders. Previously the inline
+    // onComplete callback changed on every progress tick, restarting this effect
+    // forever and leaving the player on the closing screen.
+    const completion = setTimeout(() => completionRef.current(), 850);
 
     return () => {
       pulseAnimation.stop();
       clearInterval(interval);
       clearTimeout(completion);
     };
-  }, [onComplete, pulse]);
+  }, [pulse]);
 
   const status = mode === 'enter'
     ? progress < 45

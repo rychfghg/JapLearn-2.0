@@ -104,19 +104,30 @@ export default function QuackSituateMatchingLevels() {
                       </Text>
                     </View>
                     <Pressable disabled={locked} onPress={() => openLevel(item.level)} style={[styles.destination, locked && styles.destinationLocked]}>
-                      <View style={[styles.destinationIcon, { backgroundColor: locked ? '#CBC5CD' : item.color }]}>
-                        <Ionicons name={locked ? 'lock-closed' : completed ? 'checkmark' : item.icon} size={27} color="#FFFFFF" />
-                      </View>
-                      <View style={styles.destinationCopy}>
-                        <Text style={[styles.areaTitle, locked && styles.lockedText]}>{item.area}</Text>
-                        <Text style={styles.areaSubtitle}>{item.subtitle}</Text>
-                        <View style={styles.destinationMeta}>
-                          <Ionicons name="images-outline" size={13} color={locked ? '#938B96' : item.color} />
-                          <Text style={styles.momentCount}>{contentCounts[item.level] || 0} PUBLISHED MOMENTS</Text>
+                      <View style={[styles.photoSky, { backgroundColor: locked ? '#E7E2E8' : item.tint }]}>
+                        <View style={[styles.photoFrame, styles.photoFrameTop, { borderColor: locked ? '#C9C2CB' : item.color }]}>
+                          <Ionicons name={index === 0 ? 'cafe-outline' : index === 1 ? 'school-outline' : 'business-outline'} size={29} color={locked ? '#A49BA7' : item.color} />
                         </View>
+                        <View style={[styles.photoFrame, styles.photoFrameBottom, { borderColor: locked ? '#C9C2CB' : item.color }]}>
+                          <Ionicons name={index === 0 ? 'hand-left-outline' : index === 1 ? 'people-outline' : 'chatbubbles-outline'} size={29} color={locked ? '#A49BA7' : item.color} />
+                        </View>
+                        <View style={[styles.matchRibbon, { backgroundColor: locked ? '#A49BA7' : item.color }]}><Ionicons name="swap-vertical" size={13} color="#FFFFFF" /><Text style={styles.matchRibbonText}>MATCH THE MOMENT</Text></View>
                       </View>
-                      <View style={[styles.goButton, { backgroundColor: locked ? '#DDD8DF' : item.color }]}>
-                        <Ionicons name={locked ? 'lock-closed-outline' : 'arrow-forward'} size={19} color="#FFFFFF" />
+                      <View style={styles.destinationBody}>
+                        <View style={[styles.destinationIcon, { backgroundColor: locked ? '#CBC5CD' : item.color }]}>
+                          <Ionicons name={locked ? 'lock-closed' : completed ? 'checkmark' : item.icon} size={25} color="#FFFFFF" />
+                        </View>
+                        <View style={styles.destinationCopy}>
+                          <Text style={[styles.areaTitle, locked && styles.lockedText]}>{item.area}</Text>
+                          <Text style={styles.areaSubtitle}>{item.subtitle}</Text>
+                          <View style={styles.destinationMeta}>
+                            <Ionicons name="images-outline" size={13} color={locked ? '#938B96' : item.color} />
+                            <Text style={styles.momentCount}>{contentCounts[item.level] || 0} PUBLISHED MOMENTS</Text>
+                          </View>
+                        </View>
+                        <View style={[styles.goButton, { backgroundColor: locked ? '#DDD8DF' : item.color }]}>
+                          <Ionicons name={locked ? 'lock-closed-outline' : completed ? 'refresh' : 'arrow-forward'} size={19} color="#FFFFFF" />
+                        </View>
                       </View>
                     </Pressable>
                     <View style={[styles.mapNode, item.side === 'right' ? styles.nodeLeft : styles.nodeRight, { backgroundColor: locked ? '#BDB5C1' : item.color }]}>
@@ -206,15 +217,22 @@ const styles = StyleSheet.create({
   levelPill: { borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
   levelPillText: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   momentCount: { fontSize: 9, fontWeight: '800', letterSpacing: 0.8, color: '#8B7D90' },
-  destination: { minHeight: 126, borderRadius: 27, padding: 16, flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E8DDED', shadowColor: '#3C2148', shadowOpacity: 0.13, shadowRadius: 15, shadowOffset: { width: 0, height: 8 }, elevation: 4 },
+  destination: { minHeight: 240, borderRadius: 29, overflow: 'hidden', backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E2D4E8', shadowColor: '#3C2148', shadowOpacity: 0.15, shadowRadius: 17, shadowOffset: { width: 0, height: 9 }, elevation: 5 },
   destinationLocked: { backgroundColor: '#F1EEF2', borderColor: '#DDD7E0' },
-  destinationIcon: { width: 54, height: 54, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  photoSky: { height: 103, position: 'relative', overflow: 'hidden' },
+  photoFrame: { position: 'absolute', width: 78, height: 67, borderRadius: 18, borderWidth: 2, backgroundColor: 'rgba(255,255,255,.88)', alignItems: 'center', justifyContent: 'center', shadowColor: '#432750', shadowOpacity: .10, shadowRadius: 6, elevation: 2 },
+  photoFrameTop: { left: '21%', top: 11, transform: [{ rotate: '-5deg' }] },
+  photoFrameBottom: { right: '20%', top: 23, transform: [{ rotate: '5deg' }] },
+  matchRibbon: { position: 'absolute', left: '50%', top: 39, marginLeft: -43, minWidth: 86, height: 27, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingHorizontal: 8, borderWidth: 3, borderColor: '#FFFFFF' },
+  matchRibbonText: { color: '#FFFFFF', fontSize: 6, fontWeight: '900', letterSpacing: .55 },
+  destinationBody: { minHeight: 136, padding: 15, flexDirection: 'row', alignItems: 'center' },
+  destinationIcon: { width: 54, height: 61, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginTop: -42, borderWidth: 4, borderColor: '#FFFFFF', shadowColor: '#432750', shadowOpacity: .18, shadowRadius: 8, elevation: 4 },
   destinationCopy: { flex: 1, marginHorizontal: 13 },
   areaTitle: { fontFamily: 'Jua', fontSize: 21, color: '#432750' },
   areaSubtitle: { marginTop: 4, fontSize: 10.5, lineHeight: 16, color: '#7F7184' },
   lockedText: { color: '#938B96' },
   goButton: { width: 39, height: 39, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  mapNode: { position: 'absolute', top: 73, width: 48, height: 48, borderRadius: 24, borderWidth: 5, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#3C2148', shadowOpacity: 0.18, shadowRadius: 9, elevation: 6 },
+  mapNode: { position: 'absolute', top: 146, width: 48, height: 48, borderRadius: 24, borderWidth: 5, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#3C2148', shadowOpacity: 0.18, shadowRadius: 9, elevation: 6 },
   nodeLeft: { left: -25 },
   nodeRight: { right: -25 },
   mapNodeNumber: { fontFamily: 'Jua', fontSize: 18, color: '#FFFFFF' },

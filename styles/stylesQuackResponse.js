@@ -5,6 +5,12 @@ const { width, height } = Dimensions.get('window');
 export default StyleSheet.create({
   responseBadgeStage:{width:195,height:195,alignItems:'center',justifyContent:'center',overflow:'hidden'},responseBadgeGlow:{position:'absolute',width:178,height:178,borderRadius:89,backgroundColor:'rgba(117,66,186,.10)'},responseBadgeOuter:{width:156,height:156,borderRadius:78,backgroundColor:'#F1E8F7',borderWidth:2,borderColor:'#D2B9E5',alignItems:'center',justifyContent:'center',shadowColor:'#7542BA',shadowOpacity:.22,shadowRadius:20,elevation:8},responseBadgeInner:{width:124,height:124,borderRadius:62,backgroundColor:'#7542BA',borderWidth:5,borderColor:'#E4D3F0',alignItems:'center',justifyContent:'center'},responseBadgeCharacter:{position:'absolute',fontFamily:'Jua',fontSize:76,color:'rgba(255,255,255,.14)'},responseBadgeSweep:{position:'absolute',width:29,height:195,backgroundColor:'rgba(255,255,255,.44)',zIndex:8},responseSparkleOne:{position:'absolute',left:8,top:25,color:'#67AA41',fontSize:24,zIndex:9},responseSparkleTwo:{position:'absolute',right:8,bottom:26,color:'#D4953A',fontSize:20,zIndex:9},gameBadgeStage:{width:205,height:205,alignItems:'center',justifyContent:'center',overflow:'hidden'},gameBadgeGlow:{position:'absolute',width:188,height:188,borderRadius:94},gameBadgeOuter:{width:158,height:158,borderRadius:79,backgroundColor:'#FFF',borderWidth:2,alignItems:'center',justifyContent:'center',shadowColor:'#493152',shadowOpacity:.15,shadowRadius:18,elevation:8},gameBadgeInner:{width:126,height:126,borderRadius:63,borderWidth:5,borderColor:'rgba(255,255,255,.46)',alignItems:'center',justifyContent:'center'},gameBadgeCharacter:{position:'absolute',fontFamily:'Jua',fontSize:77,color:'rgba(255,255,255,.18)'},gameBadgeSweep:{position:'absolute',width:29,height:205,backgroundColor:'rgba(255,255,255,.44)',zIndex:8},gameBadgeMascot:{position:'absolute',width:68,height:78,right:3,bottom:3,zIndex:9},gameBadgeSparkle:{position:'absolute',left:8,top:24,fontSize:24,zIndex:9},gameLoadNote:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#F6F2F8',borderRadius:13,paddingHorizontal:13,paddingVertical:10,marginTop:16},gameLoadNoteText:{color:'#675A6D',fontSize:9,fontWeight:'700'},
   loadContent:{width:'100%',alignItems:'center'},loadJapanese:{color:'#67AA41',fontFamily:'Jua',fontSize:11,letterSpacing:2,marginTop:1,marginBottom:6},loadSteps:{flexDirection:'row',gap:6,marginTop:13},loadStep:{width:25,height:4,borderRadius:2,backgroundColor:'#DDD3E3'},loadStepActive:{backgroundColor:'#7542BA'},loadFooter:{flexDirection:'row',alignItems:'center',gap:7,marginTop:17,backgroundColor:'#F2EBF6',borderRadius:14,paddingHorizontal:13,paddingVertical:10},loadFooterText:{color:'#65566D',fontSize:9,fontWeight:'700'},gameLoadOrbTop:{right:-125,top:-95},gameLoadOrbBottom:{left:-145,bottom:-100},
+  storyboardStage:{width:'100%',height:190,marginTop:15,alignItems:'center',justifyContent:'center',overflow:'hidden',borderRadius:24,backgroundColor:'#F2EAF8'},
+  storyboardHero:{width:104,height:104,borderRadius:34,backgroundColor:'#7542BA',borderWidth:6,borderColor:'#E5D5F0',alignItems:'center',justifyContent:'center',zIndex:4,shadowColor:'#4E2763',shadowOpacity:.24,shadowRadius:15,elevation:7},
+  storyboardKanji:{position:'absolute',fontFamily:'Jua',fontSize:67,color:'rgba(255,255,255,.14)'},
+  storyboardFrame:{position:'absolute',width:91,height:74,borderRadius:18,backgroundColor:'#FFFFFF',borderWidth:1,borderColor:'#E2D4E8',alignItems:'center',justifyContent:'center',shadowColor:'#42244E',shadowOpacity:.12,shadowRadius:8,elevation:3},
+  storyboardFrameLeft:{left:14,top:24,transform:[{rotate:'-6deg'}]},storyboardFrameRight:{right:14,bottom:22,transform:[{rotate:'6deg'}]},
+  storyboardFrameText:{marginTop:4,fontSize:7,fontWeight:'900',letterSpacing:.8,color:'#6D6073'},storyboardSweep:{position:'absolute',width:25,height:220,backgroundColor:'rgba(255,255,255,.42)',zIndex:8},
   japanSun:{position:'absolute',width:15,height:15,borderRadius:8,backgroundColor:'rgba(255,255,255,.78)',right:18,top:24},
   responseArtCircleInner:{position:'absolute',width:92,height:92,borderRadius:46,borderWidth:1,borderColor:'rgba(255,255,255,.34)',backgroundColor:'rgba(255,255,255,.06)',bottom:20},
   toriiTop:{position:'absolute',width:98,height:7,borderRadius:4,backgroundColor:'rgba(255,255,255,.32)',top:35},
@@ -615,6 +621,7 @@ export default StyleSheet.create({
     fontWeight: '900',
     letterSpacing: 1.5,
   },
+  mapSectionSubcopy: { marginTop: 4, maxWidth: 330, color: '#807286', fontSize: 9.5, lineHeight: 14 },
 
   mapSectionTitle: {
     color: '#3C2749',
@@ -652,6 +659,7 @@ export default StyleSheet.create({
     position: 'relative',
     paddingBottom: 10,
   },
+  trailStartSeal: { position: 'absolute', left: 12, top: -4, width: 34, height: 34, borderRadius: 17, backgroundColor: '#4B2C5A', borderWidth: 4, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', zIndex: 9 },
 
   mapTrailLine: {
     position: 'absolute',
@@ -725,7 +733,7 @@ export default StyleSheet.create({
 
   mapMissionCard: {
     flex: 1,
-    borderRadius: 26,
+    borderRadius: 30,
     backgroundColor: 'rgba(255,255,255,0.97)',
     borderWidth: 2,
     borderColor: '#D9C4E8',
