@@ -96,6 +96,11 @@ export default function QuackResponse() {
             </Pressable>
           </View>
 
+          <View style={styles.responseTrailLead}>
+            <Text style={styles.responseTrailLeadKicker}>SHAPE YOUR RESPONSE INSTINCT</Text>
+            <Text style={styles.responseTrailLeadText}>Follow each conversation chapter and learn to reply naturally as the story becomes more challenging.</Text>
+          </View>
+
           <View style={styles.responseRoute}>
             <View pointerEvents="none" style={styles.responseRouteLine} />
             {games.map((game,index)=>{const locked=index>=unlockedStages;return(
