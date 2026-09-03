@@ -7,6 +7,7 @@ interface User {
   fname: string;
   lname: string;
   role: string;
+  apiToken?: string;
 }
 
 const isStoredUser = (value: unknown): value is User => {

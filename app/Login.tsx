@@ -127,6 +127,7 @@ const Login = () => {
                 fname: data.fname,
                 lname: data.lname,
                 role: data.role?.toLowerCase(),
+                apiToken: data.apiToken,
             };
 
             let userClassCode = '';
