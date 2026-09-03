@@ -59,7 +59,7 @@ const LAN_IP_URL = `http://192.168.1.9:${LOCAL_BACKEND_PORT}`;
 
 const getApiUrl = () => {
   // Web development on this computer uses the local Spring Boot backend.
-  // A deployed web build (such as Vercel) uses the Render backend.
+  // The production web app at japlearn.com uses the Render backend.
   if (Platform.OS === 'web') {
     const hostname = globalThis.location?.hostname;
     const isLocalWeb = hostname === 'localhost' || hostname === '127.0.0.1';

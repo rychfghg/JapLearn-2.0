@@ -36,6 +36,7 @@ export default function QuackProgress() {
   const [politenessBest, setPolitenessBest] = useState(0);
   const [speakingSummary, setSpeakingSummary] = useState<SpeakingSummary>({ sessions: 0, seconds: 0 });
   const [replyCoachSummary, setReplyCoachSummary] = useState<ReplyCoachSummary>({ completedChapters: 0, attempts: 0, bestScore: 0, averageScore: 0 });
+  const [expandedGames, setExpandedGames] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchProgressSummary();
@@ -141,6 +142,30 @@ export default function QuackProgress() {
     }
   };
 
+  const masteryFor = (name: string) => summary?.masteryItems.find((item) => item.name === name)?.percentage || 0;
+  const activeAverage = (values: number[]) => {
+    const active = values.filter((value) => value > 0);
+    return active.length ? Math.round(active.reduce((total, value) => total + value, 0) / active.length) : 0;
+  };
+  const situateScores = [masteryFor('Recognition'), masteryFor('Expression Match'), masteryFor('Politeness')];
+  const responseScores = [masteryFor('Reply Coach'), 0, 0];
+  const gameScores = [
+    { key: 'quacktalk', name: 'QuackTalk', caption: `${speakingSummary.sessions} speaking session${speakingSummary.sessions === 1 ? '' : 's'}`, score: masteryFor('QuackTalk'), color: '#7552C8', tint: '#F1ECFC', icon: 'mic-outline' },
+    { key: 'quacksituate', name: 'QuackSituate', caption: 'Real-world communication', score: activeAverage(situateScores), color: '#65A936', tint: '#EFF8E8', icon: 'navigate-outline', children: [
+      { name: 'Ahiru Rescue', skill: 'Recognition', score: situateScores[0], icon: 'eye-outline' },
+      { name: 'Expression Match', skill: 'Gesture matching', score: situateScores[1], icon: 'git-compare-outline' },
+      { name: 'Tone Quest', skill: 'Politeness', score: situateScores[2], icon: 'people-outline' },
+    ] },
+    { key: 'quackresponse', name: 'QuackResponse', caption: `${replyCoachSummary.attempts} story attempt${replyCoachSummary.attempts === 1 ? '' : 's'}`, score: activeAverage(responseScores), color: '#8423D9', tint: '#F3EAFB', icon: 'chatbubbles-outline', children: [
+      { name: 'Reply Coach', skill: 'Guided response', score: responseScores[0], icon: 'book-outline' },
+      { name: 'Response Rush', skill: 'Timed response', score: responseScores[1], icon: 'timer-outline' },
+      { name: 'Dialogue Relay', skill: 'Multi-step response', score: responseScores[2], icon: 'git-branch-outline' },
+    ] },
+    { key: 'quackamole', name: 'Quack-a-Mole', caption: `Personal best: ${quackamoleBest}`, score: masteryFor('Quack-a-Mole'), color: '#D59A2A', tint: '#FFF7E5', icon: 'hammer-outline' },
+    { key: 'quackman', name: 'Quackman', caption: 'Word-survival accuracy', score: masteryFor('Quackman'), color: '#347CCB', tint: '#EAF3FC', icon: 'shield-checkmark-outline' },
+    { key: 'quackslate', name: 'QuackSlate', caption: 'Solo and teacher-coded play', score: masteryFor('QuackSlate'), color: '#D84F83', tint: '#FCECF2', icon: 'grid-outline' },
+  ];
+
   return <SafeAreaView style={styles.safeArea}><View style={styles.container}>
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
       <View style={styles.header}>
@@ -171,27 +196,20 @@ export default function QuackProgress() {
           <View style={styles.statCard}><View style={[styles.statAccent, styles.greenAccent]} /><View style={styles.greenIcon}><Ionicons name="checkmark-done-outline" size={20} color="#5A9E36" /></View><Text style={styles.statValue}>{summary?.completedActivities || 0}</Text><Text style={styles.statLabel}>COMPLETED</Text></View>
           <View style={styles.statCard}><View style={[styles.statAccent, styles.orangeAccent]} /><View style={styles.orangeIcon}><Ionicons name="fitness-outline" size={20} color="#D88727" /></View><Text style={styles.statValue}>{summary?.weakAreaCount || 0}</Text><Text style={styles.statLabel}>FOCUS AREAS</Text></View>
         </View>
-        <View style={styles.progressPanel}><View style={styles.panelHeading}><View style={styles.panelIcon}><Ionicons name="analytics-outline" size={21} color="#8423D9" /></View><View style={styles.panelCopy}><Text style={styles.panelTitle}>Communication mastery</Text><Text style={styles.panelSubtitle}>Skill-by-skill performance from your activities</Text></View><View style={styles.reportTag}><Text style={styles.reportTagText}>REPORT</Text></View></View>
-          {summary?.masteryItems?.length ? summary.masteryItems.map((item) => <View key={item.name} style={styles.progressItem}><View style={styles.progressTop}><Text style={styles.progressName}>{item.name}</Text><Text style={styles.progressPercent}>{item.percentage}%</Text></View><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${item.percentage}%` }]} /></View></View>) : <Text style={styles.emptyText}>No mastery records yet. Play QuackSituate, QuackResponse, or QuackTalk first.</Text>}
-        </View>
-        <View style={styles.arcadeBestCard}>
-          <Ionicons name="mic" size={25} color="#7552C8" />
-          <View style={styles.arcadeBestCopy}>
-            <Text style={styles.arcadeBestKicker}>SUMI SPEAKING PRACTICE</Text>
-            <Text style={styles.arcadeBestTitle}>
-              {speakingSummary.sessions} saved session{speakingSummary.sessions === 1 ? '' : 's'}
-            </Text>
-            <Text style={styles.panelSubtitle}>
-              {Math.floor(speakingSummary.seconds / 60)}m {speakingSummary.seconds % 60}s practiced · evaluation coming soon
-            </Text>
+        <View style={styles.progressPanel}><View style={styles.panelHeading}><View style={styles.panelIcon}><Ionicons name="analytics-outline" size={21} color="#8423D9" /></View><View style={styles.panelCopy}><Text style={styles.panelTitle}>Game mastery</Text><Text style={styles.panelSubtitle}>Overall performance across your JapLearn games</Text></View><View style={styles.reportTag}><Text style={styles.reportTagText}>SCORES</Text></View></View>
+          <View style={styles.gameScoreList}>
+            {gameScores.map((game) => { const expanded = !!expandedGames[game.key]; const expandable = !!game.children?.length; return <View key={game.key} style={[styles.gameScoreCard, expanded && styles.gameScoreCardExpanded]}>
+              <Pressable disabled={!expandable} onPress={() => setExpandedGames((current) => ({ ...current, [game.key]: !current[game.key] }))} style={({ pressed }) => [styles.gameScoreMain, pressed && expandable && styles.pressed]}>
+                <View style={[styles.gameScoreIcon, { backgroundColor: game.tint }]}><Ionicons name={game.icon as any} size={22} color={game.color} /></View>
+                <View style={styles.gameScoreCopy}><Text style={styles.gameScoreName}>{game.name}</Text><Text style={styles.gameScoreCaption}>{game.caption}</Text><View style={styles.gameScoreTrack}><View style={[styles.gameScoreFill, { width: `${game.score}%`, backgroundColor: game.color }]} /></View></View>
+                <View style={styles.gameScoreValueBlock}><Text style={[styles.gameScoreValue, { color: game.color }]}>{game.score}%</Text><Text style={styles.gameScoreValueLabel}>OVERALL</Text></View>
+                {expandable ? <View style={[styles.gameScoreChevron, { backgroundColor: game.tint }]}><Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={17} color={game.color} /></View> : null}
+              </Pressable>
+              {expanded && game.children ? <View style={styles.subgameList}>{game.children.map((child, childIndex) => <View key={child.name} style={[styles.subgameRow, childIndex === game.children!.length - 1 && styles.subgameRowLast]}><View style={[styles.subgameIcon, { backgroundColor: game.tint }]}><Ionicons name={child.icon as any} size={16} color={game.color} /></View><View style={styles.subgameCopy}><Text style={styles.subgameName}>{child.name}</Text><Text style={styles.subgameSkill}>{child.skill}</Text></View><View style={styles.subgameTrack}><View style={[styles.subgameFill, { width: `${child.score}%`, backgroundColor: game.color }]} /></View><Text style={[styles.subgameScore, { color: game.color }]}>{child.score}%</Text></View>)}</View> : null}
+            </View>})}
           </View>
-          <Ionicons name="checkmark-circle" size={24} color="#65A936" />
+          <Text style={styles.gameScoreHint}>Tap QuackSituate or QuackResponse to view their games.</Text>
         </View>
-        <View style={styles.arcadeBestCard}><Ionicons name="chatbubbles" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>REPLY COACH · {replyCoachSummary.completedChapters} CHAPTERS</Text><Text style={styles.arcadeBestTitle}>Interactive story mastery</Text><Text style={styles.panelSubtitle}>{replyCoachSummary.attempts} completed attempts · {replyCoachSummary.averageScore}% average</Text></View><Text style={styles.arcadeBestValue}>{replyCoachSummary.bestScore}%</Text></View>
-        <View style={styles.arcadeBestCard}><Ionicons name="trophy" size={25} color="#D59A2A" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>ARCADE PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Quack-a-Mole</Text></View><Text style={styles.arcadeBestValue}>{quackamoleBest}</Text></View>
-        <View style={styles.arcadeBestCard}><Ionicons name="eye" size={25} color="#65A936" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>SITUATIONAL PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Recognition</Text><Text style={styles.panelSubtitle}>10 points for every natural response</Text></View><Text style={styles.arcadeBestValue}>{recognitionBest} / {recognitionMaximum}</Text></View>
-        <View style={styles.arcadeBestCard}><Ionicons name="git-compare" size={25} color="#8423D9" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>MATCHING PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Expression Match</Text><Text style={styles.panelSubtitle}>{expressionAttempts} plays · {expressionAverage}% average</Text></View><Text style={styles.arcadeBestValue}>{expressionBest}</Text></View>
-        <View style={styles.arcadeBestCard}><Ionicons name="people" size={25} color="#D88727" /><View style={styles.arcadeBestCopy}><Text style={styles.arcadeBestKicker}>TONE QUEST PERSONAL BEST</Text><Text style={styles.arcadeBestTitle}>Politeness</Text></View><Text style={styles.arcadeBestValue}>{politenessBest}</Text></View>
         <Text style={styles.actionsTitle}>Explore your progress</Text>
         <Pressable style={styles.featureGreen} onPress={() => router.push('/QuackProgressProgression')}><View style={styles.featureIcon}><Ionicons name="trending-up-outline" size={25} color="#FFFFFF" /></View><View style={styles.featureCopy}><Text style={styles.featureTitle}>Progression & Reinforcement</Text><Text style={styles.featureText}>View mastery stages, repeated mistakes, and retry activities.</Text></View><Ionicons name="arrow-forward-circle" size={27} color="#65A936" /></Pressable>
         <Pressable style={styles.featurePurple} onPress={() => router.push('/QuackProgressAnalytics')}><View style={styles.featureIcon}><Ionicons name="bar-chart-outline" size={25} color="#FFFFFF" /></View><View style={styles.featureCopy}><Text style={styles.featureTitle}>Analytics & Progress Reports</Text><Text style={styles.featureText}>View accuracy, weak areas, completion progress, and summaries.</Text></View><Ionicons name="arrow-forward-circle" size={27} color="#8423D9" /></Pressable>

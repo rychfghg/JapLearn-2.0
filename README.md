@@ -128,7 +128,9 @@ The `apk` profile is for direct device testing. The `production` profile produce
 npx expo export --platform web
 ```
 
-The production website is generated in `dist/`. The included `vercel.json` supports direct Expo Router links such as `/ResetPassword`.
+The production student website is available at [japlearn.com](https://japlearn.com) and is generated in `dist/`. The included `vercel.json` supports direct Expo Router links such as `/ResetPassword`.
+
+The teacher and admin website is available separately at [portal.japlearn.com](https://portal.japlearn.com).
 
 ## Project Structure
 
