@@ -29,14 +29,6 @@ type AnalyticsData = {
 
 type Tab = 'overview' | 'focus' | 'history';
 
-type GuidedSession = {
-  id: string; scenarioTitle?: string; practicedAt: string; durationSeconds: number;
-  conversationTurns?: number; averagePronunciationScore?: number; averageAccuracyScore?: number;
-  averageFluencyScore?: number; contextualAccuracy?: number; registerPerformance?: string;
-  hintsUsed?: number; expressionsPracticed?: string[]; areasForImprovement?: string[];
-  feedbackSummary?: string; score?: number;
-};
-
 const background = require('../assets/img/background/clubroom a st2 day.png');
 const sumi = require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png');
 
@@ -57,7 +49,6 @@ export default function QuackTalkFeedback() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
-  const [guidedSessions, setGuidedSessions] = useState<GuidedSession[]>([]);
   const cameFromConversation = returnTo === 'conversation';
   const cameFromSpeaking = returnTo === 'speaking';
   const returnRoute = cameFromConversation
@@ -68,7 +59,7 @@ export default function QuackTalkFeedback() {
   const roomName = cameFromConversation
     ? 'Talk with Sumi'
     : cameFromSpeaking
-      ? 'Guided Phrase Practice'
+      ? 'Voice Practice'
       : 'QuackTalk';
 
   useEffect(() => {
@@ -85,12 +76,9 @@ export default function QuackTalkFeedback() {
         setLoading(true);
         setLoadError('');
 
-        const [response, guidedResponse] = await Promise.all([
-          fetch(`${expoconfig.API_URL}/api/quackProgress/analytics?email=${encodeURIComponent(user.email)}`),
-          user.apiToken
-            ? fetch(`${expoconfig.API_URL}/api/guidedPractice/sessions?email=${encodeURIComponent(user.email)}`, { headers: { Authorization: `Bearer ${user.apiToken}` } })
-            : Promise.resolve(null),
-        ]);
+        const response = await fetch(
+          `${expoconfig.API_URL}/api/quackProgress/analytics?email=${encodeURIComponent(user.email)}`,
+        );
         const data = await response.json();
 
         if (!response.ok) {
@@ -99,7 +87,6 @@ export default function QuackTalkFeedback() {
 
         if (active) {
           setAnalytics(data);
-          if (guidedResponse?.ok) setGuidedSessions(await guidedResponse.json());
         }
       } catch (error) {
         if (active) {
@@ -229,11 +216,11 @@ export default function QuackTalkFeedback() {
                 </View>
                 <View style={[styles.featureCard, styles.featureCardPink]}>
                   <View style={styles.featureIconPink}>
-                    <Ionicons name="pulse-outline" size={22} color="#D64D82" />
+                    <Ionicons name="waveform-outline" size={22} color="#D64D82" />
                   </View>
-                  <Text style={styles.featureKickerPink}>AZURE ASSISTED</Text>
+                  <Text style={styles.featureKickerPink}>COMING SOON</Text>
                   <Text style={styles.featureTitle}>Voice evaluation</Text>
-                  <Text style={styles.featureText}>Pronunciation, accuracy, fluency, context, and help usage are saved after every guided session.</Text>
+                  <Text style={styles.featureText}>Pronunciation, transcription, and coaching notes will appear here.</Text>
                 </View>
               </View>
               <Pressable style={styles.primaryAction} onPress={() => router.replace(returnRoute)}>
@@ -251,10 +238,10 @@ export default function QuackTalkFeedback() {
 
           {!loading && !loadError && tab === 'focus' && (
             <>
-              {guidedSessions.some((session) => (session.areasForImprovement?.length ?? 0) > 0) ? (
+              {(analytics?.repeatedMistakes?.length ?? 0) > 0 ? (
                 <View style={styles.dataCard}>
-                  <Text style={styles.dataTitle}>Sumi’s coaching notes</Text>
-                  {guidedSessions.flatMap((session) => session.areasForImprovement ?? []).slice(0, 8).map((item, index) => (
+                  <Text style={styles.dataTitle}>Saved speaking notes</Text>
+                  {analytics?.repeatedMistakes?.map((item, index) => (
                     <View key={`${item}-${index}`} style={styles.noteRow}>
                       <View style={styles.noteNumber}>
                         <Text style={styles.noteNumberText}>{index + 1}</Text>
@@ -266,8 +253,8 @@ export default function QuackTalkFeedback() {
               ) : (
                 emptyCard(
                   'sparkles-outline',
-                  'No coaching notes yet',
-                  'Complete a Guided Phrase session and Sumi will organize the areas that need more practice.',
+                  'No evaluated speaking notes yet',
+                  'This section will use real evaluation results when the listening service is available.',
                 )
               )}
             </>
@@ -275,20 +262,16 @@ export default function QuackTalkFeedback() {
 
           {!loading && !loadError && tab === 'history' && (
             <>
-              {guidedSessions.length > 0 ? (
+              {talkHistory.length > 0 ? (
                 <View style={styles.dataCard}>
-                  <Text style={styles.dataTitle}>Guided Phrase history</Text>
-                  {guidedSessions.map((item) => (
-                    <View key={item.id} style={styles.historyRow}>
+                  <Text style={styles.dataTitle}>QuackTalk history</Text>
+                  {talkHistory.map((item, index) => (
+                    <View key={`${item.title}-${index}`} style={styles.historyRow}>
                       <View style={styles.historyIcon}>
                         <Ionicons name="chatbubbles-outline" size={18} color="#8051C8" />
                       </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.historyTitle}>{item.scenarioTitle || 'Guided Practice'}</Text>
-                        <Text style={{ color: '#8B7E90', fontSize: 11 }}>{new Date(item.practicedAt).toLocaleDateString()} · {Math.floor(item.durationSeconds / 60)}m {item.durationSeconds % 60}s · {item.conversationTurns || 0} turns</Text>
-                        {!!item.feedbackSummary && <Text style={{ color: '#6F6373', fontSize: 11, marginTop: 4 }}>{item.feedbackSummary}</Text>}
-                      </View>
-                      <Text style={styles.historyScore}>{item.score ?? 0}%</Text>
+                      <Text style={styles.historyTitle}>{item.title}</Text>
+                      <Text style={styles.historyScore}>{item.score}%</Text>
                     </View>
                   ))}
                 </View>
@@ -296,7 +279,7 @@ export default function QuackTalkFeedback() {
                 emptyCard(
                   'time-outline',
                   'No QuackTalk history yet',
-                  'Complete your first Guided Phrase conversation to create a pronunciation and context report.',
+                  'Only real evaluated sessions will be listed here. Microphone tests are not recorded as scores.',
                 )
               )}
             </>

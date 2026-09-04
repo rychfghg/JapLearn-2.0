@@ -1,6 +1,6 @@
 import React from 'react';
-import GuidedPhrasePracticeRoom from '../components/GeminiGuidedPhrasePracticeRoom';
+import QuackTalkPracticeRoom from '../components/QuackTalkPracticeRoom';
 
 export default function QuackTalkSpeech() {
-  return <GuidedPhrasePracticeRoom />;
+  return <QuackTalkPracticeRoom variant="speaking" />;
 }
