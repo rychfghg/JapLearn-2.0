@@ -174,6 +174,17 @@ type SavedRushState = {
 const CHOICE_SECONDS = 20;
 const GOOD_TIERS: Evaluation[] = ['BEST', 'ACCEPTABLE'];
 
+// Short scene-level guidance that complements (rather than repeats) the
+// answer-specific feedback shown after each decision.
+const sceneContextBriefings: Record<string, string> = {
+  ward: 'At a Japanese public-service counter, begin with すみません and state one clear purpose. Staff may confirm several details, so asking them to repeat is safer than pretending to understand.',
+  phone: 'Phone contracts can include activation fees, monthly charges, and cancellation conditions. Repeat the amount you understood or ask もう一度お願いします before agreeing.',
+  bank: 'Bank staff often need names and addresses to match official documents exactly. If something is missing, explain it honestly and ask what alternative document is accepted.',
+  conbini: 'Convenience-store questions are usually short and predictable: bag, payment method, receipt, or heating. A brief complete reply is clearer than silence or only showing an item.',
+  train: 'When you take the wrong train, first say what happened, then name the destination you need. This gives station staff enough information to explain the recovery route.',
+  interview: 'Part-time job interviews normally call for です・ます Japanese. Clear availability and an honest request for clarification sound more dependable than guessing.',
+};
+
 const choiceEnglishMeaning: Record<string, string> = {
   n_ward_greeting_reply_a: 'Nice to meet you. I look forward to working with you.',
   n_ward_greeting_reply_b: 'Hello. Please help me.',
@@ -1050,16 +1061,19 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
       });
 
       decision.choices.forEach((choice) => {
-        // The learner's selected line is voiced before the NPC reacts, but it
-        // is not assigned to Sumi or Haru. Keeping this as a sprite-free reply
-        // beat makes it clear that the line represents the learner.
+        // The learner's selected line is voiced before the NPC reacts. Sumi
+        // remains on screen as the learner's companion, but the renderer keeps
+        // her mouth idle so the answer is never presented as Sumi's dialogue.
         built.push({
           id: decisionReplyId(scene.id, decision.id, choice.id),
           sceneId: scene.id,
           type: 'DIALOGUE',
           speaker: 'Your reply',
+          characterKey: 'SUMI',
+          expressionKey: GOOD_TIERS.includes(choice.evaluation) ? 'SMILE' : 'NEUTRAL',
+          characterPosition: 'RIGHT',
           backgroundKey: scene.background,
-          spritesVisible: false,
+          spritesVisible: true,
           japanese: choice.japanese,
           romaji: choice.romaji,
           nextNodeId: decisionReactId(scene.id, decision.id, choice.id),
@@ -1112,6 +1126,15 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
 
 const { nodes, startId: START_NODE_ID, totalChoices: TOTAL_CHOICES } = buildStory(SCENES);
 const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+// A saved CHOICE has no voice line of its own. Reopening at that point first
+// replays the immediately preceding NPC prompt, then returns to the exact
+// choice and restores its remaining seconds.
+const choicePromptReplayMap = new Map<string, string>();
+nodes.forEach((node) => {
+  if (node.type === 'DIALOGUE' && node.nextNodeId && nodeMap.get(node.nextNodeId)?.type === 'CHOICE') {
+    choicePromptReplayMap.set(node.nextNodeId, node.id);
+  }
+});
 const sceneMap = new Map(SCENES.map((scene) => [scene.id, scene]));
 const CHAPTER_TITLE = 'Response Rush · Your First Weeks in Japan';
 
@@ -1252,6 +1275,7 @@ export default function QuackResponseTimed() {
   const voiceSound = useRef<Audio.Sound | null>(null);
   const stingerSound = useRef<Audio.Sound | null>(null);
   const pendingAfterCultural = useRef<string | null>(null);
+  const pendingContextNotes = useRef<string[]>([]);
   const shownCulturalScenes = useRef<Set<string>>(new Set());
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const voiceGeneration = useRef(0);
@@ -1280,12 +1304,15 @@ export default function QuackResponseTimed() {
         return;
       }
       try {
-        const response = await fetch(
-          `${expoconfig.API_URL}/api/response-rush/progress?email=${encodeURIComponent(user!.email)}`,
-        );
-        let saved: SavedRushState | null = response.ok && response.status !== 204
-          ? await response.json()
-          : null;
+        let saved: SavedRushState | null = null;
+        try {
+          const response = await fetch(
+            `${expoconfig.API_URL}/api/response-rush/progress?email=${encodeURIComponent(user!.email)}`,
+          );
+          saved = response.ok && response.status !== 204 ? await response.json() : null;
+        } catch {
+          // Network failure is not a reason to discard a valid local checkpoint.
+        }
         if (!saved) {
           const raw = await AsyncStorage.getItem(resumeKey);
           saved = raw ? JSON.parse(raw) as SavedRushState : null;
@@ -1301,10 +1328,17 @@ export default function QuackResponseTimed() {
           await AsyncStorage.removeItem(resumeKey);
           return;
         }
-        setNodeId(saved.nodeId);
+        const resumeNodeId = savedNode?.type === 'CHOICE'
+          ? choicePromptReplayMap.get(saved.nodeId) ?? saved.nodeId
+          : saved.nodeId;
+        setNodeId(resumeNodeId);
         setAnswers(saved.answers);
-        restoredChoiceTime.current = Math.max(1, Math.min(CHOICE_SECONDS, Number(saved.timeLeft) || CHOICE_SECONDS));
+        restoredChoiceTime.current = savedNode?.type === 'CHOICE'
+          ? Math.max(1, Math.min(CHOICE_SECONDS, Number(saved.timeLeft) || CHOICE_SECONDS))
+          : null;
       } catch {
+        // Only malformed cached data is removed; an unavailable backend keeps
+        // the last valid device checkpoint intact.
         await AsyncStorage.removeItem(resumeKey).catch(() => undefined);
       } finally {
         if (active) setResumeReady(true);
@@ -1319,7 +1353,9 @@ export default function QuackResponseTimed() {
     const snapshot: SavedRushState = {
       nodeId,
       answers,
-      timeLeft,
+      timeLeft: currentNode?.type === 'CHOICE'
+        ? restoredChoiceTime.current ?? timeLeft
+        : timeLeft,
       savedAt: new Date().toISOString(),
       bestPercentage: answers.length
         ? Math.round((totalPoints / (answers.length * 3)) * 100)
@@ -1638,21 +1674,31 @@ export default function QuackResponseTimed() {
     if (
       currentNode?.type === 'NARRATION'
       && scene
-      && scene.culturalNotes.length
       && !shownCulturalScenes.current.has(scene.id)
-      && Math.random() < 0.5
     ) {
       shownCulturalScenes.current.add(scene.id);
-      const note = scene.culturalNotes[Math.floor(Math.random() * scene.culturalNotes.length)];
-      setCulturalText(note);
-      pendingAfterCultural.current = targetId;
-      setCulturalVisible(true);
-      return;
+      const notes = [sceneContextBriefings[scene.id]].filter(Boolean);
+      if (scene.culturalNotes.length && Math.random() < 0.35) {
+        const culturalNote = scene.culturalNotes[Math.floor(Math.random() * scene.culturalNotes.length)];
+        if (!notes.includes(culturalNote)) notes.push(culturalNote);
+      }
+      if (notes.length) {
+        setCulturalText(notes[0]);
+        pendingContextNotes.current = notes.slice(1);
+        pendingAfterCultural.current = targetId;
+        setCulturalVisible(true);
+        return;
+      }
     }
     setNodeId(targetId);
   };
 
   const dismissCultural = () => {
+    const nextNote = pendingContextNotes.current.shift();
+    if (nextNote) {
+      setCulturalText(nextNote);
+      return;
+    }
     setCulturalVisible(false);
     const next = pendingAfterCultural.current;
     pendingAfterCultural.current = null;
@@ -1684,6 +1730,8 @@ export default function QuackResponseTimed() {
     setFeedbackVisible(false);
     setCulturalVisible(false);
     shownCulturalScenes.current.clear();
+    pendingContextNotes.current = [];
+    pendingAfterCultural.current = null;
     scoreSaved.current = false;
     setAnswers([]);
     setNodeId(START_NODE_ID);
@@ -1719,6 +1767,7 @@ export default function QuackResponseTimed() {
   const isChoice = currentNode.type === 'CHOICE';
   const isReaction = currentNode.type === 'REACTION';
   const isDialogue = currentNode.type === 'DIALOGUE';
+  const isLearnerReply = isDialogue && currentNode.speaker === 'Your reply';
   const isEnding = currentNode.type === 'ENDING';
   const timerRatio = timeLeft / CHOICE_SECONDS;
   const timerDanger = timeLeft <= 6;
@@ -1794,7 +1843,7 @@ export default function QuackResponseTimed() {
                     currentNode.characterPosition,
                     currentNode.characterKey === 'HARU' ? styles.soloSpriteLeft : styles.soloSpriteRight,
                   )}
-                  speaking={(isDialogue || isReaction) && isSpriteSpeaking}
+                  speaking={!isLearnerReply && (isDialogue || isReaction) && isSpriteSpeaking}
                   reacting={isReaction}
                 />
               ) : null}
