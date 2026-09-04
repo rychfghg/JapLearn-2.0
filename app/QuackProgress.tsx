@@ -58,10 +58,20 @@ export default function QuackProgress() {
 
     const localBest = Number(await AsyncStorage.getItem(`quackamole_high_score:${email.toLowerCase()}`)) || 0;
     setQuackamoleBest(localBest);
-    // Response Rush has no backend model yet, so its best score lives only
-    // in the same local storage key the game itself writes to.
+    // Local value keeps the UI useful offline; the dedicated backend game
+    // record below is authoritative across devices.
     const responseRushLocalBest = Number(await AsyncStorage.getItem(`${RESPONSE_RUSH_BEST_SCORE_KEY}:${email.toLowerCase()}`)) || 0;
     setResponseRushBest(responseRushLocalBest);
+    fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(email)}&game=QUACKRESPONSE_RUSH`)
+      .then((response) => response.status === 204 ? null : response.json())
+      .then((record) => {
+        if (!record) return;
+        const percentage = record.maxScore > 0
+          ? Math.round(((record.score || 0) / record.maxScore) * 100)
+          : (record.score || 0);
+        setResponseRushBest((current) => Math.max(current, percentage));
+      })
+      .catch((error) => console.log('Response Rush score fetch error:', error.message));
     fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(email)}&game=QUACKAMOLE`)
       .then((response) => response.status === 204 ? null : response.json())
       .then((record) => record && setQuackamoleBest((current) => Math.max(current, record.score || 0)))

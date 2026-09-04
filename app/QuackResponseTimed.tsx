@@ -20,12 +20,14 @@ import AhiruMissionExit from '../components/AhiruMissionExit';
 import styles from '../styles/stylesQuackResponseGuided';
 import { AuthContext } from '../context/AuthContext';
 import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
+import expoconfig from '../expoconfig';
 
 // Local best-score key for Response Rush, mirroring the pattern the
 // Quack-a-Mole high score already uses. This screen has no backend model
 // yet (see the note above), so QuackResponse's unlock check and
 // QuackProgress's score display both read this same key.
 export const RESPONSE_RUSH_BEST_SCORE_KEY = 'response_rush_best_score';
+const RESPONSE_RUSH_RESUME_KEY = 'response_rush_resume_v1';
 
 // ---------------------------------------------------------------------------
 // Response Rush — a six-scene, twenty-decision "first weeks in Japan"
@@ -57,27 +59,16 @@ export const RESPONSE_RUSH_BEST_SCORE_KEY = 'response_rush_best_score';
 // rewrite.
 //
 // AUDIO — read this before touching the clip lookups below.
-// Every voiced line in this screen (125 of them: scene openings, the NPC's
-// spoken setup line that opens each decision, every choice's reaction, and
-// every timeout line) now has its OWN generated clip that says that exact
-// sentence — not a reused, unrelated clip from another game's pool. This
-// build environment has no network path to a neural voice service, so
-// these were synthesized offline with espeak-ng (Japanese formant voice),
-// pitch/speed-tuned differently per character (Sumi higher and a touch
-// faster, Haru lower and steadier) so the two are easy to tell apart, then
-// cleaned up with ffmpeg (silence-trimmed, loudness-normalized) and bundled
-// at assets/audio/response-rush/<node id>.mp3. It is an honest offline
-// voice, not a professional recording — but it says the actual line, so
-// the mouth-open animation is genuinely synced to what's being "said."
-// `audioOverrides` below maps every node id to its clip 1:1; the old
-// Politeness-pool fallback only exists as a safety net in case a future
-// node is ever added without recording a matching clip for it.
+// Every voiced line in this screen (125 total: scene openings, the spoken
+// setup for each decision, every answer reaction, and every timeout) has
+// its own Japanese neural-voice clip. Sumi consistently uses Nanami and
+// Haru consistently uses Keita. Files are bundled under
+// assets/audio/response-rush/<node id>.mp3 and map 1:1 to the Japanese text
+// shown on screen. Missing mappings never fall back to unrelated dialogue.
 //
-// MUSIC. The two background beds (assets/audio/response-rush/rr_calm.mp3,
-// rr_tense.mp3) are newly generated for this screen — layered sine pads
-// run through tremolo/echo/lowpass filtering — genuinely new audio, not a
-// licensed track, since no music library is reachable from this sandbox.
-// Real correct/incorrect stingers (assets/audio/sfx/correct_sfx.mp3 /
+// MUSIC. Response Rush owns one bundled background track and guards its
+// asynchronous creation so route/state transitions cannot start duplicate
+// loops. Real correct/incorrect stingers (assets/audio/sfx/correct_sfx.mp3 /
 // incorrect_sfx.mp3, already bundled and used by the Politeness game) fire
 // the instant a REACTION lands, layered under a full-screen tint and a
 // check/× badge, and the scene bed ducks under dialogue audio instead of
@@ -169,6 +160,13 @@ type AnswerRecord = {
   betterExample?: { japanese: string; romaji: string; note: string };
 };
 
+type SavedRushState = {
+  nodeId: string;
+  answers: AnswerRecord[];
+  timeLeft: number;
+  savedAt: string;
+};
+
 const CHOICE_SECONDS = 20;
 const GOOD_TIERS: Evaluation[] = ['BEST', 'ACCEPTABLE'];
 
@@ -204,10 +202,9 @@ const sprites: Record<CharacterKey, Record<string, any>> = {
   },
 };
 
-const bundledBgm: Record<string, any> = {
-  calm: require('../assets/audio/response-rush/rr_calm.mp3'),
-  tense: require('../assets/audio/response-rush/rr_tense.mp3'),
-};
+// One bundled music bed, owned by this screen. Keeping a single track avoids
+// two loops racing during rapid dialogue/choice transitions.
+const responseRushBgm = require('../assets/audio/sfx/quiz.mp3');
 const stingers: Record<'good' | 'bad', any> = {
   good: require('../assets/audio/sfx/correct_sfx.mp3'),
   bad: require('../assets/audio/sfx/incorrect_sfx.mp3'),
@@ -348,19 +345,6 @@ const audioOverrides: Record<string, any> = {
   n_interview_clarify_react_timeout: require('../assets/audio/response-rush/n_interview_clarify_react_timeout.mp3'),
 
 };
-
-// Last-resort safety net only: if a node id is ever added to SCENES
-// without a matching audioOverrides entry, this keeps the auto-play
-// engine from softlocking instead of silently breaking the game. It is
-// not the primary voice source anymore.
-const femaleVoicePool: any[] = [
-  require('../assets/audio/politeness/npc-02.mp3'),
-  require('../assets/audio/politeness/npc-14.mp3'),
-];
-const maleVoicePool: any[] = [
-  require('../assets/audio/politeness/npc-01.mp3'),
-  require('../assets/audio/politeness/npc-15.mp3'),
-];
 
 const evaluationTheme: Record<Evaluation, { label: string; color: string; icon: any }> = {
   BEST: { label: 'Best response', color: '#62B83C', icon: 'checkmark-circle' },
@@ -942,35 +926,10 @@ const nodeMap = new Map(nodes.map((node) => [node.id, node]));
 const sceneMap = new Map(SCENES.map((scene) => [scene.id, scene]));
 const CHAPTER_TITLE = 'Response Rush · Your First Weeks in Japan';
 
-const resolveAudio = (() => {
-  let femaleCursor = 0;
-  let maleCursor = 0;
-  const resolved: Record<string, any> = {};
-  return (nodeId: string, characterKey?: CharacterKey) => {
-    if (resolved[nodeId]) return resolved[nodeId];
-    if (audioOverrides[nodeId]) {
-      resolved[nodeId] = audioOverrides[nodeId];
-      return resolved[nodeId];
-    }
-    if (!characterKey) return undefined;
-    if (characterKey === 'SUMI') {
-      const clip = femaleVoicePool[femaleCursor % femaleVoicePool.length];
-      femaleCursor += 1;
-      resolved[nodeId] = clip;
-      return clip;
-    }
-    const clip = maleVoicePool[maleCursor % maleVoicePool.length];
-    maleCursor += 1;
-    resolved[nodeId] = clip;
-    return clip;
-  };
-})();
-// Pre-resolve every voiced node once, in story order, so playback is instant.
-nodes.forEach((node) => {
-  if ((node.type === 'DIALOGUE' || node.type === 'REACTION') && node.characterKey) {
-    resolveAudio(node.id, node.characterKey);
-  }
-});
+// Never substitute a line from another game. A missing clip becomes silence
+// plus timed progression, making content errors obvious without speaking the
+// wrong Japanese sentence.
+const resolveAudio = (nodeId: string) => audioOverrides[nodeId];
 
 type SpriteActorProps = {
   characterKey: CharacterKey;
@@ -1093,17 +1052,27 @@ export default function QuackResponseTimed() {
   const [flashTier, setFlashTier] = useState<'good' | 'bad' | null>(null);
   const [culturalVisible, setCulturalVisible] = useState(false);
   const [culturalText, setCulturalText] = useState('');
+  const [resumeReady, setResumeReady] = useState(false);
 
   const fade = useRef(new Animated.Value(0)).current;
   const flashOpacity = useRef(new Animated.Value(0)).current;
   const badgeScale = useRef(new Animated.Value(0.4)).current;
   const backgroundMusic = useRef<Audio.Sound | null>(null);
   const backgroundMusicKey = useRef('');
+  const musicGeneration = useRef(0);
   const voiceSound = useRef<Audio.Sound | null>(null);
+  const stingerSound = useRef<Audio.Sound | null>(null);
   const pendingAfterCultural = useRef<string | null>(null);
   const shownCulturalScenes = useRef<Set<string>>(new Set());
   const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const voiceGeneration = useRef(0);
+  const scoreSaved = useRef(false);
+  const restoredChoiceTime = useRef<number | null>(null);
+  const activeChoiceNode = useRef('');
+
+  const resumeKey = user?.email
+    ? `${RESPONSE_RUSH_RESUME_KEY}:${user.email.toLowerCase()}`
+    : null;
 
   const currentNode = nodeMap.get(nodeId);
   const progress = Math.min(1, answers.length / Math.max(1, TOTAL_CHOICES));
@@ -1111,6 +1080,78 @@ export default function QuackResponseTimed() {
   const maxPoints = TOTAL_CHOICES * 3;
   const lastAnswer = answers[answers.length - 1];
   const scorePercent = maxPoints ? Math.round((totalPoints / maxPoints) * 100) : 0;
+
+  // Resume the exact decision/story node, accumulated answers, and remaining
+  // decision time. Invalid or completed snapshots are discarded safely.
+  useEffect(() => {
+    let active = true;
+    const restore = async () => {
+      if (!resumeKey) {
+        if (active) setResumeReady(true);
+        return;
+      }
+      try {
+        const raw = await AsyncStorage.getItem(resumeKey);
+        if (!raw || !active) return;
+        const saved = JSON.parse(raw) as SavedRushState;
+        if (!nodeMap.has(saved.nodeId) || !Array.isArray(saved.answers)) {
+          await AsyncStorage.removeItem(resumeKey);
+          return;
+        }
+        const savedNode = nodeMap.get(saved.nodeId);
+        if (savedNode?.type === 'ENDING') {
+          await AsyncStorage.removeItem(resumeKey);
+          return;
+        }
+        setNodeId(saved.nodeId);
+        setAnswers(saved.answers);
+        restoredChoiceTime.current = Math.max(1, Math.min(CHOICE_SECONDS, Number(saved.timeLeft) || CHOICE_SECONDS));
+      } catch {
+        await AsyncStorage.removeItem(resumeKey).catch(() => undefined);
+      } finally {
+        if (active) setResumeReady(true);
+      }
+    };
+    void restore();
+    return () => { active = false; };
+  }, [resumeKey]);
+
+  useEffect(() => {
+    if (!resumeReady || !resumeKey || currentNode?.type === 'ENDING') return;
+    const snapshot: SavedRushState = {
+      nodeId,
+      answers,
+      timeLeft,
+      savedAt: new Date().toISOString(),
+    };
+    void AsyncStorage.setItem(resumeKey, JSON.stringify(snapshot));
+  }, [answers, currentNode?.type, nodeId, resumeKey, resumeReady, timeLeft]);
+
+  // Only Response Rush writes this game id. QuackProgress can therefore
+  // aggregate it without changing Reply Coach or any other QuackResponse mode.
+  useEffect(() => {
+    if (currentNode?.type !== 'ENDING' || !user?.email || scoreSaved.current) return;
+    scoreSaved.current = true;
+    const today = new Date().toISOString().slice(0, 10);
+    const correctAnswers = answers.filter((answer) => GOOD_TIERS.includes(answer.evaluation)).length;
+    void fetch(`${expoconfig.API_URL}/api/scores/high-score`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: `${user.fname ?? ''} ${user.lname ?? ''}`.trim(),
+        email: user.email,
+        date: today,
+        game: 'QUACKRESPONSE_RUSH',
+        mode: 'RESPONSE_RUSH',
+        score: totalPoints,
+        maxScore: maxPoints,
+        correctAnswers,
+        totalQuestions: TOTAL_CHOICES,
+        completed: true,
+      }),
+    }).catch(() => undefined);
+    if (resumeKey) void AsyncStorage.removeItem(resumeKey);
+  }, [answers, currentNode?.type, maxPoints, resumeKey, totalPoints, user]);
 
   // Persist the best score reached in ANY attempt — full playthrough or
   // not — since the unlock rule is "finish it, OR hit 60% at any point."
@@ -1134,17 +1175,46 @@ export default function QuackResponseTimed() {
   }, [answers.length, totalPoints, currentNode?.id, user?.email]);
 
   useEffect(() => () => {
+    musicGeneration.current += 1;
     const music = backgroundMusic.current;
     backgroundMusic.current = null;
     if (music) void music.stopAsync().finally(() => music.unloadAsync());
     void stopAndUnloadSound(voiceSound.current);
     voiceSound.current = null;
+    void stopAndUnloadSound(stingerSound.current);
+    stingerSound.current = null;
     if (advanceTimer.current) clearTimeout(advanceTimer.current);
   }, []);
 
+  // Opening the exit confirmation pauses the game. Confirming Exit keeps it
+  // stopped while the transition runs: countdown, delayed advancement,
+  // dialogue, stingers, and both music beds are all cancelled here.
+  useEffect(() => {
+    if (!exitVisible && !exiting) return;
+    musicGeneration.current += 1;
+    voiceGeneration.current += 1;
+    if (advanceTimer.current) {
+      clearTimeout(advanceTimer.current);
+      advanceTimer.current = null;
+    }
+    const music = backgroundMusic.current;
+    backgroundMusic.current = null;
+    backgroundMusicKey.current = '';
+    const voice = voiceSound.current;
+    voiceSound.current = null;
+    const stinger = stingerSound.current;
+    stingerSound.current = null;
+    setIsSpriteSpeaking(false);
+    void stopAndUnloadSound(music);
+    void stopAndUnloadSound(voice);
+    void stopAndUnloadSound(stinger);
+  }, [exitVisible, exiting]);
+
   // Scene music, ducked under dialogue audio instead of a flat on/off toggle.
   useEffect(() => {
-    const trackKey = currentNode?.type === 'CHOICE' ? 'tense' : 'calm';
+    if (exitVisible || exiting) return;
+    const generation = ++musicGeneration.current;
+    const trackKey = 'response-rush';
     const duckedVolume = isSpriteSpeaking ? 0.045 : currentNode?.type === 'CHOICE' ? 0.14 : 0.1;
     const syncMusic = async () => {
       try {
@@ -1160,7 +1230,12 @@ export default function QuackResponseTimed() {
           await previous.stopAsync().catch(() => undefined);
           await previous.unloadAsync().catch(() => undefined);
         }
-        const { sound } = await Audio.Sound.createAsync(bundledBgm[trackKey], { isLooping: true, volume: duckedVolume, shouldPlay: true });
+        const { sound } = await Audio.Sound.createAsync(responseRushBgm, { isLooping: true, volume: duckedVolume, shouldPlay: true });
+        if (generation !== musicGeneration.current) {
+          await sound.stopAsync().catch(() => undefined);
+          await sound.unloadAsync().catch(() => undefined);
+          return;
+        }
         backgroundMusic.current = sound;
         backgroundMusicKey.current = trackKey;
       } catch {
@@ -1168,7 +1243,7 @@ export default function QuackResponseTimed() {
       }
     };
     void syncMusic();
-  }, [currentNode?.type, isSpriteSpeaking]);
+  }, [currentNode?.type, exitVisible, exiting, isSpriteSpeaking]);
 
   useEffect(() => {
     fade.setValue(0);
@@ -1200,11 +1275,17 @@ export default function QuackResponseTimed() {
   // Countdown, active only on an unanswered CHOICE node.
   useEffect(() => {
     setHintVisible(false);
+    if (!resumeReady || exitVisible || exiting) return;
     if (!currentNode || currentNode.type !== 'CHOICE') {
       setTimeLeft(CHOICE_SECONDS);
+      activeChoiceNode.current = '';
       return;
     }
-    setTimeLeft(CHOICE_SECONDS);
+    if (activeChoiceNode.current !== currentNode.id) {
+      activeChoiceNode.current = currentNode.id;
+      setTimeLeft(restoredChoiceTime.current ?? CHOICE_SECONDS);
+      restoredChoiceTime.current = null;
+    }
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -1216,7 +1297,7 @@ export default function QuackResponseTimed() {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [currentNode?.id]);
+  }, [currentNode?.id, exitVisible, exiting, resumeReady]);
 
   // Correct/incorrect flash + stinger the instant a REACTION lands.
   useEffect(() => {
@@ -1233,11 +1314,19 @@ export default function QuackResponseTimed() {
       Animated.timing(flashOpacity, { toValue: 0, duration: 480, useNativeDriver: true }),
     ]).start(() => setFlashTier(null));
     Animated.spring(badgeScale, { toValue: 1, friction: 5, tension: 120, useNativeDriver: true }).start();
-    let stingerSound: Audio.Sound | null = null;
+    void stopAndUnloadSound(stingerSound.current);
+    stingerSound.current = null;
+    let createdStinger: Audio.Sound | null = null;
     Audio.Sound.createAsync(stingers[tier], { shouldPlay: true, volume: 0.8 })
-      .then(({ sound }) => { stingerSound = sound; })
+      .then(({ sound }) => {
+        createdStinger = sound;
+        stingerSound.current = sound;
+      })
       .catch(() => undefined);
-    return () => { if (stingerSound) void stingerSound.unloadAsync(); };
+    return () => {
+      if (stingerSound.current === createdStinger) stingerSound.current = null;
+      if (createdStinger) void stopAndUnloadSound(createdStinger);
+    };
   }, [currentNode?.id]);
 
   // The core auto-play engine: whenever a DIALOGUE or REACTION node becomes
@@ -1248,7 +1337,7 @@ export default function QuackResponseTimed() {
   // story can never stall.
   useEffect(() => {
     advanceTimer.current && clearTimeout(advanceTimer.current);
-    if (!currentNode || (currentNode.type !== 'DIALOGUE' && currentNode.type !== 'REACTION')) {
+    if (exitVisible || exiting || !currentNode || (currentNode.type !== 'DIALOGUE' && currentNode.type !== 'REACTION')) {
       setIsSpriteSpeaking(false);
       return;
     }
@@ -1269,7 +1358,7 @@ export default function QuackResponseTimed() {
     };
 
     const play = async () => {
-      const source = audioOverrides[node.id] ?? resolveAudio(node.id, node.characterKey);
+      const source = resolveAudio(node.id);
       setIsSpriteSpeaking(true);
       if (!source) {
         advanceTimer.current = setTimeout(finishAndAdvance, fallbackMs);
@@ -1303,7 +1392,7 @@ export default function QuackResponseTimed() {
       voiceGeneration.current += 1;
       if (advanceTimer.current) clearTimeout(advanceTimer.current);
     };
-  }, [currentNode?.id]);
+  }, [currentNode?.id, exitVisible, exiting]);
 
   const handleTimeout = (node: StoryNode) => {
     const record: AnswerRecord = {
@@ -1386,8 +1475,11 @@ export default function QuackResponseTimed() {
     setFeedbackVisible(false);
     setCulturalVisible(false);
     shownCulturalScenes.current.clear();
+    scoreSaved.current = false;
     setAnswers([]);
     setNodeId(START_NODE_ID);
+    setTimeLeft(CHOICE_SECONDS);
+    if (resumeKey) void AsyncStorage.removeItem(resumeKey);
   };
 
   if (exiting) {
@@ -1617,7 +1709,7 @@ export default function QuackResponseTimed() {
           <View style={styles.exitCard}>
             <Ionicons name="bookmark-outline" size={38} color="#8423D9" />
             <Text style={styles.exitTitle}>Leave Response Rush?</Text>
-            <Text style={styles.exitText}>You can start this scenario again anytime from the level map.</Text>
+            <Text style={styles.exitText}>Your exact place and current score are saved. Continue this rush whenever you return.</Text>
             <Pressable style={styles.primaryButton} onPress={() => { setExitVisible(false); setExiting(true); }}>
               <Text style={styles.primaryButtonText}>Exit to map</Text>
             </Pressable>
