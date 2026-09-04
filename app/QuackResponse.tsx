@@ -84,17 +84,28 @@ export default function QuackResponse() {
       })
       .catch(() => undefined);
 
-    // Response Rush has no backend progress model yet, so its unlock check
-    // reads the same locally-persisted best score the game itself writes
-    // to after every answer (finishing it, or hitting 60% in any single
-    // attempt, both count — see QuackResponseTimed.tsx).
-    AsyncStorage.getItem(`${RESPONSE_RUSH_BEST_SCORE_KEY}:${user.email.toLowerCase()}`)
-      .then((stored) => {
-        if (active && (Number(stored) || 0) >= UNLOCK_THRESHOLD) {
-          setUnlockedStages((current) => Math.max(current, 3));
-        }
-      })
-      .catch(() => undefined);
+    // Check both the completed high score and the current server-side run.
+    // This makes the unlock follow the account across devices while the local
+    // value remains a useful offline cache.
+    Promise.all([
+      AsyncStorage.getItem(`${RESPONSE_RUSH_BEST_SCORE_KEY}:${user.email.toLowerCase()}`)
+        .then((stored) => Number(stored) || 0)
+        .catch(() => 0),
+      fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(user.email)}&game=QUACKRESPONSE_RUSH`)
+        .then(async (response) => response.status === 204 ? null : response.json())
+        .then((record) => record
+          ? (record.maxScore > 0 ? Math.round(((record.score || 0) / record.maxScore) * 100) : Number(record.score) || 0)
+          : 0)
+        .catch(() => 0),
+      fetch(`${expoconfig.API_URL}/api/response-rush/progress?email=${encodeURIComponent(user.email)}`)
+        .then(async (response) => response.status === 204 ? null : response.json())
+        .then((record) => Number(record?.bestPercentage) || 0)
+        .catch(() => 0),
+    ]).then((scores) => {
+      if (active && Math.max(...scores) >= UNLOCK_THRESHOLD) {
+        setUnlockedStages((current) => Math.max(current, 3));
+      }
+    });
 
     return () => { active = false; };
   }, [user?.email]);

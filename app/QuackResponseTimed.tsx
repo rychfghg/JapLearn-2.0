@@ -91,6 +91,7 @@ type ChoiceSpec = {
   feedbackWhy: string;
   betterExample?: { japanese: string; romaji: string; note: string };
   reaction: Line;
+  englishMeaning?: string;
 };
 
 type DecisionSpec = {
@@ -158,17 +159,103 @@ type AnswerRecord = {
   feedbackTitle: string;
   feedbackWhy: string;
   betterExample?: { japanese: string; romaji: string; note: string };
+  englishMeaning?: string;
 };
 
 type SavedRushState = {
   nodeId: string;
+  currentNodeId?: string;
   answers: AnswerRecord[];
   timeLeft: number;
   savedAt: string;
+  bestPercentage?: number;
 };
 
 const CHOICE_SECONDS = 20;
 const GOOD_TIERS: Evaluation[] = ['BEST', 'ACCEPTABLE'];
+
+const choiceEnglishMeaning: Record<string, string> = {
+  n_ward_greeting_reply_a: 'Nice to meet you. I look forward to working with you.',
+  n_ward_greeting_reply_b: 'Hello. Please help me.',
+  n_ward_greeting_reply_c: 'Oh, thanks / hello.',
+  n_ward_greeting_reply_d: 'Give me the card. Hurry.',
+  n_ward_purpose_reply_a: 'I came to register my residence card.',
+  n_ward_purpose_reply_b: 'I would like to register my address.',
+  n_ward_purpose_reply_c: 'It is about the card…',
+  n_ward_purpose_reply_d: 'I want to get the card quickly.',
+  n_ward_understanding_reply_a: 'Excuse me, could you say that again?',
+  n_ward_understanding_reply_b: 'Excuse me, I do not understand.',
+  n_ward_understanding_reply_c: 'Oh, yes, yes.',
+  n_ward_understanding_reply_d: 'Could you speak in English?',
+  n_phone_plan_reply_a: 'I would like to apply for a prepaid SIM plan.',
+  n_phone_plan_reply_b: 'I would like to sign a mobile-phone contract.',
+  n_phone_plan_reply_c: 'Um, something for a phone… a SIM, maybe…',
+  n_phone_plan_reply_d: 'Give me the cheapest one.',
+  n_phone_id_reply_a: 'Yes, here they are. Please.',
+  n_phone_id_reply_b: 'Yes, I have them.',
+  n_phone_id_reply_c: '(Silently hands over the card.)',
+  n_phone_id_reply_d: 'Why do you need the card?',
+  n_phone_fee_reply_a: 'Excuse me, could you tell me the price?',
+  n_phone_fee_reply_b: 'Please say that again.',
+  n_phone_fee_reply_c: 'Yes, that is fine. (Still not fully understanding.)',
+  n_phone_fee_reply_d: 'Any price is fine—just finish quickly.',
+  n_bank_purpose_reply_a: 'I would like to open an account.',
+  n_bank_purpose_reply_b: 'I would like to ask about an account.',
+  n_bank_purpose_reply_c: 'An account… please.',
+  n_bank_purpose_reply_d: 'Make me an account, right now.',
+  n_bank_documents_reply_a: 'I do not have a My Number Card. Will that be all right?',
+  n_bank_documents_reply_b: 'I may be missing one item.',
+  n_bank_documents_reply_c: 'Um, it is probably fine.',
+  n_bank_documents_reply_d: 'Is that absolutely necessary?',
+  n_bank_callback_reply_a: 'Yes, this address is correct.',
+  n_bank_callback_reply_b: 'I think it is probably correct.',
+  n_bank_callback_reply_c: '(Without checking carefully.) Yes, yes.',
+  n_bank_callback_reply_d: 'You do not need to check that. Move on.',
+  n_conbini_bag_reply_a: 'No bag, thank you. I brought one.',
+  n_conbini_bag_reply_b: 'I do not need one.',
+  n_conbini_bag_reply_c: '(Silently shakes head.)',
+  n_conbini_bag_reply_d: 'Do not need it.',
+  n_conbini_payment_reply_a: 'Can I use an IC card?',
+  n_conbini_payment_reply_b: 'Is paying by card okay?',
+  n_conbini_payment_reply_c: 'Is this okay? (Only shows the card.)',
+  n_conbini_payment_reply_d: 'It normally works, right?',
+  n_conbini_receipt_reply_a: 'Yes, please.',
+  n_conbini_receipt_reply_b: 'Please give it to me.',
+  n_conbini_receipt_reply_c: 'Oh, um… I guess I need it.',
+  n_conbini_receipt_reply_d: 'I do not care about that.',
+  n_conbini_directions_reply_a: 'Excuse me, which way is the station?',
+  n_conbini_directions_reply_b: 'Where is the station?',
+  n_conbini_directions_reply_c: 'Um… the station?',
+  n_conbini_directions_reply_d: 'Station—where?',
+  n_train_pass_reply_a: 'A commuter pass to Shibuya, please.',
+  n_train_pass_reply_b: 'A ticket to Shibuya, please.',
+  n_train_pass_reply_c: 'Um… I want to buy this. (Points at the screen.)',
+  n_train_pass_reply_d: 'Make the commuter pass quickly.',
+  n_train_studentId_reply_a: 'Excuse me, I did not bring it today. The regular fare is fine.',
+  n_train_studentId_reply_b: 'I do not have it.',
+  n_train_studentId_reply_c: 'Um… maybe I do not have it.',
+  n_train_studentId_reply_d: 'Is that absolutely necessary?',
+  n_train_wrongPlatform_reply_a: 'Excuse me, I took the train in the wrong direction. How can I get back to Shibuya?',
+  n_train_wrongPlatform_reply_b: 'I went the wrong way.',
+  n_train_wrongPlatform_reply_c: 'Um… I think I am lost.',
+  n_train_wrongPlatform_reply_d: 'Isn’t this train strange?',
+  n_interview_introduce_reply_a: 'Nice to meet you. My name is ___. I sincerely look forward to working with you.',
+  n_interview_introduce_reply_b: 'Nice to meet you. I am ___. I look forward to working with you.',
+  n_interview_introduce_reply_c: 'I am ___.',
+  n_interview_introduce_reply_d: '___. Nice to meet you.',
+  n_interview_availability_reply_a: 'I can work weekday evenings and all day on weekends.',
+  n_interview_availability_reply_b: 'I can work on weekends.',
+  n_interview_availability_reply_c: 'Um, anytime is fine—probably.',
+  n_interview_availability_reply_d: 'I do not know yet. I will contact you later.',
+  n_interview_whyHere_reply_a: 'I like this café’s atmosphere, and I want to improve my Japanese through customer service.',
+  n_interview_whyHere_reply_b: 'Because I need money.',
+  n_interview_whyHere_reply_c: 'Hmm, no particular reason.',
+  n_interview_whyHere_reply_d: 'Because there was nowhere else to apply.',
+  n_interview_clarify_reply_a: 'Excuse me, could you explain what “every other week” means?',
+  n_interview_clarify_reply_b: 'Please say that again.',
+  n_interview_clarify_reply_c: 'Oh, yes, it is fine. (Still not understanding.)',
+  n_interview_clarify_reply_d: 'Japanese is far too difficult.',
+};
 
 const backgrounds: Record<string, any> = {
   cityGate: require('../assets/img/background/city a s1st2 day.png'),
@@ -178,6 +265,10 @@ const backgrounds: Record<string, any> = {
   counterRoom: require('../assets/img/background/school a hallway st2 day.png'),
   train: require('../assets/img/background/train_scene day.png'),
   interviewRoom: require('../assets/img/background/clubroom a st2 day.png'),
+  wardOffice: require('../assets/img/background/student council room a st2 evening.png'),
+  phoneStore: require('../assets/img/background/school a hallway st2 day.png'),
+  bankOffice: require('../assets/img/background/clubroom a st2 day.png'),
+  storeInterior: require('../assets/img/background/kitchen dining evening2.png'),
 };
 
 const sprites: Record<CharacterKey, Record<string, any>> = {
@@ -470,7 +561,7 @@ const SCENES: SceneSpec[] = [
   {
     id: 'ward',
     title: 'Ward Office · Day 6 in Japan',
-    background: 'cityGate',
+    background: 'wardOffice',
     narration: 'You arrived in Japan six days ago to study and work part-time. New residents must register at the local ward office within 14 days to receive their Residence Card. Sumi, a classmate, offered to walk you there for your first visit.',
     opening: { character: 'SUMI', expression: 'SMILE', japanese: '大丈夫？初めての区役所だから、私がついていくね。', romaji: 'Daijoubu? Hajimete no kuyakusho dakara, watashi ga tsuiteiku ne.', speakerLabel: 'Sumi' },
     culturalNotes: [
@@ -530,7 +621,7 @@ const SCENES: SceneSpec[] = [
   {
     id: 'phone',
     title: 'Denki Town · Mobile Plan',
-    background: 'shopFront',
+    background: 'phoneStore',
     narration: 'Receipt in hand, you and Sumi head to a phone shop to set up a SIM plan — you\'ll need a Japanese number for the part-time job you\'re about to apply for.',
     opening: { character: 'SUMI', expression: 'ENCOURAGING', japanese: 'ここ、学生プランが安いよ。がんばって！', romaji: 'Koko, gakusei puran ga yasui yo. Ganbatte!', speakerLabel: 'Sumi' },
     culturalNotes: [
@@ -590,7 +681,7 @@ const SCENES: SceneSpec[] = [
   {
     id: 'bank',
     title: 'Sakura Bank · Opening an Account',
-    background: 'counterRoom',
+    background: 'bankOffice',
     narration: 'With a phone number secured, next is a bank account — most part-time jobs pay wages by direct deposit, so this step can\'t wait.',
     opening: { character: 'SUMI', expression: 'NEUTRAL', japanese: '銀行の窓口、ちょっと緊張するよね。落ち着いていこう。', romaji: 'Ginkou no madoguchi, chotto kinchou suru yo ne. Ochitsuite ikou.', speakerLabel: 'Sumi' },
     culturalNotes: [
@@ -650,7 +741,7 @@ const SCENES: SceneSpec[] = [
   {
     id: 'conbini',
     title: 'Convenience Store · Evening Errand',
-    background: 'cityEvening',
+    background: 'storeInterior',
     narration: 'Evening now — a quick stop at the convenience store on the way home for dinner and a few things for tomorrow\'s job interview.',
     opening: { character: 'SUMI', expression: 'SMILE', japanese: 'コンビニに着いたね。買い物の会話も練習してみよう。', romaji: 'Konbini ni tsuita ne. Kaimono no kaiwa mo renshuu shite miyou.', speakerLabel: 'Sumi' },
     culturalNotes: [
@@ -954,6 +1045,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
         timeoutReactionNodeId: decisionTimeoutId(scene.id, decision.id),
         choices: decision.choices.map((choice) => ({
           ...choice,
+          englishMeaning: choiceEnglishMeaning[decisionReplyId(scene.id, decision.id, choice.id)],
           nextNodeId: decisionReplyId(scene.id, decision.id, choice.id),
         })),
       });
@@ -1183,8 +1275,8 @@ export default function QuackResponseTimed() {
   const lastAnswer = answers[answers.length - 1];
   const scorePercent = maxPoints ? Math.round((totalPoints / maxPoints) * 100) : 0;
 
-  // Resume the exact decision/story node, accumulated answers, and remaining
-  // decision time. Invalid or completed snapshots are discarded safely.
+  // The backend is authoritative so the same account resumes on another
+  // device. The local copy is retained only as an offline cache.
   useEffect(() => {
     let active = true;
     const restore = async () => {
@@ -1193,9 +1285,18 @@ export default function QuackResponseTimed() {
         return;
       }
       try {
-        const raw = await AsyncStorage.getItem(resumeKey);
-        if (!raw || !active) return;
-        const saved = JSON.parse(raw) as SavedRushState;
+        const response = await fetch(
+          `${expoconfig.API_URL}/api/response-rush/progress?email=${encodeURIComponent(user!.email)}`,
+        );
+        let saved: SavedRushState | null = response.ok && response.status !== 204
+          ? await response.json()
+          : null;
+        if (!saved) {
+          const raw = await AsyncStorage.getItem(resumeKey);
+          saved = raw ? JSON.parse(raw) as SavedRushState : null;
+        }
+        if (!saved || !active) return;
+        saved.nodeId = saved.nodeId || saved.currentNodeId || '';
         if (!nodeMap.has(saved.nodeId) || !Array.isArray(saved.answers)) {
           await AsyncStorage.removeItem(resumeKey);
           return;
@@ -1216,7 +1317,7 @@ export default function QuackResponseTimed() {
     };
     void restore();
     return () => { active = false; };
-  }, [resumeKey]);
+  }, [resumeKey, user?.email]);
 
   useEffect(() => {
     if (!resumeReady || !resumeKey || currentNode?.type === 'ENDING') return;
@@ -1225,9 +1326,21 @@ export default function QuackResponseTimed() {
       answers,
       timeLeft,
       savedAt: new Date().toISOString(),
+      bestPercentage: answers.length
+        ? Math.round((totalPoints / (answers.length * 3)) * 100)
+        : 0,
     };
     void AsyncStorage.setItem(resumeKey, JSON.stringify(snapshot));
-  }, [answers, currentNode?.type, nodeId, resumeKey, resumeReady, timeLeft]);
+    if (!user?.email) return;
+    const sync = setTimeout(() => {
+      void fetch(`${expoconfig.API_URL}/api/response-rush/progress?email=${encodeURIComponent(user.email)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...snapshot, currentNodeId: snapshot.nodeId, completed: false }),
+      }).catch(() => undefined);
+    }, 650);
+    return () => clearTimeout(sync);
+  }, [answers, currentNode?.type, nodeId, resumeKey, resumeReady, timeLeft, totalPoints, user?.email]);
 
   // Only Response Rush writes this game id. QuackProgress can therefore
   // aggregate it without changing Reply Coach or any other QuackResponse mode.
@@ -1253,15 +1366,13 @@ export default function QuackResponseTimed() {
       }),
     }).catch(() => undefined);
     if (resumeKey) void AsyncStorage.removeItem(resumeKey);
+    void fetch(`${expoconfig.API_URL}/api/response-rush/progress?email=${encodeURIComponent(user.email)}`, {
+      method: 'DELETE',
+    }).catch(() => undefined);
   }, [answers, currentNode?.type, maxPoints, resumeKey, totalPoints, user]);
 
-  // Persist the best score reached in ANY attempt — full playthrough or
-  // not — since the unlock rule is "finish it, OR hit 60% at any point."
-  // This is also what lets QuackResponse's mission map and QuackProgress's
-  // game-mastery list both know how Response Rush went, since this screen
-  // has no backend model yet. Re-checks after every answer (accuracy so
-  // far among the choices actually made) and again at the ending card
-  // (accuracy over the full 20).
+  // Keep the existing local best as an offline cache. The same percentage is
+  // also included in the backend progress snapshot above for cross-device unlocks.
   useEffect(() => {
     if (!user?.email || answers.length === 0) return;
     const attemptMax = (currentNode?.id === 'n_ending' ? TOTAL_CHOICES : answers.length) * 3;
@@ -1521,6 +1632,7 @@ export default function QuackResponseTimed() {
       feedbackTitle: choice.feedbackTitle,
       feedbackWhy: choice.feedbackWhy,
       betterExample: choice.betterExample,
+      englishMeaning: choice.englishMeaning,
     };
     setAnswers((prev) => [...prev, record]);
     setNodeId(choice.nextNodeId);
@@ -1582,6 +1694,11 @@ export default function QuackResponseTimed() {
     setNodeId(START_NODE_ID);
     setTimeLeft(CHOICE_SECONDS);
     if (resumeKey) void AsyncStorage.removeItem(resumeKey);
+    if (user?.email) {
+      void fetch(`${expoconfig.API_URL}/api/response-rush/progress?email=${encodeURIComponent(user.email)}`, {
+        method: 'DELETE',
+      }).catch(() => undefined);
+    }
   };
 
   if (exiting) {
@@ -1871,11 +1988,17 @@ export default function QuackResponseTimed() {
                 </Text>
                 <Text style={styles.feedbackReaction}>{lastAnswer.feedbackTitle}</Text>
                 {lastAnswer.selectedJapanese !== '—' && (
-                  <View style={styles.answerComparison}>
-                    <View style={styles.answerComparisonColumn}>
-                      <Text style={styles.answerComparisonLabel}>YOU SAID</Text>
-                      <Text style={styles.answerComparisonValue}>{lastAnswer.selectedJapanese}</Text>
+                  <View style={rushStyles.answerMeaningCard}>
+                    <View style={rushStyles.answerMeaningHeader}>
+                      <View style={[rushStyles.answerMeaningIcon, { backgroundColor: `${evaluationTheme[lastAnswer.evaluation].color}18` }]}>
+                        <Ionicons name="language-outline" size={18} color={evaluationTheme[lastAnswer.evaluation].color} />
+                      </View>
+                      <Text style={rushStyles.answerMeaningLabel}>YOUR RESPONSE</Text>
                     </View>
+                    <Text style={rushStyles.answerMeaningJapanese}>{lastAnswer.selectedJapanese}</Text>
+                    <View style={rushStyles.translationDivider} />
+                    <Text style={rushStyles.translationLabel}>ENGLISH MEANING</Text>
+                    <Text style={rushStyles.translationText}>{lastAnswer.englishMeaning || 'Meaning unavailable for this response.'}</Text>
                   </View>
                 )}
                 <View style={styles.explanationBox}>
@@ -1976,6 +2099,7 @@ export default function QuackResponseTimed() {
                   </View>
                   <Text style={styles.reviewPrompt}>{answer.prompt}</Text>
                   <Text style={styles.reviewSelected}>{answer.selectedJapanese}</Text>
+                  {answer.englishMeaning ? <Text style={rushStyles.reviewTranslation}>{answer.englishMeaning}</Text> : null}
                   <Text style={styles.reviewExplanation}>{answer.feedbackWhy}</Text>
                 </View>
               );
@@ -2292,6 +2416,66 @@ const rushStyles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 7,
+  },
+  answerMeaningCard: {
+    width: '100%',
+    backgroundColor: '#FAF7FD',
+    borderWidth: 1,
+    borderColor: '#E8DDF1',
+    borderRadius: 18,
+    padding: 15,
+    marginTop: 12,
+    marginBottom: 12,
+  },
+  answerMeaningHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 9,
+  },
+  answerMeaningIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  answerMeaningLabel: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    color: '#755F82',
+  },
+  answerMeaningJapanese: {
+    fontSize: 19,
+    lineHeight: 27,
+    fontWeight: '800',
+    color: '#351A4A',
+  },
+  translationDivider: {
+    height: 1,
+    backgroundColor: '#E8DDF1',
+    marginVertical: 11,
+  },
+  translationLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    color: '#8423D9',
+    marginBottom: 4,
+  },
+  translationText: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#51405E',
+  },
+  reviewTranslation: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: '#6F5B7D',
+    fontStyle: 'italic',
+    marginTop: 3,
+    marginBottom: 8,
   },
   exampleBox: {
     flexDirection: 'row',

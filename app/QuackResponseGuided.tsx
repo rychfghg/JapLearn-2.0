@@ -19,6 +19,7 @@ import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackResponseGuided';
 import QuackSituateExit from '../components/QuackSituateExit';
+import replyCoachAudio from './replyCoachAudio';
 
 type Evaluation = 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'IMPOLITE' | 'RUDE';
 type ChoiceOption = {
@@ -34,6 +35,7 @@ type ChoiceOption = {
   reactionCharacterKey: string;
   reactionExpressionKey: string;
   nextNodeId: string;
+  audioUrl?: string;
 };
 type StoryNode = {
   id: string;
@@ -316,10 +318,13 @@ export default function ReplyCoachStory() {
   const [narrationFinished, setNarrationFinished] = useState(false);
   const [hintVisible, setHintVisible] = useState(false);
   const [hintUsed, setHintUsed] = useState(false);
+  const [previewChoiceId, setPreviewChoiceId] = useState('');
   const fade = useRef(new Animated.Value(0)).current;
   const backgroundMusic = useRef<Audio.Sound | null>(null);
   const backgroundMusicKey = useRef('');
   const musicGeneration = useRef(0);
+  const voiceSound = useRef<Audio.Sound | null>(null);
+  const voiceGeneration = useRef(0);
 
   const nodes = useMemo(
     () => new Map((chapter?.nodes ?? []).map((node) => [node.id, node])),
@@ -352,7 +357,45 @@ export default function ReplyCoachStory() {
     backgroundMusic.current = null;
     backgroundMusicKey.current = '';
     if (sound) void sound.stopAsync().finally(() => sound.unloadAsync());
+    voiceGeneration.current += 1;
+    const voice = voiceSound.current;
+    voiceSound.current = null;
+    if (voice) void voice.stopAsync().finally(() => voice.unloadAsync());
   }, []);
+
+  const playVoice = async (assetId: string, remoteUrl?: string) => {
+    const generation = ++voiceGeneration.current;
+    const previous = voiceSound.current;
+    voiceSound.current = null;
+    if (previous) {
+      await previous.stopAsync().catch(() => undefined);
+      await previous.unloadAsync().catch(() => undefined);
+    }
+    const bundled = replyCoachAudio[assetId];
+    const source = bundled ?? (remoteUrl
+      ? { uri: remoteUrl.startsWith('/api/') ? `${expoconfig.API_URL}${remoteUrl}` : remoteUrl }
+      : null);
+    if (!source || generation !== voiceGeneration.current) return;
+    const { sound } = await Audio.Sound.createAsync(source, { shouldPlay: true, volume: 1 });
+    if (generation !== voiceGeneration.current) {
+      await sound.unloadAsync();
+      return;
+    }
+    voiceSound.current = sound;
+    await new Promise<void>((resolve) => {
+      sound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) resolve();
+      });
+    });
+    if (voiceSound.current === sound) voiceSound.current = null;
+    await sound.unloadAsync().catch(() => undefined);
+  };
+
+  useEffect(() => {
+    if (!currentNode || currentNode.type === 'CHOICE' || !currentNode.japanese) return;
+    void playVoice(currentNode.id, currentNode.audioUrl);
+    return () => { voiceGeneration.current += 1; };
+  }, [currentNode?.id]);
 
   useEffect(() => {
     if (!chapter || !currentNode) return;
@@ -516,6 +559,9 @@ export default function ReplyCoachStory() {
     if (backgroundMusic.current) void backgroundMusic.current.playAsync().catch(() => undefined);
     setSaving(true);
     try {
+      setPreviewChoiceId(choice.id);
+      await playVoice(`choice-${choice.id}`, choice.audioUrl).catch(() => undefined);
+      setPreviewChoiceId('');
       const response = await requestJson(`/api/reply-coach/attempts/${attempt.id}/answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -531,6 +577,7 @@ export default function ReplyCoachStory() {
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Your response could not be saved.');
     } finally {
+      setPreviewChoiceId('');
       setSaving(false);
     }
   };
@@ -761,6 +808,24 @@ export default function ReplyCoachStory() {
                       <Text style={styles.choiceJapanese}>{choice.japanese}</Text>
                       <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
                     </View>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Play ${choice.romaji}`}
+                      disabled={saving}
+                      style={[styles.choiceAudioButton, previewChoiceId === choice.id && styles.choiceAudioButtonActive]}
+                      onPress={(event) => {
+                        event.stopPropagation();
+                        setPreviewChoiceId(choice.id);
+                        void playVoice(`choice-${choice.id}`, choice.audioUrl)
+                          .finally(() => setPreviewChoiceId(''));
+                      }}
+                    >
+                      <Ionicons
+                        name={previewChoiceId === choice.id ? 'volume-high' : 'volume-medium-outline'}
+                        size={18}
+                        color={previewChoiceId === choice.id ? '#FFFFFF' : '#8423D9'}
+                      />
+                    </Pressable>
                     <Ionicons name="chevron-forward" size={19} color="#A58CAF" />
                   </Pressable>
                 ))}

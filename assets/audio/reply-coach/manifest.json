@@ -1,0 +1,1298 @@
+[
+  {
+    "id": "dialogue-1",
+    "text": "やっと来たね！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-1-companion",
+    "text": "一緒に考えよう。あなたは何と言う？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "choice-1-best",
+    "text": "会えてうれしい！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-1-acceptable",
+    "text": "こんにちは！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-1-awkward",
+    "text": "いただきます",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-1-rude",
+    "text": "遅いよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-1-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-1-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-1-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-1-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-1",
+    "text": "いい経験になったね。続きを見に行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-2",
+    "text": "浅草は何番線かな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-2-companion",
+    "text": "そうだね。あなたなら、どう答える？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-2-best",
+    "text": "すみません、浅草は何番線ですか。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-2-acceptable",
+    "text": "浅草はどこですか。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-2-awkward",
+    "text": "浅草！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-2-rude",
+    "text": "早く教えて。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-2-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-2-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-2-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-2-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-2",
+    "text": "うん、覚えておこう。次へ行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-3",
+    "text": "先に降りてもらおう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-3-companion",
+    "text": "一緒に考えよう。あなたは何と言う？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "choice-3-best",
+    "text": "降りる人を先に通します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-3-acceptable",
+    "text": "列の後ろで待ちます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-3-awkward",
+    "text": "すぐ乗ります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-3-rude",
+    "text": "押して入ります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-3-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-3-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-3-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-3-rude",
+    "text": "それは……ちょっと。今の言い方はかなり強く聞こえるよ。言い直してみよう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-3",
+    "text": "いい経験になったね。続きを見に行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-4",
+    "text": "電車では静かにしよう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-4-companion",
+    "text": "そうだね。あなたなら、どう答える？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-4-best",
+    "text": "マナーモードにします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-4-acceptable",
+    "text": "小さい声で話します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-4-awkward",
+    "text": "普通に電話します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-4-rude",
+    "text": "大声で話します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-4-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-4-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-4-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-4-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-5",
+    "text": "入る前に軽くお辞儀をするよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-5-companion",
+    "text": "一緒に考えよう。あなたは何と言う？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "choice-5-best",
+    "text": "軽くお辞儀します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-5-acceptable",
+    "text": "静かに入ります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-5-awkward",
+    "text": "手を振ります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-5-rude",
+    "text": "門に座ります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-5-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-5-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-5-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-5-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-5",
+    "text": "いい経験になったね。続きを見に行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-6",
+    "text": "長く答えなくても大丈夫。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-6-companion",
+    "text": "そうだね。あなたなら、どう答える？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-6-best",
+    "text": "軽く会釈します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-6-acceptable",
+    "text": "こんにちは。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-6-awkward",
+    "text": "いらっしゃいませ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-6-rude",
+    "text": "何？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-6-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-6-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-6-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-6-rude",
+    "text": "それは……ちょっと。今の言い方はかなり強く聞こえるよ。言い直してみよう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-6",
+    "text": "うん、覚えておこう。次へ行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-7",
+    "text": "トレーに置こう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-7-companion",
+    "text": "一緒に考えよう。あなたは何と言う？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "choice-7-best",
+    "text": "お願いします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-7-acceptable",
+    "text": "これでお願いします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-7-awkward",
+    "text": "ちょうだい。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-7-rude",
+    "text": "早くして。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-7-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-7-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-7-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-7-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-7",
+    "text": "いい経験になったね。続きを見に行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-8",
+    "text": "何名様ですか、と聞かれたよ。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-8-companion",
+    "text": "そうだね。あなたなら、どう答える？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-8-best",
+    "text": "三人です。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-8-acceptable",
+    "text": "三名です。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-8-awkward",
+    "text": "三人！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-8-rude",
+    "text": "見ればわかるでしょ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-8-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-8-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-8-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-8-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-9",
+    "text": "丁寧な言い方をつけよう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-9-companion",
+    "text": "一緒に考えよう。あなたは何と言う？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "choice-9-best",
+    "text": "これをお願いします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-9-acceptable",
+    "text": "これください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-9-awkward",
+    "text": "これ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-9-rude",
+    "text": "早く持ってきて。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-9-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-9-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-9-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-9-rude",
+    "text": "それは……ちょっと。今の言い方はかなり強く聞こえるよ。言い直してみよう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-9",
+    "text": "いい経験になったね。続きを見に行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-10",
+    "text": "食べる前の言葉だよ。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-10-companion",
+    "text": "そうだね。あなたなら、どう答える？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-10-best",
+    "text": "いただきます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-10-acceptable",
+    "text": "食べましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-10-awkward",
+    "text": "ごちそうさま。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-10-rude",
+    "text": "まずいかも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-10-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-10-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-10-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-10-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-10",
+    "text": "うん、覚えておこう。次へ行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-11",
+    "text": "箸をご飯に立てないでね。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-11-companion",
+    "text": "一緒に考えよう。あなたは何と言う？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "choice-11-best",
+    "text": "箸置きに置きます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-11-acceptable",
+    "text": "皿の端にそっと置きます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-11-awkward",
+    "text": "ご飯に立てます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-11-rude",
+    "text": "人に向けます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-11-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-11-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-11-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-11-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-11",
+    "text": "いい経験になったね。続きを見に行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-12",
+    "text": "今度は食べた後の言葉だね。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-12-companion",
+    "text": "そうだね。あなたなら、どう答える？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-12-best",
+    "text": "ごちそうさまでした。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-12-acceptable",
+    "text": "おいしかったです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-12-awkward",
+    "text": "いただきます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-12-rude",
+    "text": "もういい。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-12-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-12-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-12-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-12-rude",
+    "text": "それは……ちょっと。今の言い方はかなり強く聞こえるよ。言い直してみよう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-13",
+    "text": "山本先生です。丁寧に話そう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-13-companion",
+    "text": "一緒に考えよう。あなたは何と言う？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "choice-13-best",
+    "text": "お久しぶりです。お元気ですか。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-13-acceptable",
+    "text": "こんにちは、先生。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-13-awkward",
+    "text": "久しぶり！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-13-rude",
+    "text": "元気？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-13-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-13-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-13-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-13-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-13",
+    "text": "いい経験になったね。続きを見に行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-14",
+    "text": "できれば両手で受け取ろう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-14-companion",
+    "text": "そうだね。あなたなら、どう答える？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-14-best",
+    "text": "ありがとうございます。大切にします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-14-acceptable",
+    "text": "ありがとうございます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-14-awkward",
+    "text": "もらいます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-14-rude",
+    "text": "これだけ？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-14-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-14-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-14-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-14-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-14",
+    "text": "うん、覚えておこう。次へ行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-15",
+    "text": "玄関で靴を脱ぐよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-15-companion",
+    "text": "一緒に考えよう。あなたは何と言う？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "choice-15-best",
+    "text": "おじゃまします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-15-acceptable",
+    "text": "失礼します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-15-awkward",
+    "text": "ただいま。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-15-rude",
+    "text": "入るよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-15-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-15-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-15-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-15-rude",
+    "text": "それは……ちょっと。今の言い方はかなり強く聞こえるよ。言い直してみよう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-15",
+    "text": "いい経験になったね。続きを見に行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-16",
+    "text": "帰る時に履きやすいね。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-16-companion",
+    "text": "そうだね。あなたなら、どう答える？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-16-best",
+    "text": "靴をそろえてドア側に向けます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-16-acceptable",
+    "text": "靴を端にそろえます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-16-awkward",
+    "text": "そのまま散らかします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-16-rude",
+    "text": "靴のまま入ります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-16-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-16-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-16-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-16-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-17",
+    "text": "短いお礼で大丈夫。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-17-companion",
+    "text": "一緒に考えよう。あなたは何と言う？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "choice-17-best",
+    "text": "ありがとうございます。いただきます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-17-acceptable",
+    "text": "ありがとうございます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-17-awkward",
+    "text": "お茶。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-17-rude",
+    "text": "いらない。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-17-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-17-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-17-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-17-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-17",
+    "text": "いい経験になったね。続きを見に行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-18",
+    "text": "すぐ謝って手伝おう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-18-companion",
+    "text": "そうだね。あなたなら、どう答える？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-18-best",
+    "text": "申し訳ありません。すぐ拭きます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-18-acceptable",
+    "text": "すみません。大丈夫ですか。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-18-awkward",
+    "text": "ごめん。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-18-rude",
+    "text": "テーブルが悪い。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-18-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-18-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-18-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-18-rude",
+    "text": "それは……ちょっと。今の言い方はかなり強く聞こえるよ。言い直してみよう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-18",
+    "text": "うん、覚えておこう。次へ行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-19",
+    "text": "丁寧に返事をしよう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-19-companion",
+    "text": "一緒に考えよう。あなたは何と言う？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "choice-19-best",
+    "text": "はい、どうぞ。すみません。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-19-acceptable",
+    "text": "はい、わかりました。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-19-awkward",
+    "text": "ちょっと待って。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-19-rude",
+    "text": "自分で通って。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-19-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-19-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-19-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-19-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "merge-19",
+    "text": "いい経験になったね。続きを見に行こう！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "dialogue-20",
+    "text": "また来週会おう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "dialogue-20-companion",
+    "text": "そうだね。あなたなら、どう答える？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-20-best",
+    "text": "今日はありがとう。また来週！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-20-acceptable",
+    "text": "またね。気をつけて。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-20-awkward",
+    "text": "さようなら。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-20-rude",
+    "text": "やっと帰れる。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-20-best",
+    "text": "そうそう！今の返事なら、相手も安心すると思うよ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-20-acceptable",
+    "text": "うん、意味は伝わるよ。でも、もう少し自然な言い方もあるかな。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "reaction-20-awkward",
+    "text": "え？……ああ、なるほど。意味はわかるけど、ここでは少し不自然かも。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-20-rude",
+    "text": "……え？ちょっと待って。その言い方は、この相手には失礼に聞こえるかも。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "ending-dialogue",
+    "text": "今日はよく頑張ったね！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  }
+]

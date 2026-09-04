@@ -92,6 +92,8 @@ export default StyleSheet.create({
   choiceCopy: { flex: 1 },
   choiceJapanese: { fontFamily: 'Jua', fontSize: 17, color: '#351A4A' },
   choiceRomaji: { fontFamily: 'Jua', fontSize: 10, color: '#8C6C97' },
+  choiceAudioButton: { width: 36, height: 36, borderRadius: 12, marginLeft: 7, marginRight: 4, backgroundColor: '#F1E5FA', borderWidth: 1, borderColor: '#DFC9EE', alignItems: 'center', justifyContent: 'center' },
+  choiceAudioButtonActive: { backgroundColor: '#8423D9', borderColor: '#8423D9' },
   choiceEnglish: { display: 'none' },
   reactionAddress: { fontFamily: 'Jua', color: '#8423D9', fontSize: 14, marginBottom: 3 },
   inlineReactionRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 11 },
