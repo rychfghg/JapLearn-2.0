@@ -8,6 +8,7 @@ import expoconfig from '../expoconfig';
 import { AuthContext } from '../context/AuthContext';
 import StudentBottomNav from '../components/StudentBottomNav';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { RESPONSE_RUSH_BEST_SCORE_KEY } from './QuackResponseTimed';
 
 type MasteryItem = { name: string; percentage: number };
 type ProgressSummary = { overallMastery: number; completedActivities: number; weakAreaCount: number; recommendation: string; masteryItems: MasteryItem[] };
@@ -34,6 +35,7 @@ export default function QuackProgress() {
   const [expressionAverage, setExpressionAverage] = useState(0);
   const [expressionAttempts, setExpressionAttempts] = useState(0);
   const [politenessBest, setPolitenessBest] = useState(0);
+  const [responseRushBest, setResponseRushBest] = useState(0);
   const [speakingSummary, setSpeakingSummary] = useState<SpeakingSummary>({ sessions: 0, seconds: 0 });
   const [replyCoachSummary, setReplyCoachSummary] = useState<ReplyCoachSummary>({ completedChapters: 0, attempts: 0, bestScore: 0, averageScore: 0 });
   const [expandedGames, setExpandedGames] = useState<Record<string, boolean>>({});
@@ -56,6 +58,10 @@ export default function QuackProgress() {
 
     const localBest = Number(await AsyncStorage.getItem(`quackamole_high_score:${email.toLowerCase()}`)) || 0;
     setQuackamoleBest(localBest);
+    // Response Rush has no backend model yet, so its best score lives only
+    // in the same local storage key the game itself writes to.
+    const responseRushLocalBest = Number(await AsyncStorage.getItem(`${RESPONSE_RUSH_BEST_SCORE_KEY}:${email.toLowerCase()}`)) || 0;
+    setResponseRushBest(responseRushLocalBest);
     fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(email)}&game=QUACKAMOLE`)
       .then((response) => response.status === 204 ? null : response.json())
       .then((record) => record && setQuackamoleBest((current) => Math.max(current, record.score || 0)))
@@ -148,7 +154,7 @@ export default function QuackProgress() {
     return active.length ? Math.round(active.reduce((total, value) => total + value, 0) / active.length) : 0;
   };
   const situateScores = [masteryFor('Recognition'), masteryFor('Expression Match'), masteryFor('Politeness')];
-  const responseScores = [masteryFor('Reply Coach'), 0, 0];
+  const responseScores = [masteryFor('Reply Coach'), responseRushBest, 0];
   const gameScores = [
     { key: 'quacktalk', name: 'QuackTalk', caption: `${speakingSummary.sessions} speaking session${speakingSummary.sessions === 1 ? '' : 's'}`, score: masteryFor('QuackTalk'), color: '#7552C8', tint: '#F1ECFC', icon: 'mic-outline' },
     { key: 'quacksituate', name: 'QuackSituate', caption: 'Real-world communication', score: activeAverage(situateScores), color: '#65A936', tint: '#EFF8E8', icon: 'navigate-outline', children: [

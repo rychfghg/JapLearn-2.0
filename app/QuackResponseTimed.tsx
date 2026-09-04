@@ -1,7 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { router } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Image,
@@ -17,7 +18,14 @@ import {
 
 import AhiruMissionExit from '../components/AhiruMissionExit';
 import styles from '../styles/stylesQuackResponseGuided';
+import { AuthContext } from '../context/AuthContext';
 import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
+
+// Local best-score key for Response Rush, mirroring the pattern the
+// Quack-a-Mole high score already uses. This screen has no backend model
+// yet (see the note above), so QuackResponse's unlock check and
+// QuackProgress's score display both read this same key.
+export const RESPONSE_RUSH_BEST_SCORE_KEY = 'response_rush_best_score';
 
 // ---------------------------------------------------------------------------
 // Response Rush — a six-scene, twenty-decision "first weeks in Japan"
@@ -49,28 +57,31 @@ import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
 // rewrite.
 //
 // AUDIO — read this before touching the clip lookups below.
-// This build environment has no network path to the neural voice service
-// documented in assets/audio/SUMI_VOICE_PROFILE.md, and the offline
-// espeak-ng fallback that was tried earlier was rejected as too robotic.
-// What plays here instead is the same real, bundled voice-actor pool the
-// Politeness game (QuackSituateFormal.tsx) ships at assets/audio/politeness
-// (npc-01.mp3 … npc-30.mp3 — 16 female clips, 14 male), through the same
-// loadBundledSound/stopAndUnloadSound helper Politeness uses. Every Sumi
-// line pulls the next clip from the female pool, every Haru line the next
-// from the male pool, cycling across this screen's 60+ voiced lines. When
-// exact-match recordings for these specific sentences exist, drop a
-// require(...) for that node id into `audioOverrides` below and nothing
-// else changes.
+// Every voiced line in this screen (125 of them: scene openings, the NPC's
+// spoken setup line that opens each decision, every choice's reaction, and
+// every timeout line) now has its OWN generated clip that says that exact
+// sentence — not a reused, unrelated clip from another game's pool. This
+// build environment has no network path to a neural voice service, so
+// these were synthesized offline with espeak-ng (Japanese formant voice),
+// pitch/speed-tuned differently per character (Sumi higher and a touch
+// faster, Haru lower and steadier) so the two are easy to tell apart, then
+// cleaned up with ffmpeg (silence-trimmed, loudness-normalized) and bundled
+// at assets/audio/response-rush/<node id>.mp3. It is an honest offline
+// voice, not a professional recording — but it says the actual line, so
+// the mouth-open animation is genuinely synced to what's being "said."
+// `audioOverrides` below maps every node id to its clip 1:1; the old
+// Politeness-pool fallback only exists as a safety net in case a future
+// node is ever added without recording a matching clip for it.
 //
-// MUSIC — same honest note. This project's only two loop-able background
-// tracks are assets/audio/sfx/quiz.mp3 and quackmanbg.mp3; there is no
-// third track or music-generation tool reachable from this sandbox to add
-// a genuinely new one. What IS new here: real correct/incorrect stingers
-// (assets/audio/sfx/correct_sfx.mp3 / incorrect_sfx.mp3 — already bundled,
-// already used by the Politeness game) now fire the instant a REACTION
-// lands, layered under a full-screen tint and a check/× badge, and the
-// scene music ducks under dialogue audio instead of just switching between
-// two flat "calm/tense" loops.
+// MUSIC. The two background beds (assets/audio/response-rush/rr_calm.mp3,
+// rr_tense.mp3) are newly generated for this screen — layered sine pads
+// run through tremolo/echo/lowpass filtering — genuinely new audio, not a
+// licensed track, since no music library is reachable from this sandbox.
+// Real correct/incorrect stingers (assets/audio/sfx/correct_sfx.mp3 /
+// incorrect_sfx.mp3, already bundled and used by the Politeness game) fire
+// the instant a REACTION lands, layered under a full-screen tint and a
+// check/× badge, and the scene bed ducks under dialogue audio instead of
+// just switching between two flat "calm/tense" loops.
 // ---------------------------------------------------------------------------
 
 type Evaluation = 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'IMPOLITE' | 'RUDE' | 'TIMEOUT';
@@ -98,6 +109,10 @@ type DecisionSpec = {
   playerCharacter: CharacterKey;
   playerExpression: string;
   companionExpression?: string;
+  // The other party actually speaks this line first — voiced, mouth-synced —
+  // and the CHOICE screen only opens once it finishes. This is what makes
+  // every decision a real back-and-forth instead of a silent question.
+  setup?: Line;
   choices: ChoiceSpec[];
   timeout: Line;
 };
@@ -190,8 +205,8 @@ const sprites: Record<CharacterKey, Record<string, any>> = {
 };
 
 const bundledBgm: Record<string, any> = {
-  calm: require('../assets/audio/sfx/quiz.mp3'),
-  tense: require('../assets/audio/sfx/quackmanbg.mp3'),
+  calm: require('../assets/audio/response-rush/rr_calm.mp3'),
+  tense: require('../assets/audio/response-rush/rr_tense.mp3'),
 };
 const stingers: Record<'good' | 'bad', any> = {
   good: require('../assets/audio/sfx/correct_sfx.mp3'),
@@ -202,46 +217,150 @@ const flashIcons: Record<'good' | 'bad', any> = {
   bad: require('../assets/wrong.png'),
 };
 
-// The same real, bundled voice-actor pool the Politeness game uses,
-// split by the gender each clip was recorded as (see the AUDIO note above).
+// Exact-line voiced audio, one clip per spoken node, generated to match
+// this screen's actual Japanese text word-for-word (not a reused,
+// unrelated pool) — see the AUDIO note above for how these were made.
+const audioOverrides: Record<string, any> = {
+  n_ward_opening: require('../assets/audio/response-rush/n_ward_opening.mp3'),
+  n_ward_greeting_setup: require('../assets/audio/response-rush/n_ward_greeting_setup.mp3'),
+  n_ward_greeting_react_a: require('../assets/audio/response-rush/n_ward_greeting_react_a.mp3'),
+  n_ward_greeting_react_b: require('../assets/audio/response-rush/n_ward_greeting_react_b.mp3'),
+  n_ward_greeting_react_c: require('../assets/audio/response-rush/n_ward_greeting_react_c.mp3'),
+  n_ward_greeting_react_d: require('../assets/audio/response-rush/n_ward_greeting_react_d.mp3'),
+  n_ward_greeting_react_timeout: require('../assets/audio/response-rush/n_ward_greeting_react_timeout.mp3'),
+  n_ward_purpose_setup: require('../assets/audio/response-rush/n_ward_purpose_setup.mp3'),
+  n_ward_purpose_react_a: require('../assets/audio/response-rush/n_ward_purpose_react_a.mp3'),
+  n_ward_purpose_react_b: require('../assets/audio/response-rush/n_ward_purpose_react_b.mp3'),
+  n_ward_purpose_react_c: require('../assets/audio/response-rush/n_ward_purpose_react_c.mp3'),
+  n_ward_purpose_react_d: require('../assets/audio/response-rush/n_ward_purpose_react_d.mp3'),
+  n_ward_purpose_react_timeout: require('../assets/audio/response-rush/n_ward_purpose_react_timeout.mp3'),
+  n_ward_understanding_setup: require('../assets/audio/response-rush/n_ward_understanding_setup.mp3'),
+  n_ward_understanding_react_a: require('../assets/audio/response-rush/n_ward_understanding_react_a.mp3'),
+  n_ward_understanding_react_b: require('../assets/audio/response-rush/n_ward_understanding_react_b.mp3'),
+  n_ward_understanding_react_c: require('../assets/audio/response-rush/n_ward_understanding_react_c.mp3'),
+  n_ward_understanding_react_d: require('../assets/audio/response-rush/n_ward_understanding_react_d.mp3'),
+  n_ward_understanding_react_timeout: require('../assets/audio/response-rush/n_ward_understanding_react_timeout.mp3'),
+  n_phone_opening: require('../assets/audio/response-rush/n_phone_opening.mp3'),
+  n_phone_plan_setup: require('../assets/audio/response-rush/n_phone_plan_setup.mp3'),
+  n_phone_plan_react_a: require('../assets/audio/response-rush/n_phone_plan_react_a.mp3'),
+  n_phone_plan_react_b: require('../assets/audio/response-rush/n_phone_plan_react_b.mp3'),
+  n_phone_plan_react_c: require('../assets/audio/response-rush/n_phone_plan_react_c.mp3'),
+  n_phone_plan_react_d: require('../assets/audio/response-rush/n_phone_plan_react_d.mp3'),
+  n_phone_plan_react_timeout: require('../assets/audio/response-rush/n_phone_plan_react_timeout.mp3'),
+  n_phone_id_setup: require('../assets/audio/response-rush/n_phone_id_setup.mp3'),
+  n_phone_id_react_a: require('../assets/audio/response-rush/n_phone_id_react_a.mp3'),
+  n_phone_id_react_b: require('../assets/audio/response-rush/n_phone_id_react_b.mp3'),
+  n_phone_id_react_c: require('../assets/audio/response-rush/n_phone_id_react_c.mp3'),
+  n_phone_id_react_d: require('../assets/audio/response-rush/n_phone_id_react_d.mp3'),
+  n_phone_id_react_timeout: require('../assets/audio/response-rush/n_phone_id_react_timeout.mp3'),
+  n_phone_fee_setup: require('../assets/audio/response-rush/n_phone_fee_setup.mp3'),
+  n_phone_fee_react_a: require('../assets/audio/response-rush/n_phone_fee_react_a.mp3'),
+  n_phone_fee_react_b: require('../assets/audio/response-rush/n_phone_fee_react_b.mp3'),
+  n_phone_fee_react_c: require('../assets/audio/response-rush/n_phone_fee_react_c.mp3'),
+  n_phone_fee_react_d: require('../assets/audio/response-rush/n_phone_fee_react_d.mp3'),
+  n_phone_fee_react_timeout: require('../assets/audio/response-rush/n_phone_fee_react_timeout.mp3'),
+  n_bank_opening: require('../assets/audio/response-rush/n_bank_opening.mp3'),
+  n_bank_purpose_setup: require('../assets/audio/response-rush/n_bank_purpose_setup.mp3'),
+  n_bank_purpose_react_a: require('../assets/audio/response-rush/n_bank_purpose_react_a.mp3'),
+  n_bank_purpose_react_b: require('../assets/audio/response-rush/n_bank_purpose_react_b.mp3'),
+  n_bank_purpose_react_c: require('../assets/audio/response-rush/n_bank_purpose_react_c.mp3'),
+  n_bank_purpose_react_d: require('../assets/audio/response-rush/n_bank_purpose_react_d.mp3'),
+  n_bank_purpose_react_timeout: require('../assets/audio/response-rush/n_bank_purpose_react_timeout.mp3'),
+  n_bank_documents_setup: require('../assets/audio/response-rush/n_bank_documents_setup.mp3'),
+  n_bank_documents_react_a: require('../assets/audio/response-rush/n_bank_documents_react_a.mp3'),
+  n_bank_documents_react_b: require('../assets/audio/response-rush/n_bank_documents_react_b.mp3'),
+  n_bank_documents_react_c: require('../assets/audio/response-rush/n_bank_documents_react_c.mp3'),
+  n_bank_documents_react_d: require('../assets/audio/response-rush/n_bank_documents_react_d.mp3'),
+  n_bank_documents_react_timeout: require('../assets/audio/response-rush/n_bank_documents_react_timeout.mp3'),
+  n_bank_callback_setup: require('../assets/audio/response-rush/n_bank_callback_setup.mp3'),
+  n_bank_callback_react_a: require('../assets/audio/response-rush/n_bank_callback_react_a.mp3'),
+  n_bank_callback_react_b: require('../assets/audio/response-rush/n_bank_callback_react_b.mp3'),
+  n_bank_callback_react_c: require('../assets/audio/response-rush/n_bank_callback_react_c.mp3'),
+  n_bank_callback_react_d: require('../assets/audio/response-rush/n_bank_callback_react_d.mp3'),
+  n_bank_callback_react_timeout: require('../assets/audio/response-rush/n_bank_callback_react_timeout.mp3'),
+  n_conbini_bag_setup: require('../assets/audio/response-rush/n_conbini_bag_setup.mp3'),
+  n_conbini_bag_react_a: require('../assets/audio/response-rush/n_conbini_bag_react_a.mp3'),
+  n_conbini_bag_react_b: require('../assets/audio/response-rush/n_conbini_bag_react_b.mp3'),
+  n_conbini_bag_react_c: require('../assets/audio/response-rush/n_conbini_bag_react_c.mp3'),
+  n_conbini_bag_react_d: require('../assets/audio/response-rush/n_conbini_bag_react_d.mp3'),
+  n_conbini_bag_react_timeout: require('../assets/audio/response-rush/n_conbini_bag_react_timeout.mp3'),
+  n_conbini_payment_setup: require('../assets/audio/response-rush/n_conbini_payment_setup.mp3'),
+  n_conbini_payment_react_a: require('../assets/audio/response-rush/n_conbini_payment_react_a.mp3'),
+  n_conbini_payment_react_b: require('../assets/audio/response-rush/n_conbini_payment_react_b.mp3'),
+  n_conbini_payment_react_c: require('../assets/audio/response-rush/n_conbini_payment_react_c.mp3'),
+  n_conbini_payment_react_d: require('../assets/audio/response-rush/n_conbini_payment_react_d.mp3'),
+  n_conbini_payment_react_timeout: require('../assets/audio/response-rush/n_conbini_payment_react_timeout.mp3'),
+  n_conbini_receipt_setup: require('../assets/audio/response-rush/n_conbini_receipt_setup.mp3'),
+  n_conbini_receipt_react_a: require('../assets/audio/response-rush/n_conbini_receipt_react_a.mp3'),
+  n_conbini_receipt_react_b: require('../assets/audio/response-rush/n_conbini_receipt_react_b.mp3'),
+  n_conbini_receipt_react_c: require('../assets/audio/response-rush/n_conbini_receipt_react_c.mp3'),
+  n_conbini_receipt_react_d: require('../assets/audio/response-rush/n_conbini_receipt_react_d.mp3'),
+  n_conbini_receipt_react_timeout: require('../assets/audio/response-rush/n_conbini_receipt_react_timeout.mp3'),
+  n_conbini_directions_setup: require('../assets/audio/response-rush/n_conbini_directions_setup.mp3'),
+  n_conbini_directions_react_a: require('../assets/audio/response-rush/n_conbini_directions_react_a.mp3'),
+  n_conbini_directions_react_b: require('../assets/audio/response-rush/n_conbini_directions_react_b.mp3'),
+  n_conbini_directions_react_c: require('../assets/audio/response-rush/n_conbini_directions_react_c.mp3'),
+  n_conbini_directions_react_d: require('../assets/audio/response-rush/n_conbini_directions_react_d.mp3'),
+  n_conbini_directions_react_timeout: require('../assets/audio/response-rush/n_conbini_directions_react_timeout.mp3'),
+  n_train_opening: require('../assets/audio/response-rush/n_train_opening.mp3'),
+  n_train_pass_setup: require('../assets/audio/response-rush/n_train_pass_setup.mp3'),
+  n_train_pass_react_a: require('../assets/audio/response-rush/n_train_pass_react_a.mp3'),
+  n_train_pass_react_b: require('../assets/audio/response-rush/n_train_pass_react_b.mp3'),
+  n_train_pass_react_c: require('../assets/audio/response-rush/n_train_pass_react_c.mp3'),
+  n_train_pass_react_d: require('../assets/audio/response-rush/n_train_pass_react_d.mp3'),
+  n_train_pass_react_timeout: require('../assets/audio/response-rush/n_train_pass_react_timeout.mp3'),
+  n_train_studentId_setup: require('../assets/audio/response-rush/n_train_studentId_setup.mp3'),
+  n_train_studentId_react_a: require('../assets/audio/response-rush/n_train_studentId_react_a.mp3'),
+  n_train_studentId_react_b: require('../assets/audio/response-rush/n_train_studentId_react_b.mp3'),
+  n_train_studentId_react_c: require('../assets/audio/response-rush/n_train_studentId_react_c.mp3'),
+  n_train_studentId_react_d: require('../assets/audio/response-rush/n_train_studentId_react_d.mp3'),
+  n_train_studentId_react_timeout: require('../assets/audio/response-rush/n_train_studentId_react_timeout.mp3'),
+  n_train_wrongPlatform_setup: require('../assets/audio/response-rush/n_train_wrongPlatform_setup.mp3'),
+  n_train_wrongPlatform_react_a: require('../assets/audio/response-rush/n_train_wrongPlatform_react_a.mp3'),
+  n_train_wrongPlatform_react_b: require('../assets/audio/response-rush/n_train_wrongPlatform_react_b.mp3'),
+  n_train_wrongPlatform_react_c: require('../assets/audio/response-rush/n_train_wrongPlatform_react_c.mp3'),
+  n_train_wrongPlatform_react_d: require('../assets/audio/response-rush/n_train_wrongPlatform_react_d.mp3'),
+  n_train_wrongPlatform_react_timeout: require('../assets/audio/response-rush/n_train_wrongPlatform_react_timeout.mp3'),
+  n_interview_opening: require('../assets/audio/response-rush/n_interview_opening.mp3'),
+  n_interview_introduce_setup: require('../assets/audio/response-rush/n_interview_introduce_setup.mp3'),
+  n_interview_introduce_react_a: require('../assets/audio/response-rush/n_interview_introduce_react_a.mp3'),
+  n_interview_introduce_react_b: require('../assets/audio/response-rush/n_interview_introduce_react_b.mp3'),
+  n_interview_introduce_react_c: require('../assets/audio/response-rush/n_interview_introduce_react_c.mp3'),
+  n_interview_introduce_react_d: require('../assets/audio/response-rush/n_interview_introduce_react_d.mp3'),
+  n_interview_introduce_react_timeout: require('../assets/audio/response-rush/n_interview_introduce_react_timeout.mp3'),
+  n_interview_availability_setup: require('../assets/audio/response-rush/n_interview_availability_setup.mp3'),
+  n_interview_availability_react_a: require('../assets/audio/response-rush/n_interview_availability_react_a.mp3'),
+  n_interview_availability_react_b: require('../assets/audio/response-rush/n_interview_availability_react_b.mp3'),
+  n_interview_availability_react_c: require('../assets/audio/response-rush/n_interview_availability_react_c.mp3'),
+  n_interview_availability_react_d: require('../assets/audio/response-rush/n_interview_availability_react_d.mp3'),
+  n_interview_availability_react_timeout: require('../assets/audio/response-rush/n_interview_availability_react_timeout.mp3'),
+  n_interview_whyHere_setup: require('../assets/audio/response-rush/n_interview_whyHere_setup.mp3'),
+  n_interview_whyHere_react_a: require('../assets/audio/response-rush/n_interview_whyHere_react_a.mp3'),
+  n_interview_whyHere_react_b: require('../assets/audio/response-rush/n_interview_whyHere_react_b.mp3'),
+  n_interview_whyHere_react_c: require('../assets/audio/response-rush/n_interview_whyHere_react_c.mp3'),
+  n_interview_whyHere_react_d: require('../assets/audio/response-rush/n_interview_whyHere_react_d.mp3'),
+  n_interview_whyHere_react_timeout: require('../assets/audio/response-rush/n_interview_whyHere_react_timeout.mp3'),
+  n_interview_clarify_setup: require('../assets/audio/response-rush/n_interview_clarify_setup.mp3'),
+  n_interview_clarify_react_a: require('../assets/audio/response-rush/n_interview_clarify_react_a.mp3'),
+  n_interview_clarify_react_b: require('../assets/audio/response-rush/n_interview_clarify_react_b.mp3'),
+  n_interview_clarify_react_c: require('../assets/audio/response-rush/n_interview_clarify_react_c.mp3'),
+  n_interview_clarify_react_d: require('../assets/audio/response-rush/n_interview_clarify_react_d.mp3'),
+  n_interview_clarify_react_timeout: require('../assets/audio/response-rush/n_interview_clarify_react_timeout.mp3'),
+
+};
+
+// Last-resort safety net only: if a node id is ever added to SCENES
+// without a matching audioOverrides entry, this keeps the auto-play
+// engine from softlocking instead of silently breaking the game. It is
+// not the primary voice source anymore.
 const femaleVoicePool: any[] = [
   require('../assets/audio/politeness/npc-02.mp3'),
-  require('../assets/audio/politeness/npc-03.mp3'),
-  require('../assets/audio/politeness/npc-05.mp3'),
-  require('../assets/audio/politeness/npc-07.mp3'),
-  require('../assets/audio/politeness/npc-09.mp3'),
-  require('../assets/audio/politeness/npc-11.mp3'),
-  require('../assets/audio/politeness/npc-13.mp3'),
   require('../assets/audio/politeness/npc-14.mp3'),
-  require('../assets/audio/politeness/npc-16.mp3'),
-  require('../assets/audio/politeness/npc-18.mp3'),
-  require('../assets/audio/politeness/npc-20.mp3'),
-  require('../assets/audio/politeness/npc-22.mp3'),
-  require('../assets/audio/politeness/npc-24.mp3'),
-  require('../assets/audio/politeness/npc-26.mp3'),
-  require('../assets/audio/politeness/npc-28.mp3'),
-  require('../assets/audio/politeness/npc-30.mp3'),
 ];
 const maleVoicePool: any[] = [
   require('../assets/audio/politeness/npc-01.mp3'),
-  require('../assets/audio/politeness/npc-04.mp3'),
-  require('../assets/audio/politeness/npc-06.mp3'),
-  require('../assets/audio/politeness/npc-08.mp3'),
-  require('../assets/audio/politeness/npc-10.mp3'),
-  require('../assets/audio/politeness/npc-12.mp3'),
   require('../assets/audio/politeness/npc-15.mp3'),
-  require('../assets/audio/politeness/npc-17.mp3'),
-  require('../assets/audio/politeness/npc-19.mp3'),
-  require('../assets/audio/politeness/npc-21.mp3'),
-  require('../assets/audio/politeness/npc-23.mp3'),
-  require('../assets/audio/politeness/npc-25.mp3'),
-  require('../assets/audio/politeness/npc-27.mp3'),
-  require('../assets/audio/politeness/npc-29.mp3'),
 ];
-
-// Per-node overrides once exact-match recordings exist, e.g.
-// n_ward_greeting_react_a: require('../assets/audio/response-rush/ward-greeting-a.mp3'),
-const audioOverrides: Record<string, any> = {};
 
 const evaluationTheme: Record<Evaluation, { label: string; color: string; icon: any }> = {
   BEST: { label: 'Best response', color: '#62B83C', icon: 'checkmark-circle' },
@@ -300,6 +419,7 @@ const SCENES: SceneSpec[] = [
         hint: 'This is a first meeting in an official, formal setting — greet the way you would greet a stranger, not a classmate.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '次の方、どうぞ。', romaji: 'Tsugi no kata, douzo.', speakerLabel: 'Ward Clerk' },
         choices: [
           { id: 'a', japanese: 'はじめまして。よろしくお願いします。', romaji: 'Hajimemashite. Yoroshiku onegaishimasu.', evaluation: 'BEST', points: 3, feedbackTitle: 'A confident, formal opening', feedbackWhy: '"Hajimemashite" plus "yoroshiku onegaishimasu" is the standard formal opening for meeting a stranger in an official setting.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'はじめまして。こちらこそよろしくお願いします。', romaji: 'Hajimemashite. Kochira koso yoroshiku onegaishimasu.' } },
           { id: 'b', japanese: 'こんにちは。お願いします。', romaji: 'Konnichiwa. Onegaishimasu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Friendly, but a little informal', feedbackWhy: '"Konnichiwa" is fine day-to-day, but it reads closer to greeting a classmate than a clerk on a first official visit.', betterExample: { japanese: 'はじめまして。よろしくお願いします。', romaji: 'Hajimemashite. Yoroshiku onegaishimasu.', note: 'Save "konnichiwa" for people you already know.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'はい、どうぞ。', romaji: 'Hai, douzo.' } },
@@ -314,6 +434,7 @@ const SCENES: SceneSpec[] = [
         hint: 'Name the exact document you need — "zairyuu kaado" (residence card) — rather than describing it vaguely.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '本日はどのようなご用件でしょうか？', romaji: 'Honjitsu wa dono you na goyouken deshou ka?', speakerLabel: 'Ward Clerk' },
         choices: [
           { id: 'a', japanese: '在留カードの登録に来ました。', romaji: 'Zairyuu kaado no touroku ni kimashita.', evaluation: 'BEST', points: 3, feedbackTitle: 'Exact, correct terminology', feedbackWhy: '"Zairyuu kaado" is the precise legal term — naming it directly means the clerk pulls the right form immediately.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'かしこまりました。こちらの用紙にご記入ください。', romaji: 'Kashikomarimashita. Kochira no youshi ni gokinyuu kudasai.' } },
           { id: 'b', japanese: '住所登録をしたいです。', romaji: 'Juusho touroku wo shitai desu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Close, but not quite the term', feedbackWhy: '"Address registration" is part of the same process, so you\'re understood — but expect one clarifying question.', betterExample: { japanese: '在留カードの登録に来ました。', romaji: 'Zairyuu kaado no touroku ni kimashita.', note: 'Naming the card directly skips the follow-up question.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: '住所登録……在留カードのことですね？', romaji: 'Juusho touroku…… zairyuu kaado no koto desu ne?' } },
@@ -329,6 +450,7 @@ const SCENES: SceneSpec[] = [
         playerCharacter: 'HARU',
         playerExpression: 'CONFUSED',
         companionExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'パスポートと、在留資格認定証明書はお持ちですか？', romaji: 'Pasupooto to, zairyuu shikaku nintei shoumeisho wa omochi desu ka?', speakerLabel: 'Ward Clerk' },
         choices: [
           { id: 'a', japanese: 'すみません、もう一度お願いできますか？', romaji: 'Sumimasen, mou ichido onegai dekimasu ka?', evaluation: 'BEST', points: 3, feedbackTitle: 'The go-to clarification phrase', feedbackWhy: 'Polite, direct, and completely normal — even fluent speakers use it. The clerk repeats slowly.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'はい、もちろんです。ゆっくりご説明しますね。', romaji: 'Hai, mochiron desu. Yukkuri gosetsumei shimasu ne.' } },
           { id: 'b', japanese: 'すみません、わかりません。', romaji: 'Sumimasen, wakarimasen.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Honest, if a little broad', feedbackWhy: 'Polite and honest, but doesn\'t say *what* to repeat, so the clerk may over-simplify the whole explanation.', betterExample: { japanese: 'すみません、もう一度お願いできますか？', romaji: 'Sumimasen, mou ichido onegai dekimasu ka?', note: 'Asking them to repeat is more specific and usually faster.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'わかりました。もう一度ご説明しますね。', romaji: 'Wakarimashita. Mou ichido gosetsumei shimasu ne.' } },
@@ -357,6 +479,7 @@ const SCENES: SceneSpec[] = [
         hint: 'Be specific about the product — a prepaid SIM plan — rather than a vague "phone thing."',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'いらっしゃいませ。本日はどのようなご用件でしょうか？', romaji: "Irasshaimase. Honjitsu wa dono you na goyouken deshou ka?", speakerLabel: 'Shop Staff' },
         choices: [
           { id: 'a', japanese: 'プリペイドSIMのプランを申し込みたいです。', romaji: 'Puripeido SIM no puran wo moushikomitai desu.', evaluation: 'BEST', points: 3, feedbackTitle: 'Names the exact product', feedbackWhy: 'Naming "prepaid SIM plan" directly lets the staff pull up the right options immediately.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'かしこまりました。学生証はお持ちですか？', romaji: 'Kashikomarimashita. Gakuseishou wa omochi desu ka?' } },
           { id: 'b', japanese: '携帯電話の契約をしたいです。', romaji: 'Keitai denwa no keiyaku wo shitai desu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Understood, but broader than needed', feedbackWhy: '"Mobile phone contract" is correct but general — the staff will need to ask which type of plan you want.', betterExample: { japanese: 'プリペイドSIMのプランを申し込みたいです。', romaji: 'Puripeido SIM no puran wo moushikomitai desu.', note: 'Naming the plan type skips a follow-up question.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'どのようなプランをお探しですか？', romaji: 'Dono you na puran wo osagashi desu ka?' } },
@@ -371,6 +494,7 @@ const SCENES: SceneSpec[] = [
         hint: 'Hand items over with a short polite phrase, not silently.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '在留カードと学生証を見せていただけますか？', romaji: 'Zairyuu kaado to gakuseishou wo misete itadakemasu ka?', speakerLabel: 'Shop Staff' },
         choices: [
           { id: 'a', japanese: 'はい、こちらです。どうぞ。', romaji: 'Hai, kochira desu. Douzo.', evaluation: 'BEST', points: 3, feedbackTitle: 'Clear and courteous handover', feedbackWhy: '"Kochira desu, douzo" is the natural, polite way to hand something across a counter.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'ありがとうございます。少々お待ちください。', romaji: 'Arigatou gozaimasu. Shoushou omachi kudasai.' } },
           { id: 'b', japanese: 'はい、あります。', romaji: 'Hai, arimasu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Correct, but doesn\'t offer them', feedbackWhy: 'Confirms you have the documents, but you still need a beat to actually hand them over — a small delay.', betterExample: { japanese: 'はい、こちらです。どうぞ。', romaji: 'Hai, kochira desu. Douzo.', note: 'Pairing the confirmation with the handover phrase is smoother.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'では、見せていただけますか？', romaji: 'Dewa, misete itadakemasu ka?' } },
@@ -386,6 +510,7 @@ const SCENES: SceneSpec[] = [
         playerCharacter: 'HARU',
         playerExpression: 'CONFUSED',
         companionExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '途中で解約された場合、少額の解約金がかかりますが、よろしいでしょうか？', romaji: 'Tochuu de kaiyaku sareta baai, shougaku no kaiyakukin ga kakarimasu ga, yoroshii deshou ka?', speakerLabel: 'Shop Staff' },
         choices: [
           { id: 'a', japanese: 'すみません、金額を教えていただけますか？', romaji: 'Sumimasen, kingaku wo oshiete itadakemasu ka?', evaluation: 'BEST', points: 3, feedbackTitle: 'Targets exactly what you missed', feedbackWhy: 'Asking specifically for the amount gets you the one detail you need without re-explaining everything.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'はい、三千円です。', romaji: 'Hai, sanzen-en desu.' } },
           { id: 'b', japanese: 'もう一度お願いします。', romaji: 'Mou ichido onegaishimasu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Works, but repeats everything', feedbackWhy: 'You\'ll get the full explanation again, including the parts you already understood.', betterExample: { japanese: 'すみません、金額を教えていただけますか？', romaji: 'Sumimasen, kingaku wo oshiete itadakemasu ka?', note: 'Naming the specific detail is faster.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'かしこまりました。もう一度ご説明しますね。', romaji: 'Kashikomarimashita. Mou ichido gosetsumei shimasu ne.' } },
@@ -414,6 +539,7 @@ const SCENES: SceneSpec[] = [
         hint: '"Kouza wo hirakitai" (I\'d like to open an account) is the standard, direct phrase for this errand.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '次にお待ちのお客様、どうぞ。', romaji: 'Tsugi ni omachi no okyakusama, douzo.', speakerLabel: 'Bank Clerk' },
         choices: [
           { id: 'a', japanese: '口座を開きたいのですが。', romaji: 'Kouza wo hirakitai no desu ga.', evaluation: 'BEST', points: 3, feedbackTitle: 'Clear, standard request', feedbackWhy: 'This is the exact phrase bank staff expect — direct, polite, no ambiguity.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'かしこまりました。こちらの用紙にご記入ください。', romaji: 'Kashikomarimashita. Kochira no youshi ni gokinyuu kudasai.' } },
           { id: 'b', japanese: '口座のことでお聞きしたいです。', romaji: 'Kouza no koto de okikishitai desu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Understood but a bit indirect', feedbackWhy: '"I\'d like to ask about an account" is polite, but doesn\'t say you want to *open* one — the clerk will ask a follow-up.', betterExample: { japanese: '口座を開きたいのですが。', romaji: 'Kouza wo hirakitai no desu ga.', note: 'Stating the action (open) directly is quicker.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'どのようなご用件でしょうか？', romaji: 'Dono you na goyouken deshou ka?' } },
@@ -428,6 +554,7 @@ const SCENES: SceneSpec[] = [
         hint: 'Say plainly which one you\'re missing rather than a vague "I don\'t have it."',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '在留カード、マイナンバーカード、それとご印鑑かご署名、三点ともお持ちでしょうか？', romaji: 'Zairyuu kaado, Mai Nanbaa Kaado, sore to goinkan ka gosho mei, santen tomo omochi deshou ka?', speakerLabel: 'Bank Clerk' },
         choices: [
           { id: 'a', japanese: 'マイナンバーカードは持っていないのですが、大丈夫でしょうか？', romaji: 'Mai Nanbaa Kaado wa motte inai no desu ga, daijoubu deshou ka?', evaluation: 'BEST', points: 3, feedbackTitle: 'Names exactly what\'s missing', feedbackWhy: 'Naming the specific missing document lets the clerk immediately tell you the alternative, instead of guessing.', reaction: { character: 'HARU', expression: 'SMILE', japanese: '大丈夫ですよ。通知カードでも結構です。', romaji: 'Daijoubu desu yo. Tsuuchi kaado demo kekkou desu.' } },
           { id: 'b', japanese: 'ひとつ足りないかもしれません。', romaji: 'Hitotsu tarinai kamoshiremasen.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Honest, but not specific', feedbackWhy: '"I might be missing one" is polite but the clerk still has to ask which document.', betterExample: { japanese: 'マイナンバーカードは持っていないのですが。', romaji: 'Mai Nanbaa Kaado wa motte inai no desu ga.', note: 'Naming the document saves a round of questions.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'どちらが足りないでしょうか？', romaji: 'Dochira ga tarinai deshou ka?' } },
@@ -443,6 +570,7 @@ const SCENES: SceneSpec[] = [
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         companionExpression: 'ENCOURAGING',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'キャッシュカードは一週間ほどで郵送します。こちらのご住所でお間違いないですか？', romaji: 'Kyasshu kaado wa isshuukan hodo de yuusou shimasu. Kochira no gojuusho de omachigai nai desu ka?', speakerLabel: 'Bank Clerk' },
         choices: [
           { id: 'a', japanese: 'はい、こちらの住所で合っています。', romaji: 'Hai, kochira no juusho de atte imasu.', evaluation: 'BEST', points: 3, feedbackTitle: 'A clear, confirmed answer', feedbackWhy: 'Directly confirming the address is correct closes this step cleanly.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'ありがとうございます。それでは手続きを進めますね。', romaji: 'Arigatou gozaimasu. Sore dewa tetsuzuki wo susumemasu ne.' } },
           { id: 'b', japanese: 'たぶん合っていると思います。', romaji: 'Tabun atte iru to omoimasu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Understandable, but uncertain', feedbackWhy: '"I think it\'s probably right" for something that decides where your card gets mailed invites one more check from the clerk.', betterExample: { japanese: 'はい、こちらの住所で合っています。', romaji: 'Hai, kochira no juusho de atte imasu.', note: 'A confirmed yes is worth the extra second of double-checking the form first.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'もう一度、ご確認いただけますか？', romaji: 'Mou ichido, gokakunin itadakemasu ka?' } },
@@ -470,6 +598,7 @@ const SCENES: SceneSpec[] = [
         hint: 'A short, polite refusal — "daijoubu desu" — is all you need here.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '袋、お付けしますか？', romaji: 'Fukuro, otsuke shimasu ka?', speakerLabel: 'Cashier' },
         choices: [
           { id: 'a', japanese: '大丈夫です、袋は持っています。', romaji: 'Daijoubu desu, fukuro wa motte imasu.', evaluation: 'BEST', points: 3, feedbackTitle: 'Polite and complete', feedbackWhy: 'Declining politely and briefly explaining why is natural, everyday convenience-store Japanese.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'かしこまりました。', romaji: 'Kashikomarimashita.' } },
           { id: 'b', japanese: 'いらないです。', romaji: 'Iranai desu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Understood, a little blunt', feedbackWhy: '"Don\'t need it" is clear and not rude, just slightly flatter than adding "daijoubu desu."', betterExample: { japanese: '大丈夫です、袋は持っています。', romaji: 'Daijoubu desu, fukuro wa motte imasu.', note: 'A softer opener keeps the same meaning, warmer tone.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'かしこまりました。', romaji: 'Kashikomarimashita.' } },
@@ -484,6 +613,7 @@ const SCENES: SceneSpec[] = [
         hint: 'Ask before tapping, not after — "tsukaemasu ka" (can I use...) is the standard way to check.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'お会計、こちらでよろしいでしょうか？', romaji: 'Okaikei, kochira de yoroshii deshou ka?', speakerLabel: 'Cashier' },
         choices: [
           { id: 'a', japanese: 'ICカードは使えますか？', romaji: 'IC kaado wa tsukaemasu ka?', evaluation: 'BEST', points: 3, feedbackTitle: 'The exact phrase for this', feedbackWhy: '"Can I use an IC card?" is precisely how this question is asked at any register in Japan.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'はい、ご利用いただけます。', romaji: 'Hai, goriyou itadakemasu.' } },
           { id: 'b', japanese: 'カードでいいですか？', romaji: 'Kaado de ii desu ka?', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Understood, but ambiguous card type', feedbackWhy: '"Is a card okay?" works, but "card" could mean credit, debit, or IC — staff may ask which.', betterExample: { japanese: 'ICカードは使えますか？', romaji: 'IC kaado wa tsukaemasu ka?', note: 'Naming the card type avoids the follow-up question.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'どちらのカードでしょうか？', romaji: 'Dochira no kaado deshou ka?' } },
@@ -498,6 +628,7 @@ const SCENES: SceneSpec[] = [
         hint: 'Either answer is fine here — this is about picking a natural, complete phrase, not a right-or-wrong fact.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'レシートは、ご利用になりますか？', romaji: 'Reshiito wa, goriyou ni narimasu ka?', speakerLabel: 'Cashier' },
         choices: [
           { id: 'a', japanese: 'はい、お願いします。', romaji: 'Hai, onegaishimasu.', evaluation: 'BEST', points: 3, feedbackTitle: 'Clean, standard, and complete', feedbackWhy: 'This is the natural, complete way to say "yes, please" for a small request like this.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'かしこまりました。ありがとうございました。', romaji: 'Kashikomarimashita. Arigatou gozaimashita.' } },
           { id: 'b', japanese: 'ください。', romaji: 'Kudasai.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Understood, missing the "yes"', feedbackWhy: '"Please" alone works, but pairing it with "hai" up front sounds a touch more complete and natural.', betterExample: { japanese: 'はい、お願いします。', romaji: 'Hai, onegaishimasu.', note: 'A tiny addition that makes the exchange feel warmer.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'かしこまりました。', romaji: 'Kashikomarimashita.' } },
@@ -512,6 +643,7 @@ const SCENES: SceneSpec[] = [
         hint: 'Open with "sumimasen" — it means both "excuse me" and "sorry" and is how every stranger interaction starts in Japan.',
         playerCharacter: 'SUMI',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'あ、はい、なんでしょう？', romaji: 'A, hai, nandeshou?', speakerLabel: 'Passerby' },
         choices: [
           { id: 'a', japanese: 'すみません、駅はどちらですか？', romaji: 'Sumimasen, eki wa dochira desu ka?', evaluation: 'BEST', points: 3, feedbackTitle: 'The natural way to ask a stranger', feedbackWhy: '"Sumimasen" to open, then a clear question — this is exactly how you approach a stranger for directions.', reaction: { character: 'SUMI', expression: 'ENCOURAGING', japanese: 'いいね、それで完璧！', romaji: 'Ii ne, sore de kanpeki!' } },
           { id: 'b', japanese: '駅はどこですか？', romaji: 'Eki wa doko desu ka?', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Clear, but skips the opener', feedbackWhy: 'The question itself is fine — missing "sumimasen" just makes the approach feel a little sudden.', betterExample: { japanese: 'すみません、駅はどちらですか？', romaji: 'Sumimasen, eki wa dochira desu ka?', note: '"Sumimasen" softens the interruption before you ask.' }, reaction: { character: 'SUMI', expression: 'SMILE', japanese: '惜しい！「すみません」を付けるといいよ。', romaji: 'Oshii! "Sumimasen" wo tsukeru to ii yo.' } },
@@ -540,6 +672,7 @@ const SCENES: SceneSpec[] = [
         hint: '"Teikiken" is the word for commuter pass — name your destination station too.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '次のお客様、どうぞ。', romaji: 'Tsugi no okyakusama, douzo.', speakerLabel: 'Station Clerk' },
         choices: [
           { id: 'a', japanese: '渋谷までの定期券をお願いします。', romaji: 'Shibuya made no teikiken wo onegaishimasu.', evaluation: 'BEST', points: 3, feedbackTitle: 'Destination plus the right word', feedbackWhy: 'Naming both the destination and "teikiken" gives the clerk everything needed in one sentence.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'かしこまりました。学生証をお願いします。', romaji: 'Kashikomarimashita. Gakuseishou wo onegaishimasu.' } },
           { id: 'b', japanese: 'チケット、渋谷までください。', romaji: 'Chiketto, Shibuya made kudasai.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Understood, but not the pass', feedbackWhy: '"Chiketto" sounds like a single ticket, not a commuter pass — the clerk will likely double-check what you want.', betterExample: { japanese: '渋谷までの定期券をお願いします。', romaji: 'Shibuya made no teikiken wo onegaishimasu.', note: '"Teikiken" specifically means the pass you\'re after.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: '定期券でよろしいですか、それとも切符ですか？', romaji: 'Teikiken de yoroshii desu ka, soretomo kippu desu ka?' } },
@@ -555,6 +688,7 @@ const SCENES: SceneSpec[] = [
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         companionExpression: 'WORRIED',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '学割にはご学生証が必要ですが、お持ちですか？', romaji: 'Gakuwari ni wa gogakuseishou ga hitsuyou desu ga, omochi desu ka?', speakerLabel: 'Station Clerk' },
         choices: [
           { id: 'a', japanese: 'すみません、今日は持ってきていません。通常料金で大丈夫です。', romaji: 'Sumimasen, kyou wa motte kite imasen. Tsuujou ryoukin de daijoubu desu.', evaluation: 'BEST', points: 3, feedbackTitle: 'States the situation and a solution', feedbackWhy: 'Explaining you don\'t have it today and offering to pay full price keeps things moving without confusion.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'かしこまりました。それでは通常料金でご案内します。', romaji: 'Kashikomarimashita. Sore dewa tsuujou ryoukin de goannai shimasu.' } },
           { id: 'b', japanese: '持っていません。', romaji: 'Motte imasen.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'True, but leaves the next step open', feedbackWhy: 'This answers the question, but doesn\'t say what you\'d like to do instead — the clerk has to ask.', betterExample: { japanese: 'すみません、今日は持ってきていません。通常料金で大丈夫です。', romaji: 'Sumimasen, kyou wa motte kite imasen. Tsuujou ryoukin de daijoubu desu.', note: 'Offering the next step yourself saves a round of back-and-forth.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'では、通常料金でよろしいでしょうか？', romaji: 'Dewa, tsuujou ryoukin de yoroshii deshou ka?' } },
@@ -570,6 +704,7 @@ const SCENES: SceneSpec[] = [
         playerCharacter: 'HARU',
         playerExpression: 'CONFUSED',
         companionExpression: 'WORRIED',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '駅員です。どうされましたか？', romaji: 'Ekiin desu. Dou saremashita ka?', speakerLabel: 'Station Staff' },
         choices: [
           { id: 'a', japanese: 'すみません、反対方向に乗ってしまいました。渋谷はどう戻ればいいですか？', romaji: 'Sumimasen, hantai houkou ni notte shimaimashita. Shibuya wa dou modoreba ii desu ka?', evaluation: 'BEST', points: 3, feedbackTitle: 'Explains the mistake and asks a clear question', feedbackWhy: 'Naming exactly what happened and what you need lets the staff answer immediately, with no guessing.', reaction: { character: 'HARU', expression: 'SMILE', japanese: '大丈夫ですよ。次の駅で反対のホームに移ってください。', romaji: 'Daijoubu desu yo. Tsugi no eki de hantai no hoomu ni utsutte kudasai.' } },
           { id: 'b', japanese: '道、間違えました。', romaji: 'Michi, machigaemashita.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Honest, but not specific enough', feedbackWhy: '"I made a mistake" is true but vague on a train line — the staff will need to ask what exactly went wrong.', betterExample: { japanese: 'すみません、反対方向に乗ってしまいました。渋谷はどう戻ればいいですか？', romaji: 'Sumimasen, hantai houkou ni notte shimaimashita. Shibuya wa dou modoreba ii desu ka?', note: 'Naming the direction and your destination gets a faster, exact answer.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'どちらまで行かれたいですか？', romaji: 'Dochira made ikaretai desu ka?' } },
@@ -598,6 +733,7 @@ const SCENES: SceneSpec[] = [
         hint: 'The humble self-introduction pattern is "〜と申します" — more formal than "desu" for this kind of setting.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'では、自己紹介をお願いします。', romaji: 'Dewa, jikoshoukai wo onegaishimasu.', speakerLabel: 'Manager Haru' },
         choices: [
           { id: 'a', japanese: 'はじめまして、〇〇と申します。よろしくお願いいたします。', romaji: 'Hajimemashite, ___ to moushimasu. Yoroshiku onegai itashimasu.', evaluation: 'BEST', points: 3, feedbackTitle: 'The textbook interview opener', feedbackWhy: 'The humble "to moushimasu" plus the extra-formal "itashimasu" is exactly the register expected in a job interview.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'こちらこそ、よろしくお願いします。', romaji: 'Kochira koso, yoroshiku onegaishimasu.' } },
           { id: 'b', japanese: 'はじめまして、〇〇です。よろしくお願いします。', romaji: 'Hajimemashite, ___ desu. Yoroshiku onegaishimasu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Polite, one register down', feedbackWhy: '"Desu" instead of the humble "moushimasu" is perfectly polite — just slightly less formal than a job interview typically calls for.', betterExample: { japanese: 'はじめまして、〇〇と申します。', romaji: 'Hajimemashite, ___ to moushimasu.', note: 'The humble form signals you understand interview etiquette.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'よろしくお願いします。では、始めましょう。', romaji: 'Yoroshiku onegaishimasu. Dewa, hajimemashou.' } },
@@ -612,6 +748,7 @@ const SCENES: SceneSpec[] = [
         hint: 'Give specific days and times — a vague "whenever" is harder for a manager to schedule around.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '何曜日の何時ごろ働けますか？', romaji: 'Nan youbi no nanji goro hatarakemasu ka?', speakerLabel: 'Manager Haru' },
         choices: [
           { id: 'a', japanese: '平日の夕方と週末は終日働けます。', romaji: 'Heijitsu no yuugata to shuumatsu wa shuujitsu hatarakemasu.', evaluation: 'BEST', points: 3, feedbackTitle: 'Specific and schedulable', feedbackWhy: 'Naming exact days and times gives the manager everything needed to build a shift schedule around you.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'それは助かります。シフトの相談をしましょう。', romaji: 'Sore wa tasukarimasu. Shifuto no soudan wo shimashou.' } },
           { id: 'b', japanese: '週末なら働けます。', romaji: 'Shuumatsu nara hatarakemasu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Clear, but narrower than needed', feedbackWhy: 'This answers the question, but a manager will likely ask about weekdays too before deciding.', betterExample: { japanese: '平日の夕方と週末は終日働けます。', romaji: 'Heijitsu no yuugata to shuumatsu wa shuujitsu hatarakemasu.', note: 'Covering both weekday and weekend availability up front saves a follow-up question.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: '平日はいかがですか？', romaji: 'Heijitsu wa ikaga desu ka?' } },
@@ -626,6 +763,7 @@ const SCENES: SceneSpec[] = [
         hint: 'A specific, honest reason lands better than a generic one — mention something real about the shop or the practice you want.',
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '当店で働きたいと思った理由を教えてください。', romaji: 'Touten de hatarakitai to omotta riyuu wo oshiete kudasai.', speakerLabel: 'Manager Haru' },
         choices: [
           { id: 'a', japanese: 'このカフェの雰囲気が好きで、接客を通して日本語も上達させたいです。', romaji: 'Kono kafe no fun\'iki ga suki de, sekkyaku wo tooshite nihongo mo joutatsu sasetai desu.', evaluation: 'BEST', points: 3, feedbackTitle: 'Specific and genuine', feedbackWhy: 'Naming what you like about this specific cafe, plus a real personal goal, shows you thought about the answer rather than reciting one.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'いいですね、その気持ち、大事にしてください。', romaji: 'Ii desu ne, sono kimochi, taisetsu ni shite kudasai.' } },
           { id: 'b', japanese: 'お金が必要だからです。', romaji: 'Okane ga hitsuyou dakara desu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Honest, but very transactional', feedbackWhy: 'It\'s a real reason and not impolite, but it says nothing about this specific job — most managers want to hear at least one more sentence.', betterExample: { japanese: 'このカフェの雰囲気が好きで、接客を通して日本語も上達させたいです。', romaji: 'Kono kafe no fun\'iki ga suki de, sekkyaku wo tooshite nihongo mo joutatsu sasetai desu.', note: 'Adding a specific, personal reason rounds out the answer.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'なるほど。ほかに理由はありますか？', romaji: 'Naruhodo. Hoka ni riyuu wa arimasu ka?' } },
@@ -640,6 +778,7 @@ const SCENES: SceneSpec[] = [
         hint: 'Ask specifically about the word you missed, the same way you did at the ward office earlier today.',
         playerCharacter: 'HARU',
         playerExpression: 'CONFUSED',
+        setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'クローズのシフトは、隔週で交代していただきます。', romaji: 'Kuroozu no shifuto wa, kakushuu de koutai shite itadakimasu.', speakerLabel: 'Manager Haru' },
         choices: [
           { id: 'a', japanese: 'すみません、「隔週」の意味を教えていただけますか？', romaji: 'Sumimasen, "kakushuu" no imi wo oshiete itadakemasu ka?', evaluation: 'BEST', points: 3, feedbackTitle: 'Names the exact word you missed', feedbackWhy: 'Pointing at the specific unfamiliar word gets you a precise, fast explanation instead of the whole sentence repeated.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'あ、一週おきという意味です。', romaji: 'A, isshuu oki to iu imi desu.' } },
           { id: 'b', japanese: 'もう一度お願いします。', romaji: 'Mou ichido onegaishimasu.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'Works, but repeats the whole thing', feedbackWhy: 'You\'ll get the entire sentence again, including the parts you already understood.', betterExample: { japanese: 'すみません、「隔週」の意味を教えていただけますか？', romaji: 'Sumimasen, "kakushuu" no imi wo oshiete itadakemasu ka?', note: 'Naming the specific word is faster for an interview setting.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'かしこまりました。もう一度お伝えしますね。', romaji: 'Kashikomarimashita. Mou ichido otsutae shimasu ne.' } },
@@ -661,15 +800,20 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
   let totalChoices = 0;
 
   const decisionChoiceId = (sceneId: string, decisionId: string) => `n_${sceneId}_${decisionId}_choice`;
+  const decisionSetupId = (sceneId: string, decisionId: string) => `n_${sceneId}_${decisionId}_setup`;
   const decisionReactId = (sceneId: string, decisionId: string, choiceId: string) => `n_${sceneId}_${decisionId}_react_${choiceId}`;
   const decisionTimeoutId = (sceneId: string, decisionId: string) => `n_${sceneId}_${decisionId}_react_timeout`;
   const sceneNarrationId = (sceneId: string) => `n_${sceneId}_narration`;
   const sceneOpeningId = (sceneId: string) => `n_${sceneId}_opening`;
+  // The node that actually starts a decision: its spoken setup line when it
+  // has one, otherwise the choice screen directly.
+  const decisionEntryId = (sceneId: string, decision: DecisionSpec) =>
+    decision.setup ? decisionSetupId(sceneId, decision.id) : decisionChoiceId(sceneId, decision.id);
 
   scenes.forEach((scene, sceneIndex) => {
     const nextScene = scenes[sceneIndex + 1];
     const firstDecision = scene.decisions[0];
-    const afterOpeningId = firstDecision ? decisionChoiceId(scene.id, firstDecision.id) : 'n_ending';
+    const afterOpeningId = firstDecision ? decisionEntryId(scene.id, firstDecision) : 'n_ending';
 
     built.push({
       id: sceneNarrationId(scene.id),
@@ -701,12 +845,29 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
     scene.decisions.forEach((decision, decisionIndex) => {
       const nextDecision = scene.decisions[decisionIndex + 1];
       const mergeTarget = nextDecision
-        ? decisionChoiceId(scene.id, nextDecision.id)
+        ? decisionEntryId(scene.id, nextDecision)
         : nextScene
           ? sceneNarrationId(nextScene.id)
           : 'n_ending';
 
       totalChoices += 1;
+
+      if (decision.setup) {
+        built.push({
+          id: decisionSetupId(scene.id, decision.id),
+          sceneId: scene.id,
+          type: 'DIALOGUE',
+          speaker: decision.setup.speakerLabel ?? (decision.setup.character === 'SUMI' ? 'Sumi' : 'Haru'),
+          characterKey: decision.setup.character,
+          expressionKey: decision.setup.expression,
+          characterPosition: 'CENTER',
+          backgroundKey: scene.background,
+          spritesVisible: true,
+          japanese: decision.setup.japanese,
+          romaji: decision.setup.romaji,
+          nextNodeId: decisionChoiceId(scene.id, decision.id),
+        });
+      }
 
       built.push({
         id: decisionChoiceId(scene.id, decision.id),
@@ -916,6 +1077,7 @@ function SpeakingIndicator({ color }: { color: string }) {
 }
 
 export default function QuackResponseTimed() {
+  const { user } = useContext(AuthContext);
   const [nodeId, setNodeId] = useState(START_NODE_ID);
   const [answers, setAnswers] = useState<AnswerRecord[]>([]);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
@@ -948,6 +1110,28 @@ export default function QuackResponseTimed() {
   const totalPoints = answers.reduce((sum, answer) => sum + answer.points, 0);
   const maxPoints = TOTAL_CHOICES * 3;
   const lastAnswer = answers[answers.length - 1];
+  const scorePercent = maxPoints ? Math.round((totalPoints / maxPoints) * 100) : 0;
+
+  // Persist the best score reached in ANY attempt — full playthrough or
+  // not — since the unlock rule is "finish it, OR hit 60% at any point."
+  // This is also what lets QuackResponse's mission map and QuackProgress's
+  // game-mastery list both know how Response Rush went, since this screen
+  // has no backend model yet. Re-checks after every answer (accuracy so
+  // far among the choices actually made) and again at the ending card
+  // (accuracy over the full 20).
+  useEffect(() => {
+    if (!user?.email || answers.length === 0) return;
+    const attemptMax = (currentNode?.id === 'n_ending' ? TOTAL_CHOICES : answers.length) * 3;
+    const attemptPercent = attemptMax ? Math.round((totalPoints / attemptMax) * 100) : 0;
+    const key = `${RESPONSE_RUSH_BEST_SCORE_KEY}:${user.email.toLowerCase()}`;
+    AsyncStorage.getItem(key)
+      .then((stored) => {
+        const previous = Number(stored) || 0;
+        if (attemptPercent > previous) return AsyncStorage.setItem(key, String(attemptPercent));
+        return undefined;
+      })
+      .catch(() => undefined);
+  }, [answers.length, totalPoints, currentNode?.id, user?.email]);
 
   useEffect(() => () => {
     const music = backgroundMusic.current;
@@ -1653,19 +1837,28 @@ const rushStyles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
+    top: 0,
     bottom: 0,
-    paddingHorizontal: 14,
-    paddingBottom: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 22,
   },
   narrationPage: {
-    borderRadius: 22,
+    width: '100%',
+    maxWidth: 380,
+    borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: 'rgba(28,15,46,0.92)',
-    paddingVertical: 18,
-    paddingLeft: 22,
-    paddingRight: 18,
+    backgroundColor: 'rgba(24,13,40,0.95)',
+    paddingVertical: 22,
+    paddingLeft: 24,
+    paddingRight: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: 'rgba(255,255,255,0.10)',
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
   narrationSpine: {
     position: 'absolute',
@@ -1845,32 +2038,41 @@ const rushStyles = StyleSheet.create({
     width: '100%',
     maxWidth: 380,
     backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    padding: 22,
+    borderRadius: 26,
+    padding: 24,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(46,158,72,0.18)',
+    shadowColor: '#1B5E2E',
+    shadowOpacity: 0.22,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 10,
   },
   culturalIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(46,158,72,0.12)',
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: 'rgba(46,158,72,0.14)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(46,158,72,0.22)',
   },
   culturalEyebrow: {
     fontSize: 11.5,
     fontWeight: '800',
-    letterSpacing: 0.4,
+    letterSpacing: 0.6,
     color: '#2E9E48',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   culturalText: {
     fontSize: 14.5,
-    lineHeight: 21,
+    lineHeight: 22,
     color: '#3A2E48',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
   },
 
   // Feedback pop-up redesign
@@ -1878,19 +2080,24 @@ const rushStyles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    paddingTop: 22,
-    paddingBottom: 22,
+    borderRadius: 28,
+    paddingTop: 24,
+    paddingBottom: 24,
     paddingHorizontal: 22,
     alignItems: 'center',
     overflow: 'hidden',
+    shadowColor: '#2A1640',
+    shadowOpacity: 0.28,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 12,
   },
   feedbackRibbon: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 6,
+    height: 7,
   },
   exampleBox: {
     flexDirection: 'row',
