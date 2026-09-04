@@ -319,6 +319,7 @@ export default function ReplyCoachStory() {
   const [hintVisible, setHintVisible] = useState(false);
   const [hintUsed, setHintUsed] = useState(false);
   const [previewChoiceId, setPreviewChoiceId] = useState('');
+  const [activeChoiceId, setActiveChoiceId] = useState('');
   const fade = useRef(new Animated.Value(0)).current;
   const backgroundMusic = useRef<Audio.Sound | null>(null);
   const backgroundMusicKey = useRef('');
@@ -557,6 +558,7 @@ export default function ReplyCoachStory() {
   const choose = async (choice: ChoiceOption) => {
     if (!attempt || !currentNode || saving) return;
     if (backgroundMusic.current) void backgroundMusic.current.playAsync().catch(() => undefined);
+    setActiveChoiceId(choice.id);
     setSaving(true);
     try {
       setPreviewChoiceId(choice.id);
@@ -578,6 +580,7 @@ export default function ReplyCoachStory() {
       setError(reason instanceof Error ? reason.message : 'Your response could not be saved.');
     } finally {
       setPreviewChoiceId('');
+      setActiveChoiceId('');
       setSaving(false);
     }
   };
@@ -738,7 +741,7 @@ export default function ReplyCoachStory() {
                     currentNode.characterPosition,
                     displayedCharacter === 'HARU' ? styles.soloSpriteLeft : styles.soloSpriteRight,
                   )}
-                  speaking={currentNode.type !== 'CHOICE'}
+                  speaking
                 />
               ) : null}
             </View>
@@ -798,11 +801,17 @@ export default function ReplyCoachStory() {
                   <Pressable
                     key={choice.id}
                     disabled={saving}
-                    style={({ pressed }) => [styles.choiceButton, pressed && styles.choicePressed]}
+                    style={({ pressed }) => [
+                      styles.choiceButton,
+                      activeChoiceId === choice.id && styles.choiceSelected,
+                      pressed && styles.choicePressed,
+                    ]}
                     onPress={() => choose(choice)}
                   >
-                    <View style={styles.choiceLetter}>
-                      <Text style={styles.choiceLetterText}>{String.fromCharCode(65 + index)}</Text>
+                    <View style={[styles.choiceLetter, activeChoiceId === choice.id && styles.choiceLetterSelected]}>
+                      <Text style={[styles.choiceLetterText, activeChoiceId === choice.id && styles.choiceLetterTextSelected]}>
+                        {activeChoiceId === choice.id ? '✓' : String.fromCharCode(65 + index)}
+                      </Text>
                     </View>
                     <View style={styles.choiceCopy}>
                       <Text style={styles.choiceJapanese}>{choice.japanese}</Text>

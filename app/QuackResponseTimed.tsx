@@ -261,7 +261,6 @@ const backgrounds: Record<string, any> = {
   cityGate: require('../assets/img/background/city a s1st2 day.png'),
   cityEvening: require('../assets/img/background/city a s1st2 nightlights.png'),
   shopFront: require('../assets/img/background/city a s3st2 day.png'),
-  wardOffice: require('../assets/img/background/student council room a st2 evening.png'),
   counterRoom: require('../assets/img/background/school a hallway st2 day.png'),
   train: require('../assets/img/background/train_scene day.png'),
   interviewRoom: require('../assets/img/background/clubroom a st2 day.png'),
@@ -1550,7 +1549,7 @@ export default function QuackResponseTimed() {
   // story can never stall.
   useEffect(() => {
     advanceTimer.current && clearTimeout(advanceTimer.current);
-    if (exitVisible || exiting || !currentNode || (currentNode.type !== 'DIALOGUE' && currentNode.type !== 'REACTION')) {
+    if (!resumeReady || exitVisible || exiting || !currentNode || (currentNode.type !== 'DIALOGUE' && currentNode.type !== 'REACTION')) {
       setIsSpriteSpeaking(false);
       return;
     }
@@ -1605,7 +1604,7 @@ export default function QuackResponseTimed() {
       voiceGeneration.current += 1;
       if (advanceTimer.current) clearTimeout(advanceTimer.current);
     };
-  }, [currentNode?.id, exitVisible, exiting]);
+  }, [currentNode?.id, exitVisible, exiting, resumeReady]);
 
   const handleTimeout = (node: StoryNode) => {
     const record: AnswerRecord = {
