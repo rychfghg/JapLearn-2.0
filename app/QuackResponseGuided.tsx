@@ -326,6 +326,7 @@ export default function ReplyCoachStory() {
   const musicGeneration = useRef(0);
   const voiceSound = useRef<Audio.Sound | null>(null);
   const voiceGeneration = useRef(0);
+  const choiceLock = useRef(false);
 
   const nodes = useMemo(
     () => new Map((chapter?.nodes ?? []).map((node) => [node.id, node])),
@@ -556,7 +557,8 @@ export default function ReplyCoachStory() {
   };
 
   const choose = async (choice: ChoiceOption) => {
-    if (!attempt || !currentNode || saving) return;
+    if (!attempt || !currentNode || saving || choiceLock.current) return;
+    choiceLock.current = true;
     if (backgroundMusic.current) void backgroundMusic.current.playAsync().catch(() => undefined);
     setActiveChoiceId(choice.id);
     setSaving(true);
@@ -582,6 +584,7 @@ export default function ReplyCoachStory() {
       setPreviewChoiceId('');
       setActiveChoiceId('');
       setSaving(false);
+      choiceLock.current = false;
     }
   };
 

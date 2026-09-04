@@ -1050,20 +1050,16 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
       });
 
       decision.choices.forEach((choice) => {
-        // The learner's selected line is spoken before the NPC reacts. We use
-        // the opposite on-screen actor as the learner avatar so a line is
-        // never spoken and answered by the same sprite/voice.
-        const replyCharacter: CharacterKey = choice.reaction.character === 'HARU' ? 'SUMI' : 'HARU';
+        // The learner's selected line is voiced before the NPC reacts, but it
+        // is not assigned to Sumi or Haru. Keeping this as a sprite-free reply
+        // beat makes it clear that the line represents the learner.
         built.push({
           id: decisionReplyId(scene.id, decision.id, choice.id),
           sceneId: scene.id,
           type: 'DIALOGUE',
           speaker: 'Your reply',
-          characterKey: replyCharacter,
-          expressionKey: GOOD_TIERS.includes(choice.evaluation) ? 'SMILE' : 'NEUTRAL',
-          characterPosition: replyCharacter === 'SUMI' ? 'RIGHT' : 'LEFT',
           backgroundKey: scene.background,
-          spritesVisible: true,
+          spritesVisible: false,
           japanese: choice.japanese,
           romaji: choice.romaji,
           nextNodeId: decisionReactId(scene.id, decision.id, choice.id),
