@@ -4,6 +4,8 @@ export type RelayChoice = {
   japanese: string;
   romaji: string;
   correct: boolean;
+  evaluation: 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'RUDE';
+  points: number;
   explanation: string;
   example: string;
   reaction: string;
@@ -12,7 +14,7 @@ export type RelayChoice = {
 export type RelayQuestion = {
   prompt: string;
   coach: string;
-  choices: [RelayChoice, RelayChoice];
+  choices: RelayChoice[];
 };
 
 export type RelayScene = {
@@ -28,14 +30,35 @@ export type RelayScene = {
 };
 
 const good = (id: string, label: string, japanese: string, romaji: string, explanation: string, example: string): RelayChoice => ({
-  id, label, japanese, romaji, correct: true, explanation, example, reaction: 'いいですね。丁寧で、状況に合っています。',
+  id, label, japanese, romaji, correct: true, evaluation: 'BEST', points: 3, explanation, example, reaction: 'いいですね。丁寧で、状況に合っています。',
 });
 const bad = (id: string, label: string, japanese: string, romaji: string, explanation: string, example: string): RelayChoice => ({
-  id, label, japanese, romaji, correct: false, explanation, example, reaction: '惜しいです。相手と場所に合う言い方を選びましょう。',
+  id, label, japanese, romaji, correct: false, evaluation: 'RUDE', points: 0, explanation, example, reaction: '惜しいです。相手と場所に合う言い方を選びましょう。',
 });
-const question = (prompt: string, coach: string, correct: RelayChoice, incorrect: RelayChoice, flip = false): RelayQuestion => ({
-  prompt, coach, choices: flip ? [incorrect, correct] : [correct, incorrect],
-});
+const middleByScene: Record<string, [string,string,string,string]> = {
+  w:['すみません、これはここですか？','Sumimasen, kore wa koko desu ka?','ごみのことは、よく分かりません。','Gomi no koto wa, yoku wakarimasen.'],
+  p:['すみません、荷物についてです。','Sumimasen, nimotsu ni tsuite desu.','あとで、またお願いします。','Ato de, mata onegaishimasu.'],
+  c:['すみません、少し教えてください。','Sumimasen, sukoshi oshiete kudasai.','ちょっと具合が悪いです。','Chotto guai ga warui desu.'],
+  m:['すみません、飲み方を確認したいです。','Sumimasen, nomikata o kakunin shitai desu.','たぶん、分かりました。','Tabun, wakarimashita.'],
+  o:['このルールで合っていますか？','Kono ruuru de atte imasu ka?','みんなと同じにします。','Minna to onaji ni shimasu.'],
+  r:['ここで脱げばいいですか？','Koko de nugeba ii desu ka?','たぶん、このままで大丈夫です。','Tabun, kono mama de daijoubu desu.'],
+  f:['写真は大丈夫でしょうか？','Shashin wa daijoubu deshou ka?','一枚だけ撮りたいです。','Ichimai dake toritai desu.'],
+  a:['食材を確認してもいいですか？','Shokuzai o kakunin shite mo ii desu ka?','これはたぶん食べられます。','Kore wa tabun taberaremasu.'],
+  k:['落とし物について相談したいです。','Otoshimono ni tsuite soudan shitai desu.','財布がどこかにありません。','Saifu ga dokoka ni arimasen.'],
+  e:['係員の指示を確認します。','Kakariin no shiji o kakunin shimasu.','急いで自分で決めます。','Isoide jibun de kimemasu.'],
+};
+const middle = (correct: RelayChoice): [RelayChoice,RelayChoice] => {
+  const x=middleByScene[correct.id[0]] ?? middleByScene.w;
+  return [
+    {id:`${correct.id}-b`,label:'Polite but broad',japanese:x[0],romaji:x[1],correct:false,evaluation:'ACCEPTABLE',points:2,explanation:'This is polite and may work, but it leaves an important detail for the other person to clarify.',example:correct.example,reaction:'分かりました。もう少し詳しく教えてください。'},
+    {id:`${correct.id}-c`,label:'Understandable but vague',japanese:x[2],romaji:x[3],correct:false,evaluation:'AWKWARD',points:1,explanation:'The general meaning may be understood, but the uncertainty makes the next action unclear.',example:correct.example,reaction:'そうですか。もう一度、確認しましょう。'},
+  ];
+};
+const question = (prompt: string, coach: string, correct: RelayChoice, incorrect: RelayChoice, flip = false): RelayQuestion => {
+  const [acceptable,awkward]=middle(correct);
+  const ordered=flip?[awkward,correct,incorrect,acceptable]:[correct,acceptable,awkward,incorrect];
+  return {prompt,coach,choices:ordered};
+};
 
 const neighborhood = require('../assets/img/background/dialogue-relay-neighborhood.png');
 const clinic = require('../assets/img/background/dialogue-relay-clinic.png');
@@ -150,3 +173,46 @@ export const RELAY_SCENES: RelayScene[] = [
 ];
 
 export const RELAY_TOTAL_RESPONSES = RELAY_SCENES.reduce((sum, scene) => sum + scene.questions.length, 0);
+
+export const RELAY_TRIVIA: Record<string, string[]> = {
+  waste: [
+    'Collection days and sorting categories are set locally, so the rules can change when you move to another city or ward.',
+    'Rinsing containers and following the designated bag rules helps collection workers process recyclable waste correctly.',
+  ],
+  parcel: [
+    'A missed-delivery notice is called a fuzaihyou. It normally includes ways to request redelivery by phone or online.',
+    'Giving a time when someone will definitely be home prevents another failed delivery attempt.',
+  ],
+  clinic: [
+    'At reception, saying when a symptom began is often more useful than only saying that you feel unwell.',
+    'Japanese waiting rooms are shared quiet spaces; silence the phone and take necessary calls outside.',
+  ],
+  pharmacy: [
+    'Shokugo means after a meal and shokuzen means before a meal. Ask again whenever the timing is unclear.',
+    'Medicine safety and conversational politeness are separate: accurate allergy information matters more than pretending to understand.',
+  ],
+  onsen: [
+    'The washing area is used before the shared bath. The bath itself is for soaking, not washing.',
+    'Rules about towels, tattoos, hair, and swimwear can differ by facility, so posted guidance takes priority.',
+  ],
+  ryokan: [
+    'The raised entrance marks the transition from outdoor shoes to the clean indoor floor.',
+    'Toilet slippers are normally kept inside the toilet area and should not be worn back into the hallway.',
+  ],
+  photo: [
+    'Permission to enter a place does not automatically mean permission to photograph its people or interior.',
+    'When someone declines a photo, accepting immediately is more respectful than explaining why you only want one picture.',
+  ],
+  allergy: [
+    'Saying arerugii clearly communicates a health risk; saying you merely dislike an ingredient may not.',
+    'Cross-contact can still be possible even when an ingredient is not listed, so uncertainty should be treated seriously.',
+  ],
+  koban: [
+    'A kōban is a neighborhood police box where people can ask directions and report lost property.',
+    'Time, place, color, shape, and identifying contents make a lost-item report much easier to match.',
+  ],
+  quake: [
+    'During strong shaking, protect your head and stay away from falling glass before attempting to evacuate.',
+    'After the shaking, follow official instructions and marked stairs; elevators may stop or become unsafe.',
+  ],
+};
