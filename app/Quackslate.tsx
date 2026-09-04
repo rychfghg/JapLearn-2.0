@@ -404,6 +404,7 @@ const playAnswerSound = async (isCorrect: boolean) => {
                         classCode: await fetchClassCodeByEmail(user.email),
                         name: `${user.fname} ${user.lname}`,
                         email: user.email,
+                        game: 'QUACKSLATE',
                         date: new Date().toISOString().split('T')[0],
                         score: newScore,
                         maxScore: totalItems || content.length,
@@ -414,7 +415,11 @@ const playAnswerSound = async (isCorrect: boolean) => {
                     };
     
                     try {
-                        const response = await fetch(`${expoconfig.API_URL}/api/scores/save`, {
+                        // Solo contributes to the learner's persistent personal best.
+                        // Teacher-coded play remains a session record for the teacher,
+                        // but is deliberately excluded from personal QuackProgress.
+                        const scoreEndpoint = isSystemMode ? '/api/scores/high-score' : '/api/scores/save';
+                        const response = await fetch(`${expoconfig.API_URL}${scoreEndpoint}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(scoreData)
