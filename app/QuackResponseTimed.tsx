@@ -24,35 +24,53 @@ import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
 // interactive novel: the ward office, a phone contract, a bank account, a
 // convenience-store errand, the train, and a part-time job interview.
 //
+// How this plays, by design:
+//  - NARRATION (English scene-setting) is reader-paced — tap to continue.
+//  - DIALOGUE / REACTION (a sprite actually speaking) is NOT reader-paced.
+//    The moment one of these becomes current, its voice clip starts playing
+//    automatically, the speaking character's mouth/blink animation runs for
+//    exactly as long as the clip plays, and the story advances itself the
+//    instant the line finishes — no tap, no manual audio button. That's the
+//    literal ask: "as long as it turns to that sprite, the audio will
+//    speak, the sprite will open the mouth and blink and speaks," and the
+//    player never manually continues or manually replays it.
+//  - The one exception is the feedback pop-up after a REACTION: that is
+//    substantive reading content (why a response works or doesn't, plus a
+//    better example), not story pacing, so it still waits for you to tap
+//    "Continue the story" — auto-dismissing an explanation would work
+//    against the whole point of a learning game.
+//  - CHOICE nodes are, obviously, still the player's move.
+//
 // This is still hard-coded on purpose (dialogue, branching, feedback text,
-// audio mapping all live in this file). A later request will move this
-// content into MongoDB and feed it through the admin site, mirroring Reply
-// Coach (QuackResponseGuided). To make that migration a straight data move
-// instead of a rewrite, the content itself lives as plain SCENES data below
-// — a list of scenes, each a list of decisions, each a list of choices —
-// and a small builder turns that into the same NARRATION/DIALOGUE/CHOICE/
-// REACTION/ENDING node graph Reply Coach's backend already speaks. Adding a
-// 21st decision later means adding one object to SCENES, not touching the
-// player.
+// audio and music mapping all live in this file). A later request will
+// move this content into MongoDB and feed it through the admin site,
+// mirroring Reply Coach (QuackResponseGuided). SCENES below is written as
+// plain content data specifically so that move is a data export, not a
+// rewrite.
 //
 // AUDIO — read this before touching the clip lookups below.
 // This build environment has no network path to the neural voice service
-// (Azure ja-JP-NanamiNeural / en-US-JennyNeural) documented in
-// assets/audio/SUMI_VOICE_PROFILE.md, and the offline espeak-ng samples
-// generated as a fallback were already rejected as too robotic. What this
-// screen uses instead is the same real, bundled voice-actor pool the
-// Politeness game (QuackSituateFormal.tsx) already ships at
-// assets/audio/politeness/ (npc-01.mp3 … npc-30.mp3 — 16 female clips, 14
-// male). Politeness does not dub its 30 scenarios word-for-word either; it
-// plays a matching real voice per line as "flavor" audio, keyed by gender.
-// Response Rush does the same thing, through the same loadBundledSound /
-// stopAndUnloadSound helper Politeness uses: every Sumi line pulls the next
-// clip from the female pool, every Haru line pulls the next clip from the
-// male pool, cycling and repeating once the ~15/~14 real clips run out
-// across this screen's 60+ voiced lines. Every bubble below has real,
-// working audio today. When exact-match recordings for these lines exist,
-// replace the pool lookup for that node id in `audioOverrides` with the new
-// require(...) and nothing else changes.
+// documented in assets/audio/SUMI_VOICE_PROFILE.md, and the offline
+// espeak-ng fallback that was tried earlier was rejected as too robotic.
+// What plays here instead is the same real, bundled voice-actor pool the
+// Politeness game (QuackSituateFormal.tsx) ships at assets/audio/politeness
+// (npc-01.mp3 … npc-30.mp3 — 16 female clips, 14 male), through the same
+// loadBundledSound/stopAndUnloadSound helper Politeness uses. Every Sumi
+// line pulls the next clip from the female pool, every Haru line the next
+// from the male pool, cycling across this screen's 60+ voiced lines. When
+// exact-match recordings for these specific sentences exist, drop a
+// require(...) for that node id into `audioOverrides` below and nothing
+// else changes.
+//
+// MUSIC — same honest note. This project's only two loop-able background
+// tracks are assets/audio/sfx/quiz.mp3 and quackmanbg.mp3; there is no
+// third track or music-generation tool reachable from this sandbox to add
+// a genuinely new one. What IS new here: real correct/incorrect stingers
+// (assets/audio/sfx/correct_sfx.mp3 / incorrect_sfx.mp3 — already bundled,
+// already used by the Politeness game) now fire the instant a REACTION
+// lands, layered under a full-screen tint and a check/× badge, and the
+// scene music ducks under dialogue audio instead of just switching between
+// two flat "calm/tense" loops.
 // ---------------------------------------------------------------------------
 
 type Evaluation = 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'IMPOLITE' | 'RUDE' | 'TIMEOUT';
@@ -77,9 +95,9 @@ type DecisionSpec = {
   id: string;
   prompt: string;
   hint: string;
-  playerCharacter: CharacterKey; // who you are responding to
+  playerCharacter: CharacterKey;
   playerExpression: string;
-  companionExpression?: string; // Sumi's expression while she watches, when she isn't the one you're answering
+  companionExpression?: string;
   choices: ChoiceSpec[];
   timeout: Line;
 };
@@ -91,6 +109,7 @@ type SceneSpec = {
   narration: string;
   opening?: Line;
   decisions: DecisionSpec[];
+  culturalNotes: string[];
 };
 
 // ---------------------------------------------------------------------------
@@ -99,6 +118,7 @@ type SceneSpec = {
 
 type StoryNode = {
   id: string;
+  sceneId: string;
   type: 'NARRATION' | 'DIALOGUE' | 'CHOICE' | 'REACTION' | 'ENDING';
   title?: string;
   text?: string;
@@ -135,6 +155,7 @@ type AnswerRecord = {
 };
 
 const CHOICE_SECONDS = 20;
+const GOOD_TIERS: Evaluation[] = ['BEST', 'ACCEPTABLE'];
 
 const backgrounds: Record<string, any> = {
   cityGate: require('../assets/img/background/city a s1st2 day.png'),
@@ -171,6 +192,14 @@ const sprites: Record<CharacterKey, Record<string, any>> = {
 const bundledBgm: Record<string, any> = {
   calm: require('../assets/audio/sfx/quiz.mp3'),
   tense: require('../assets/audio/sfx/quackmanbg.mp3'),
+};
+const stingers: Record<'good' | 'bad', any> = {
+  good: require('../assets/audio/sfx/correct_sfx.mp3'),
+  bad: require('../assets/audio/sfx/incorrect_sfx.mp3'),
+};
+const flashIcons: Record<'good' | 'bad', any> = {
+  good: require('../assets/check.png'),
+  bad: require('../assets/wrong.png'),
 };
 
 // The same real, bundled voice-actor pool the Politeness game uses,
@@ -211,7 +240,7 @@ const maleVoicePool: any[] = [
 ];
 
 // Per-node overrides once exact-match recordings exist, e.g.
-// n_scn_ward_greeting_choice: require('../assets/audio/response-rush/ward-greeting.mp3'),
+// n_ward_greeting_react_a: require('../assets/audio/response-rush/ward-greeting-a.mp3'),
 const audioOverrides: Record<string, any> = {};
 
 const evaluationTheme: Record<Evaluation, { label: string; color: string; icon: any }> = {
@@ -222,6 +251,7 @@ const evaluationTheme: Record<Evaluation, { label: string; color: string; icon: 
   RUDE: { label: 'Rude / offensive', color: '#B83B55', icon: 'close-circle' },
   TIMEOUT: { label: 'Time ran out', color: '#8A8A8A', icon: 'time' },
 };
+const characterAccent: Record<CharacterKey, string> = { SUMI: '#C6478B', HARU: '#2F6FA8' };
 
 const positionStyleFor = (position?: CharacterPosition, fallback?: any) => {
   switch (position) {
@@ -247,9 +277,9 @@ const choicePositionStyleFor = (position?: CharacterPosition, fallback?: any) =>
 
 // ---------------------------------------------------------------------------
 // SCENES — the actual content. Six real, non-repeating "new to Japan"
-// errands, twenty decisions total (3+3+3+4+3+4). Every decision branches
-// four ways and merges back into the same next beat, so the story never
-// dead-ends and never loops the same exchange twice.
+// errands, twenty decisions total (3+3+3+4+3+4), plus a short list of
+// cultural notes per scene that surface at random, roughly half the time,
+// once the scene's opening narration is read.
 // ---------------------------------------------------------------------------
 
 const SCENES: SceneSpec[] = [
@@ -259,6 +289,10 @@ const SCENES: SceneSpec[] = [
     background: 'cityGate',
     narration: 'You arrived in Japan six days ago to study and work part-time. New residents must register at the local ward office within 14 days to receive their Residence Card. Sumi, a classmate, offered to walk you there for your first visit.',
     opening: { character: 'SUMI', expression: 'SMILE', japanese: '大丈夫？初めての区役所だから、私がついていくね。', romaji: 'Daijoubu? Hajimete no kuyakusho dakara, watashi ga tsuiteiku ne.', speakerLabel: 'Sumi' },
+    culturalNotes: [
+      'The 14-day registration window is a real legal deadline in Japan — missing it can complicate visa renewals later, which is why Sumi treats this errand as urgent, not optional.',
+      'Ward offices (kuyakusho) are organized by neighborhood, not by nationality — everyone living in that ward uses the same counters, so patience during busy hours is a shared, ordinary experience, not something unique to newcomers.',
+    ],
     decisions: [
       {
         id: 'greeting',
@@ -312,6 +346,10 @@ const SCENES: SceneSpec[] = [
     background: 'shopFront',
     narration: 'Receipt in hand, you and Sumi head to a phone shop to set up a SIM plan — you\'ll need a Japanese number for the part-time job you\'re about to apply for.',
     opening: { character: 'SUMI', expression: 'ENCOURAGING', japanese: 'ここ、学生プランが安いよ。がんばって！', romaji: 'Koko, gakusei puran ga yasui yo. Ganbatte!', speakerLabel: 'Sumi' },
+    culturalNotes: [
+      'Prepaid SIM plans are popular with new residents specifically because most postpaid contracts require a Japanese bank account and a longer residency history — the "student plan" Sumi mentions is a common workaround.',
+      'Staff in Japanese retail settings almost always confirm details back to you before proceeding ("kashikomarimashita" + a repeat-back) — it can feel slow at first, but it is standard practice to avoid mistakes, not a sign something is wrong.',
+    ],
     decisions: [
       {
         id: 'plan',
@@ -365,6 +403,10 @@ const SCENES: SceneSpec[] = [
     background: 'counterRoom',
     narration: 'With a phone number secured, next is a bank account — most part-time jobs pay wages by direct deposit, so this step can\'t wait.',
     opening: { character: 'SUMI', expression: 'NEUTRAL', japanese: '銀行の窓口、ちょっと緊張するよね。落ち着いていこう。', romaji: 'Ginkou no madoguchi, chotto kinchou suru yo ne. Ochitsuite ikou.', speakerLabel: 'Sumi' },
+    culturalNotes: [
+      'A personal seal (hanko) still shows up on some Japanese paperwork, but most banks now accept a signature from foreign residents — it\'s worth asking rather than assuming you need to buy one immediately.',
+      'The My Number card (mainanbaa kaado) is Japan\'s national ID number system — new residents get a number automatically, but the physical card itself has to be applied for separately, which is why it\'s common not to have it yet.',
+    ],
     decisions: [
       {
         id: 'purpose',
@@ -417,6 +459,10 @@ const SCENES: SceneSpec[] = [
     title: 'Convenience Store · Evening Errand',
     background: 'cityEvening',
     narration: 'Evening now — a quick stop at the convenience store on the way home for dinner and a few things for tomorrow\'s job interview.',
+    culturalNotes: [
+      'Declining a bag ("daijoubu desu") has become increasingly common since Japan introduced a mandatory plastic bag charge in 2020 — it\'s not seen as unusual or overly frugal, just routine.',
+      'IC cards (Suica, Pasmo, and similar) work at the vast majority of convenience stores nationwide, but a few small or rural locations still don\'t accept them, which is why confirming first is a genuinely useful habit, not overcaution.',
+    ],
     decisions: [
       {
         id: 'bag',
@@ -483,6 +529,10 @@ const SCENES: SceneSpec[] = [
     background: 'train',
     narration: 'Following the directions, you reach the station to buy a commuter pass for your new part-time job\'s commute.',
     opening: { character: 'SUMI', expression: 'NEUTRAL', japanese: '定期券、学生なら安くなるはずだよ。', romaji: 'Teikiken, gakusei nara yasuku naru hazu da yo.', speakerLabel: 'Sumi' },
+    culturalNotes: [
+      '"Teiki" (commuter pass) discounts in Japan are usually tied to a fixed route between two stations, not unlimited travel anywhere — that\'s why the clerk needs your exact destination, not just "a pass."',
+      'Boarding the wrong direction is common enough that most stations have a straightforward fix — cross to the opposite platform at the next stop — so it\'s treated as routine, not something to be embarrassed about asking staff for help with.',
+    ],
     decisions: [
       {
         id: 'pass',
@@ -508,7 +558,7 @@ const SCENES: SceneSpec[] = [
         choices: [
           { id: 'a', japanese: 'すみません、今日は持ってきていません。通常料金で大丈夫です。', romaji: 'Sumimasen, kyou wa motte kite imasen. Tsuujou ryoukin de daijoubu desu.', evaluation: 'BEST', points: 3, feedbackTitle: 'States the situation and a solution', feedbackWhy: 'Explaining you don\'t have it today and offering to pay full price keeps things moving without confusion.', reaction: { character: 'HARU', expression: 'SMILE', japanese: 'かしこまりました。それでは通常料金でご案内します。', romaji: 'Kashikomarimashita. Sore dewa tsuujou ryoukin de goannai shimasu.' } },
           { id: 'b', japanese: '持っていません。', romaji: 'Motte imasen.', evaluation: 'ACCEPTABLE', points: 2, feedbackTitle: 'True, but leaves the next step open', feedbackWhy: 'This answers the question, but doesn\'t say what you\'d like to do instead — the clerk has to ask.', betterExample: { japanese: 'すみません、今日は持ってきていません。通常料金で大丈夫です。', romaji: 'Sumimasen, kyou wa motte kite imasen. Tsuujou ryoukin de daijoubu desu.', note: 'Offering the next step yourself saves a round of back-and-forth.' }, reaction: { character: 'HARU', expression: 'NEUTRAL', japanese: 'では、通常料金でよろしいでしょうか？', romaji: 'Dewa, tsuujou ryoukin de yoroshii deshou ka?' } },
-          { id: 'c', japanese: 'えっと……ないかも。', romaji: 'Etto…… nai kamo.', evaluation: 'AWKWARD', points: 1, feedbackTitle: '"Maybe not" is hard to act on', feedbackWhy: '"Maybe I don\'t have it" leaves the clerk unsure whether to wait while you check your bag or move on.', betterExample: { japanese: 'すみません、今日は持ってきていません。', romaji: 'Sumimasen, kyou wa motte kite imasen.', note: 'A clear answer either way keeps the line moving.' }, reaction: { character: 'SUMI', expression: 'WORRIED', japanese: '学生証、持ってきた？' , romaji: 'Gakuseishou, motte kita?' } },
+          { id: 'c', japanese: 'えっと……ないかも。', romaji: 'Etto…… nai kamo.', evaluation: 'AWKWARD', points: 1, feedbackTitle: '"Maybe not" is hard to act on', feedbackWhy: '"Maybe I don\'t have it" leaves the clerk unsure whether to wait while you check your bag or move on.', betterExample: { japanese: 'すみません、今日は持ってきていません。', romaji: 'Sumimasen, kyou wa motte kite imasen.', note: 'A clear answer either way keeps the line moving.' }, reaction: { character: 'SUMI', expression: 'WORRIED', japanese: '学生証、持ってきた？', romaji: 'Gakuseishou, motte kita?' } },
           { id: 'd', japanese: 'それ、絶対必要なんですか？', romaji: 'Sore, zettai hitsuyou nan desu ka?', evaluation: 'IMPOLITE', points: 1, feedbackTitle: 'Sounds like arguing the rule', feedbackWhy: 'Questioning whether ID is "really" required can come across as pushing back rather than genuinely asking.', betterExample: { japanese: 'すみません、今日は持ってきていません。通常料金で大丈夫です。', romaji: 'Sumimasen, kyou wa motte kite imasen. Tsuujou ryoukin de daijoubu desu.', note: 'Owning the situation moves things forward faster than questioning the policy.' }, reaction: { character: 'HARU', expression: 'ANNOYED', japanese: '学割の規定でございますので。', romaji: 'Gakuwari no kitei de gozaimasu node.' } },
         ],
         timeout: { character: 'HARU', expression: 'CONFUSED', japanese: '学生証は、お持ちでしょうか？', romaji: 'Gakuseishou wa, omochi deshou ka?' },
@@ -537,6 +587,10 @@ const SCENES: SceneSpec[] = [
     background: 'interviewRoom',
     narration: 'Back on track and right on time — your part-time job interview at a neighborhood cafe. Sumi waits outside while you go in.',
     opening: { character: 'HARU', expression: 'NEUTRAL', japanese: 'どうぞ、お座りください。今日はよろしくお願いします。', romaji: 'Douzo, osuwari kudasai. Kyou wa yoroshiku onegaishimasu.', speakerLabel: 'Manager Haru' },
+    culturalNotes: [
+      'The humble self-introduction pattern "〜と申します" isn\'t just formality for its own sake — using it signals to a Japanese interviewer that you understand workplace register, which matters more in hiring decisions than perfect grammar elsewhere.',
+      'Biweekly or rotating shift schedules ("kakushuu") are common in Japanese part-time retail and food service jobs specifically to spread closing duties fairly across staff — asking about it upfront is standard, not overly cautious.',
+    ],
     decisions: [
       {
         id: 'introduce',
@@ -619,6 +673,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
 
     built.push({
       id: sceneNarrationId(scene.id),
+      sceneId: scene.id,
       type: 'NARRATION',
       title: scene.title,
       text: scene.narration,
@@ -629,6 +684,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
     if (scene.opening) {
       built.push({
         id: sceneOpeningId(scene.id),
+        sceneId: scene.id,
         type: 'DIALOGUE',
         speaker: scene.opening.speakerLabel ?? (scene.opening.character === 'SUMI' ? 'Sumi' : 'Haru'),
         characterKey: scene.opening.character,
@@ -654,6 +710,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
 
       built.push({
         id: decisionChoiceId(scene.id, decision.id),
+        sceneId: scene.id,
         type: 'CHOICE',
         title: `${scene.title.split('·')[0].trim()} · Decision`,
         prompt: decision.prompt,
@@ -676,8 +733,9 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
       decision.choices.forEach((choice) => {
         built.push({
           id: decisionReactId(scene.id, decision.id, choice.id),
+          sceneId: scene.id,
           type: 'REACTION',
-          speaker: choice.reaction.character === 'SUMI' ? 'Sumi' : (decision.playerCharacter === 'HARU' ? scene.opening?.speakerLabel?.startsWith('Manager') ? 'Manager Haru' : 'Haru' : 'Haru'),
+          speaker: choice.reaction.character === 'SUMI' ? 'Sumi' : 'Haru',
           characterKey: choice.reaction.character,
           expressionKey: choice.reaction.expression,
           characterPosition: 'CENTER',
@@ -691,6 +749,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
 
       built.push({
         id: decisionTimeoutId(scene.id, decision.id),
+        sceneId: scene.id,
         type: 'REACTION',
         speaker: decision.timeout.character === 'SUMI' ? 'Sumi' : 'Haru',
         characterKey: decision.timeout.character,
@@ -707,6 +766,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
 
   built.push({
     id: 'n_ending',
+    sceneId: scenes[scenes.length - 1]?.id ?? 'interview',
     type: 'ENDING',
     title: 'First Weeks, Handled',
     text: 'Residence card filed, phone active, bank account open, groceries in the fridge, commute figured out, and a part-time job waiting to hear back. Sumi grins as you both head home. "See? You\'re basically a local now," she says. Not bad for one very long day.',
@@ -718,6 +778,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
 
 const { nodes, startId: START_NODE_ID, totalChoices: TOTAL_CHOICES } = buildStory(SCENES);
 const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+const sceneMap = new Map(SCENES.map((scene) => [scene.id, scene]));
 const CHAPTER_TITLE = 'Response Rush · Your First Weeks in Japan';
 
 const resolveAudio = (() => {
@@ -758,11 +819,13 @@ type SpriteActorProps = {
   reacting: boolean;
 };
 
-// Restores Reply Coach's blink / mouth-flicker treatment: a resting
-// character periodically crossfades to a blink-like frame, a speaking
-// character crossfades to its "mouth open" frame, and — new for Response
-// Rush — a reaction node gets a one-shot pop so the change of expression
-// visibly registers the instant it appears.
+// Blink / mouth-flicker treatment, entirely from existing sprite assets: a
+// resting character periodically crossfades to a blink-like frame, a
+// speaking character crossfades to its "mouth open" frame in a tighter,
+// faster loop timed to actual speech, and a reaction node gets a one-shot
+// pop the instant its expression changes. Nothing here is a manual,
+// hand-authored motion — it is all driven by the same expression sprites
+// already bundled for Reply Coach.
 function SpriteActor({ characterKey, expressionKey = 'NEUTRAL', positionStyle, speaking, reacting }: SpriteActorProps) {
   const expressionOpacity = useRef(new Animated.Value(0)).current;
   const bodyScale = useRef(new Animated.Value(1)).current;
@@ -780,11 +843,11 @@ function SpriteActor({ characterKey, expressionKey = 'NEUTRAL', positionStyle, s
 
     const expressionLoop = Animated.loop(
       Animated.sequence([
-        Animated.delay(speaking ? 280 : 2200),
-        Animated.timing(expressionOpacity, { toValue: 1, duration: speaking ? 90 : 70, useNativeDriver: true }),
-        Animated.delay(speaking ? 150 : 100),
-        Animated.timing(expressionOpacity, { toValue: 0, duration: speaking ? 110 : 90, useNativeDriver: true }),
-        Animated.delay(speaking ? 180 : 700),
+        Animated.delay(speaking ? 220 : 2200),
+        Animated.timing(expressionOpacity, { toValue: 1, duration: speaking ? 85 : 70, useNativeDriver: true }),
+        Animated.delay(speaking ? 130 : 100),
+        Animated.timing(expressionOpacity, { toValue: 0, duration: speaking ? 95 : 90, useNativeDriver: true }),
+        Animated.delay(speaking ? 150 : 700),
       ]),
     );
 
@@ -826,6 +889,32 @@ function SpriteActor({ characterKey, expressionKey = 'NEUTRAL', positionStyle, s
   );
 }
 
+// A small three-dot "speaking" indicator, shown in place of any manual
+// continue/audio controls while a sprite's line is auto-playing.
+function SpeakingIndicator({ color }: { color: string }) {
+  const dots = [useRef(new Animated.Value(0.3)).current, useRef(new Animated.Value(0.3)).current, useRef(new Animated.Value(0.3)).current];
+  useEffect(() => {
+    const loops = dots.map((dot, index) => Animated.loop(
+      Animated.sequence([
+        Animated.delay(index * 140),
+        Animated.timing(dot, { toValue: 1, duration: 260, useNativeDriver: true }),
+        Animated.timing(dot, { toValue: 0.3, duration: 260, useNativeDriver: true }),
+        Animated.delay((2 - index) * 140),
+      ]),
+    ));
+    loops.forEach((loop) => loop.start());
+    return () => loops.forEach((loop) => loop.stop());
+  }, []);
+  return (
+    <View style={rushStyles.speakingRow}>
+      {dots.map((dot, index) => (
+        <Animated.View key={index} style={[rushStyles.speakingDot, { backgroundColor: color, opacity: dot }]} />
+      ))}
+      <Text style={[rushStyles.speakingLabel, { color }]}>speaking…</Text>
+    </View>
+  );
+}
+
 export default function QuackResponseTimed() {
   const [nodeId, setNodeId] = useState(START_NODE_ID);
   const [answers, setAnswers] = useState<AnswerRecord[]>([]);
@@ -838,12 +927,21 @@ export default function QuackResponseTimed() {
   const [resultsVisible, setResultsVisible] = useState(false);
   const [typedNarration, setTypedNarration] = useState('');
   const [narrationFinished, setNarrationFinished] = useState(false);
-  const [playingAudioKey, setPlayingAudioKey] = useState<string | null>(null);
+  const [isSpriteSpeaking, setIsSpriteSpeaking] = useState(false);
+  const [flashTier, setFlashTier] = useState<'good' | 'bad' | null>(null);
+  const [culturalVisible, setCulturalVisible] = useState(false);
+  const [culturalText, setCulturalText] = useState('');
 
   const fade = useRef(new Animated.Value(0)).current;
+  const flashOpacity = useRef(new Animated.Value(0)).current;
+  const badgeScale = useRef(new Animated.Value(0.4)).current;
   const backgroundMusic = useRef<Audio.Sound | null>(null);
   const backgroundMusicKey = useRef('');
   const voiceSound = useRef<Audio.Sound | null>(null);
+  const pendingAfterCultural = useRef<string | null>(null);
+  const shownCulturalScenes = useRef<Set<string>>(new Set());
+  const advanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const voiceGeneration = useRef(0);
 
   const currentNode = nodeMap.get(nodeId);
   const progress = Math.min(1, answers.length / Math.max(1, TOTAL_CHOICES));
@@ -857,14 +955,20 @@ export default function QuackResponseTimed() {
     if (music) void music.stopAsync().finally(() => music.unloadAsync());
     void stopAndUnloadSound(voiceSound.current);
     voiceSound.current = null;
+    if (advanceTimer.current) clearTimeout(advanceTimer.current);
   }, []);
 
+  // Scene music, ducked under dialogue audio instead of a flat on/off toggle.
   useEffect(() => {
     const trackKey = currentNode?.type === 'CHOICE' ? 'tense' : 'calm';
+    const duckedVolume = isSpriteSpeaking ? 0.045 : currentNode?.type === 'CHOICE' ? 0.14 : 0.1;
     const syncMusic = async () => {
       try {
         await Audio.setAudioModeAsync({ playsInSilentModeIOS: true, staysActiveInBackground: false, shouldDuckAndroid: true });
-        if (backgroundMusicKey.current === trackKey && backgroundMusic.current) return;
+        if (backgroundMusicKey.current === trackKey && backgroundMusic.current) {
+          await backgroundMusic.current.setVolumeAsync(duckedVolume).catch(() => undefined);
+          return;
+        }
         const previous = backgroundMusic.current;
         backgroundMusic.current = null;
         backgroundMusicKey.current = '';
@@ -872,7 +976,7 @@ export default function QuackResponseTimed() {
           await previous.stopAsync().catch(() => undefined);
           await previous.unloadAsync().catch(() => undefined);
         }
-        const { sound } = await Audio.Sound.createAsync(bundledBgm[trackKey], { isLooping: true, volume: 0.12, shouldPlay: true });
+        const { sound } = await Audio.Sound.createAsync(bundledBgm[trackKey], { isLooping: true, volume: duckedVolume, shouldPlay: true });
         backgroundMusic.current = sound;
         backgroundMusicKey.current = trackKey;
       } catch {
@@ -880,13 +984,14 @@ export default function QuackResponseTimed() {
       }
     };
     void syncMusic();
-  }, [currentNode?.type]);
+  }, [currentNode?.type, isSpriteSpeaking]);
 
   useEffect(() => {
     fade.setValue(0);
     Animated.timing(fade, { toValue: 1, duration: 260, useNativeDriver: true }).start();
   }, [nodeId]);
 
+  // Reader-paced typewriter for NARRATION only.
   useEffect(() => {
     if (!currentNode || currentNode.type !== 'NARRATION') {
       setTypedNarration('');
@@ -908,6 +1013,7 @@ export default function QuackResponseTimed() {
     return () => clearInterval(timer);
   }, [currentNode?.id]);
 
+  // Countdown, active only on an unanswered CHOICE node.
   useEffect(() => {
     setHintVisible(false);
     if (!currentNode || currentNode.type !== 'CHOICE') {
@@ -928,24 +1034,92 @@ export default function QuackResponseTimed() {
     return () => clearInterval(interval);
   }, [currentNode?.id]);
 
-  const playVoice = async (key?: string) => {
-    if (!key) return;
-    const source = audioOverrides[key] ?? resolveAudio(key, nodeMap.get(key)?.characterKey);
-    if (!source) return;
-    try {
-      await stopAndUnloadSound(voiceSound.current);
-      voiceSound.current = null;
-      setPlayingAudioKey(key);
-      const { sound } = await loadBundledSound(source, { shouldPlay: true, volume: 1 }, (status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          setPlayingAudioKey((current) => (current === key ? null : current));
-        }
-      });
-      voiceSound.current = sound;
-    } catch {
-      setPlayingAudioKey(null);
+  // Correct/incorrect flash + stinger the instant a REACTION lands.
+  useEffect(() => {
+    if (!currentNode || currentNode.type !== 'REACTION' || !lastAnswer) {
+      setFlashTier(null);
+      return;
     }
-  };
+    const tier: 'good' | 'bad' = GOOD_TIERS.includes(lastAnswer.evaluation) ? 'good' : 'bad';
+    setFlashTier(tier);
+    flashOpacity.setValue(0);
+    badgeScale.setValue(0.4);
+    Animated.sequence([
+      Animated.timing(flashOpacity, { toValue: 1, duration: 130, useNativeDriver: true }),
+      Animated.timing(flashOpacity, { toValue: 0, duration: 480, useNativeDriver: true }),
+    ]).start(() => setFlashTier(null));
+    Animated.spring(badgeScale, { toValue: 1, friction: 5, tension: 120, useNativeDriver: true }).start();
+    let stingerSound: Audio.Sound | null = null;
+    Audio.Sound.createAsync(stingers[tier], { shouldPlay: true, volume: 0.8 })
+      .then(({ sound }) => { stingerSound = sound; })
+      .catch(() => undefined);
+    return () => { if (stingerSound) void stingerSound.unloadAsync(); };
+  }, [currentNode?.id]);
+
+  // The core auto-play engine: whenever a DIALOGUE or REACTION node becomes
+  // current, its voice line starts immediately, the sprite's mouth runs for
+  // the duration, and the story (or the feedback pop-up, for a REACTION)
+  // advances the instant the line ends — no tap required. A short
+  // reading-time fallback covers the rare case audio fails to load, so the
+  // story can never stall.
+  useEffect(() => {
+    advanceTimer.current && clearTimeout(advanceTimer.current);
+    if (!currentNode || (currentNode.type !== 'DIALOGUE' && currentNode.type !== 'REACTION')) {
+      setIsSpriteSpeaking(false);
+      return;
+    }
+
+    const generation = ++voiceGeneration.current;
+    const node = currentNode;
+    const textLength = (node.japanese?.length ?? 0) + (node.romaji?.length ?? 0);
+    const fallbackMs = Math.min(6500, Math.max(1700, textLength * 55));
+
+    const finishAndAdvance = () => {
+      if (generation !== voiceGeneration.current) return;
+      setIsSpriteSpeaking(false);
+      if (node.type === 'DIALOGUE' && node.nextNodeId) {
+        setNodeId(node.nextNodeId);
+      } else if (node.type === 'REACTION') {
+        setFeedbackVisible(true);
+      }
+    };
+
+    const play = async () => {
+      const source = audioOverrides[node.id] ?? resolveAudio(node.id, node.characterKey);
+      setIsSpriteSpeaking(true);
+      if (!source) {
+        advanceTimer.current = setTimeout(finishAndAdvance, fallbackMs);
+        return;
+      }
+      try {
+        await stopAndUnloadSound(voiceSound.current);
+        voiceSound.current = null;
+        const { sound } = await loadBundledSound(source, { shouldPlay: true, volume: 1 }, (status) => {
+          if (generation !== voiceGeneration.current) return;
+          if (status.isLoaded && status.didJustFinish) {
+            if (advanceTimer.current) clearTimeout(advanceTimer.current);
+            advanceTimer.current = setTimeout(finishAndAdvance, 220);
+          }
+        });
+        if (generation !== voiceGeneration.current) {
+          await sound.unloadAsync();
+          return;
+        }
+        voiceSound.current = sound;
+        // Safety net in case onPlaybackStatusUpdate never fires.
+        advanceTimer.current = setTimeout(finishAndAdvance, fallbackMs + 2500);
+      } catch {
+        advanceTimer.current = setTimeout(finishAndAdvance, fallbackMs);
+      }
+    };
+
+    void play();
+
+    return () => {
+      voiceGeneration.current += 1;
+      if (advanceTimer.current) clearTimeout(advanceTimer.current);
+    };
+  }, [currentNode?.id]);
 
   const handleTimeout = (node: StoryNode) => {
     const record: AnswerRecord = {
@@ -977,6 +1151,32 @@ export default function QuackResponseTimed() {
     setNodeId(choice.nextNodeId);
   };
 
+  const navigateOnwards = (targetId: string) => {
+    const scene = currentNode ? sceneMap.get(currentNode.sceneId) : undefined;
+    if (
+      currentNode?.type === 'NARRATION'
+      && scene
+      && scene.culturalNotes.length
+      && !shownCulturalScenes.current.has(scene.id)
+      && Math.random() < 0.5
+    ) {
+      shownCulturalScenes.current.add(scene.id);
+      const note = scene.culturalNotes[Math.floor(Math.random() * scene.culturalNotes.length)];
+      setCulturalText(note);
+      pendingAfterCultural.current = targetId;
+      setCulturalVisible(true);
+      return;
+    }
+    setNodeId(targetId);
+  };
+
+  const dismissCultural = () => {
+    setCulturalVisible(false);
+    const next = pendingAfterCultural.current;
+    pendingAfterCultural.current = null;
+    if (next) setNodeId(next);
+  };
+
   const continueAfterFeedback = () => {
     const node = currentNode;
     setFeedbackVisible(false);
@@ -984,30 +1184,24 @@ export default function QuackResponseTimed() {
     setNodeId(node.mergeNodeId);
   };
 
-  const advance = () => {
-    if (!currentNode) return;
-    if (currentNode.type === 'NARRATION' && !narrationFinished) {
+  const advanceNarration = () => {
+    if (!currentNode || currentNode.type !== 'NARRATION') return;
+    if (!narrationFinished) {
       setTypedNarration(currentNode.text ?? '');
       setNarrationFinished(true);
       return;
     }
-    if ((currentNode.type === 'DIALOGUE' || currentNode.type === 'NARRATION') && currentNode.nextNodeId) {
-      setNodeId(currentNode.nextNodeId);
-      return;
-    }
-    if (currentNode.type === 'REACTION') {
-      setFeedbackVisible(true);
-      return;
-    }
-    if (currentNode.type === 'ENDING') {
-      setResultsVisible(true);
-    }
+    if (currentNode.nextNodeId) navigateOnwards(currentNode.nextNodeId);
   };
+
+  const viewResults = () => setResultsVisible(true);
 
   const restart = () => {
     setResultsVisible(false);
     setReviewVisible(false);
     setFeedbackVisible(false);
+    setCulturalVisible(false);
+    shownCulturalScenes.current.clear();
     setAnswers([]);
     setNodeId(START_NODE_ID);
   };
@@ -1034,10 +1228,11 @@ export default function QuackResponseTimed() {
   const isNarration = currentNode.type === 'NARRATION';
   const isChoice = currentNode.type === 'CHOICE';
   const isReaction = currentNode.type === 'REACTION';
+  const isDialogue = currentNode.type === 'DIALOGUE';
   const isEnding = currentNode.type === 'ENDING';
   const timerRatio = timeLeft / CHOICE_SECONDS;
   const timerDanger = timeLeft <= 6;
-  const activeAudioKey = currentNode.id;
+  const speakerAccent = currentNode.characterKey ? characterAccent[currentNode.characterKey] : '#8423D9';
 
   return (
     <ImageBackground source={background} style={styles.background} imageStyle={styles.backgroundImage} resizeMode="cover">
@@ -1109,7 +1304,7 @@ export default function QuackResponseTimed() {
                     currentNode.characterPosition,
                     currentNode.characterKey === 'HARU' ? styles.soloSpriteLeft : styles.soloSpriteRight,
                   )}
-                  speaking={currentNode.type === 'DIALOGUE'}
+                  speaking={(isDialogue || isReaction) && isSpriteSpeaking}
                   reacting={isReaction}
                 />
               ) : null}
@@ -1117,18 +1312,19 @@ export default function QuackResponseTimed() {
           )}
 
           {isNarration ? (
-            <Pressable style={styles.narrationWrap} onPress={advance}>
-              <View style={styles.narrationCard}>
-                <View style={styles.narrationLocation}>
-                  <Ionicons name="location-outline" size={15} color="#B9F28E" />
-                  <Text style={styles.narrationLocationText}>{currentNode.title}</Text>
+            <Pressable style={rushStyles.narrationWrap} onPress={advanceNarration}>
+              <View style={rushStyles.narrationPage}>
+                <View style={rushStyles.narrationSpine} />
+                <View style={rushStyles.narrationHeaderRow}>
+                  <View style={rushStyles.narrationLocationChip}>
+                    <Ionicons name="location-outline" size={13} color="#F4E8FF" />
+                    <Text style={rushStyles.narrationLocationText} numberOfLines={1}>{currentNode.title}</Text>
+                  </View>
                 </View>
-                <View style={styles.narrationRule} />
-                <Text style={styles.narrationEyebrow}>YOUR STORY CONTINUES</Text>
-                <Text style={styles.narrationText} maxFontSizeMultiplier={1.08}>{typedNarration}</Text>
-                <View style={styles.continueRow}>
-                  <Text style={styles.continueText}>Tap to continue</Text>
-                  <Ionicons name="chevron-forward" size={18} color="#FFFFFF" />
+                <Text style={rushStyles.narrationBody} maxFontSizeMultiplier={1.08}>{typedNarration}</Text>
+                <View style={rushStyles.narrationFooterRow}>
+                  <Text style={rushStyles.narrationFooterText}>{narrationFinished ? 'Tap to continue' : 'Tap to reveal'}</Text>
+                  <Ionicons name={narrationFinished ? 'chevron-forward' : 'ellipsis-horizontal'} size={16} color="#F4E8FF" />
                 </View>
               </View>
             </Pressable>
@@ -1174,53 +1370,61 @@ export default function QuackResponseTimed() {
               <Text style={styles.endingEyebrow}>SCENARIO COMPLETE</Text>
               <Text style={styles.endingTitle}>{currentNode.title}</Text>
               <Text style={styles.endingText}>{currentNode.text}</Text>
-              <Pressable style={styles.primaryButton} onPress={advance}>
+              <Pressable style={styles.primaryButton} onPress={viewResults}>
                 <Text style={styles.primaryButtonText}>View my results</Text>
               </Pressable>
             </View>
           ) : (
-            <Pressable style={[styles.speechBubbleArea, styles.speechBubbleCentered]} onPress={advance}>
-              <View style={styles.speechBubble}>
-                <View style={[styles.speechTail, currentNode.characterKey === 'HARU' ? styles.speechTailLeft : styles.speechTailRight]} />
-                <View style={styles.speakerRow}>
-                  <View style={styles.speakerDot} />
-                  <Text style={styles.speakerName}>{currentNode.speaker}</Text>
+            // DIALOGUE and REACTION: fully automatic. No press handler — the
+            // bubble just displays what's already auto-playing.
+            <View style={[rushStyles.vnBubbleWrap, currentNode.characterKey === 'HARU' ? rushStyles.vnBubbleLeftAlign : rushStyles.vnBubbleRightAlign]}>
+              <View style={[rushStyles.vnBubble, { borderColor: speakerAccent }]}>
+                <View style={[rushStyles.vnBubbleTail, { borderTopColor: speakerAccent }, currentNode.characterKey === 'HARU' ? rushStyles.vnTailLeft : rushStyles.vnTailRight]} />
+                <View style={rushStyles.vnSpeakerRow}>
+                  <View style={[rushStyles.vnSpeakerDot, { backgroundColor: speakerAccent }]} />
+                  <Text style={[rushStyles.vnSpeakerName, { color: speakerAccent }]}>{currentNode.speaker}</Text>
                   {isReaction && (
-                    <View style={rushStyles.reactionTag}>
-                      <Text style={rushStyles.reactionTagText}>REACTING</Text>
+                    <View style={[rushStyles.reactionTag, { backgroundColor: `${speakerAccent}1F` }]}>
+                      <Text style={[rushStyles.reactionTagText, { color: speakerAccent }]}>REACTING</Text>
                     </View>
                   )}
-                  <Pressable
-                    hitSlop={10}
-                    style={rushStyles.audioButton}
-                    onPress={(event) => {
-                      event.stopPropagation();
-                      void playVoice(activeAudioKey);
-                    }}
-                  >
-                    <Ionicons
-                      name={playingAudioKey === activeAudioKey ? 'volume-high' : 'volume-medium-outline'}
-                      size={16}
-                      color="#8423D9"
-                    />
-                  </Pressable>
                 </View>
                 {Boolean(currentNode.japanese) && (
-                  <Text style={styles.dialogueJapanese} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.72} maxFontSizeMultiplier={1.1}>
+                  <Text style={rushStyles.vnJapanese} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.72} maxFontSizeMultiplier={1.1}>
                     {currentNode.japanese}
                   </Text>
                 )}
                 {Boolean(currentNode.romaji) && (
-                  <Text style={styles.dialogueRomaji} numberOfLines={2} maxFontSizeMultiplier={1.05}>{currentNode.romaji}</Text>
+                  <Text style={rushStyles.vnRomaji} numberOfLines={2} maxFontSizeMultiplier={1.05}>{currentNode.romaji}</Text>
                 )}
-                <View style={styles.continueRowDark}>
-                  <Text style={styles.continueTextDark}>{isReaction ? 'Tap to see why' : 'Tap to continue'}</Text>
-                  <Ionicons name="chevron-forward" size={18} color="#8423D9" />
+                <View style={rushStyles.vnFooterRow}>
+                  {isSpriteSpeaking ? (
+                    <SpeakingIndicator color={speakerAccent} />
+                  ) : (
+                    <Text style={[rushStyles.vnSettling, { color: speakerAccent }]}>···</Text>
+                  )}
                 </View>
               </View>
-            </Pressable>
+            </View>
           )}
         </Animated.View>
+
+        {/* Correct / incorrect flash + badge */}
+        {flashTier && (
+          <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+            <Animated.View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: flashTier === 'good' ? '#3FBE5A' : '#D4453F', opacity: flashOpacity },
+              ]}
+            />
+            <View style={rushStyles.flashBadgeWrap}>
+              <Animated.View style={[rushStyles.flashBadge, { transform: [{ scale: badgeScale }], backgroundColor: flashTier === 'good' ? '#2E9E48' : '#B8342F' }]}>
+                <Image source={flashIcons[flashTier]} style={rushStyles.flashBadgeIcon} resizeMode="contain" />
+              </Animated.View>
+            </View>
+          </View>
+        )}
       </SafeAreaView>
 
       {/* Exit confirmation */}
@@ -1257,12 +1461,30 @@ export default function QuackResponseTimed() {
         </View>
       </Modal>
 
+      {/* Random cultural-context pop-up */}
+      <Modal visible={culturalVisible} transparent animationType="fade" onRequestClose={() => undefined}>
+        <View style={styles.modalBackdrop}>
+          <View style={rushStyles.culturalCard}>
+            <View style={rushStyles.culturalIcon}>
+              <Ionicons name="sparkles" size={26} color="#2E9E48" />
+            </View>
+            <Text style={rushStyles.culturalEyebrow}>WHY THIS MATTERS IN JAPAN</Text>
+            <Text style={rushStyles.culturalText}>{culturalText}</Text>
+            <Pressable style={styles.primaryButton} onPress={dismissCultural}>
+              <Text style={styles.primaryButtonText}>Got it</Text>
+              <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       {/* Per-choice feedback pop-up: why good/bad + a better example */}
       <Modal visible={feedbackVisible} transparent animationType="fade" onRequestClose={() => undefined}>
         <View style={styles.modalBackdrop}>
-          <View style={styles.feedbackCard}>
+          <View style={rushStyles.feedbackCard}>
             {lastAnswer && (
               <>
+                <View style={[rushStyles.feedbackRibbon, { backgroundColor: evaluationTheme[lastAnswer.evaluation].color }]} />
                 <View style={[styles.feedbackIcon, { backgroundColor: `${evaluationTheme[lastAnswer.evaluation].color}18` }]}>
                   <Ionicons name={evaluationTheme[lastAnswer.evaluation].icon} size={34} color={evaluationTheme[lastAnswer.evaluation].color} />
                 </View>
@@ -1286,10 +1508,13 @@ export default function QuackResponseTimed() {
                 </View>
                 {lastAnswer.betterExample && (
                   <View style={rushStyles.exampleBox}>
-                    <Text style={rushStyles.exampleLabel}>A BETTER EXAMPLE</Text>
-                    <Text style={rushStyles.exampleJapanese}>{lastAnswer.betterExample.japanese}</Text>
-                    <Text style={rushStyles.exampleRomaji}>{lastAnswer.betterExample.romaji}</Text>
-                    <Text style={rushStyles.exampleNote}>{lastAnswer.betterExample.note}</Text>
+                    <View style={rushStyles.exampleQuoteBar} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={rushStyles.exampleLabel}>A BETTER EXAMPLE</Text>
+                      <Text style={rushStyles.exampleJapanese}>{lastAnswer.betterExample.japanese}</Text>
+                      <Text style={rushStyles.exampleRomaji}>{lastAnswer.betterExample.romaji}</Text>
+                      <Text style={rushStyles.exampleNote}>{lastAnswer.betterExample.note}</Text>
+                    </View>
                   </View>
                 )}
                 <Pressable style={styles.primaryButton} onPress={continueAfterFeedback}>
@@ -1420,18 +1645,168 @@ const rushStyles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 12,
   },
-  audioButton: {
-    marginLeft: 'auto',
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(132,35,217,0.1)',
+
+  // Narration — a bottom "storybook page" panel, distinct from the
+  // dialogue bubble: full width, a colored spine on the left edge, a
+  // location chip instead of a plain icon+label row.
+  narrationWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 14,
+    paddingBottom: 18,
   },
+  narrationPage: {
+    borderRadius: 22,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(28,15,46,0.92)',
+    paddingVertical: 18,
+    paddingLeft: 22,
+    paddingRight: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+  narrationSpine: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 6,
+    backgroundColor: '#8423D9',
+  },
+  narrationHeaderRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  narrationLocationChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    maxWidth: '100%',
+  },
+  narrationLocationText: {
+    color: '#F4E8FF',
+    fontSize: 11.5,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  narrationBody: {
+    color: '#FFFFFF',
+    fontSize: 15.5,
+    lineHeight: 23,
+  },
+  narrationFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 6,
+    marginTop: 12,
+  },
+  narrationFooterText: {
+    color: '#F4E8FF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  // Dialogue / reaction — a floating chat-style bubble, accent-colored per
+  // speaker, anchored toward the side the sprite stands on, with a live
+  // "speaking…" indicator instead of any manual controls.
+  vnBubbleWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 26,
+    paddingHorizontal: 20,
+  },
+  vnBubbleLeftAlign: { alignItems: 'flex-start' },
+  vnBubbleRightAlign: { alignItems: 'flex-end' },
+  vnBubble: {
+    maxWidth: '92%',
+    minWidth: '70%',
+    backgroundColor: 'rgba(255,255,255,0.98)',
+    borderRadius: 20,
+    borderWidth: 2,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  vnBubbleTail: {
+    position: 'absolute',
+    top: -10,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 9,
+    borderRightWidth: 9,
+    borderTopWidth: 10,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    transform: [{ rotate: '180deg' }],
+  },
+  vnTailLeft: { left: 26 },
+  vnTailRight: { right: 26 },
+  vnSpeakerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  vnSpeakerDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    marginRight: 7,
+  },
+  vnSpeakerName: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+  },
+  vnJapanese: {
+    fontSize: 19,
+    fontWeight: '700',
+    color: '#221033',
+    marginTop: 2,
+  },
+  vnRomaji: {
+    fontSize: 13.5,
+    color: '#6B5A78',
+    marginTop: 3,
+  },
+  vnFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 10,
+  },
+  vnSettling: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  speakingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  speakingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  speakingLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginLeft: 3,
+  },
+
   reactionTag: {
     marginLeft: 8,
-    backgroundColor: 'rgba(212,99,93,0.12)',
     borderRadius: 8,
     paddingHorizontal: 7,
     paddingVertical: 2,
@@ -1439,16 +1814,98 @@ const rushStyles = StyleSheet.create({
   reactionTagText: {
     fontSize: 9.5,
     fontWeight: '800',
-    color: '#B83B55',
     letterSpacing: 0.4,
   },
+
+  // Correct / incorrect flash overlay
+  flashBadgeWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  flashBadge: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  flashBadgeIcon: {
+    width: 46,
+    height: 46,
+    tintColor: '#FFFFFF',
+  },
+
+  // Cultural note pop-up
+  culturalCard: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    padding: 22,
+    alignItems: 'center',
+  },
+  culturalIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(46,158,72,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  culturalEyebrow: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    color: '#2E9E48',
+    marginBottom: 8,
+  },
+  culturalText: {
+    fontSize: 14.5,
+    lineHeight: 21,
+    color: '#3A2E48',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+
+  // Feedback pop-up redesign
+  feedbackCard: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingTop: 22,
+    paddingBottom: 22,
+    paddingHorizontal: 22,
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  feedbackRibbon: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 6,
+  },
   exampleBox: {
+    flexDirection: 'row',
     width: '100%',
     backgroundColor: '#F2ECFB',
     borderRadius: 14,
     padding: 14,
     marginTop: 4,
     marginBottom: 14,
+  },
+  exampleQuoteBar: {
+    width: 4,
+    borderRadius: 2,
+    backgroundColor: '#8423D9',
+    marginRight: 12,
   },
   exampleLabel: {
     fontSize: 11,
