@@ -1247,12 +1247,27 @@ export default StyleSheet.create({
   responseJourneyIntroCopy:{flex:1,paddingRight:12},responseJourneyKicker:{fontSize:8,fontWeight:'900',letterSpacing:1.05,color:'#65A936'},responseJourneyTitle:{marginTop:5,fontFamily:'Jua',fontSize:18,lineHeight:23,color:'#3E244B'},
   responseJourneyCounter:{width:53,height:53,borderRadius:18,backgroundColor:'#6E4BC6',alignItems:'center',justifyContent:'center',shadowColor:'#6E4BC6',shadowOpacity:.23,shadowRadius:8,shadowOffset:{width:0,height:4},elevation:3},responseJourneyCounterValue:{fontFamily:'Jua',fontSize:19,color:'#FFFFFF',lineHeight:21},responseJourneyCounterLabel:{fontSize:6,fontWeight:'900',letterSpacing:.8,color:'#EDE5FF'},
   responseTrailLead:{paddingHorizontal:24,paddingTop:24,paddingBottom:15,alignItems:'center'},responseTrailLeadKicker:{fontSize:9,fontWeight:'900',letterSpacing:1.25,color:'#65A936',textAlign:'center'},responseTrailLeadText:{maxWidth:410,marginTop:6,fontSize:11,lineHeight:17,color:'#786B7E',textAlign:'center'},
-  responseRoute:{position:'relative',paddingTop:7,paddingBottom:24},responseRouteLine:{position:'absolute',top:25,bottom:98,left:'50%',width:4,marginLeft:-2,borderRadius:8,backgroundColor:'#D7C6E5'},
-  responseStop:{position:'relative',width:'94%',alignSelf:'flex-start',marginBottom:25,paddingLeft:20},responseStopRight:{alignSelf:'flex-end',paddingLeft:0,paddingRight:20},
-  responseCheckpoint:{position:'absolute',left:1,top:23,zIndex:4,width:48,height:48,borderRadius:17,borderWidth:4,backgroundColor:'#6E4BC6',alignItems:'center',justifyContent:'center',shadowColor:'#432450',shadowOpacity:.22,shadowRadius:7,shadowOffset:{width:0,height:4},elevation:6},responseCheckpointRight:{right:1,left:'auto'},responseCheckpointLocked:{backgroundColor:'#9B929E'},responseCheckpointNumber:{position:'absolute',top:-16,fontSize:7,fontWeight:'900',color:'#4F335B',letterSpacing:.8},
-  responseChapter:{overflow:'hidden',borderRadius:27,backgroundColor:'#FFFFFF',borderWidth:1.5,borderColor:'#DDD0E5',shadowColor:'#3E204D',shadowOpacity:.14,shadowRadius:14,shadowOffset:{width:0,height:7},elevation:5},responseChapterRight:{},responseChapterLocked:{opacity:.88,borderColor:'#D8D1DA'},responseChapterPressed:{transform:[{scale:.985}],opacity:.94},
-  responseChapterArt:{height:150,overflow:'hidden',alignItems:'flex-end',justifyContent:'flex-end'},responseChapterHalo:{position:'absolute',right:-20,top:-50,width:185,height:185,borderRadius:93},responseChapterKanji:{position:'absolute',left:22,top:8,fontFamily:'Jua',fontSize:102},responseChapterMascot:{width:164,height:158,marginRight:18},responseChapterMascotLocked:{opacity:.42},responsePageTab:{position:'absolute',left:14,top:14,borderRadius:99,paddingHorizontal:11,paddingVertical:7},responsePageTabText:{fontSize:7,fontWeight:'900',letterSpacing:.8,color:'#FFFFFF'},
-  responseChapterCopy:{padding:17},responseChapterEyebrow:{fontSize:8,fontWeight:'900',letterSpacing:1},responseChapterTitle:{marginTop:4,fontFamily:'Jua',fontSize:25,color:'#3B2447'},responseChapterSubtitle:{marginTop:1,fontSize:10,fontWeight:'800',color:'#6E4BC6'},responseChapterDescription:{marginTop:7,minHeight:30,fontSize:9.5,lineHeight:15,color:'#786D7D'},responseMuted:{color:'#8F8792'},
-  responseChapterFooter:{marginTop:13,flexDirection:'row',alignItems:'center',gap:9},responseStatePill:{flex:1,minHeight:39,borderRadius:13,paddingHorizontal:11,flexDirection:'row',alignItems:'center',gap:7},responseStateText:{flex:1,fontSize:7,fontWeight:'900',letterSpacing:.55},responseChapterAction:{width:42,height:42,borderRadius:14,alignItems:'center',justifyContent:'center'},
-  responseDestination:{marginTop:1,marginHorizontal:18,borderRadius:24,backgroundColor:'#432353',padding:17,flexDirection:'row',alignItems:'center',borderWidth:1,borderColor:'#70447F',shadowColor:'#32183C',shadowOpacity:.2,shadowRadius:12,shadowOffset:{width:0,height:6},elevation:4},responseDestinationSeal:{width:47,height:47,borderRadius:16,backgroundColor:'#6E4BC6',alignItems:'center',justifyContent:'center',marginRight:12},responseDestinationCopy:{flex:1},responseDestinationKicker:{fontSize:7,fontWeight:'900',letterSpacing:1,color:'#BEE39E'},responseDestinationTitle:{marginTop:3,fontFamily:'Jua',fontSize:17,color:'#FFFFFF'},responseDestinationText:{marginTop:3,fontSize:8.5,lineHeight:13,color:'#DACFE0'},
+  responseMuted:{color:'#8F8792'},
+
+  // --- QuackResponse "level map" trail (winding path + level nodes) ---
+  responseRoute:{position:'relative',width:'100%'},
+  mapTrailSvg:{position:'absolute',left:0,top:0},
+
+  mapNodeWrap:{position:'absolute',width:158,alignItems:'center'},
+
+  mapCurrentFlag:{position:'absolute',top:-30,flexDirection:'row',alignItems:'center',gap:5,paddingHorizontal:10,paddingVertical:6,borderRadius:99,shadowColor:'#000',shadowOpacity:.18,shadowRadius:5,shadowOffset:{width:0,height:3},elevation:4,zIndex:6},
+  mapCurrentFlagText:{fontSize:8,fontWeight:'900',letterSpacing:.6,color:'#FFFFFF'},
+
+  mapNode:{width:72,height:72,borderRadius:26,borderWidth:4,alignItems:'center',justifyContent:'center',backgroundColor:'#FFFFFF',shadowColor:'#3E204D',shadowOpacity:.2,shadowRadius:10,shadowOffset:{width:0,height:6},elevation:6,zIndex:5},
+  mapNodePressed:{transform:[{scale:.94}]},
+  mapNodeMascot:{width:56,height:56},
+  mapNodeMascotLocked:{opacity:.4},
+  mapNodeBadge:{position:'absolute',bottom:-8,minWidth:26,height:26,borderRadius:13,paddingHorizontal:6,alignItems:'center',justifyContent:'center',borderWidth:3,borderColor:'#FFFFFF',shadowColor:'#000',shadowOpacity:.15,shadowRadius:3,shadowOffset:{width:0,height:2},elevation:3},
+  mapNodeBadgeText:{fontSize:10,fontWeight:'900',color:'#FFFFFF'},
+
+  mapNodeLabel:{marginTop:16,width:158,alignItems:'center'},
+  mapNodeLabelKicker:{fontSize:8,fontWeight:'900',letterSpacing:1},
+  mapNodeLabelTitle:{marginTop:3,fontFamily:'Jua',fontSize:17,color:'#3B2447',textAlign:'center'},
+  mapNodeLabelSubtitle:{marginTop:3,fontSize:9,lineHeight:13,color:'#786D7D',textAlign:'center',maxWidth:150},
+  responseDestination:{marginTop:22,marginHorizontal:18,borderRadius:24,backgroundColor:'#432353',padding:17,flexDirection:'row',alignItems:'center',borderWidth:1,borderColor:'#70447F',shadowColor:'#32183C',shadowOpacity:.2,shadowRadius:12,shadowOffset:{width:0,height:6},elevation:4},responseDestinationSeal:{width:47,height:47,borderRadius:16,backgroundColor:'#6E4BC6',alignItems:'center',justifyContent:'center',marginRight:12},responseDestinationCopy:{flex:1},responseDestinationKicker:{fontSize:7,fontWeight:'900',letterSpacing:1,color:'#BEE39E'},responseDestinationTitle:{marginTop:3,fontFamily:'Jua',fontSize:17,color:'#FFFFFF'},responseDestinationText:{marginTop:3,fontSize:8.5,lineHeight:13,color:'#DACFE0'},
 });
