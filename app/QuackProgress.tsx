@@ -36,6 +36,7 @@ export default function QuackProgress() {
   const [expressionAttempts, setExpressionAttempts] = useState(0);
   const [politenessBest, setPolitenessBest] = useState(0);
   const [responseRushBest, setResponseRushBest] = useState(0);
+  const [dialogueRelayBest, setDialogueRelayBest] = useState(0);
   const [speakingSummary, setSpeakingSummary] = useState<SpeakingSummary>({ sessions: 0, seconds: 0 });
   const [replyCoachSummary, setReplyCoachSummary] = useState<ReplyCoachSummary>({ completedChapters: 0, attempts: 0, bestScore: 0, averageScore: 0 });
   const [expandedGames, setExpandedGames] = useState<Record<string, boolean>>({});
@@ -72,6 +73,16 @@ export default function QuackProgress() {
         setResponseRushBest((current) => Math.max(current, percentage));
       })
       .catch((error) => console.log('Response Rush score fetch error:', error.message));
+    fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(email)}&game=QUACKRESPONSE_RELAY`)
+      .then((response) => response.status === 204 ? null : response.json())
+      .then((record) => {
+        if (!record) return;
+        const percentage = record.maxScore > 0
+          ? Math.round(((record.score || 0) / record.maxScore) * 100)
+          : (record.score || 0);
+        setDialogueRelayBest(percentage);
+      })
+      .catch((error) => console.log('Dialogue Relay score fetch error:', error.message));
     fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(email)}&game=QUACKAMOLE`)
       .then((response) => response.status === 204 ? null : response.json())
       .then((record) => record && setQuackamoleBest((current) => Math.max(current, record.score || 0)))
@@ -164,7 +175,7 @@ export default function QuackProgress() {
     return active.length ? Math.round(active.reduce((total, value) => total + value, 0) / active.length) : 0;
   };
   const situateScores = [masteryFor('Recognition'), masteryFor('Expression Match'), masteryFor('Politeness')];
-  const responseScores = [masteryFor('Reply Coach'), responseRushBest, 0];
+  const responseScores = [masteryFor('Reply Coach'), responseRushBest, dialogueRelayBest];
   const gameScores = [
     { key: 'quacktalk', name: 'QuackTalk', caption: `${speakingSummary.sessions} speaking session${speakingSummary.sessions === 1 ? '' : 's'}`, score: masteryFor('QuackTalk'), color: '#7552C8', tint: '#F1ECFC', icon: 'mic-outline' },
     { key: 'quacksituate', name: 'QuackSituate', caption: 'Real-world communication', score: activeAverage(situateScores), color: '#65A936', tint: '#EFF8E8', icon: 'navigate-outline', children: [

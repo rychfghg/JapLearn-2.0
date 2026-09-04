@@ -1,436 +1,98 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ImageBackground,
-  Image,
-  Animated,
-  Modal,
-} from 'react-native';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
 import { router } from 'expo-router';
-import BackIcon from '../assets/svg/back-icon.svg';
-import AhiruMissionExit from '../components/AhiruMissionExit';
-import styles from '../styles/stylesQuackResponseMultiStep';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { Image, ImageBackground, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AuthContext } from '../context/AuthContext';
+import expoconfig from '../expoconfig';
+import { RELAY_SCENES, RELAY_TOTAL_RESPONSES, RelayChoice } from './dialogueRelayContent';
 
-import classroomBg from '../assets/img/background/classroom a st2 day.png';
-
-import sumiSmile from '../assets/img/Sumi_PoseB_WinterUni_Smile.png';
-import sumiOpen from '../assets/img/Sumi_PoseB_WinterUni_Open.png';
-import sumiFrown from '../assets/img/Sumi_PoseB_WinterUni_Frown.png';
-import sumiClosedSmile from '../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png';
-
-import boyNeutral from '../assets/img/Sprite Male Dark Hair Neu01.png';
-import boySmile from '../assets/img/Sprite Male Dark Hair Smi01.png';
-import boyTalk from '../assets/img/Sprite Male Dark Hair Ann01.png';
-import boySad from '../assets/img/Sprite Male Dark Hair Sad01.png';
-
-const story = [
-  {
-    kind: 'narration',
-    speaker: 'Narration',
-    text: 'Morning sunlight fills the classroom. Students are chatting quietly before class begins.',
-    focus: 'both',
-  },
-  {
-    kind: 'dialogue',
-    speaker: 'Yuki',
-    jp: 'おはよう！今日は早いね。',
-    romaji: 'Ohayou! Kyou wa hayai ne.',
-    english: 'Good morning! You’re early today.',
-    focus: 'sumi',
-    sumi: sumiOpen,
-    boy: boyNeutral,
-  },
-  {
-    kind: 'choice',
-    speaker: 'Your Response',
-    prompt: 'How will you respond to Yuki?',
-    focus: 'both',
-    choices: [
-      {
-        jp: 'おはよう！',
-        romaji: 'Ohayou!',
-        correct: true,
-        intent: 'Greeting',
-        replySpeaker: 'Yuki',
-        replyJP: '元気そうだね！',
-        replyRomaji: 'Genki sou da ne!',
-        replyEnglish: 'You seem energetic!',
-      },
-      {
-        jp: '昨日あまり寝てない。',
-        romaji: 'Kinou amari nete nai.',
-        correct: true,
-        intent: 'Sharing condition',
-        replySpeaker: 'Yuki',
-        replyJP: '大丈夫？無理しないでね。',
-        replyRomaji: 'Daijoubu? Muri shinai de ne.',
-        replyEnglish: 'Are you okay? Don’t push yourself.',
-      },
-      {
-        jp: 'ちょっと疲れてる。',
-        romaji: 'Chotto tsukareteru.',
-        correct: true,
-        intent: 'Sharing feeling',
-        replySpeaker: 'Yuki',
-        replyJP: 'そっか。今日はゆっくりしよう。',
-        replyRomaji: 'Sokka. Kyou wa yukkuri shiyou.',
-        replyEnglish: 'I see. Let’s take it easy today.',
-      },
-      {
-        jp: '・・・',
-        romaji: '...',
-        correct: false,
-        intent: 'No response',
-        replySpeaker: 'Yuki',
-        replyJP: 'まだ眠いの？',
-        replyRomaji: 'Mada nemui no?',
-        replyEnglish: 'Still sleepy?',
-      },
-    ],
-  },
-  {
-    kind: 'narration',
-    speaker: 'Narration',
-    text: 'The classroom door slides open. Professor Saito enters while holding attendance papers.',
-    focus: 'boy',
-  },
-  {
-    kind: 'dialogue',
-    speaker: 'Professor Saito',
-    jp: 'みなさん、おはようございます。',
-    romaji: 'Minasan, ohayou gozaimasu.',
-    english: 'Good morning, everyone.',
-    focus: 'boy',
-    sumi: sumiSmile,
-    boy: boyTalk,
-  },
-  {
-    kind: 'dialogue',
-    speaker: 'Professor Saito',
-    jp: '「ありがとうございます」はどんな時に使いますか？',
-    romaji: '“Arigatou gozaimasu” wa donna toki ni tsukaimasu ka?',
-    english: 'When do we use “arigatou gozaimasu”?',
-    focus: 'boy',
-    sumi: sumiSmile,
-    boy: boyTalk,
-  },
-  {
-    kind: 'choice',
-    speaker: 'Your Response',
-    prompt: 'Answer Professor Saito’s question.',
-    focus: 'both',
-    choices: [
-      {
-        jp: '感謝するとき。',
-        romaji: 'Kansha suru toki.',
-        correct: true,
-        intent: 'Thanking',
-        replySpeaker: 'Professor Saito',
-        replyJP: '正解です。とても自然な答えですね。',
-        replyRomaji: 'Seikai desu. Totemo shizen na kotae desu ne.',
-        replyEnglish: 'Correct. That is a very natural answer.',
-      },
-      {
-        jp: '謝るとき。',
-        romaji: 'Ayamaru toki.',
-        correct: false,
-        intent: 'Apologizing',
-        replySpeaker: 'Professor Saito',
-        replyJP: 'それは「すみません」ですね。',
-        replyRomaji: 'Sore wa “sumimasen” desu ne.',
-        replyEnglish: 'That would be “sumimasen.”',
-      },
-      {
-        jp: '別れるとき。',
-        romaji: 'Wakareru toki.',
-        correct: false,
-        intent: 'Parting',
-        replySpeaker: 'Professor Saito',
-        replyJP: '別れる時は「さようなら」を使います。',
-        replyRomaji: 'Wakareru toki wa “sayounara” wo tsukaimasu.',
-        replyEnglish: 'When parting, we use “sayounara.”',
-      },
-      {
-        jp: '・・・',
-        romaji: '...',
-        correct: false,
-        intent: 'No response',
-        replySpeaker: 'Professor Saito',
-        replyJP: '答えがありませんね。次は頑張りましょう。',
-        replyRomaji: 'Kotae ga arimasen ne. Tsugi wa ganbarimashou.',
-        replyEnglish: 'No answer. Let’s try again next time.',
-      },
-    ],
-  },
-  {
-    kind: 'dialogue',
-    speaker: 'Yuki',
-    jp: 'あとで話そうね。',
-    romaji: 'Ato de hanasou ne.',
-    english: 'Let’s talk later.',
-    focus: 'sumi',
-    sumi: sumiClosedSmile,
-    boy: boyNeutral,
-  },
-  {
-    kind: 'dialogue',
-    speaker: 'Professor Saito',
-    jp: 'では、授業を始めます。',
-    romaji: 'Dewa, jugyou wo hajimemasu.',
-    english: 'Now, let’s begin class.',
-    focus: 'boy',
-    sumi: sumiSmile,
-    boy: boyTalk,
-  },
-];
-
-const QuackResponseMultiStep = () => {
-  const [index, setIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [mistakes, setMistakes] = useState(0);
-  const [history, setHistory] = useState<any[]>([]);
-  const [reply, setReply] = useState<any>(null);
-  const [finished, setFinished] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
-
-  const panelAnim = useRef(new Animated.Value(0)).current;
-  const zoomAnim = useRef(new Animated.Value(1)).current;
-  const sumiFloat = useRef(new Animated.Value(0)).current;
-  const boyFloat = useRef(new Animated.Value(0)).current;
-
-  const current = story[index];
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(sumiFloat, { toValue: -7, duration: 850, useNativeDriver: true }),
-        Animated.timing(sumiFloat, { toValue: 0, duration: 850, useNativeDriver: true }),
-      ])
-    ).start();
-
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(boyFloat, { toValue: -5, duration: 900, useNativeDriver: true }),
-        Animated.timing(boyFloat, { toValue: 0, duration: 900, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-
-  useEffect(() => {
-    panelAnim.setValue(0);
-
-    Animated.timing(panelAnim, {
-      toValue: 1,
-      duration: 280,
-      useNativeDriver: true,
-    }).start();
-
-    Animated.spring(zoomAnim, {
-      toValue: current.focus === 'both' ? 1 : 1.12,
-      useNativeDriver: true,
-    }).start();
-  }, [index]);
-
-  const goNext = () => {
-    setReply(null);
-
-    if (index >= story.length - 1) {
-      setFinished(true);
-      return;
-    }
-
-    setIndex((prev) => prev + 1);
-  };
-
-  const chooseAnswer = (choice: any) => {
-    setReply(choice);
-
-    setHistory((prev) => [
-      ...prev,
-      {
-        step: index,
-        answer: choice.jp,
-        intent: choice.intent,
-        correct: choice.correct,
-      },
-    ]);
-
-    if (choice.correct) {
-      setScore((prev) => prev + 1);
-    } else {
-      setMistakes((prev) => prev + 1);
-    }
-  };
-
-  const backToMenu = () => {
-    setFinished(false);
-    setIsExiting(true);
-  };
-
-  const restart = () => {
-    setFinished(false);
-    setIndex(0);
-    setScore(0);
-    setMistakes(0);
-    setHistory([]);
-    setReply(null);
-  };
-
-  const boySprite =
-    reply && reply.correct ? boySmile :
-    reply && !reply.correct ? boySad :
-    current.boy || boyNeutral;
-
-  const sumiSprite =
-    reply && reply.correct ? sumiClosedSmile :
-    reply && !reply.correct ? sumiFrown :
-    current.sumi || sumiSmile;
-
-  if (isExiting) return <AhiruMissionExit color="#D84F83" tint="#FCE7EF" icon="git-branch-outline" eyebrow="CONVERSATION SAVED" title="You kept it flowing!" message="You connected several responses and carried a Japanese conversation through each step." footer="Each connected reply builds real conversation confidence." mascot={require('../assets/thinking.png')} onComplete={() => router.push({ pathname:'/QuackResponse', params:{skipLoading:'1'} })} />;
-
-  return (
-    <ImageBackground source={classroomBg} style={styles.background} resizeMode="cover">
-      <View style={styles.overlay} />
-
-      <View style={styles.header}>
-        <TouchableOpacity onPress={backToMenu}>
-          <View style={styles.backButtonContainer}>
-            <BackIcon width={22} height={22} fill="white" />
-          </View>
-        </TouchableOpacity>
-
-        <View style={styles.headerTitleBox}>
-          <Text style={styles.headerMini}>2.3 MULTI-STEP MODE</Text>
-          <Text style={styles.headerTitle}>Conversation Story</Text>
-        </View>
-
-        <Image source={require('../assets/talk.png')} style={styles.headerDuck} />
-      </View>
-
-      <View style={styles.hud}>
-        <View style={styles.hudCard}>
-          <Text style={styles.hudLabel}>Progress</Text>
-          <Text style={styles.hudValue}>{index + 1}/{story.length}</Text>
-        </View>
-
-        <View style={styles.hudCard}>
-          <Text style={styles.hudLabel}>Correct</Text>
-          <Text style={styles.hudValue}>{score}</Text>
-        </View>
-
-        <View style={styles.hudCard}>
-          <Text style={styles.hudLabel}>Mistakes</Text>
-          <Text style={styles.hudValue}>{mistakes}</Text>
-        </View>
-      </View>
-
-      <Animated.View style={[styles.characterScene, { transform: [{ scale: zoomAnim }] }]}>
-        <Animated.Image
-          source={boySprite}
-          style={[styles.boySprite, { transform: [{ translateY: boyFloat }] }]}
-          fadeDuration={0}
-        />
-
-        <Animated.Image
-          source={sumiSprite}
-          style={[styles.sumiSprite, { transform: [{ translateY: sumiFloat }] }]}
-          fadeDuration={0}
-        />
-      </Animated.View>
-
-      {!reply && current.kind !== 'choice' && (
-        <Animated.View
-          style={[
-            styles.dialogueBox,
-            {
-              opacity: panelAnim,
-              transform: [
-                {
-                  translateY: panelAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [35, 0],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <Text style={styles.speaker}>{current.speaker}</Text>
-
-          {current.text && <Text style={styles.narration}>{current.text}</Text>}
-
-          {current.jp && (
-            <>
-              <Text style={styles.jp}>{current.jp}</Text>
-              <Text style={styles.romaji}>{current.romaji}</Text>
-              <Text style={styles.english}>{current.english}</Text>
-            </>
-          )}
-
-          <TouchableOpacity style={styles.nextButton} onPress={goNext}>
-            <Text style={styles.nextButtonText}>Continue</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      )}
-
-      {!reply && current.kind === 'choice' && (
-        <View style={styles.choiceContainer}>
-          <Text style={styles.choiceTitle}>{current.prompt}</Text>
-
-          {current.choices.map((choice: any) => (
-            <TouchableOpacity
-              key={choice.jp}
-              style={styles.choiceButton}
-              activeOpacity={0.85}
-              onPress={() => chooseAnswer(choice)}
-            >
-              <Text style={styles.choiceJP}>{choice.jp}</Text>
-              <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-
-      {reply && (
-        <View style={styles.replyContainer}>
-          <Text style={styles.replySpeaker}>{reply.replySpeaker}</Text>
-          <Text style={styles.replyJP}>{reply.replyJP}</Text>
-          <Text style={styles.replyRomaji}>{reply.replyRomaji}</Text>
-          <Text style={styles.replyEnglish}>{reply.replyEnglish}</Text>
-
-          <TouchableOpacity style={styles.nextButton} onPress={goNext}>
-            <Text style={styles.nextButtonText}>Continue</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <Modal visible={finished} transparent animationType="fade" onRequestClose={() => setFinished(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <TouchableOpacity style={styles.closeButton} onPress={backToMenu}>
-              <Text style={styles.closeText}>X</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.resultTitle}>Story Complete!</Text>
-            <Text style={styles.resultScore}>Correct Responses: {score}</Text>
-            <Text style={styles.resultSub}>Mistakes: {mistakes}</Text>
-            <Text style={styles.resultSub}>Interactions Finished: {history.length}</Text>
-
-            <TouchableOpacity style={styles.finishButton} onPress={restart}>
-              <Text style={styles.finishText}>Retry Story</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.finishButton} onPress={backToMenu}>
-              <Text style={styles.finishText}>Back to Menu</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </ImageBackground>
-  );
+const sumi = {
+  idle: require('../assets/img/Sumi_PoseB_WinterUni_Smile.png'), talk: require('../assets/img/Sumi_PoseB_WinterUni_Open.png'),
+  happy: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png'), sad: require('../assets/img/Sumi_PoseB_WinterUni_Frown.png'),
 };
+const haru = {
+  idle: require('../assets/img/Sprite Male Dark Hair Neu01.png'), talk: require('../assets/img/Sprite Male Dark Hair Ann01.png'),
+  happy: require('../assets/img/Sprite Male Dark Hair Smi01.png'), sad: require('../assets/img/Sprite Male Dark Hair Sad01.png'),
+};
+const MUSIC = require('../assets/audio/sfx/quiz.mp3');
+const CORRECT = require('../assets/audio/sfx/correct_sfx.mp3');
+const WRONG = require('../assets/audio/sfx/incorrect_sfx.mp3');
+const BONUS_AT = 20;
+const BONUS_POINTS = 5;
+type Phase = 'tutorial'|'narration'|'sumi'|'haru'|'choice'|'feedback'|'bonusIntro'|'bonus'|'finished';
+type Answer = { sceneId:string; questionIndex:number; choiceId:string; correct:boolean };
+type Save = { version:2; sceneIndex:number; questionIndex:number; answers:Answer[]; bonusPromptSeen:boolean; bonusEarned:boolean };
 
-export default QuackResponseMultiStep;
+export default function DialogueRelay() {
+  const { user } = useContext(AuthContext);
+  const [phase,setPhase]=useState<Phase>('tutorial');
+  const [sceneIndex,setSceneIndex]=useState(0); const [questionIndex,setQuestionIndex]=useState(0);
+  const [answers,setAnswers]=useState<Answer[]>([]); const [selected,setSelected]=useState<RelayChoice|null>(null);
+  const [bonusPromptSeen,setBonusPromptSeen]=useState(false); const [bonusEarned,setBonusEarned]=useState(false);
+  const [recording,setRecording]=useState<Audio.Recording|null>(null); const [recordingUri,setRecordingUri]=useState<string|null>(null);
+  const [recordingStatus,setRecordingStatus]=useState('Tap the microphone when you are ready.');
+  const [exitVisible,setExitVisible]=useState(false); const [guideVisible,setGuideVisible]=useState(false);
+  const music=useRef<Audio.Sound|null>(null); const effect=useRef<Audio.Sound|null>(null);
+  const account=user?.email||'guest'; const saveKey=`dialogue_relay_v2:${account}`;
+  const scene=RELAY_SCENES[sceneIndex]; const current=scene.questions[questionIndex];
+  const correct=answers.filter(a=>a.correct).length; const score=correct+(bonusEarned?BONUS_POINTS:0);
+
+  useEffect(()=>{ let live=true; (async()=>{try{const made=await Audio.Sound.createAsync(MUSIC,{shouldPlay:true,isLooping:true,volume:.15}); if(live)music.current=made.sound;else await made.sound.unloadAsync();}catch{}})(); return()=>{live=false;void recording?.stopAndUnloadAsync().catch(()=>{});void music.current?.unloadAsync().catch(()=>{});void effect.current?.unloadAsync().catch(()=>{});};},[]);
+  useEffect(()=>{(async()=>{const raw=await AsyncStorage.getItem(saveKey);if(!raw)return;try{const x:Save=JSON.parse(raw);if(x.version!==2||x.answers.length>=RELAY_TOTAL_RESPONSES)return;setSceneIndex(x.sceneIndex);setQuestionIndex(x.questionIndex);setAnswers(x.answers);setBonusPromptSeen(x.bonusPromptSeen);setBonusEarned(x.bonusEarned);}catch{await AsyncStorage.removeItem(saveKey);}})();},[saveKey]);
+
+  const persist=(over:Partial<Save>={})=>AsyncStorage.setItem(saveKey,JSON.stringify({version:2,sceneIndex,questionIndex,answers,bonusPromptSeen,bonusEarned,...over}));
+  const sfx=async(src:any)=>{try{await effect.current?.unloadAsync();effect.current=(await Audio.Sound.createAsync(src,{shouldPlay:true,volume:.75})).sound;}catch{}};
+  const advance=async(over:Partial<Save>={})=>{
+    if(questionIndex+1<scene.questions.length){setQuestionIndex(questionIndex+1);setPhase('sumi');await persist({questionIndex:questionIndex+1,...over});return;}
+    if(sceneIndex+1<RELAY_SCENES.length){setSceneIndex(sceneIndex+1);setQuestionIndex(0);setPhase('narration');await persist({sceneIndex:sceneIndex+1,questionIndex:0,...over});return;}
+    setPhase('finished');await AsyncStorage.removeItem(saveKey);void sendScore(over.bonusEarned ?? bonusEarned);
+  };
+  const choose=(c:RelayChoice)=>{if(phase!=='choice')return;const next=[...answers,{sceneId:scene.id,questionIndex,choiceId:c.id,correct:c.correct}];setAnswers(next);setSelected(c);setPhase('feedback');void sfx(c.correct?CORRECT:WRONG);void persist({answers:next});};
+  const afterFeedback=()=>{setSelected(null);if(answers.length===BONUS_AT&&!bonusPromptSeen){setBonusPromptSeen(true);setPhase('bonusIntro');void persist({bonusPromptSeen:true});}else void advance();};
+  const sendScore=async(hasBonus=bonusEarned)=>{if(!user?.email)return;const right=answers.filter(a=>a.correct).length;const n=right+(hasBonus?BONUS_POINTS:0);try{await fetch(`${expoconfig.API_URL}/api/scores/high-score`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email,game:'QUACKRESPONSE_RELAY',mode:'DIALOGUE_RELAY',score:n,maxScore:30,correctAnswers:right,totalQuestions:25,completed:true,date:new Date().toISOString()})});}catch{}};
+  const startRecording=async()=>{try{const p=await Audio.requestPermissionsAsync();if(!p.granted){setRecordingStatus('Microphone permission is needed for the spoken bonus.');return;}await Audio.setAudioModeAsync({allowsRecordingIOS:true,playsInSilentModeIOS:true});const r=new Audio.Recording();await r.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);await r.startAsync();setRecording(r);setRecordingUri(null);setRecordingStatus('Listening… Speak naturally, then tap stop.');}catch{setRecordingStatus('Recording could not start. Check microphone permission and try again.');}};
+  const stopRecording=async()=>{if(!recording)return;try{await recording.stopAndUnloadAsync();const uri=recording.getURI();setRecording(null);setRecordingUri(uri);setRecordingStatus(uri?'Recorded. Listen once, then submit your attempt.':'No recording was saved. Please try again.');await Audio.setAudioModeAsync({allowsRecordingIOS:false,playsInSilentModeIOS:true});}catch{setRecording(null);setRecordingStatus('The recording stopped unexpectedly. Please try again.');}};
+  const playback=async()=>{if(!recordingUri)return;try{const x=await Audio.Sound.createAsync({uri:recordingUri},{shouldPlay:true});x.sound.setOnPlaybackStatusUpdate(st=>{if(st.isLoaded&&st.didJustFinish)void x.sound.unloadAsync();});}catch{setRecordingStatus('Playback is unavailable, but you can record again.');}};
+  const finishBonus=()=>{if(!recordingUri)return;setBonusEarned(true);void advance({bonusEarned:true});};
+  const restart=async()=>{await AsyncStorage.removeItem(saveKey);setSceneIndex(0);setQuestionIndex(0);setAnswers([]);setSelected(null);setBonusPromptSeen(false);setBonusEarned(false);setRecordingUri(null);setPhase('tutorial');};
+  const nextDialogue=()=>setPhase(phase==='narration'?'sumi':phase==='sumi'?'haru':'choice');
+  const sumiImage=phase==='sumi'?sumi.talk:selected?(selected.correct?sumi.happy:sumi.sad):sumi.idle;
+  const haruImage=phase==='haru'?haru.talk:selected?(selected.correct?haru.happy:haru.sad):haru.idle;
+
+  return <SafeAreaView style={s.safe}><ImageBackground source={scene.background} style={s.bg} imageStyle={s.bgImage}>
+    <View style={s.tint}/><View style={s.header}><TouchableOpacity style={s.round} onPress={()=>setExitVisible(true)}><Ionicons name="arrow-back" size={23} color="#3b2058"/></TouchableOpacity><View style={{flex:1}}><Text style={s.eyebrow}>QUACKRESPONSE</Text><Text style={s.title}>Dialogue Relay</Text></View><TouchableOpacity style={s.guide} onPress={()=>setGuideVisible(true)}><Ionicons name="map-outline" size={18} color="#fff"/><Text style={s.guideText}>{answers.length}/25</Text></TouchableOpacity></View>
+    <View style={s.track}><View style={[s.fill,{width:`${answers.length/RELAY_TOTAL_RESPONSES*100}%`}]} /></View>
+    <View style={s.place}><Ionicons name="location" size={15} color="#65a62f"/><Text style={s.placeText}>{sceneIndex+1}/10 · {scene.place}</Text><Text style={s.score}>{score} pts</Text></View>
+    <View style={s.stage}><Character name="SUMI" source={sumiImage} imageStyle={s.sumi}/><Character name="HARU" source={haruImage} imageStyle={s.haru}/></View>
+    <View style={s.panel}>
+      {phase==='tutorial'&&<Tutorial onStart={()=>setPhase('narration')}/>} 
+      {phase==='narration'&&<Narration scene={scene} onNext={nextDialogue}/>} 
+      {(phase==='sumi'||phase==='haru')&&<Dialogue name={phase==='sumi'?'SUMI':'HARU'} text={phase==='sumi'?scene.sumi:scene.haru} onNext={nextDialogue}/>} 
+      {phase==='choice'&&<Choices question={current.prompt} coach={current.coach} choices={current.choices} choose={choose}/>} 
+      {phase==='bonus'&&<Bonus recording={recording} uri={recordingUri} status={recordingStatus} start={startRecording} stop={stopRecording} play={playback} submit={finishBonus}/>} 
+    </View>
+    <Feedback visible={phase==='feedback'} choice={selected} next={afterFeedback}/><BonusIntro visible={phase==='bonusIntro'} start={()=>setPhase('bonus')}/><Finish visible={phase==='finished'} correct={correct} score={score} bonus={bonusEarned} replay={restart} exit={()=>router.replace('/QuackResponse')}/><Guide visible={guideVisible} answers={answers} score={score} close={()=>setGuideVisible(false)}/><ExitPopup visible={exitVisible} cancel={()=>setExitVisible(false)} leave={async()=>{await persist();router.replace('/QuackResponse');}}/>
+  </ImageBackground></SafeAreaView>;
+}
+
+function Character({name,source,imageStyle}:any){return <View style={s.character}><Image source={source} style={imageStyle} resizeMode="contain"/><View style={s.name}><Text style={s.nameText}>{name}</Text></View></View>}
+function Button({label,onPress,secondary=false,disabled=false}:any){return <TouchableOpacity disabled={disabled} style={[secondary?s.secondary:s.primary,disabled&&s.disabled]} onPress={onPress}><Text style={secondary?s.secondaryText:s.primaryText}>{label}</Text>{!secondary&&<Ionicons name="arrow-forward" size={19} color="#fff"/>}</TouchableOpacity>}
+function Tutorial({onStart}:any){return <ScrollView showsVerticalScrollIndicator={false}><Text style={s.kicker}>CULTURE IN CONTEXT</Text><Text style={s.panelTitle}>Pass the meaning forward.</Text><Text style={s.body}>Follow Sumi and Haru through ten practical situations in Japan. There is no timer—observe, think, and choose naturally.</Text><View style={s.steps}><Step icon="compass-outline" title="Enter the scene" text="Narration explains where you are and what is happening."/><Step icon="people-outline" title="Follow both speakers" text="Sumi and Haru establish the exchange before your turn."/><Step icon="git-branch-outline" title="Choose and learn" text="Each choice gets a clear etiquette explanation and useful model."/><Step icon="mic-outline" title="Unlock a spoken bonus" text="After response 20, record one practical clarification phrase."/></View><Button label="BEGIN THE RELAY" onPress={onStart}/></ScrollView>}
+function Step({icon,title,text}:any){return <View style={s.step}><View style={s.stepIcon}><Ionicons name={icon} size={20} color="#7c2ce2"/></View><View style={{flex:1}}><Text style={s.stepTitle}>{title}</Text><Text style={s.stepText}>{text}</Text></View></View>}
+function Narration({scene,onNext}:any){return <View><Text style={s.kicker}>SCENE BRIEFING</Text><Text style={s.panelTitle}>{scene.title}</Text><Text style={s.body}>{scene.narration}</Text><View style={s.insight}><Ionicons name="sparkles" size={20} color="#68a933"/><View style={{flex:1}}><Text style={s.insightTitle}>Etiquette lens</Text><Text style={s.insightText}>{scene.etiquette}</Text></View></View><Button label="MEET SUMI AND HARU" onPress={onNext}/></View>}
+function Dialogue({name,text,onNext}:any){return <View><Text style={s.kicker}>{name} SAYS</Text><Text style={s.jp}>{text}</Text><Text style={s.body}>Follow the exchange. The relay becomes yours after both perspectives are clear.</Text><Button label={name==='SUMI'?'HEAR HARU’S SIDE':'TAKE YOUR TURN'} onPress={onNext}/></View>}
+function Choices({question,coach,choices,choose}:any){return <View><Text style={s.kicker}>YOUR TURN</Text><Text style={s.question}>{question}</Text><Text style={s.coach}>{coach}</Text>{choices.map((c:RelayChoice)=><TouchableOpacity key={c.id} style={s.choice} onPress={()=>choose(c)}><View style={s.choiceIcon}><Ionicons name="chatbubble-ellipses-outline" size={18} color="#7c2ce2"/></View><View style={{flex:1}}><Text style={s.choiceLabel}>{c.label}</Text><Text style={s.choiceJp}>{c.japanese}</Text><Text style={s.romaji}>{c.romaji}</Text></View><Ionicons name="chevron-forward" size={18} color="#a48caf"/></TouchableOpacity>)}</View>}
+function Feedback({visible,choice,next}:any){return <Popup visible={visible}><View style={[s.result,choice?.correct?s.good:s.bad]}><Ionicons name={choice?.correct?'checkmark':'close'} size={28} color="#fff"/></View><Text style={s.kicker}>{choice?.correct?'RELAY RECEIVED':'LET’S REFRAME IT'}</Text><Text style={s.modalTitle}>{choice?.correct?'That response fits.':'The message needs adjustment.'}</Text><Text style={s.modalBody}>{choice?.explanation}</Text><View style={s.example}><Text style={s.exampleLabel}>A useful model</Text><Text style={s.exampleText}>{choice?.example}</Text></View><View style={s.reaction}><Text style={s.reactionLabel}>SUMI’S REACTION</Text><Text style={s.reactionText}>{choice?.reaction}</Text></View><Button label="CONTINUE THE SCENE" onPress={next}/></Popup>}
+function BonusIntro({visible,start}:any){return <Popup visible={visible}><View style={[s.result,s.purple]}><Ionicons name="mic" size={28} color="#fff"/></View><Text style={s.kicker}>RESPONSE 20 CLEARED</Text><Text style={s.modalTitle}>Spoken relay unlocked</Text><Text style={s.modalBody}>Record a phrase that can safely slow down a confusing exchange.</Text><View style={s.example}><Text style={s.exampleLabel}>Bonus phrase</Text><Text style={s.exampleText}>すみません、もう一度ゆっくりお願いします。</Text><Text style={s.romaji}>Sumimasen, mou ichido yukkuri onegaishimasu.</Text></View><Text style={s.honesty}>This version records and plays back your attempt. Automated grading is not enabled, so it awards completion points without inventing a pronunciation score.</Text><Button label="START SPOKEN BONUS" onPress={start}/></Popup>}
+function Bonus({recording,uri,status,start,stop,play,submit}:any){return <View><Text style={s.kicker}>SPOKEN BONUS · +5 PTS</Text><Text style={s.panelTitle}>Ask for a slower repeat.</Text><Text style={s.jp}>すみません、もう一度ゆっくりお願いします。</Text><Text style={s.romaji}>Sumimasen, mou ichido yukkuri onegaishimasu.</Text><Text style={s.coach}>{status}</Text><View style={s.micRow}><TouchableOpacity style={[s.mic,recording&&s.micOn]} onPress={recording?stop:start}><Ionicons name={recording?'stop':'mic'} size={30} color="#fff"/></TouchableOpacity>{uri&&<TouchableOpacity style={s.listen} onPress={play}><Ionicons name="play" size={20} color="#7c2ce2"/><Text style={s.listenText}>Listen</Text></TouchableOpacity>}</View><Button label="SUBMIT SPOKEN ATTEMPT" disabled={!uri} onPress={submit}/></View>}
+function Finish({visible,correct,score,bonus,replay,exit}:any){return <Popup visible={visible}><View style={[s.result,s.purple]}><Ionicons name="ribbon" size={28} color="#fff"/></View><Text style={s.kicker}>RELAY COMPLETE</Text><Text style={s.modalTitle}>Ten real-life scenes cleared.</Text><View style={s.summaries}><Stat value={`${correct}/25`} label="responses"/><Stat value={`${score}/30`} label="total score"/><Stat value={bonus?'+5':'—'} label="spoken bonus"/></View><Text style={s.modalBody}>Your best result is sent to QuackProgress. Replay anytime to strengthen uncertain situations.</Text><Button label="REPLAY THE RELAY" onPress={replay}/><Button label="RETURN TO QUACKRESPONSE" secondary onPress={exit}/></Popup>}
+function Guide({visible,answers,score,close}:any){return <Popup visible={visible}><Text style={s.kicker}>TRIAL GUIDE</Text><Text style={s.modalTitle}>Your Dialogue Relay route</Text><View style={s.summaries}><Stat value={`${answers.length}/25`} label="answered"/><Stat value={`${answers.filter((a:Answer)=>a.correct).length}`} label="correct"/><Stat value={`${score}`} label="points"/></View><Text style={s.modalBody}>Ten scenes cover shared spaces, health, hospitality, consent, food safety, lost property, and emergencies. The spoken bonus unlocks after response 20.</Text><Button label="BACK TO THE SCENE" onPress={close}/></Popup>}
+function ExitPopup({visible,cancel,leave}:any){return <Popup visible={visible}><View style={[s.result,s.purple]}><Ionicons name="bookmark" size={27} color="#fff"/></View><Text style={s.kicker}>SAVE YOUR PLACE?</Text><Text style={s.modalTitle}>Pause the relay here.</Text><Text style={s.modalBody}>Your current scene and completed responses stay on this account on this device, ready for your next visit.</Text><Button label="SAVE AND RETURN" onPress={leave}/><Button label="KEEP PLAYING" secondary onPress={cancel}/></Popup>}
+function Stat({value,label}:any){return <View style={s.stat}><Text style={s.statValue}>{value}</Text><Text style={s.statLabel}>{label}</Text></View>}
+function Popup({visible,children}:any){return <Modal visible={visible} transparent animationType="fade"><View style={s.shade}><ScrollView contentContainerStyle={s.modal}>{children}</ScrollView></View></Modal>}
+
+const s=StyleSheet.create({
+  safe:{flex:1,backgroundColor:'#251035'},bg:{flex:1,padding:16},bgImage:{resizeMode:'cover'},tint:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(28,8,43,.4)'},header:{flexDirection:'row',alignItems:'center',gap:10},round:{width:44,height:44,borderRadius:16,backgroundColor:'#fff',alignItems:'center',justifyContent:'center'},eyebrow:{color:'#9be35d',fontSize:10,fontWeight:'900',letterSpacing:1.3},title:{color:'#fff',fontSize:23,fontWeight:'900'},guide:{height:42,minWidth:70,borderRadius:16,backgroundColor:'#7c2ce2',flexDirection:'row',gap:6,alignItems:'center',justifyContent:'center'},guideText:{color:'#fff',fontSize:12,fontWeight:'900'},track:{height:7,borderRadius:9,backgroundColor:'rgba(255,255,255,.28)',marginTop:11,overflow:'hidden'},fill:{height:'100%',backgroundColor:'#9be35d'},place:{marginTop:9,alignSelf:'center',width:'90%',flexDirection:'row',gap:6,alignItems:'center',backgroundColor:'rgba(255,255,255,.95)',borderRadius:17,paddingVertical:7,paddingHorizontal:11},placeText:{flex:1,color:'#48235d',fontSize:12,fontWeight:'800'},score:{color:'#7c2ce2',fontWeight:'900',fontSize:12},stage:{flex:1,minHeight:190,flexDirection:'row',alignItems:'flex-end'},character:{width:'50%',height:'100%',alignItems:'center',justifyContent:'flex-end'},sumi:{width:'100%',height:'96%'},haru:{width:'100%',height:'92%'},name:{position:'absolute',bottom:0,backgroundColor:'#3a1751',borderRadius:20,paddingVertical:4,paddingHorizontal:13},nameText:{color:'#fff',fontSize:10,fontWeight:'900',letterSpacing:1},panel:{maxHeight:'59%',backgroundColor:'rgba(255,255,255,.98)',borderRadius:27,padding:19,elevation:12},kicker:{color:'#65a62f',fontSize:10,fontWeight:'900',letterSpacing:1.35,marginBottom:6},panelTitle:{color:'#351747',fontSize:24,lineHeight:29,fontWeight:'900',marginBottom:7},body:{color:'#715d79',fontSize:13.5,lineHeight:20},steps:{gap:8,marginTop:12},step:{flexDirection:'row',alignItems:'center',gap:10,padding:9,borderRadius:15,backgroundColor:'#f7f1fc'},stepIcon:{width:35,height:35,borderRadius:12,backgroundColor:'#eadcff',alignItems:'center',justifyContent:'center'},stepTitle:{color:'#432154',fontSize:12.5,fontWeight:'900'},stepText:{color:'#78657e',fontSize:11,lineHeight:15,marginTop:2},primary:{minHeight:50,marginTop:14,borderRadius:16,backgroundColor:'#7c2ce2',flexDirection:'row',gap:8,alignItems:'center',justifyContent:'center',paddingHorizontal:16},primaryText:{color:'#fff',fontSize:12.5,fontWeight:'900'},secondary:{minHeight:47,marginTop:8,borderRadius:16,borderWidth:1,borderColor:'#dfd3e6',alignItems:'center',justifyContent:'center'},secondaryText:{color:'#5f4968',fontSize:12,fontWeight:'900'},disabled:{opacity:.42},insight:{flexDirection:'row',gap:9,padding:11,borderRadius:15,backgroundColor:'#f4f9ed',borderWidth:1,borderColor:'#dceecb',marginTop:12},insightTitle:{color:'#4e7e29',fontSize:11.5,fontWeight:'900'},insightText:{color:'#627054',fontSize:11.5,lineHeight:16,marginTop:2},jp:{color:'#3a1850',fontSize:21,lineHeight:29,fontWeight:'800',marginVertical:8},romaji:{color:'#8a7292',fontSize:11.5,lineHeight:16,fontStyle:'italic',marginTop:3},question:{color:'#351747',fontSize:18,lineHeight:24,fontWeight:'900'},coach:{color:'#816d87',fontSize:12,lineHeight:17,marginTop:4,marginBottom:8},choice:{flexDirection:'row',alignItems:'center',gap:9,padding:11,marginTop:8,borderRadius:17,borderWidth:1.5,borderColor:'#e5d8ed',backgroundColor:'#fbf8fd'},choiceIcon:{width:34,height:34,borderRadius:11,backgroundColor:'#efe3ff',alignItems:'center',justifyContent:'center'},choiceLabel:{color:'#765d7d',fontSize:9.5,fontWeight:'900',textTransform:'uppercase'},choiceJp:{color:'#351747',fontSize:14.5,fontWeight:'800',marginTop:2},shade:{flex:1,backgroundColor:'rgba(27,9,38,.74)',justifyContent:'center',padding:20},modal:{backgroundColor:'#fff',borderRadius:27,padding:21},result:{width:53,height:53,borderRadius:18,alignItems:'center',justifyContent:'center',marginBottom:13},good:{backgroundColor:'#6fb63a'},bad:{backgroundColor:'#e65c70'},purple:{backgroundColor:'#7c2ce2'},modalTitle:{color:'#351747',fontSize:23,lineHeight:28,fontWeight:'900'},modalBody:{color:'#735f7b',fontSize:13.5,lineHeight:20,marginTop:7},example:{padding:12,borderRadius:15,backgroundColor:'#f6f0fb',marginTop:12},exampleLabel:{color:'#7c2ce2',fontSize:9.5,fontWeight:'900',textTransform:'uppercase'},exampleText:{color:'#3f2051',fontSize:14.5,lineHeight:20,fontWeight:'800',marginTop:4},reaction:{padding:11,borderRadius:14,backgroundColor:'#f3f8ee',marginTop:9},reactionLabel:{color:'#5e972f',fontSize:9.5,fontWeight:'900'},reactionText:{color:'#45622f',fontSize:12.5,lineHeight:18,marginTop:3},honesty:{color:'#89748f',fontSize:11,lineHeight:16,marginTop:10},summaries:{flexDirection:'row',gap:7,marginTop:15},stat:{flex:1,paddingVertical:11,borderRadius:15,alignItems:'center',backgroundColor:'#f7f1fb'},statValue:{color:'#7425d5',fontSize:17,fontWeight:'900'},statLabel:{color:'#89758f',fontSize:9,fontWeight:'800',marginTop:2},micRow:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:11,marginVertical:11},mic:{width:65,height:65,borderRadius:33,backgroundColor:'#7c2ce2',alignItems:'center',justifyContent:'center'},micOn:{backgroundColor:'#e6536e'},listen:{height:45,paddingHorizontal:15,borderRadius:14,backgroundColor:'#efe3ff',flexDirection:'row',alignItems:'center',gap:6},listenText:{color:'#6523ba',fontWeight:'900'},
+});
