@@ -275,6 +275,7 @@ const audioOverrides: Record<string, any> = {
   n_bank_callback_react_c: require('../assets/audio/response-rush/n_bank_callback_react_c.mp3'),
   n_bank_callback_react_d: require('../assets/audio/response-rush/n_bank_callback_react_d.mp3'),
   n_bank_callback_react_timeout: require('../assets/audio/response-rush/n_bank_callback_react_timeout.mp3'),
+  n_conbini_opening: require('../assets/audio/response-rush/n_conbini_opening.mp3'),
   n_conbini_bag_setup: require('../assets/audio/response-rush/n_conbini_bag_setup.mp3'),
   n_conbini_bag_react_a: require('../assets/audio/response-rush/n_conbini_bag_react_a.mp3'),
   n_conbini_bag_react_b: require('../assets/audio/response-rush/n_conbini_bag_react_b.mp3'),
@@ -343,6 +344,86 @@ const audioOverrides: Record<string, any> = {
   n_interview_clarify_react_c: require('../assets/audio/response-rush/n_interview_clarify_react_c.mp3'),
   n_interview_clarify_react_d: require('../assets/audio/response-rush/n_interview_clarify_react_d.mp3'),
   n_interview_clarify_react_timeout: require('../assets/audio/response-rush/n_interview_clarify_react_timeout.mp3'),
+  n_ward_greeting_reply_a: require('../assets/audio/response-rush/n_ward_greeting_reply_a.mp3'),
+  n_ward_greeting_reply_b: require('../assets/audio/response-rush/n_ward_greeting_reply_b.mp3'),
+  n_ward_greeting_reply_c: require('../assets/audio/response-rush/n_ward_greeting_reply_c.mp3'),
+  n_ward_greeting_reply_d: require('../assets/audio/response-rush/n_ward_greeting_reply_d.mp3'),
+  n_ward_purpose_reply_a: require('../assets/audio/response-rush/n_ward_purpose_reply_a.mp3'),
+  n_ward_purpose_reply_b: require('../assets/audio/response-rush/n_ward_purpose_reply_b.mp3'),
+  n_ward_purpose_reply_c: require('../assets/audio/response-rush/n_ward_purpose_reply_c.mp3'),
+  n_ward_purpose_reply_d: require('../assets/audio/response-rush/n_ward_purpose_reply_d.mp3'),
+  n_ward_understanding_reply_a: require('../assets/audio/response-rush/n_ward_understanding_reply_a.mp3'),
+  n_ward_understanding_reply_b: require('../assets/audio/response-rush/n_ward_understanding_reply_b.mp3'),
+  n_ward_understanding_reply_c: require('../assets/audio/response-rush/n_ward_understanding_reply_c.mp3'),
+  n_ward_understanding_reply_d: require('../assets/audio/response-rush/n_ward_understanding_reply_d.mp3'),
+  n_phone_plan_reply_a: require('../assets/audio/response-rush/n_phone_plan_reply_a.mp3'),
+  n_phone_plan_reply_b: require('../assets/audio/response-rush/n_phone_plan_reply_b.mp3'),
+  n_phone_plan_reply_c: require('../assets/audio/response-rush/n_phone_plan_reply_c.mp3'),
+  n_phone_plan_reply_d: require('../assets/audio/response-rush/n_phone_plan_reply_d.mp3'),
+  n_phone_id_reply_a: require('../assets/audio/response-rush/n_phone_id_reply_a.mp3'),
+  n_phone_id_reply_b: require('../assets/audio/response-rush/n_phone_id_reply_b.mp3'),
+  n_phone_id_reply_c: require('../assets/audio/response-rush/n_phone_id_reply_c.mp3'),
+  n_phone_id_reply_d: require('../assets/audio/response-rush/n_phone_id_reply_d.mp3'),
+  n_phone_fee_reply_a: require('../assets/audio/response-rush/n_phone_fee_reply_a.mp3'),
+  n_phone_fee_reply_b: require('../assets/audio/response-rush/n_phone_fee_reply_b.mp3'),
+  n_phone_fee_reply_c: require('../assets/audio/response-rush/n_phone_fee_reply_c.mp3'),
+  n_phone_fee_reply_d: require('../assets/audio/response-rush/n_phone_fee_reply_d.mp3'),
+  n_bank_purpose_reply_a: require('../assets/audio/response-rush/n_bank_purpose_reply_a.mp3'),
+  n_bank_purpose_reply_b: require('../assets/audio/response-rush/n_bank_purpose_reply_b.mp3'),
+  n_bank_purpose_reply_c: require('../assets/audio/response-rush/n_bank_purpose_reply_c.mp3'),
+  n_bank_purpose_reply_d: require('../assets/audio/response-rush/n_bank_purpose_reply_d.mp3'),
+  n_bank_documents_reply_a: require('../assets/audio/response-rush/n_bank_documents_reply_a.mp3'),
+  n_bank_documents_reply_b: require('../assets/audio/response-rush/n_bank_documents_reply_b.mp3'),
+  n_bank_documents_reply_c: require('../assets/audio/response-rush/n_bank_documents_reply_c.mp3'),
+  n_bank_documents_reply_d: require('../assets/audio/response-rush/n_bank_documents_reply_d.mp3'),
+  n_bank_callback_reply_a: require('../assets/audio/response-rush/n_bank_callback_reply_a.mp3'),
+  n_bank_callback_reply_b: require('../assets/audio/response-rush/n_bank_callback_reply_b.mp3'),
+  n_bank_callback_reply_c: require('../assets/audio/response-rush/n_bank_callback_reply_c.mp3'),
+  n_bank_callback_reply_d: require('../assets/audio/response-rush/n_bank_callback_reply_d.mp3'),
+  n_conbini_bag_reply_a: require('../assets/audio/response-rush/n_conbini_bag_reply_a.mp3'),
+  n_conbini_bag_reply_b: require('../assets/audio/response-rush/n_conbini_bag_reply_b.mp3'),
+  n_conbini_bag_reply_c: require('../assets/audio/response-rush/n_conbini_bag_reply_c.mp3'),
+  n_conbini_bag_reply_d: require('../assets/audio/response-rush/n_conbini_bag_reply_d.mp3'),
+  n_conbini_payment_reply_a: require('../assets/audio/response-rush/n_conbini_payment_reply_a.mp3'),
+  n_conbini_payment_reply_b: require('../assets/audio/response-rush/n_conbini_payment_reply_b.mp3'),
+  n_conbini_payment_reply_c: require('../assets/audio/response-rush/n_conbini_payment_reply_c.mp3'),
+  n_conbini_payment_reply_d: require('../assets/audio/response-rush/n_conbini_payment_reply_d.mp3'),
+  n_conbini_receipt_reply_a: require('../assets/audio/response-rush/n_conbini_receipt_reply_a.mp3'),
+  n_conbini_receipt_reply_b: require('../assets/audio/response-rush/n_conbini_receipt_reply_b.mp3'),
+  n_conbini_receipt_reply_c: require('../assets/audio/response-rush/n_conbini_receipt_reply_c.mp3'),
+  n_conbini_receipt_reply_d: require('../assets/audio/response-rush/n_conbini_receipt_reply_d.mp3'),
+  n_conbini_directions_reply_a: require('../assets/audio/response-rush/n_conbini_directions_reply_a.mp3'),
+  n_conbini_directions_reply_b: require('../assets/audio/response-rush/n_conbini_directions_reply_b.mp3'),
+  n_conbini_directions_reply_c: require('../assets/audio/response-rush/n_conbini_directions_reply_c.mp3'),
+  n_conbini_directions_reply_d: require('../assets/audio/response-rush/n_conbini_directions_reply_d.mp3'),
+  n_train_pass_reply_a: require('../assets/audio/response-rush/n_train_pass_reply_a.mp3'),
+  n_train_pass_reply_b: require('../assets/audio/response-rush/n_train_pass_reply_b.mp3'),
+  n_train_pass_reply_c: require('../assets/audio/response-rush/n_train_pass_reply_c.mp3'),
+  n_train_pass_reply_d: require('../assets/audio/response-rush/n_train_pass_reply_d.mp3'),
+  n_train_studentId_reply_a: require('../assets/audio/response-rush/n_train_studentId_reply_a.mp3'),
+  n_train_studentId_reply_b: require('../assets/audio/response-rush/n_train_studentId_reply_b.mp3'),
+  n_train_studentId_reply_c: require('../assets/audio/response-rush/n_train_studentId_reply_c.mp3'),
+  n_train_studentId_reply_d: require('../assets/audio/response-rush/n_train_studentId_reply_d.mp3'),
+  n_train_wrongPlatform_reply_a: require('../assets/audio/response-rush/n_train_wrongPlatform_reply_a.mp3'),
+  n_train_wrongPlatform_reply_b: require('../assets/audio/response-rush/n_train_wrongPlatform_reply_b.mp3'),
+  n_train_wrongPlatform_reply_c: require('../assets/audio/response-rush/n_train_wrongPlatform_reply_c.mp3'),
+  n_train_wrongPlatform_reply_d: require('../assets/audio/response-rush/n_train_wrongPlatform_reply_d.mp3'),
+  n_interview_introduce_reply_a: require('../assets/audio/response-rush/n_interview_introduce_reply_a.mp3'),
+  n_interview_introduce_reply_b: require('../assets/audio/response-rush/n_interview_introduce_reply_b.mp3'),
+  n_interview_introduce_reply_c: require('../assets/audio/response-rush/n_interview_introduce_reply_c.mp3'),
+  n_interview_introduce_reply_d: require('../assets/audio/response-rush/n_interview_introduce_reply_d.mp3'),
+  n_interview_availability_reply_a: require('../assets/audio/response-rush/n_interview_availability_reply_a.mp3'),
+  n_interview_availability_reply_b: require('../assets/audio/response-rush/n_interview_availability_reply_b.mp3'),
+  n_interview_availability_reply_c: require('../assets/audio/response-rush/n_interview_availability_reply_c.mp3'),
+  n_interview_availability_reply_d: require('../assets/audio/response-rush/n_interview_availability_reply_d.mp3'),
+  n_interview_whyHere_reply_a: require('../assets/audio/response-rush/n_interview_whyHere_reply_a.mp3'),
+  n_interview_whyHere_reply_b: require('../assets/audio/response-rush/n_interview_whyHere_reply_b.mp3'),
+  n_interview_whyHere_reply_c: require('../assets/audio/response-rush/n_interview_whyHere_reply_c.mp3'),
+  n_interview_whyHere_reply_d: require('../assets/audio/response-rush/n_interview_whyHere_reply_d.mp3'),
+  n_interview_clarify_reply_a: require('../assets/audio/response-rush/n_interview_clarify_reply_a.mp3'),
+  n_interview_clarify_reply_b: require('../assets/audio/response-rush/n_interview_clarify_reply_b.mp3'),
+  n_interview_clarify_reply_c: require('../assets/audio/response-rush/n_interview_clarify_reply_c.mp3'),
+  n_interview_clarify_reply_d: require('../assets/audio/response-rush/n_interview_clarify_reply_d.mp3'),
 
 };
 
@@ -571,6 +652,7 @@ const SCENES: SceneSpec[] = [
     title: 'Convenience Store · Evening Errand',
     background: 'cityEvening',
     narration: 'Evening now — a quick stop at the convenience store on the way home for dinner and a few things for tomorrow\'s job interview.',
+    opening: { character: 'SUMI', expression: 'SMILE', japanese: 'コンビニに着いたね。買い物の会話も練習してみよう。', romaji: 'Konbini ni tsuita ne. Kaimono no kaiwa mo renshuu shite miyou.', speakerLabel: 'Sumi' },
     culturalNotes: [
       'Declining a bag ("daijoubu desu") has become increasingly common since Japan introduced a mandatory plastic bag charge in 2020 — it\'s not seen as unusual or overly frugal, just routine.',
       'IC cards (Suica, Pasmo, and similar) work at the vast majority of convenience stores nationwide, but a few small or rural locations still don\'t accept them, which is why confirming first is a genuinely useful habit, not overcaution.',
@@ -705,7 +787,7 @@ const SCENES: SceneSpec[] = [
     title: 'Cafe Sunlight · Part-Time Job Interview',
     background: 'interviewRoom',
     narration: 'Back on track and right on time — your part-time job interview at a neighborhood cafe. Sumi waits outside while you go in.',
-    opening: { character: 'HARU', expression: 'NEUTRAL', japanese: 'どうぞ、お座りください。今日はよろしくお願いします。', romaji: 'Douzo, osuwari kudasai. Kyou wa yoroshiku onegaishimasu.', speakerLabel: 'Manager Haru' },
+    opening: { character: 'SUMI', expression: 'ENCOURAGING', japanese: 'いよいよ面接だね。落ち着いて、丁寧に答えれば大丈夫。', romaji: 'Iyoiyo mensetsu da ne. Ochitsuite, teinei ni kotaereba daijoubu.', speakerLabel: 'Sumi' },
     culturalNotes: [
       'The humble self-introduction pattern "〜と申します" isn\'t just formality for its own sake — using it signals to a Japanese interviewer that you understand workplace register, which matters more in hiring decisions than perfect grammar elsewhere.',
       'Biweekly or rotating shift schedules ("kakushuu") are common in Japanese part-time retail and food service jobs specifically to spread closing duties fairly across staff — asking about it upfront is standard, not overly cautious.',
@@ -786,6 +868,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
   const decisionChoiceId = (sceneId: string, decisionId: string) => `n_${sceneId}_${decisionId}_choice`;
   const decisionSetupId = (sceneId: string, decisionId: string) => `n_${sceneId}_${decisionId}_setup`;
   const decisionReactId = (sceneId: string, decisionId: string, choiceId: string) => `n_${sceneId}_${decisionId}_react_${choiceId}`;
+  const decisionReplyId = (sceneId: string, decisionId: string, choiceId: string) => `n_${sceneId}_${decisionId}_reply_${choiceId}`;
   const decisionTimeoutId = (sceneId: string, decisionId: string) => `n_${sceneId}_${decisionId}_react_timeout`;
   const sceneNarrationId = (sceneId: string) => `n_${sceneId}_narration`;
   const sceneOpeningId = (sceneId: string) => `n_${sceneId}_opening`;
@@ -871,11 +954,30 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
         timeoutReactionNodeId: decisionTimeoutId(scene.id, decision.id),
         choices: decision.choices.map((choice) => ({
           ...choice,
-          nextNodeId: decisionReactId(scene.id, decision.id, choice.id),
+          nextNodeId: decisionReplyId(scene.id, decision.id, choice.id),
         })),
       });
 
       decision.choices.forEach((choice) => {
+        // The learner's selected line is spoken before the NPC reacts. We use
+        // the opposite on-screen actor as the learner avatar so a line is
+        // never spoken and answered by the same sprite/voice.
+        const replyCharacter: CharacterKey = choice.reaction.character === 'HARU' ? 'SUMI' : 'HARU';
+        built.push({
+          id: decisionReplyId(scene.id, decision.id, choice.id),
+          sceneId: scene.id,
+          type: 'DIALOGUE',
+          speaker: 'Your reply',
+          characterKey: replyCharacter,
+          expressionKey: GOOD_TIERS.includes(choice.evaluation) ? 'SMILE' : 'NEUTRAL',
+          characterPosition: replyCharacter === 'SUMI' ? 'RIGHT' : 'LEFT',
+          backgroundKey: scene.background,
+          spritesVisible: true,
+          japanese: choice.japanese,
+          romaji: choice.romaji,
+          nextNodeId: decisionReactId(scene.id, decision.id, choice.id),
+        });
+
         built.push({
           id: decisionReactId(scene.id, decision.id, choice.id),
           sceneId: scene.id,
