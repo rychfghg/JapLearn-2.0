@@ -1,0 +1,1622 @@
+[
+  {
+    "id": "scene-waste-narration",
+    "text": "It is collection morning. Sumi and Haru help a new neighbor read the signs before the truck arrives.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "scene-waste-sumi",
+    "text": "このびんは、今日出してもいいですか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-waste-haru",
+    "text": "看板には「燃えるごみ」と書いてあります。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "prompt-waste-0",
+    "text": "The bottle does not match today’s category. What should you say?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-waste-1",
+    "text": "A neighbor shows you the designated bag. How do you respond?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-waste-2",
+    "text": "The sign is difficult to read. What is the best request?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "choice-w1a",
+    "text": "今日はびんの日ではありません。確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w1a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w1a-b",
+    "text": "すみません、これはここですか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w1a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w1a-c",
+    "text": "ごみのことは、よく分かりません。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w1a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w1b",
+    "text": "たぶん大丈夫です。ここに置きましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w1b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w2a",
+    "text": "ありがとうございます。この袋を使います。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w2a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w2a-b",
+    "text": "すみません、これはここですか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w2a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w2a-c",
+    "text": "ごみのことは、よく分かりません。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w2a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w2b",
+    "text": "袋は何でもいいです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w2b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w3a",
+    "text": "すみません、この漢字を教えていただけますか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w3a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w3a-b",
+    "text": "すみません、これはここですか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w3a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w3a-c",
+    "text": "ごみのことは、よく分かりません。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w3a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-w3b",
+    "text": "分かりました。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-w3b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-parcel-narration",
+    "text": "A delivery notice is in the mailbox. The driver is still nearby, but Haru is unsure how to request another delivery.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "scene-parcel-sumi",
+    "text": "不在票がありますね。再配達をお願いできます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-parcel-haru",
+    "text": "電話で何と言えばいいでしょうか？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "prompt-parcel-0",
+    "text": "How should Haru begin the call?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-parcel-1",
+    "text": "The driver proposes 7 p.m. What is a clear reply?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "choice-p1a",
+    "text": "不在票を見ました。再配達をお願いできますか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-p1a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-p1a-b",
+    "text": "すみません、荷物についてです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-p1a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-p1a-c",
+    "text": "あとで、またお願いします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-p1a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-p1b",
+    "text": "荷物。今日。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-p1b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-p2a",
+    "text": "はい、七時に家にいます。ありがとうございます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-p2a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-p2a-b",
+    "text": "すみません、荷物についてです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-p2a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-p2a-c",
+    "text": "あとで、またお願いします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-p2a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-p2b",
+    "text": "たぶんいます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-p2b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-clinic-narration",
+    "text": "Sumi accompanies Haru to a clinic. The waiting room is quiet and the receptionist needs concise information.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "scene-clinic-sumi",
+    "text": "受付では、症状を短く伝えましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-clinic-haru",
+    "text": "昨日から、のどが痛いです。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "prompt-clinic-0",
+    "text": "The receptionist asks what is wrong. Which answer helps most?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-clinic-1",
+    "text": "You do not understand a form. What should you do?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-clinic-2",
+    "text": "Your phone rings in the waiting room. What is appropriate?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "choice-c1a",
+    "text": "昨日から、のどが痛いです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c1a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c1a-b",
+    "text": "すみません、少し教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c1a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c1a-c",
+    "text": "ちょっと具合が悪いです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c1a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c1b",
+    "text": "ちょっとだめです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c1b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c2a",
+    "text": "すみません、ここは何を書きますか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c2a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c2a-b",
+    "text": "すみません、少し教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c2a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c2a-c",
+    "text": "ちょっと具合が悪いです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c2a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c2b",
+    "text": "適当に書きます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c2b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c3a",
+    "text": "すみません。マナーモードにします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c3a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c3a-b",
+    "text": "すみません、少し教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c3a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c3a-c",
+    "text": "ちょっと具合が悪いです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c3a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-c3b",
+    "text": "ここで大きな声で話します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-c3b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-pharmacy-narration",
+    "text": "At the pharmacy counter, Sumi reminds Haru to confirm how and when to take the medicine.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "scene-pharmacy-sumi",
+    "text": "薬の飲み方を確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-pharmacy-haru",
+    "text": "食後ですか、食前ですか？",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "prompt-pharmacy-0",
+    "text": "You missed the dosage explanation. What should you ask?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-pharmacy-1",
+    "text": "The pharmacist asks about allergies. Which response is useful?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "choice-m1a",
+    "text": "すみません、もう一度ゆっくりお願いします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-m1a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-m1a-b",
+    "text": "すみません、飲み方を確認したいです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-m1a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-m1a-c",
+    "text": "たぶん、分かりました。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-m1a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-m1b",
+    "text": "はい、全部分かりました。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-m1b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-m2a",
+    "text": "はい、ペニシリンのアレルギーがあります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-m2a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-m2a-b",
+    "text": "すみません、飲み方を確認したいです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-m2a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-m2a-c",
+    "text": "たぶん、分かりました。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-m2a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-m2b",
+    "text": "それは言いたくないです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-m2b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-onsen-narration",
+    "text": "Sumi and Haru arrive at a hot spring. A sign explains washing, towels, and the shared bath.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "scene-onsen-sumi",
+    "text": "まず、体を洗ってから入りましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-onsen-haru",
+    "text": "タオルは湯船に入れませんね。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "prompt-onsen-0",
+    "text": "What should happen before entering the shared bath?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-onsen-1",
+    "text": "Where should the small towel stay?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "choice-o1a",
+    "text": "先に体を洗います。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-o1a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-o1a-b",
+    "text": "このルールで合っていますか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-o1a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-o1a-c",
+    "text": "みんなと同じにします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-o1a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-o1b",
+    "text": "すぐ湯船に入ります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-o1b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-o2a",
+    "text": "タオルは湯船の外に置きます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-o2a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-o2a-b",
+    "text": "このルールで合っていますか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-o2a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-o2a-c",
+    "text": "みんなと同じにします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-o2a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-o2b",
+    "text": "タオルをお湯に入れます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-o2b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-ryokan-narration",
+    "text": "At the genkan, the floor level changes. Sumi points out where outdoor shoes end and indoor slippers begin.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "scene-ryokan-sumi",
+    "text": "ここで靴を脱ぎます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-ryokan-haru",
+    "text": "畳の部屋では、スリッパも脱ぎますね。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "prompt-ryokan-0",
+    "text": "What do you do at the raised entrance?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-ryokan-1",
+    "text": "You reach a tatami room wearing slippers. What now?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "choice-r1a",
+    "text": "ここで靴を脱ぎます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-r1a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-r1a-b",
+    "text": "ここで脱げばいいですか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-r1a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-r1a-c",
+    "text": "たぶん、このままで大丈夫です。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-r1a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-r1b",
+    "text": "靴のまま入ります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-r1b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-r2a",
+    "text": "畳の前でスリッパを脱ぎます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-r2a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-r2a-b",
+    "text": "ここで脱げばいいですか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-r2a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-r2a-c",
+    "text": "たぶん、このままで大丈夫です。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-r2a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-r2b",
+    "text": "スリッパで畳を歩きます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-r2b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-photo-narration",
+    "text": "Haru wants a photo of a craftsperson and a small shop interior. Sumi pauses before the camera comes out.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "scene-photo-sumi",
+    "text": "写真を撮る前に、聞きましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-photo-haru",
+    "text": "人の顔も写りますね。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "prompt-photo-0",
+    "text": "How do you request a photo?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-photo-1",
+    "text": "The shopkeeper says photography is not allowed. What next?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "choice-f1a",
+    "text": "すみません、写真を撮ってもいいですか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-f1a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-f1a-b",
+    "text": "写真は大丈夫でしょうか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-f1a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-f1a-c",
+    "text": "一枚だけ撮りたいです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-f1a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-f1b",
+    "text": "何も言わずに撮ります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-f1b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-f2a",
+    "text": "分かりました。ありがとうございます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-f2a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-f2a-b",
+    "text": "写真は大丈夫でしょうか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-f2a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-f2a-c",
+    "text": "一枚だけ撮りたいです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-f2a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-f2b",
+    "text": "一枚だけだから、いいでしょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-f2b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-allergy-narration",
+    "text": "A menu looks delicious, but Haru has a serious allergy. Sumi helps ask precise questions before ordering.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "scene-allergy-sumi",
+    "text": "注文する前に、アレルギーを伝えましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-allergy-haru",
+    "text": "私はえびが食べられません。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "prompt-allergy-0",
+    "text": "How do you state a shrimp allergy?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-allergy-1",
+    "text": "Staff are unsure whether the sauce contains shrimp. What is safest?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-allergy-2",
+    "text": "The chef confirms a safe dish. How do you respond?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "choice-a1a",
+    "text": "えびのアレルギーがあります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a1a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a1a-b",
+    "text": "食材を確認してもいいですか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a1a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a1a-c",
+    "text": "これはたぶん食べられます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a1a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a1b",
+    "text": "えびはあまり好きじゃないです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a1b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a2a",
+    "text": "では、別の料理にします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a2a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a2a-b",
+    "text": "食材を確認してもいいですか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a2a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a2a-c",
+    "text": "これはたぶん食べられます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a2a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a2b",
+    "text": "たぶん大丈夫です。食べます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a2b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a3a",
+    "text": "確認してくださって、ありがとうございます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a3a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a3a-b",
+    "text": "食材を確認してもいいですか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a3a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a3a-c",
+    "text": "これはたぶん食べられます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a3a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-a3b",
+    "text": "早く持ってきてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-a3b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-koban-narration",
+    "text": "Haru cannot find a wallet. Sumi leads the way to a nearby police box and helps organize the details.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "scene-koban-sumi",
+    "text": "交番で、落とし物について相談できます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-koban-haru",
+    "text": "黒い財布をなくしました。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "prompt-koban-0",
+    "text": "How should Haru open the report?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-koban-1",
+    "text": "The officer asks where it was last seen. Which answer helps?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-koban-2",
+    "text": "How do you describe the wallet?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "choice-k1a",
+    "text": "すみません、財布をなくしました。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k1a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k1a-b",
+    "text": "落とし物について相談したいです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k1a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k1a-c",
+    "text": "財布がどこかにありません。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k1a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k1b",
+    "text": "困っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k1b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k2a",
+    "text": "午後三時ごろ、駅で使いました。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k2a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k2a-b",
+    "text": "落とし物について相談したいです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k2a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k2a-c",
+    "text": "財布がどこかにありません。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k2a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k2b",
+    "text": "どこか分かりません。以上です。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k2b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k3a",
+    "text": "黒くて、中に学生証があります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k3a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k3a-b",
+    "text": "落とし物について相談したいです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k3a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k3a-c",
+    "text": "財布がどこかにありません。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k3a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-k3b",
+    "text": "普通の財布です。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-k3b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-quake-narration",
+    "text": "The floor begins to shake. Sumi and Haru follow staff instructions instead of rushing toward the exit.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "scene-quake-sumi",
+    "text": "まず、頭を守ってください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "scene-quake-haru",
+    "text": "揺れが止まるまで、ここにいます。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural"
+  },
+  {
+    "id": "prompt-quake-0",
+    "text": "What is the immediate priority during shaking?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-quake-1",
+    "text": "The elevator doors open after the shaking. What should you choose?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "prompt-quake-2",
+    "text": "A staff member gives an evacuation instruction you missed. What do you say?",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "choice-e1a",
+    "text": "頭を守って、低くなります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e1a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e1a-b",
+    "text": "係員の指示を確認します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e1a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e1a-c",
+    "text": "急いで自分で決めます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e1a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e1b",
+    "text": "すぐ外へ走ります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e1b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e2a",
+    "text": "エレベーターではなく、階段を使います。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e2a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e2a-b",
+    "text": "係員の指示を確認します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e2a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e2a-c",
+    "text": "急いで自分で決めます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e2a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e2b",
+    "text": "早いので、エレベーターを使います。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e2b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e3a",
+    "text": "すみません、もう一度ゆっくりお願いします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e3a",
+    "text": "いいですね。丁寧で、状況に合っています。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e3a-b",
+    "text": "係員の指示を確認します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e3a-b",
+    "text": "分かりました。もう少し詳しく教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e3a-c",
+    "text": "急いで自分で決めます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e3a-c",
+    "text": "そうですか。もう一度、確認しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "choice-e3b",
+    "text": "分からないので、一人で行きます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "reaction-e3b",
+    "text": "惜しいです。相手と場所に合う言い方を選びましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "bonus-1-narration",
+    "text": "Your supervisor has explained an important task too quickly. Sumi plays the supervisor while you ask for clarification.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "bonus-1-sumi",
+    "text": "今の説明は分かりましたか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "bonus-1-prompt",
+    "text": "Ask your supervisor to repeat the instruction slowly.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "bonus-2-narration",
+    "text": "Sumi uses an unfamiliar medical word at reception. You need its meaning before completing the form.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "bonus-2-sumi",
+    "text": "この言葉の意味は分かりますか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "bonus-2-prompt",
+    "text": "Ask what the unfamiliar word means.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "bonus-3-narration",
+    "text": "Sumi is taking your order. One ingredient may be unsafe, so communicate the allergy before choosing food.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "bonus-3-sumi",
+    "text": "アレルギーはありますか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "bonus-3-prompt",
+    "text": "Tell Sumi you have an allergy and ask whether the dish contains it.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "bonus-4-narration",
+    "text": "You arrive at a police box after realizing your wallet is missing. Sumi plays the officer receiving your report.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "bonus-4-sumi",
+    "text": "どうしましたか？",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "bonus-4-prompt",
+    "text": "Begin by reporting that you lost your wallet.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "bonus-5-narration",
+    "text": "The shaking has stopped and staff are directing everyone outside. You cannot identify the correct safe area.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  },
+  {
+    "id": "bonus-5-sumi",
+    "text": "次の避難場所に移動してください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural"
+  },
+  {
+    "id": "bonus-5-prompt",
+    "text": "Ask the staff member where you should go.",
+    "character": "NARRATOR",
+    "voice": "en-US-JennyNeural"
+  }
+]
