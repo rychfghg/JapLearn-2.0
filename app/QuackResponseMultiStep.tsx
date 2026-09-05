@@ -41,7 +41,7 @@ const BONUS_PROMPTS=[
 type Phase='tutorial'|'narration'|'sumi'|'haru'|'choice'|'userReply'|'resultFlash'|'reaction'|'feedback'|'bonusIntro'|'bonusNarration'|'bonusSumi'|'bonus'|'bonusResultFlash'|'bonusFeedback'|'finished';
 type Answer={sceneId:string;questionIndex:number;choiceId:string;correct:boolean;evaluation:RelayChoice['evaluation'];points:number};
 type Save={version:4;sceneIndex:number;questionIndex:number;answers:Answer[];bonusPromptSeen:boolean;bonusEarned:boolean;bonusIndex:number;bonusCorrectCount?:number};
-type BonusAssessment={recognizedText:string;appropriate:boolean;pronunciationScore:number;accuracyScore:number;fluencyScore:number;completenessScore:number;feedback:string;english:string;referenceText:string;wordIssues:string[];contextVerdict:'COMPLETE'|'PARTIAL'|'DOES_NOT_FIT'|'NOT_HEARD';contextExplanation:string;pronunciationFeedback:string;pronunciationGuide:string;missingIdeas:string[]};
+type BonusAssessment={recognizedText:string;appropriate:boolean;pronunciationScore:number;accuracyScore:number;fluencyScore:number;completenessScore:number;contextScore:number;feedback:string;english:string;referenceText:string;wordIssues:string[];contextVerdict:'COMPLETE'|'PARTIAL'|'DOES_NOT_FIT'|'NOT_HEARD';contextExplanation:string;pronunciationFeedback:string;pronunciationGuide:string;missingIdeas:string[]};
 const SUMI_REACTION_AUDIO:Record<RelayChoice['evaluation'],string>={BEST:'reaction-w1a',ACCEPTABLE:'reaction-w1a-b',AWKWARD:'reaction-w1a-c',RUDE:'reaction-w1b'};
 
 export default function DialogueRelay(){
