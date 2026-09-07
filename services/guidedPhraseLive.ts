@@ -3,7 +3,7 @@ import { AudioContext } from 'react-native-audio-api';
 export type GuidedPhraseTurn={targetJapanese:string;englishMeaning:string;learnerInstruction:string};
 export type MeaningEvaluation={contextScore:number;appropriate:boolean;explanation:string;betterResponse:string};
 export type GuidedLiveCallbacks={onConnected:()=>void;onSpeaking:(value:boolean)=>void;onInputTranscript:(text:string)=>void;onOutputTranscript:(text:string)=>void;onTurn:(turn:GuidedPhraseTurn)=>void;onEvaluation:(value:MeaningEvaluation)=>void;onError:(message:string)=>void;onComplete:()=>void};
-export type GuidedLiveAccess={token:string;model:string;websocketUrl:string;voice:string;practicesRemaining:number};
+export type GuidedLiveAccess={token:string;model:string;websocketUrl:string;voice:string;systemInstruction:string;practicesRemaining:number};
 
 const bytesToBase64=(bytes:Uint8Array)=>{let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return globalThis.btoa(binary);};
 const base64ToBytes=(value:string)=>{const binary=globalThis.atob(value);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return bytes;};
@@ -26,7 +26,7 @@ export class GeminiGuidedPhraseLive {
       this.setupResolve=resolve;this.setupReject=reject;
       const socket=new WebSocket(url);this.socket=socket;
       this.setupTimer=setTimeout(()=>{this.setupReject=null;reject(new Error('Sumi is taking longer than expected to connect. Please try again.'));socket.close();},20000);
-      socket.onopen=()=>socket.send(JSON.stringify({setup:{model:`models/${access.model}`,responseModalities:['AUDIO']}}));
+      socket.onopen=()=>socket.send(JSON.stringify({setup:{model:`models/${access.model}`,responseModalities:['AUDIO'],systemInstruction:{parts:[{text:access.systemInstruction}]},speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:access.voice}}},inputAudioTranscription:{},outputAudioTranscription:{},tools:[{functionDeclarations:[{name:'prepare_practice_turn',description:'Call before speaking each learner turn.',parameters:{type:'OBJECT',properties:{targetJapanese:{type:'STRING'},englishMeaning:{type:'STRING'},learnerInstruction:{type:'STRING'}},required:['targetJapanese','englishMeaning','learnerInstruction']}},{name:'evaluate_learner_meaning',description:'Call after each learner answer.',parameters:{type:'OBJECT',properties:{contextScore:{type:'INTEGER'},appropriate:{type:'BOOLEAN'},explanation:{type:'STRING'},betterResponse:{type:'STRING'}},required:['contextScore','appropriate','explanation','betterResponse']}}]}]}}));
       socket.onerror=()=>{if(this.setupTimer)clearTimeout(this.setupTimer);this.setupTimer=null;this.setupReject=null;reject(new Error('Sumi could not connect. Check your internet connection and try again.'));};
       socket.onmessage=(event)=>this.handleMessage(String(event.data));
       socket.onclose=(event)=>{if(this.setupTimer)clearTimeout(this.setupTimer);this.setupTimer=null;this.callbacks.onSpeaking(false);if(this.setupReject){this.setupReject(new Error('Sumi could not accept the conversation setup. Please try again.'));this.setupReject=null;}else if(!this.intentionallyClosed)this.callbacks.onError(event.reason||'The speaking room disconnected. Please reconnect.');};
@@ -35,8 +35,8 @@ export class GeminiGuidedPhraseLive {
 
   begin(){this.send({realtimeInput:{text:'Begin Guided Phrase Practice now. Greet me in Japanese, explain the activity briefly in English, then prepare the first of five spoken practice turns.'}});}
   sendPcm16(samples:Float32Array){const pcm=new Int16Array(samples.length);for(let i=0;i<samples.length;i++){const n=Math.max(-1,Math.min(1,samples[i]));pcm[i]=n<0?n*0x8000:n*0x7fff;}this.send({realtimeInput:{audio:{data:bytesToBase64(new Uint8Array(pcm.buffer)),mimeType:'audio/pcm;rate=16000'}}});}
-  endUserAudio(){this.send({realtimeInput:{activityEnd:{}}});}
-  interrupt(){this.nextPlaybackAt=this.audioContext.currentTime;this.send({realtimeInput:{activityStart:{}}});}
+  endUserAudio(){this.send({realtimeInput:{audioStreamEnd:true}});}
+  interrupt(){this.nextPlaybackAt=this.audioContext.currentTime;}
   close(){this.intentionallyClosed=true;this.socket?.close();this.socket=null;void this.audioContext.suspend();}
 
   private send(value:unknown){if(this.socket?.readyState===WebSocket.OPEN)this.socket.send(JSON.stringify(value));}
