@@ -1,6 +1,6 @@
 import { AudioContext } from 'react-native-audio-api';
 
-export type GuidedPhraseTurn={targetJapanese:string;englishMeaning:string;learnerInstruction:string};
+export type GuidedPhraseTurn={targetJapanese:string;targetRomaji:string;englishMeaning:string;learnerInstruction:string};
 export type MeaningEvaluation={contextScore:number;appropriate:boolean;explanation:string;betterResponse:string};
 export type GuidedLiveCallbacks={onConnected:()=>void;onSpeaking:(value:boolean)=>void;onInputTranscript:(text:string)=>void;onOutputTranscript:(text:string)=>void;onTurn:(turn:GuidedPhraseTurn)=>void;onEvaluation:(value:MeaningEvaluation)=>void;onError:(message:string)=>void;onComplete:()=>void};
 export type GuidedLiveAccess={token:string;model:string;websocketUrl:string;voice:string;systemInstruction:string;practicesRemaining:number};
@@ -19,28 +19,34 @@ export class GeminiGuidedPhraseLive {
   private receiveChain:Promise<void>=Promise.resolve();
   constructor(private callbacks:GuidedLiveCallbacks){}
 
+  async activateAudio(){await this.audioContext.resume();}
+
   async connect(access:GuidedLiveAccess){
-    await this.audioContext.resume();
+    // Mobile browsers can leave AudioContext.resume() pending until a user
+    // gesture. Do not let that browser policy block the Gemini connection.
+    await Promise.race([this.activateAudio(),new Promise<void>(resolve=>setTimeout(resolve,700))]);
     this.intentionallyClosed=false;
     const url=`${access.websocketUrl}?access_token=${encodeURIComponent(access.token)}`;
     await new Promise<void>((resolve,reject)=>{
       this.setupResolve=resolve;this.setupReject=reject;
       const socket=new WebSocket(url);this.socket=socket;
       this.setupTimer=setTimeout(()=>{this.setupReject=null;reject(new Error('Sumi is taking longer than expected to connect. Please try again.'));socket.close();},20000);
-      socket.onopen=()=>socket.send(JSON.stringify({setup:{model:`models/${access.model}`,generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:access.voice}}}},systemInstruction:{parts:[{text:access.systemInstruction}]},inputAudioTranscription:{},outputAudioTranscription:{},tools:[{functionDeclarations:[{name:'prepare_practice_turn',description:'Call before speaking each learner turn.',parameters:{type:'OBJECT',properties:{targetJapanese:{type:'STRING'},englishMeaning:{type:'STRING'},learnerInstruction:{type:'STRING'}},required:['targetJapanese','englishMeaning','learnerInstruction']}},{name:'evaluate_learner_meaning',description:'Call after each learner answer.',parameters:{type:'OBJECT',properties:{contextScore:{type:'INTEGER'},appropriate:{type:'BOOLEAN'},explanation:{type:'STRING'},betterResponse:{type:'STRING'}},required:['contextScore','appropriate','explanation','betterResponse']}}]}]}}));
+      socket.onopen=()=>socket.send(JSON.stringify({setup:{model:`models/${access.model}`,generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:access.voice}}}},systemInstruction:{parts:[{text:access.systemInstruction}]},inputAudioTranscription:{},outputAudioTranscription:{},tools:[{functionDeclarations:[{name:'prepare_practice_turn',description:'Required before every learner response. Supply the phrase and accurate beginner-readable romaji.',parameters:{type:'OBJECT',properties:{targetJapanese:{type:'STRING'},targetRomaji:{type:'STRING'},englishMeaning:{type:'STRING'},learnerInstruction:{type:'STRING'}},required:['targetJapanese','targetRomaji','englishMeaning','learnerInstruction']}},{name:'evaluate_learner_meaning',description:'Call after each learner answer.',parameters:{type:'OBJECT',properties:{contextScore:{type:'INTEGER'},appropriate:{type:'BOOLEAN'},explanation:{type:'STRING'},betterResponse:{type:'STRING'}},required:['contextScore','appropriate','explanation','betterResponse']}}]}]}}));
       socket.onerror=()=>{if(this.setupTimer)clearTimeout(this.setupTimer);this.setupTimer=null;this.setupReject=null;reject(new Error('Sumi could not connect. Check your internet connection and try again.'));};
       socket.onmessage=(event)=>{this.receiveChain=this.receiveChain.then(()=>this.handleSocketData(event.data)).catch(error=>this.callbacks.onError(error instanceof Error?error.message:'The conversation response could not be read.'));};
       socket.onclose=(event)=>{if(this.setupTimer)clearTimeout(this.setupTimer);this.setupTimer=null;this.callbacks.onSpeaking(false);if(this.setupReject){this.setupReject(new Error('Sumi could not accept the conversation setup. Please try again.'));this.setupReject=null;}else if(!this.intentionallyClosed)this.callbacks.onError(event.reason||'The speaking room disconnected. Please reconnect.');};
     });
   }
 
-  begin(){this.send({realtimeInput:{text:'Begin Guided Phrase Practice now. Greet me in Japanese, explain the activity briefly in English, then prepare the first of five spoken practice turns.'}});}
+  begin(){this.sendTextTurn('Begin Guided Phrase Practice now. Greet me briefly in Japanese, explain the activity in English, then call prepare_practice_turn for the first spoken response.');}
+  requestPracticeTurn(){this.sendTextTurn('The learner is ready. Call prepare_practice_turn now, include accurate romaji, then speak the next prompt and wait for the microphone response.');}
   sendPcm16(samples:Float32Array){const pcm=new Int16Array(samples.length);for(let i=0;i<samples.length;i++){const n=Math.max(-1,Math.min(1,samples[i]));pcm[i]=n<0?n*0x8000:n*0x7fff;}this.send({realtimeInput:{audio:{data:bytesToBase64(new Uint8Array(pcm.buffer)),mimeType:'audio/pcm;rate=16000'}}});}
   endUserAudio(){this.send({realtimeInput:{audioStreamEnd:true}});}
   interrupt(){this.nextPlaybackAt=this.audioContext.currentTime;}
   close(){this.intentionallyClosed=true;this.socket?.close();this.socket=null;void this.audioContext.suspend();}
 
   private send(value:unknown){if(this.socket?.readyState===WebSocket.OPEN)this.socket.send(JSON.stringify(value));}
+  private sendTextTurn(text:string){this.send({clientContent:{turns:[{role:'user',parts:[{text}]}],turnComplete:true}});}
   private async handleSocketData(data:unknown){
     try{
       if(typeof data==='string'){this.handleMessage(data);return;}
@@ -61,7 +67,10 @@ export class GeminiGuidedPhraseLive {
       for(const part of content?.modelTurn?.parts??[]){if(part.inlineData?.data)this.playPcm24(part.inlineData.data);}
       if(content?.turnComplete)this.callbacks.onSpeaking(false);
       for(const call of message.toolCall?.functionCalls??[]){
-        if(call.name==='prepare_practice_turn')this.callbacks.onTurn(call.args as GuidedPhraseTurn);
+        if(call.name==='prepare_practice_turn'){
+          const args=call.args as Partial<GuidedPhraseTurn>;
+          if(args.targetJapanese&&args.englishMeaning&&args.learnerInstruction)this.callbacks.onTurn({targetJapanese:args.targetJapanese,targetRomaji:args.targetRomaji||'',englishMeaning:args.englishMeaning,learnerInstruction:args.learnerInstruction});
+        }
         if(call.name==='evaluate_learner_meaning')this.callbacks.onEvaluation(call.args as MeaningEvaluation);
         this.send({toolResponse:{functionResponses:[{id:call.id,name:call.name,response:{result:'Recorded. Continue naturally.'}}]}});
       }
