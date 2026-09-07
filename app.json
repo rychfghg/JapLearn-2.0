@@ -50,6 +50,14 @@
           ]
         }
       ],
+      [
+        "react-native-audio-api",
+        {
+          "iosBackgroundMode": false,
+          "iosMicrophonePermission": "JapLearn uses your microphone for Guided Phrase Practice.",
+          "androidPermissions": ["android.permission.RECORD_AUDIO"]
+        }
+      ],
       "expo-asset"
     ],
     "extra": {

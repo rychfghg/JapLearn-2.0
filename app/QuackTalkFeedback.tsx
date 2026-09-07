@@ -155,7 +155,7 @@ export default function QuackTalkFeedback() {
               </View>
               <Text style={styles.coachTitle}>Review, reflect, and speak with confidence.</Text>
               <Text style={styles.coachText}>
-                Your real speaking feedback and completed sessions will be organized here as listening analysis becomes available.
+                Review completed Guided Phrase sessions evaluated by Gemini Live and Azure Pronunciation Assessment.
               </Text>
               <View style={styles.heroStatus}>
                 <Ionicons name="shield-checkmark-outline" size={15} color="#5DAE38" />
@@ -218,9 +218,9 @@ export default function QuackTalkFeedback() {
                   <View style={styles.featureIconPink}>
                     <Ionicons name="waveform-outline" size={22} color="#D64D82" />
                   </View>
-                  <Text style={styles.featureKickerPink}>COMING SOON</Text>
+                  <Text style={styles.featureKickerPink}>GUIDED PHRASE</Text>
                   <Text style={styles.featureTitle}>Voice evaluation</Text>
-                  <Text style={styles.featureText}>Pronunciation, transcription, and coaching notes will appear here.</Text>
+                  <Text style={styles.featureText}>Azure pronunciation results and Sumi's guided conversation score are saved after five responses.</Text>
                 </View>
               </View>
               <Pressable style={styles.primaryAction} onPress={() => router.replace(returnRoute)}>

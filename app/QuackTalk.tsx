@@ -248,11 +248,12 @@ export default function QuackTalk(){
           >
             <View style={styles.choiceHeader}>
               <View style={styles.choiceAvatar}>
-                <Ionicons name="sparkles" size={27} color="#7552C8" />
+                <Ionicons name="chatbubbles" size={25} color="#7552C8" />
               </View>
               <View style={styles.choiceHeaderCopy}>
-                <Text style={styles.choiceEyebrow}>SUMI IS READY</Text>
-                <Text style={styles.choiceHeading}>Choose your practice</Text>
+                <Text style={styles.choiceEyebrow}>QUACKTALK WITH SUMI</Text>
+                <Text style={styles.choiceHeading}>How would you like to practice?</Text>
+                <Text style={styles.choiceSubheading}>Choose a speaking experience for today.</Text>
               </View>
             </View>
             <Pressable
@@ -260,30 +261,36 @@ export default function QuackTalk(){
               style={styles.primaryChoice}
             >
               <View style={styles.choiceIconPrimary}>
-                <Ionicons name="chatbubbles" size={23} color="#FFF" />
+                <Ionicons name="people" size={22} color="#7552C8" />
               </View>
               <View style={styles.choiceCopy}>
-                <Text style={styles.primaryChoiceTitle}>Guided conversation with Sumi</Text>
+                <View style={styles.choiceTitleRow}>
+                  <Text style={styles.primaryChoiceTitle}>Talk with Sumi</Text>
+                  <View style={styles.conversationBadge}><Text style={styles.conversationBadgeText}>CONVERSATION</Text></View>
+                </View>
                 <Text style={styles.primaryChoiceText}>
-                  Enter Sumi's conversation room. Questions and AI listening are coming soon.
+                  Follow Sumi's questions and practice keeping a Japanese conversation moving.
                 </Text>
               </View>
-              <Ionicons name="arrow-forward" size={20} color="#FFF" />
+              <View style={styles.choiceArrowPrimary}><Ionicons name="arrow-forward" size={18} color="#7552C8" /></View>
             </Pressable>
             <Pressable
               onPress={() => openPractice('/QuackTalkSpeech')}
               style={styles.secondaryChoice}
             >
               <View style={styles.choiceIconSecondary}>
-                <Ionicons name="mic" size={23} color="#D84F83" />
+                <Ionicons name="mic" size={22} color="#D84F83" />
               </View>
               <View style={styles.choiceCopy}>
-                <Text style={styles.secondaryChoiceTitle}>Open speaking practice</Text>
+                <View style={styles.choiceTitleRow}>
+                  <Text style={styles.secondaryChoiceTitle}>Guided Phrase Practice</Text>
+                  <View style={styles.phraseBadge}><Text style={styles.phraseBadgeText}>FOCUSED</Text></View>
+                </View>
                 <Text style={styles.secondaryChoiceText}>
-                  Test your microphone in Sumi's studio. Guided phrases and feedback are coming soon.
+                  Practice useful Japanese phrases aloud with structured prompts and feedback.
                 </Text>
               </View>
-              <Ionicons name="arrow-forward" size={20} color="#D84F83" />
+              <View style={styles.choiceArrowSecondary}><Ionicons name="arrow-forward" size={18} color="#D84F83" /></View>
             </Pressable>
             <Pressable
               onPress={() => {

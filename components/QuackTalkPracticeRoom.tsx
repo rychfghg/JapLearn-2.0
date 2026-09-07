@@ -26,6 +26,7 @@ import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackTalkPracticeRoom';
 import { loadBundledSound } from '../utils/nativeAudio';
+import GuidedPhraseLiveRoom from './GuidedPhraseLiveRoom';
 
 type PracticeRoomProps = {
   variant: 'conversation' | 'speaking';
@@ -94,7 +95,12 @@ const roomContent = {
   },
 } as const;
 
-export default function QuackTalkPracticeRoom({ variant }: PracticeRoomProps) {
+export default function QuackTalkPracticeRoom(props: PracticeRoomProps) {
+  if (props.variant === 'speaking') return <GuidedPhraseLiveRoom />;
+  return <ExistingPracticeRoom {...props} />;
+}
+
+function ExistingPracticeRoom({ variant }: PracticeRoomProps) {
   const content = roomContent[variant];
   const { user } = useContext(AuthContext);
   const recordingRef = useRef<Audio.Recording | null>(null);
