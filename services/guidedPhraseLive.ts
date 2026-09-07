@@ -16,6 +16,7 @@ export class GeminiGuidedPhraseLive {
   private setupReject:((error:Error)=>void)|null=null;
   private setupTimer:ReturnType<typeof setTimeout>|null=null;
   private intentionallyClosed=false;
+  private receiveChain:Promise<void>=Promise.resolve();
   constructor(private callbacks:GuidedLiveCallbacks){}
 
   async connect(access:GuidedLiveAccess){
@@ -28,7 +29,7 @@ export class GeminiGuidedPhraseLive {
       this.setupTimer=setTimeout(()=>{this.setupReject=null;reject(new Error('Sumi is taking longer than expected to connect. Please try again.'));socket.close();},20000);
       socket.onopen=()=>socket.send(JSON.stringify({setup:{model:`models/${access.model}`,generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:access.voice}}}},systemInstruction:{parts:[{text:access.systemInstruction}]},inputAudioTranscription:{},outputAudioTranscription:{},tools:[{functionDeclarations:[{name:'prepare_practice_turn',description:'Call before speaking each learner turn.',parameters:{type:'OBJECT',properties:{targetJapanese:{type:'STRING'},englishMeaning:{type:'STRING'},learnerInstruction:{type:'STRING'}},required:['targetJapanese','englishMeaning','learnerInstruction']}},{name:'evaluate_learner_meaning',description:'Call after each learner answer.',parameters:{type:'OBJECT',properties:{contextScore:{type:'INTEGER'},appropriate:{type:'BOOLEAN'},explanation:{type:'STRING'},betterResponse:{type:'STRING'}},required:['contextScore','appropriate','explanation','betterResponse']}}]}]}}));
       socket.onerror=()=>{if(this.setupTimer)clearTimeout(this.setupTimer);this.setupTimer=null;this.setupReject=null;reject(new Error('Sumi could not connect. Check your internet connection and try again.'));};
-      socket.onmessage=(event)=>this.handleMessage(String(event.data));
+      socket.onmessage=(event)=>{this.receiveChain=this.receiveChain.then(()=>this.handleSocketData(event.data)).catch(error=>this.callbacks.onError(error instanceof Error?error.message:'The conversation response could not be read.'));};
       socket.onclose=(event)=>{if(this.setupTimer)clearTimeout(this.setupTimer);this.setupTimer=null;this.callbacks.onSpeaking(false);if(this.setupReject){this.setupReject(new Error('Sumi could not accept the conversation setup. Please try again.'));this.setupReject=null;}else if(!this.intentionallyClosed)this.callbacks.onError(event.reason||'The speaking room disconnected. Please reconnect.');};
     });
   }
@@ -40,6 +41,15 @@ export class GeminiGuidedPhraseLive {
   close(){this.intentionallyClosed=true;this.socket?.close();this.socket=null;void this.audioContext.suspend();}
 
   private send(value:unknown){if(this.socket?.readyState===WebSocket.OPEN)this.socket.send(JSON.stringify(value));}
+  private async handleSocketData(data:unknown){
+    try{
+      if(typeof data==='string'){this.handleMessage(data);return;}
+      if(typeof Blob!=='undefined'&&data instanceof Blob){this.handleMessage(await data.text());return;}
+      if(data instanceof ArrayBuffer){this.handleMessage(new TextDecoder().decode(new Uint8Array(data)));return;}
+      if(ArrayBuffer.isView(data)){this.handleMessage(new TextDecoder().decode(new Uint8Array(data.buffer,data.byteOffset,data.byteLength)));return;}
+      this.callbacks.onError('Sumi returned an unreadable conversation message. Please reconnect.');
+    }catch(error){this.callbacks.onError(error instanceof Error?error.message:'The conversation response could not be read.');}
+  }
   private handleMessage(raw:string){
     try{
       const message=JSON.parse(raw);
