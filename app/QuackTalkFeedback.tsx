@@ -27,6 +27,23 @@ type AnalyticsData = {
   history?: HistoryItem[];
 };
 
+type GuidedSession = {
+  id: string;
+  scenarioTitle?: string;
+  durationSeconds: number;
+  conversationTurns: number;
+  score: number;
+  pronunciationScore?: number;
+  accuracyScore?: number;
+  fluencyScore?: number;
+  completenessScore?: number;
+  contextualAccuracy?: number;
+  feedbackSummary?: string;
+  expressionsPracticed?: string[];
+  areasForImprovement?: string[];
+  practicedAt: string;
+};
+
 type Tab = 'overview' | 'focus' | 'history';
 
 const background = require('../assets/img/background/clubroom a st2 day.png');
@@ -47,6 +64,7 @@ export default function QuackTalkFeedback() {
   const { user } = useContext(AuthContext);
   const [tab, setTab] = useState<Tab>('overview');
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [guidedSessions, setGuidedSessions] = useState<GuidedSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const cameFromConversation = returnTo === 'conversation';
@@ -76,9 +94,10 @@ export default function QuackTalkFeedback() {
         setLoading(true);
         setLoadError('');
 
-        const response = await fetch(
-          `${expoconfig.API_URL}/api/quackProgress/analytics?email=${encodeURIComponent(user.email)}`,
-        );
+        const [response, guidedResponse] = await Promise.all([
+          fetch(`${expoconfig.API_URL}/api/quackProgress/analytics?email=${encodeURIComponent(user.email)}`),
+          fetch(`${expoconfig.API_URL}/api/guided-phrase/history?email=${encodeURIComponent(user.email)}`),
+        ]);
         const data = await response.json();
 
         if (!response.ok) {
@@ -87,6 +106,7 @@ export default function QuackTalkFeedback() {
 
         if (active) {
           setAnalytics(data);
+          if (guidedResponse.ok) setGuidedSessions(await guidedResponse.json());
         }
       } catch (error) {
         if (active) {
@@ -110,9 +130,10 @@ export default function QuackTalkFeedback() {
 
   const talkHistory = useMemo(() => {
     return (analytics?.history ?? []).filter((item) => {
-      return /quacktalk|speaking|speech|conversation/i.test(item.title);
+      return /quacktalk|speaking|speech|conversation/i.test(item.title)
+        && !(guidedSessions.length > 0 && /guided phrase/i.test(item.title));
     });
-  }, [analytics?.history]);
+  }, [analytics?.history, guidedSessions.length]);
 
   const emptyCard = (icon: keyof typeof Ionicons.glyphMap, title: string, copy: string) => (
     <View style={styles.emptyCard}>
@@ -155,7 +176,7 @@ export default function QuackTalkFeedback() {
               </View>
               <Text style={styles.coachTitle}>Review, reflect, and speak with confidence.</Text>
               <Text style={styles.coachText}>
-                Review completed Guided Phrase sessions evaluated by Gemini Live and Azure Pronunciation Assessment.
+                Review completed Guided Phrase sessions, speaking scores, and Sumi's coaching notes.
               </Text>
               <View style={styles.heroStatus}>
                 <Ionicons name="shield-checkmark-outline" size={15} color="#5DAE38" />
@@ -220,7 +241,7 @@ export default function QuackTalkFeedback() {
                   </View>
                   <Text style={styles.featureKickerPink}>GUIDED PHRASE</Text>
                   <Text style={styles.featureTitle}>Voice evaluation</Text>
-                  <Text style={styles.featureText}>Azure pronunciation results and Sumi's guided conversation score are saved after five responses.</Text>
+                  <Text style={styles.featureText}>Pronunciation results and Sumi's guided conversation score are saved after five responses.</Text>
                 </View>
               </View>
               <Pressable style={styles.primaryAction} onPress={() => router.replace(returnRoute)}>
@@ -262,6 +283,29 @@ export default function QuackTalkFeedback() {
 
           {!loading && !loadError && tab === 'history' && (
             <>
+              {guidedSessions.map((session) => (
+                <View key={session.id} style={styles.dataCard}>
+                  <View style={styles.historyRow}>
+                    <View style={styles.historyIcon}>
+                      <Ionicons name="mic-outline" size={18} color="#8051C8" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.historyTitle}>{session.scenarioTitle || 'Guided Phrase Practice'}</Text>
+                      <Text style={styles.featureText}>
+                        {new Date(session.practicedAt).toLocaleDateString()} · {session.conversationTurns || 0} responses · {Math.max(1, Math.round((session.durationSeconds || 0) / 60))} min
+                      </Text>
+                    </View>
+                    <Text style={styles.historyScore}>{session.score}%</Text>
+                  </View>
+                  <View style={styles.statusGrid}>
+                    <View style={[styles.featureCard, styles.featureCardPurple]}><Text style={styles.featureKicker}>PRONUNCIATION</Text><Text style={styles.featureTitle}>{session.pronunciationScore ?? 0}/100</Text></View>
+                    <View style={[styles.featureCard, styles.featureCardPink]}><Text style={styles.featureKickerPink}>FLUENCY</Text><Text style={styles.featureTitle}>{session.fluencyScore ?? 0}/100</Text></View>
+                  </View>
+                  {!!session.feedbackSummary && <Text style={styles.featureText}>{session.feedbackSummary}</Text>}
+                  {!!session.expressionsPracticed?.length && <Text style={styles.featureText}>Practiced: {session.expressionsPracticed.join(' · ')}</Text>}
+                  {!!session.areasForImprovement?.length && <Text style={styles.featureText}>Focus next: {session.areasForImprovement.join(', ')}</Text>}
+                </View>
+              ))}
               {talkHistory.length > 0 ? (
                 <View style={styles.dataCard}>
                   <Text style={styles.dataTitle}>QuackTalk history</Text>
