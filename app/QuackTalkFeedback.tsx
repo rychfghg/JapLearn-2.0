@@ -99,14 +99,18 @@ export default function QuackTalkFeedback() {
           fetch(`${expoconfig.API_URL}/api/guided-phrase/history?email=${encodeURIComponent(user.email)}`),
         ]);
         const data = await response.json();
+        const guidedData = guidedResponse.ok ? await guidedResponse.json() : null;
 
         if (!response.ok) {
           throw new Error(data.message || 'Feedback history could not be loaded.');
         }
+        if (!guidedResponse.ok || !Array.isArray(guidedData)) {
+          throw new Error('Guided Phrase feedback history could not be loaded.');
+        }
 
         if (active) {
           setAnalytics(data);
-          if (guidedResponse.ok) setGuidedSessions(await guidedResponse.json());
+          setGuidedSessions(guidedData);
         }
       } catch (error) {
         if (active) {
@@ -134,6 +138,10 @@ export default function QuackTalkFeedback() {
         && !(guidedSessions.length > 0 && /guided phrase/i.test(item.title));
     });
   }, [analytics?.history, guidedSessions.length]);
+  const speakingNotes = useMemo(() => Array.from(new Set([
+    ...(analytics?.repeatedMistakes ?? []),
+    ...guidedSessions.flatMap((session) => session.areasForImprovement ?? []).map((item) => `Guided Phrase: ${item}`),
+  ])), [analytics?.repeatedMistakes, guidedSessions]);
 
   const emptyCard = (icon: keyof typeof Ionicons.glyphMap, title: string, copy: string) => (
     <View style={styles.emptyCard}>
@@ -237,7 +245,7 @@ export default function QuackTalkFeedback() {
                 </View>
                 <View style={[styles.featureCard, styles.featureCardPink]}>
                   <View style={styles.featureIconPink}>
-                    <Ionicons name="waveform-outline" size={22} color="#D64D82" />
+                    <Ionicons name="pulse-outline" size={22} color="#D64D82" />
                   </View>
                   <Text style={styles.featureKickerPink}>GUIDED PHRASE</Text>
                   <Text style={styles.featureTitle}>Voice evaluation</Text>
@@ -259,10 +267,10 @@ export default function QuackTalkFeedback() {
 
           {!loading && !loadError && tab === 'focus' && (
             <>
-              {(analytics?.repeatedMistakes?.length ?? 0) > 0 ? (
+              {speakingNotes.length > 0 ? (
                 <View style={styles.dataCard}>
                   <Text style={styles.dataTitle}>Saved speaking notes</Text>
-                  {analytics?.repeatedMistakes?.map((item, index) => (
+                  {speakingNotes.map((item, index) => (
                     <View key={`${item}-${index}`} style={styles.noteRow}>
                       <View style={styles.noteNumber}>
                         <Text style={styles.noteNumberText}>{index + 1}</Text>
@@ -283,8 +291,8 @@ export default function QuackTalkFeedback() {
 
           {!loading && !loadError && tab === 'history' && (
             <>
-              {guidedSessions.map((session) => (
-                <View key={session.id} style={styles.dataCard}>
+              {guidedSessions.map((session, sessionIndex) => (
+                <View key={session.id || `${session.practicedAt}-${sessionIndex}`} style={styles.dataCard}>
                   <View style={styles.historyRow}>
                     <View style={styles.historyIcon}>
                       <Ionicons name="mic-outline" size={18} color="#8051C8" />

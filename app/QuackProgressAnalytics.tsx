@@ -9,8 +9,9 @@ import { AuthContext } from '../context/AuthContext';
 import StudentBottomNav from '../components/StudentBottomNav';
 
 type ModuleAccuracy = { label: string; value: number };
+type QuackTalkBreakdownItem = { key: string; label: string; value: number; sessions: number };
 type HistoryItem = { title: string; score: number };
-type AnalyticsData = { overallMastery: number; situationalAccuracy: number; interactionAccuracy: number; progressSummary: string; recommendation: string; weakAreas: string[]; repeatedMistakes: string[]; history: HistoryItem[]; moduleAccuracy: ModuleAccuracy[] };
+type AnalyticsData = { overallMastery: number; situationalAccuracy: number; interactionAccuracy: number; progressSummary: string; recommendation: string; weakAreas: string[]; repeatedMistakes: string[]; history: HistoryItem[]; moduleAccuracy: ModuleAccuracy[]; quackTalkBreakdown?: QuackTalkBreakdownItem[] };
 type LessonProgress = { hiragana1: boolean; hiragana2: boolean; hiragana3: boolean; katakana1: boolean; katakana2: boolean; katakana3: boolean; vocab1: boolean; vocab2: boolean; vocab3: boolean; sentence: boolean };
 
 export default function QuackProgressAnalytics() {
@@ -35,7 +36,7 @@ export default function QuackProgressAnalytics() {
       setAnalytics(data);
     } catch (error: any) {
       console.log('QuackProgress analytics fetch error:', error.message);
-      setAnalytics({ overallMastery: 0, situationalAccuracy: 0, interactionAccuracy: 0, progressSummary: 'No analytics records found yet. Complete QuackSituate, QuackResponse, or QuackTalk activities first.', recommendation: 'Start with guided communication activities to generate progress recommendations.', weakAreas: [], repeatedMistakes: [], history: [], moduleAccuracy: [] });
+      setAnalytics({ overallMastery: 0, situationalAccuracy: 0, interactionAccuracy: 0, progressSummary: 'No analytics records found yet. Complete QuackSituate, QuackResponse, or QuackTalk activities first.', recommendation: 'Start with guided communication activities to generate progress recommendations.', weakAreas: [], repeatedMistakes: [], history: [], moduleAccuracy: [], quackTalkBreakdown: [] });
     } finally { setLoading(false); }
   };
 
@@ -70,6 +71,7 @@ export default function QuackProgressAnalytics() {
             {reportCard('Situational response accuracy', analytics?.situationalAccuracy || 0, '#8423D9')}
             {reportCard('Interaction accuracy', analytics?.interactionAccuracy || 0, '#65A936')}
             {analytics?.moduleAccuracy?.length ? analytics.moduleAccuracy.map((item, index) => <React.Fragment key={item.label}>{reportCard(item.label, item.value, index % 2 ? '#65A936' : '#8423D9')}</React.Fragment>) : <View style={styles.emptyCard}><Ionicons name="bar-chart-outline" size={27} color="#A99DAE" /><Text style={styles.emptyTitle}>No module accuracy yet</Text><Text style={styles.emptyText}>Complete communication activities to build this report.</Text></View>}
+            {!!analytics?.quackTalkBreakdown?.some(item => item.sessions > 0) && <><Text style={styles.subheading}>QuackTalk activities</Text>{analytics.quackTalkBreakdown.filter(item => item.sessions > 0).map(item => <React.Fragment key={item.key}>{reportCard(`${item.label} · ${item.sessions} session${item.sessions === 1 ? '' : 's'}`, item.value, '#7552C8')}</React.Fragment>)}</>}
             <View style={styles.insightCard}><View style={styles.insightIcon}><Ionicons name="document-text-outline" size={22} color="#8423D9" /></View><View style={styles.insightCopy}><Text style={styles.insightTitle}>Progress summary</Text><Text style={styles.insightText}>{analytics?.progressSummary}</Text></View></View>
             <View style={styles.recommendation}><View style={styles.recommendationIcon}><Ionicons name="bulb-outline" size={22} color="#A66A12" /></View><View style={styles.insightCopy}><Text style={styles.recommendationTitle}>Recommended next</Text><Text style={styles.recommendationText}>{analytics?.recommendation}</Text></View></View>
           </>}

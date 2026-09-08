@@ -14,6 +14,7 @@ type MasteryItem = { name: string; percentage: number };
 type ProgressSummary = { overallMastery: number; completedActivities: number; weakAreaCount: number; recommendation: string; masteryItems: MasteryItem[] };
 type SpeakingSummary = { sessions: number; seconds: number; lastRoom?: string };
 type ReplyCoachSummary = { completedChapters: number; attempts: number; bestScore: number; averageScore: number };
+type QuackTalkBreakdownItem = { key: string; label: string; value: number; sessions: number };
 
 const guides = [
   { image: require('../assets/idle.png'), label: 'See how far you’ve come', text: 'Your activity results become a clear Japanese growth map here.' },
@@ -38,6 +39,7 @@ export default function QuackProgress() {
   const [responseRushBest, setResponseRushBest] = useState(0);
   const [dialogueRelayBest, setDialogueRelayBest] = useState(0);
   const [speakingSummary, setSpeakingSummary] = useState<SpeakingSummary>({ sessions: 0, seconds: 0 });
+  const [quackTalkBreakdown, setQuackTalkBreakdown] = useState<QuackTalkBreakdownItem[]>([]);
   const [replyCoachSummary, setReplyCoachSummary] = useState<ReplyCoachSummary>({ completedChapters: 0, attempts: 0, bestScore: 0, averageScore: 0 });
   const [expandedGames, setExpandedGames] = useState<Record<string, boolean>>({});
 
@@ -118,6 +120,10 @@ export default function QuackProgress() {
         lastRoom: records[0]?.roomType,
       }))
       .catch((error) => console.log('QuackTalk history fetch error:', error.message));
+    fetch(`${expoconfig.API_URL}/api/quackProgress/analytics?email=${encodeURIComponent(email)}`)
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error('QuackTalk breakdown unavailable')))
+      .then((record) => setQuackTalkBreakdown(Array.isArray(record.quackTalkBreakdown) ? record.quackTalkBreakdown : []))
+      .catch((error) => console.log('QuackTalk breakdown fetch error:', error.message));
     fetch(`${expoconfig.API_URL}/api/reply-coach/progress?email=${encodeURIComponent(email)}`)
       .then((response) => response.ok ? response.json() : Promise.reject(new Error('Reply Coach progress unavailable')))
       .then((record) => setReplyCoachSummary({
@@ -177,7 +183,7 @@ export default function QuackProgress() {
   const situateScores = [masteryFor('Recognition'), masteryFor('Expression Match'), masteryFor('Politeness')];
   const responseScores = [masteryFor('Reply Coach'), responseRushBest, dialogueRelayBest];
   const gameScores = [
-    { key: 'quacktalk', name: 'QuackTalk', caption: `${speakingSummary.sessions} speaking session${speakingSummary.sessions === 1 ? '' : 's'}`, score: masteryFor('QuackTalk'), color: '#7552C8', tint: '#F1ECFC', icon: 'mic-outline' },
+    { key: 'quacktalk', name: 'QuackTalk', caption: `${speakingSummary.sessions} speaking session${speakingSummary.sessions === 1 ? '' : 's'}`, score: masteryFor('QuackTalk'), color: '#7552C8', tint: '#F1ECFC', icon: 'mic-outline', children: quackTalkBreakdown.map((item) => ({ name: item.label, skill: `${item.sessions} evaluated session${item.sessions === 1 ? '' : 's'}`, score: item.value, icon: item.key === 'guidedPhrase' ? 'mic-outline' : 'chatbubbles-outline' })) },
     { key: 'quacksituate', name: 'QuackSituate', caption: 'Real-world communication', score: activeAverage(situateScores), color: '#65A936', tint: '#EFF8E8', icon: 'navigate-outline', children: [
       { name: 'Ahiru Rescue', skill: 'Recognition', score: situateScores[0], icon: 'eye-outline' },
       { name: 'Expression Match', skill: 'Gesture matching', score: situateScores[1], icon: 'git-compare-outline' },
@@ -235,7 +241,7 @@ export default function QuackProgress() {
               {expanded && game.children ? <View style={styles.subgameList}>{game.children.map((child, childIndex) => <View key={child.name} style={[styles.subgameRow, childIndex === game.children!.length - 1 && styles.subgameRowLast]}><View style={[styles.subgameIcon, { backgroundColor: game.tint }]}><Ionicons name={child.icon as any} size={16} color={game.color} /></View><View style={styles.subgameCopy}><Text style={styles.subgameName}>{child.name}</Text><Text style={styles.subgameSkill}>{child.skill}</Text></View><View style={styles.subgameTrack}><View style={[styles.subgameFill, { width: `${child.score}%`, backgroundColor: game.color }]} /></View><Text style={[styles.subgameScore, { color: game.color }]}>{child.score}%</Text></View>)}</View> : null}
             </View>})}
           </View>
-          <Text style={styles.gameScoreHint}>Tap QuackSituate or QuackResponse to view their games.</Text>
+          <Text style={styles.gameScoreHint}>Tap QuackTalk, QuackSituate, or QuackResponse to view their activities.</Text>
         </View>
         <Text style={styles.actionsTitle}>Explore your progress</Text>
         <Pressable style={styles.featureGreen} onPress={() => router.push('/QuackProgressProgression')}><View style={styles.featureIcon}><Ionicons name="trending-up-outline" size={25} color="#FFFFFF" /></View><View style={styles.featureCopy}><Text style={styles.featureTitle}>Progression & Reinforcement</Text><Text style={styles.featureText}>View mastery stages, repeated mistakes, and retry activities.</Text></View><Ionicons name="arrow-forward-circle" size={27} color="#65A936" /></Pressable>
