@@ -17,9 +17,17 @@ export class GeminiGuidedPhraseLive {
   private setupTimer:ReturnType<typeof setTimeout>|null=null;
   private intentionallyClosed=false;
   private receiveChain:Promise<void>=Promise.resolve();
+  private pendingAudio:string[]=[];
+  private activePlaybackCount=0;
+  private preparedTargets=new Set<string>();
   constructor(private callbacks:GuidedLiveCallbacks){}
 
-  async activateAudio(){await this.audioContext.resume();}
+  async activateAudio(){
+    await this.audioContext.resume();
+    if((this.audioContext as any).state!=='running')throw new Error('Audio playback is still blocked by this browser.');
+    const queued=this.pendingAudio.splice(0);
+    for(const encoded of queued)this.playPcm24(encoded);
+  }
 
   async connect(access:GuidedLiveAccess){
     // Mobile browsers can leave AudioContext.resume() pending until a user
@@ -42,8 +50,8 @@ export class GeminiGuidedPhraseLive {
   requestPracticeTurn(){this.sendTextTurn('The learner is ready. Call prepare_practice_turn now, include accurate romaji, then speak the next prompt and wait for the microphone response.');}
   sendPcm16(samples:Float32Array){const pcm=new Int16Array(samples.length);for(let i=0;i<samples.length;i++){const n=Math.max(-1,Math.min(1,samples[i]));pcm[i]=n<0?n*0x8000:n*0x7fff;}this.send({realtimeInput:{audio:{data:bytesToBase64(new Uint8Array(pcm.buffer)),mimeType:'audio/pcm;rate=16000'}}});}
   endUserAudio(){this.send({realtimeInput:{audioStreamEnd:true}});}
-  interrupt(){this.nextPlaybackAt=this.audioContext.currentTime;}
-  close(){this.intentionallyClosed=true;this.socket?.close();this.socket=null;void this.audioContext.suspend();}
+  interrupt(){this.nextPlaybackAt=this.audioContext.currentTime;this.pendingAudio=[];}
+  close(){this.intentionallyClosed=true;this.pendingAudio=[];this.socket?.close();this.socket=null;void this.audioContext.suspend();}
 
   private send(value:unknown){if(this.socket?.readyState===WebSocket.OPEN)this.socket.send(JSON.stringify(value));}
   private sendTextTurn(text:string){this.send({clientContent:{turns:[{role:'user',parts:[{text}]}],turnComplete:true}});}
@@ -65,11 +73,16 @@ export class GeminiGuidedPhraseLive {
       if(content?.inputTranscription?.text)this.callbacks.onInputTranscript(content.inputTranscription.text);
       if(content?.outputTranscription?.text)this.callbacks.onOutputTranscript(content.outputTranscription.text);
       for(const part of content?.modelTurn?.parts??[]){if(part.inlineData?.data)this.playPcm24(part.inlineData.data);}
-      if(content?.turnComplete)this.callbacks.onSpeaking(false);
+      if(content?.turnComplete&&this.activePlaybackCount===0&&this.pendingAudio.length===0)this.callbacks.onSpeaking(false);
       for(const call of message.toolCall?.functionCalls??[]){
         if(call.name==='prepare_practice_turn'){
           const args=call.args as Partial<GuidedPhraseTurn>;
-          if(args.targetJapanese&&args.englishMeaning&&args.learnerInstruction)this.callbacks.onTurn({targetJapanese:args.targetJapanese,targetRomaji:args.targetRomaji||'',englishMeaning:args.englishMeaning,learnerInstruction:args.learnerInstruction});
+          const key=String(args.targetJapanese||'').replace(/\s/g,'');
+          if(key&&this.preparedTargets.has(key)){
+            this.send({toolResponse:{functionResponses:[{id:call.id,name:call.name,response:{result:'Duplicate phrase rejected. Prepare a different useful phrase for this turn.'}}]}});
+            continue;
+          }
+          if(args.targetJapanese&&args.englishMeaning&&args.learnerInstruction){this.preparedTargets.add(key);this.callbacks.onTurn({targetJapanese:args.targetJapanese,targetRomaji:args.targetRomaji||'',englishMeaning:args.englishMeaning,learnerInstruction:args.learnerInstruction});}
         }
         if(call.name==='evaluate_learner_meaning')this.callbacks.onEvaluation(call.args as MeaningEvaluation);
         this.send({toolResponse:{functionResponses:[{id:call.id,name:call.name,response:{result:'Recorded. Continue naturally.'}}]}});
@@ -78,9 +91,15 @@ export class GeminiGuidedPhraseLive {
     }catch(error){this.callbacks.onError(error instanceof Error?error.message:'The conversation could not continue. Please try again.');}
   }
   private playPcm24(encoded:string){
+    if((this.audioContext as any).state!=='running'){
+      this.pendingAudio.push(encoded);
+      this.callbacks.onSpeaking(true);
+      return;
+    }
     const bytes=base64ToBytes(encoded);const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);const frames=Math.floor(bytes.byteLength/2);
     const buffer=this.audioContext.createBuffer(1,frames,24000);const channel=buffer.getChannelData(0);for(let i=0;i<frames;i++)channel[i]=view.getInt16(i*2,true)/32768;
     const source=this.audioContext.createBufferSource();source.buffer=buffer;source.connect(this.audioContext.destination);
+    this.activePlaybackCount++;source.onended=()=>{this.activePlaybackCount=Math.max(0,this.activePlaybackCount-1);if(this.activePlaybackCount===0&&this.pendingAudio.length===0)this.callbacks.onSpeaking(false);};
     const start=Math.max(this.audioContext.currentTime+0.02,this.nextPlaybackAt);source.start(start);this.nextPlaybackAt=start+buffer.duration;this.callbacks.onSpeaking(true);
   }
 }
