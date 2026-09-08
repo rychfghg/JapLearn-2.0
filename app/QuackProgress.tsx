@@ -114,11 +114,16 @@ export default function QuackProgress() {
       .catch((error) => console.log('Politeness score fetch error:', error.message));
     fetch(`${expoconfig.API_URL}/api/quackTalkSessions?email=${encodeURIComponent(email)}`)
       .then((response) => response.ok ? response.json() : Promise.reject(new Error('Speaking history unavailable')))
-      .then((records) => setSpeakingSummary({
-        sessions: records.length,
-        seconds: records.reduce((total: number, record: { durationSeconds?: number }) => total + (record.durationSeconds || 0), 0),
-        lastRoom: records[0]?.roomType,
-      }))
+      .then((records) => {
+        const completedRecords = Array.isArray(records)
+          ? records.filter((record: { completed?: boolean }) => record.completed)
+          : [];
+        setSpeakingSummary({
+          sessions: completedRecords.length,
+          seconds: completedRecords.reduce((total: number, record: { durationSeconds?: number }) => total + (record.durationSeconds || 0), 0),
+          lastRoom: completedRecords[0]?.roomType,
+        });
+      })
       .catch((error) => console.log('QuackTalk history fetch error:', error.message));
     fetch(`${expoconfig.API_URL}/api/quackProgress/analytics?email=${encodeURIComponent(email)}`)
       .then((response) => response.ok ? response.json() : Promise.reject(new Error('QuackTalk breakdown unavailable')))
@@ -183,7 +188,7 @@ export default function QuackProgress() {
   const situateScores = [masteryFor('Recognition'), masteryFor('Expression Match'), masteryFor('Politeness')];
   const responseScores = [masteryFor('Reply Coach'), responseRushBest, dialogueRelayBest];
   const gameScores = [
-    { key: 'quacktalk', name: 'QuackTalk', caption: `${speakingSummary.sessions} speaking session${speakingSummary.sessions === 1 ? '' : 's'}`, score: masteryFor('QuackTalk'), color: '#7552C8', tint: '#F1ECFC', icon: 'mic-outline', children: quackTalkBreakdown.map((item) => ({ name: item.label, skill: `${item.sessions} evaluated session${item.sessions === 1 ? '' : 's'}`, score: item.value, icon: item.key === 'guidedPhrase' ? 'mic-outline' : 'chatbubbles-outline' })) },
+    { key: 'quacktalk', name: 'QuackTalk', caption: `${speakingSummary.sessions} completed speaking session${speakingSummary.sessions === 1 ? '' : 's'}`, score: masteryFor('QuackTalk'), color: '#7552C8', tint: '#F1ECFC', icon: 'mic-outline', children: quackTalkBreakdown.map((item) => ({ name: item.label, skill: `${item.sessions} completed session${item.sessions === 1 ? '' : 's'}${item.value > 0 ? ' · assessed' : ' · activity only'}`, score: item.value, icon: item.key === 'guidedPhrase' ? 'mic-outline' : 'chatbubbles-outline' })) },
     { key: 'quacksituate', name: 'QuackSituate', caption: 'Real-world communication', score: activeAverage(situateScores), color: '#65A936', tint: '#EFF8E8', icon: 'navigate-outline', children: [
       { name: 'Ahiru Rescue', skill: 'Recognition', score: situateScores[0], icon: 'eye-outline' },
       { name: 'Expression Match', skill: 'Gesture matching', score: situateScores[1], icon: 'git-compare-outline' },
