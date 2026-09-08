@@ -59,7 +59,7 @@ const feedbackTabs: Array<{
   { key: 'history', label: 'Sessions', icon: 'time-outline' },
 ];
 
-export default function QuackTalkFeedback() {
+function LegacyQuackTalkFeedback() {
   const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const { user } = useContext(AuthContext);
   const [tab, setTab] = useState<Tab>('overview');
@@ -357,3 +357,5 @@ export default function QuackTalkFeedback() {
     </SafeAreaView>
   );
 }
+
+export { default } from '../components/QuackTalkFeedbackScreen';

@@ -31,6 +31,8 @@ export class GeminiGuidedPhraseLive {
   private nativeEndTimer:ReturnType<typeof setTimeout>|null=null;
   private modelTurnActive=false;
   private practiceRequestPending=false;
+  private playbackHeld=false;
+  private heldAudio:string[]=[];
   constructor(private callbacks:GuidedLiveCallbacks){}
 
   async activateAudio(){
@@ -64,7 +66,9 @@ export class GeminiGuidedPhraseLive {
   sendPcm16(samples:Float32Array){const pcm=new Int16Array(samples.length);for(let i=0;i<samples.length;i++){const n=Math.max(-1,Math.min(1,samples[i]));pcm[i]=n<0?n*0x8000:n*0x7fff;}this.send({realtimeInput:{audio:{data:bytesToBase64(new Uint8Array(pcm.buffer)),mimeType:'audio/pcm;rate=16000'}}});}
   beginUserAudio(){this.modelTurnActive=false;this.send({realtimeInput:{activityStart:{}}});}
   endUserAudio(){this.modelTurnActive=true;this.send({realtimeInput:{activityEnd:{}}});}
-  interrupt(){this.nextPlaybackAt=this.audioContext.currentTime;this.pendingAudio=[];if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=null;if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;for(const source of this.browserSources){try{source.stop();}catch{}}this.browserSources.clear();this.browserNextPlaybackAt=this.browserNativeContext?.currentTime||0;for(const source of this.nativeSources){try{source.stop();}catch{}}this.nativeSources.clear();this.browserPendingPcm=[];this.activePlaybackCount=0;this.callbacks.onSpeaking(false);}
+  holdPlayback(){this.playbackHeld=true;}
+  releasePlayback(){this.playbackHeld=false;const queued=this.heldAudio.splice(0);for(const encoded of queued)this.playPcm24(encoded);if(!queued.length&&!this.modelTurnActive){this.callbacks.onSpeaking(false);this.drainPracticeRequest();}}
+  interrupt(){this.nextPlaybackAt=this.audioContext.currentTime;this.pendingAudio=[];this.heldAudio=[];this.playbackHeld=false;if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=null;if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;for(const source of this.browserSources){try{source.stop();}catch{}}this.browserSources.clear();this.browserNextPlaybackAt=this.browserNativeContext?.currentTime||0;for(const source of this.nativeSources){try{source.stop();}catch{}}this.nativeSources.clear();this.browserPendingPcm=[];this.activePlaybackCount=0;this.callbacks.onSpeaking(false);}
   close(){this.intentionallyClosed=true;this.interrupt();void this.browserNativeContext?.close?.();this.browserNativeContext=null;this.socket?.close();this.socket=null;void this.audioContext.suspend();}
 
   private send(value:unknown){if(this.socket?.readyState===WebSocket.OPEN)this.socket.send(JSON.stringify(value));}
@@ -110,6 +114,7 @@ export class GeminiGuidedPhraseLive {
     }catch(error){this.callbacks.onError(error instanceof Error?error.message:'The conversation could not continue. Please try again.');}
   }
   private playPcm24(encoded:string){
+    if(this.playbackHeld){this.heldAudio.push(encoded);return;}
     if(isBrowser){const pcm=base64ToBytes(encoded);if(this.browserAudioUnlocked)this.scheduleBrowserPcm(pcm);else this.browserPendingPcm.push(pcm);return;}
     if((this.audioContext as any).state!=='running'){
       this.pendingAudio.push(encoded);
