@@ -309,6 +309,11 @@ export default function QuackTalkFeedback() {
                     <View style={[styles.featureCard, styles.featureCardPurple]}><Text style={styles.featureKicker}>PRONUNCIATION</Text><Text style={styles.featureTitle}>{session.pronunciationScore ?? 0}/100</Text></View>
                     <View style={[styles.featureCard, styles.featureCardPink]}><Text style={styles.featureKickerPink}>FLUENCY</Text><Text style={styles.featureTitle}>{session.fluencyScore ?? 0}/100</Text></View>
                   </View>
+                  <View style={styles.statusGrid}>
+                    <View style={[styles.featureCard, styles.featureCardPurple]}><Text style={styles.featureKicker}>ACCURACY</Text><Text style={styles.featureTitle}>{session.accuracyScore ?? 0}/100</Text></View>
+                    <View style={[styles.featureCard, styles.featureCardPink]}><Text style={styles.featureKickerPink}>COMPLETENESS</Text><Text style={styles.featureTitle}>{session.completenessScore ?? 0}/100</Text></View>
+                  </View>
+                  <Text style={styles.featureText}>Conversation fit: {session.contextualAccuracy ?? 0}/100</Text>
                   {!!session.feedbackSummary && <Text style={styles.featureText}>{session.feedbackSummary}</Text>}
                   {!!session.expressionsPracticed?.length && <Text style={styles.featureText}>Practiced: {session.expressionsPracticed.join(' · ')}</Text>}
                   {!!session.areasForImprovement?.length && <Text style={styles.featureText}>Focus next: {session.areasForImprovement.join(', ')}</Text>}

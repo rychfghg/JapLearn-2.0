@@ -109,7 +109,7 @@ export class GeminiGuidedPhraseLive {
     }catch(error){this.callbacks.onError(error instanceof Error?error.message:'The conversation could not continue. Please try again.');}
   }
   private playPcm24(encoded:string){
-    if(isBrowser){this.browserTurnAudio.push(base64ToBytes(encoded));return;}
+    if(isBrowser){this.browserPendingPcm.push(base64ToBytes(encoded));if(this.browserAudioUnlocked&&!this.browserSource)void this.playNextBrowserPcm();return;}
     if((this.audioContext as any).state!=='running'){
       this.pendingAudio.push(encoded);
       return;
@@ -121,8 +121,7 @@ export class GeminiGuidedPhraseLive {
     const start=Math.max(this.audioContext.currentTime+0.02,this.nextPlaybackAt);source.start(start);this.nextPlaybackAt=start+buffer.duration;this.callbacks.onSpeaking(true);if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=setTimeout(()=>{if(this.activePlaybackCount>0){this.activePlaybackCount=0;this.nativeSources.clear();this.callbacks.onSpeaking(false);this.drainPracticeRequest();}},Math.max(3000,Math.ceil((this.nextPlaybackAt-this.audioContext.currentTime)*1000)+2000));
   }
   private finishBrowserTurn(){
-    if(!this.browserTurnAudio.length){this.callbacks.onSpeaking(false);this.drainPracticeRequest();return;}
-    const chunks=this.browserTurnAudio.splice(0);const length=chunks.reduce((sum,item)=>sum+item.byteLength,0);const pcm=new Uint8Array(length);let offset=0;for(const chunk of chunks){pcm.set(chunk,offset);offset+=chunk.byteLength;}this.browserPendingPcm.push(pcm);if(this.browserAudioUnlocked&&!this.browserSource)void this.playNextBrowserPcm();
+    if(!this.browserSource&&this.browserPendingPcm.length===0){this.callbacks.onSpeaking(false);this.drainPracticeRequest();}
   }
   private async playNextBrowserPcm(){const context=this.browserNativeContext;if(!context||context.state!=='running'||this.browserSource)return;const pcm=this.browserPendingPcm.shift();if(!pcm?.byteLength){this.callbacks.onSpeaking(false);this.drainPracticeRequest();return;}const frames=Math.floor(pcm.byteLength/2);if(!frames){void this.playNextBrowserPcm();return;}const buffer=context.createBuffer(1,frames,24000);const channel=buffer.getChannelData(0);const view=new DataView(pcm.buffer,pcm.byteOffset,pcm.byteLength);for(let i=0;i<frames;i++)channel[i]=view.getInt16(i*2,true)/32768;const source=context.createBufferSource();source.buffer=buffer;source.connect(context.destination);this.browserSource=source;let ended=false;const finish=()=>{if(ended)return;ended=true;if(this.browserSource===source)this.browserSource=null;if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;if(this.browserPendingPcm.length)void this.playNextBrowserPcm();else{this.callbacks.onSpeaking(false);this.drainPracticeRequest();}};source.onended=finish;this.browserEndTimer=setTimeout(()=>{if(this.browserSource===source){try{source.stop();}catch{}finish();}},Math.max(3000,Math.ceil(buffer.duration*1000)+2500));source.start(0);this.callbacks.onSpeaking(true);}
 }
