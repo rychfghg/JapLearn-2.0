@@ -7,6 +7,8 @@ export type GuidedLiveAccess={token:string;model:string;websocketUrl:string;voic
 
 const bytesToBase64=(bytes:Uint8Array)=>{let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return globalThis.btoa(binary);};
 const base64ToBytes=(value:string)=>{const binary=globalThis.atob(value);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return bytes;};
+const isBrowser=typeof document!=='undefined'&&typeof Audio!=='undefined';
+const pcmToWav=(chunks:Uint8Array[])=>{const length=chunks.reduce((sum,item)=>sum+item.byteLength,0);const bytes=new Uint8Array(44+length);const view=new DataView(bytes.buffer);const write=(offset:number,value:string)=>{for(let i=0;i<value.length;i++)bytes[offset+i]=value.charCodeAt(i);};write(0,'RIFF');view.setUint32(4,36+length,true);write(8,'WAVE');write(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,24000,true);view.setUint32(28,48000,true);view.setUint16(32,2,true);view.setUint16(34,16,true);write(36,'data');view.setUint32(40,length,true);let offset=44;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}return new Blob([bytes],{type:'audio/wav'});};
 
 export class GeminiGuidedPhraseLive {
   private socket:WebSocket|null=null;
@@ -20,9 +22,15 @@ export class GeminiGuidedPhraseLive {
   private pendingAudio:string[]=[];
   private activePlaybackCount=0;
   private preparedTargets=new Set<string>();
+  private browserTurnAudio:Uint8Array[]=[];
+  private browserAudio:any=null;
+  private browserAudioUrl:string|null=null;
+  private browserAudioUnlocked=false;
+  private browserEndTimer:ReturnType<typeof setTimeout>|null=null;
   constructor(private callbacks:GuidedLiveCallbacks){}
 
   async activateAudio(){
+    if(isBrowser){this.browserAudioUnlocked=true;if(this.browserAudio){await this.browserAudio.play();this.armBrowserEndTimer(this.browserAudio);}return;}
     await this.audioContext.resume();
     if((this.audioContext as any).state!=='running')throw new Error('Audio playback is still blocked by this browser.');
     const queued=this.pendingAudio.splice(0);
@@ -50,8 +58,8 @@ export class GeminiGuidedPhraseLive {
   requestPracticeTurn(){this.sendTextTurn('The learner is ready. Call prepare_practice_turn now, include accurate romaji, then speak the next prompt and wait for the microphone response.');}
   sendPcm16(samples:Float32Array){const pcm=new Int16Array(samples.length);for(let i=0;i<samples.length;i++){const n=Math.max(-1,Math.min(1,samples[i]));pcm[i]=n<0?n*0x8000:n*0x7fff;}this.send({realtimeInput:{audio:{data:bytesToBase64(new Uint8Array(pcm.buffer)),mimeType:'audio/pcm;rate=16000'}}});}
   endUserAudio(){this.send({realtimeInput:{audioStreamEnd:true}});}
-  interrupt(){this.nextPlaybackAt=this.audioContext.currentTime;this.pendingAudio=[];}
-  close(){this.intentionallyClosed=true;this.pendingAudio=[];this.socket?.close();this.socket=null;void this.audioContext.suspend();}
+  interrupt(){this.nextPlaybackAt=this.audioContext.currentTime;this.pendingAudio=[];if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;if(this.browserAudio){this.browserAudio.pause();this.browserAudio=null;}this.browserTurnAudio=[];this.releaseBrowserAudioUrl();this.activePlaybackCount=0;this.callbacks.onSpeaking(false);}
+  close(){this.intentionallyClosed=true;this.pendingAudio=[];this.browserTurnAudio=[];if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;if(this.browserAudio)this.browserAudio.pause();this.browserAudio=null;this.releaseBrowserAudioUrl();this.socket?.close();this.socket=null;void this.audioContext.suspend();}
 
   private send(value:unknown){if(this.socket?.readyState===WebSocket.OPEN)this.socket.send(JSON.stringify(value));}
   private sendTextTurn(text:string){this.send({clientContent:{turns:[{role:'user',parts:[{text}]}],turnComplete:true}});}
@@ -73,11 +81,16 @@ export class GeminiGuidedPhraseLive {
       if(content?.inputTranscription?.text)this.callbacks.onInputTranscript(content.inputTranscription.text);
       if(content?.outputTranscription?.text)this.callbacks.onOutputTranscript(content.outputTranscription.text);
       for(const part of content?.modelTurn?.parts??[]){if(part.inlineData?.data)this.playPcm24(part.inlineData.data);}
-      if(content?.turnComplete&&this.activePlaybackCount===0&&this.pendingAudio.length===0)this.callbacks.onSpeaking(false);
+      if(content?.turnComplete&&isBrowser)this.finishBrowserTurn();
+      else if(content?.turnComplete&&this.activePlaybackCount===0&&this.pendingAudio.length===0)this.callbacks.onSpeaking(false);
       for(const call of message.toolCall?.functionCalls??[]){
         if(call.name==='prepare_practice_turn'){
           const args=call.args as Partial<GuidedPhraseTurn>;
           const key=String(args.targetJapanese||'').replace(/\s/g,'');
+          if(key&&!/[\u3040-\u30ff\u3400-\u9fff]/.test(key)){
+            this.send({toolResponse:{functionResponses:[{id:call.id,name:call.name,response:{result:'Invalid target rejected. targetJapanese must be a natural Japanese phrase, not an English sentence.'}}]}});
+            continue;
+          }
           if(key&&this.preparedTargets.has(key)){
             this.send({toolResponse:{functionResponses:[{id:call.id,name:call.name,response:{result:'Duplicate phrase rejected. Prepare a different useful phrase for this turn.'}}]}});
             continue;
@@ -91,6 +104,7 @@ export class GeminiGuidedPhraseLive {
     }catch(error){this.callbacks.onError(error instanceof Error?error.message:'The conversation could not continue. Please try again.');}
   }
   private playPcm24(encoded:string){
+    if(isBrowser){this.browserTurnAudio.push(base64ToBytes(encoded));this.callbacks.onSpeaking(true);return;}
     if((this.audioContext as any).state!=='running'){
       this.pendingAudio.push(encoded);
       this.callbacks.onSpeaking(true);
@@ -102,4 +116,10 @@ export class GeminiGuidedPhraseLive {
     this.activePlaybackCount++;source.onended=()=>{this.activePlaybackCount=Math.max(0,this.activePlaybackCount-1);if(this.activePlaybackCount===0&&this.pendingAudio.length===0)this.callbacks.onSpeaking(false);};
     const start=Math.max(this.audioContext.currentTime+0.02,this.nextPlaybackAt);source.start(start);this.nextPlaybackAt=start+buffer.duration;this.callbacks.onSpeaking(true);
   }
+  private finishBrowserTurn(){
+    if(!this.browserTurnAudio.length){this.callbacks.onSpeaking(false);return;}
+    const blob=pcmToWav(this.browserTurnAudio.splice(0));this.releaseBrowserAudioUrl();this.browserAudioUrl=URL.createObjectURL(blob);const audio=new Audio(this.browserAudioUrl);this.browserAudio=audio;audio.preload='auto';(audio as any).__watchdogMs=Math.max(3000,Math.ceil(Math.max(0,blob.size-44)/48)+2500);const finish=()=>{if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;if(this.browserAudio===audio)this.browserAudio=null;this.releaseBrowserAudioUrl();this.callbacks.onSpeaking(false);};(audio as any).__finish=finish;audio.onended=finish;audio.onerror=()=>{finish();this.callbacks.onError('Sumi’s voice could not play on this device. Check media volume and try again.');};if(this.browserAudioUnlocked)void audio.play().then(()=>this.armBrowserEndTimer(audio)).catch(()=>finish());
+  }
+  private armBrowserEndTimer(audio:any){if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=setTimeout(()=>{if(this.browserAudio===audio){audio.pause();audio.__finish?.();}},Number(audio.__watchdogMs||30000));}
+  private releaseBrowserAudioUrl(){if(this.browserAudioUrl){URL.revokeObjectURL(this.browserAudioUrl);this.browserAudioUrl=null;}}
 }
