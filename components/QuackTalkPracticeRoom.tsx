@@ -27,6 +27,7 @@ import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackTalkPracticeRoom';
 import { loadBundledSound } from '../utils/nativeAudio';
 import GuidedPhraseLiveRoom from './GuidedPhraseLiveRoom';
+import TalkWithSumiLiveRoom from './TalkWithSumiLiveRoom';
 
 type PracticeRoomProps = {
   variant: 'conversation' | 'speaking';
@@ -97,6 +98,7 @@ const roomContent = {
 
 export default function QuackTalkPracticeRoom(props: PracticeRoomProps) {
   if (props.variant === 'speaking') return <GuidedPhraseLiveRoom />;
+  if (props.variant === 'conversation') return <TalkWithSumiLiveRoom />;
   return <ExistingPracticeRoom {...props} />;
 }
 
