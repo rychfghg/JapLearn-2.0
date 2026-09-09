@@ -30,7 +30,7 @@ export default function QuackProgressAnalytics() {
     try {
       setLoading(true);
       if (!user?.email) throw new Error('User email not found.');
-      const response = await fetch(`${expoconfig.API_URL}/api/quackProgress/analytics?email=${user.email}`);
+      const response = await fetch(`${expoconfig.API_URL}/api/quackProgress/analytics?email=${encodeURIComponent(user.email)}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to fetch analytics.');
       setAnalytics(data);

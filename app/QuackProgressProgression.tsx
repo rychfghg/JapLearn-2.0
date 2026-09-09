@@ -26,7 +26,7 @@ export default function QuackProgressProgression() {
     try {
       setLoading(true);
       if (!user?.email) throw new Error('User email not found.');
-      const response = await fetch(`${expoconfig.API_URL}/api/quackProgress/progression?email=${user.email}`);
+      const response = await fetch(`${expoconfig.API_URL}/api/quackProgress/progression?email=${encodeURIComponent(user.email)}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to fetch progression data.');
       setProgression(data);
