@@ -6,16 +6,14 @@ import {
     View,
     Pressable,
     ActivityIndicator,
-    Image,
     KeyboardAvoidingView,
     Platform,
-    SafeAreaView,
     ScrollView,
-    useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import CustomModal from '../components/CustomModal';
 import styles from '../styles/stylesLogin';
+import Logo from '../assets/svg/jpLogo.svg';
 import expoconfig from '../expoconfig';
 import { AuthContext } from '../context/AuthContext';
 import { useClassCode } from '../context/ClassCodeContext';
@@ -28,8 +26,6 @@ import { Ionicons } from '@expo/vector-icons';
 const Login = () => {
     const { login } = useContext(AuthContext);
     const { setClassCode } = useClassCode();
-    const { width } = useWindowDimensions();
-    const isWide = width >= 760;
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -39,7 +35,6 @@ const Login = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
-    const [focusedField, setFocusedField] = useState<'email' | 'password' | null>(null);
 
     const navigateBasedOnRole = (role, userClassCode = '') => {
         const cleanRole = role?.toLowerCase();
@@ -188,129 +183,97 @@ const Login = () => {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
             <View style={styles.backgroundOrbTop} />
             <View style={styles.backgroundOrbBottom} />
-            <View style={styles.backgroundSpark} />
-            <KeyboardAvoidingView style={styles.keyboardView} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-                <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-                    <View style={[styles.loginShell, isWide && styles.loginShellWide]}>
-                        <View style={[styles.welcomePanel, isWide && styles.welcomePanelWide]}>
-                            <View style={styles.brandRow}>
-                                <View style={styles.logoPlate}>
-                                    <Image source={require('../assets/APPLOGO.png')} style={styles.appLogo} />
-                                </View>
-                                <View>
-                                    <Text style={styles.brandName}>JAPLEARN</Text>
-                                    <Text style={styles.brandSubtitle}>Japanese made interactive</Text>
-                                </View>
-                            </View>
-
-                            <View style={[styles.mascotScene, isWide && styles.mascotSceneWide]}>
-                                <View style={styles.mascotHalo} />
-                                <View style={styles.mascotGround} />
-                                <Image source={require('../assets/hello.png')} style={styles.mascot} resizeMode="contain" />
-                                <View style={styles.speechCard}>
-                                    <Text style={styles.speechJapanese}>おかえりなさい！</Text>
-                                    <Text style={styles.speechEnglish}>Welcome back!</Text>
-                                </View>
-                            </View>
-
-                            <View style={styles.welcomeCopy}>
-                                <Text style={styles.welcomeEyebrow}>YOUR JAPANESE JOURNEY</Text>
-                                <Text style={styles.welcomeTitle}>Ready for your next small win?</Text>
-                                <Text style={styles.welcomeText}>Pick up your lessons, games, and speaking practice right where you left them.</Text>
-                            </View>
-                        </View>
-
-                        <View style={[styles.formCard, isWide && styles.formCardWide]}>
-                            <View style={styles.studentBadge}>
-                                <Ionicons name="school-outline" size={15} color="#65A936" />
-                                <Text style={styles.studentBadgeText}>STUDENT ACCESS</Text>
-                            </View>
-                            <Text style={styles.formTitle}>Welcome back</Text>
-                            <Text style={styles.formSubtitle}>Sign in to continue learning with JapLearn.</Text>
-
-                            <Text style={styles.fieldLabel}>Email address</Text>
-                            <View style={[styles.inputContainer, focusedField === 'email' && styles.inputContainerFocused]}>
-                                <View style={styles.inputIconWrap}>
-                                    <Ionicons name="mail-outline" size={19} color="#8423D9" />
-                                </View>
-                                <TextInput
-                                    style={styles.input}
-                                    value={email}
-                                    placeholder="you@example.com"
-                                    placeholderTextColor="#AA9EB0"
-                                    autoCapitalize="none"
-                                    autoComplete="email"
-                                    inputMode="email"
-                                    returnKeyType="next"
-                                    onFocus={() => setFocusedField('email')}
-                                    onBlur={() => setFocusedField(null)}
-                                    onChangeText={(text) => setEmail(text.replace(/\s/g, '').toLowerCase())}
-                                />
-                            </View>
-
-                            <View style={styles.passwordLabelRow}>
-                                <Text style={styles.fieldLabel}>Password</Text>
-                                <Pressable onPress={() => setForgotPasswordVisible(true)} hitSlop={8}>
-                                    <Text style={styles.forgotLink}>Forgot password?</Text>
-                                </Pressable>
-                            </View>
-                            <View style={[styles.passwordContainer, focusedField === 'password' && styles.inputContainerFocused]}>
-                                <View style={styles.inputIconWrap}>
-                                    <Ionicons name="lock-closed-outline" size={19} color="#8423D9" />
-                                </View>
-                                <TextInput
-                                    style={[styles.input, styles.passwordInput]}
-                                    secureTextEntry={!showPassword}
-                                    value={password}
-                                    placeholder="Enter your password"
-                                    placeholderTextColor="#AA9EB0"
-                                    autoCapitalize="none"
-                                    autoComplete="current-password"
-                                    returnKeyType="go"
-                                    onSubmitEditing={handleLogin}
-                                    onFocus={() => setFocusedField('password')}
-                                    onBlur={() => setFocusedField(null)}
-                                    onChangeText={(text) => setPassword(text.replace(/\s/g, ''))}
-                                />
-                                {password.length > 0 && (
-                                    <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.insideInputButton} accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}>
-                                        <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={21} color="#6E5D77" />
-                                    </Pressable>
-                                )}
-                            </View>
-
-                            <View style={styles.buttonContainer}>
-                                <Pressable disabled={loading} onPress={handleLogin} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, loading && styles.buttonDisabled]}>
-                                    {loading ? <ActivityIndicator size="small" color="#FFFFFF" /> : <>
-                                        <Text style={styles.buttonText}>Continue learning</Text>
-                                        <View style={styles.buttonArrow}><Ionicons name="arrow-forward" size={18} color="#8423D9" /></View>
-                                    </>}
-                                </Pressable>
-                            </View>
-
-                            <View style={styles.signupDivider}>
-                                <View style={styles.dividerLine} />
-                                <Text style={styles.dividerText}>NEW TO JAPLEARN?</Text>
-                                <View style={styles.dividerLine} />
-                            </View>
-                            <Pressable onPress={() => router.push('/Signup')} style={({ pressed }) => [styles.createButton, pressed && styles.buttonPressed]}>
-                                <Ionicons name="person-add-outline" size={19} color="#6D24B8" />
-                                <Text style={styles.createButtonText}>Create a student account</Text>
-                            </Pressable>
-
-                            <View style={styles.policyTextContainer}>
-                                <Text style={styles.policyText}>By continuing, you agree to JapLearn&apos;s </Text>
-                                <Pressable onPress={() => router.push({ pathname: '/TermsOfServicePage', params: { fromLogin: 'true' } })} hitSlop={8} accessibilityRole="link"><Text style={styles.linkText2}>Terms</Text></Pressable>
-                                <Text style={styles.policyText}> and </Text>
-                                <Pressable onPress={() => router.push({ pathname: '/PrivacyPolicyPage', params: { fromLogin: 'true' } })} hitSlop={8} accessibilityRole="link"><Text style={styles.linkText2}>Privacy Policy</Text></Pressable>
-                                <Text style={styles.policyText}>.</Text>
-                            </View>
-                        </View>
+            <KeyboardAvoidingView
+                style={styles.keyboardView}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            >
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                <View style={styles.imageContainer}>
+                    <View style={styles.mascotWrap}>
+                        <Logo width={132} height={132} />
                     </View>
+                    <Text style={styles.titleText}>JAPLEARN 2.0</Text>
+                    <Text style={styles.subtitleText}>Learn Japanese, one step at a time.</Text>
+                </View>
+
+                <View style={styles.formCard}>
+                <Text style={styles.formTitle}>Sign in</Text>
+                <Text style={styles.formSubtitle}>Enter your details to continue learning.</Text>
+                <View style={styles.inputContainer}>
+                    <Ionicons name="mail-outline" size={21} color="#8423D9" style={styles.inputIcon} />
+                <TextInput
+                    style={styles.input}
+                    value={email}
+                    placeholder="Email"
+                    autoCapitalize="none"
+                    inputMode="email"
+                    onChangeText={(text) => setEmail(text.replace(/\s/g, '').toLowerCase())}
+                />
+                </View>
+
+                <View style={styles.passwordContainer}>
+                    <Ionicons name="lock-closed-outline" size={21} color="#8423D9" style={styles.inputIcon} />
+                    <TextInput
+                        style={[styles.input, styles.passwordInput]}
+                        secureTextEntry={!showPassword}
+                        value={password}
+                        placeholder="Password"
+                        autoCapitalize="none"
+                        onChangeText={(text) => setPassword(text.replace(/\s/g, ''))}
+                    />
+
+                    {password.length > 0 && (
+                        <Pressable
+                            onPress={() => setShowPassword(!showPassword)}
+                            style={styles.insideInputButton}
+                        >
+                            <Ionicons
+                                name={showPassword ? 'eye-off' : 'eye'}
+                                size={24}
+                            color="#4F4F4F"
+                            />
+                        </Pressable>
+                    )}
+                </View>
+
+                <View style={styles.buttonContainer}>
+                    {loading ? (
+                        <View style={styles.button}><ActivityIndicator size="small" color="#FFFFFF" /></View>
+                    ) : (
+                        <Pressable onPress={handleLogin} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
+                            <Text style={styles.buttonText}>Login</Text>
+                            <Ionicons name="arrow-forward" size={21} color="#FFFFFF" />
+                        </Pressable>
+                    )}
+                </View>
+                <View style={styles.linkContainer}>
+                    <Pressable onPress={() => router.push('/Signup')} hitSlop={8}>
+                        <Text style={styles.linkText}>Create an account</Text>
+                    </Pressable>
+
+                    <Pressable onPress={() => setForgotPasswordVisible(true)} hitSlop={8}>
+                        <Text style={styles.linkText}>Forgot password?</Text>
+                    </Pressable>
+                </View>
+                </View>
+
+                <View style={styles.policyTextContainer}>
+                    <Text style={styles.policyText}>By continuing, you agree with JapLearn&apos;s </Text>
+                    <Pressable onPress={() => router.push({ pathname: '/TermsOfServicePage', params: { fromLogin: 'true' } })} hitSlop={8} accessibilityRole="link">
+                        <Text style={styles.linkText2}>Terms of Service</Text>
+                    </Pressable>
+                    <Text style={styles.policyText}> and </Text>
+                    <Pressable onPress={() => router.push({ pathname: '/PrivacyPolicyPage', params: { fromLogin: 'true' } })} hitSlop={8} accessibilityRole="link">
+                        <Text style={styles.linkText2}>Privacy Policy</Text>
+                    </Pressable>
+                </View>
                 </ScrollView>
             </KeyboardAvoidingView>
 
@@ -352,7 +315,6 @@ const Login = () => {
                 onClose={() => setModalVisible(false)}
             />
         </View>
-        </SafeAreaView>
     );
 };
 
