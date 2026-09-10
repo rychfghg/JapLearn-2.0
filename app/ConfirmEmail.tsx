@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Image, Linking, Platform, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import expoconfig from '../expoconfig';
 
 type ConfirmationState = 'confirming' | 'confirmed' | 'invalid';
+type ConfirmedRole = 'student' | 'teacher';
+const TEACHER_LOGIN_URL = 'https://portal.japlearn.com/teacher/login';
 
 export default function ConfirmEmail() {
     const params = useLocalSearchParams<{ token?: string | string[] }>();
@@ -13,6 +15,19 @@ export default function ConfirmEmail() {
     const started = useRef(false);
     const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [state, setState] = useState<ConfirmationState>('confirming');
+    const [confirmedRole, setConfirmedRole] = useState<ConfirmedRole>('student');
+
+    const continueToLogin = useCallback((role: ConfirmedRole) => {
+        if (role === 'teacher') {
+            if (Platform.OS === 'web' && globalThis.location) {
+                globalThis.location.replace(TEACHER_LOGIN_URL);
+                return;
+            }
+            void Linking.openURL(TEACHER_LOGIN_URL);
+            return;
+        }
+        router.replace('/Login');
+    }, [router]);
 
     useEffect(() => {
         if (started.current) return;
@@ -24,17 +39,20 @@ export default function ConfirmEmail() {
         }
 
         fetch(`${expoconfig.API_URL}/api/users/confirm?token=${encodeURIComponent(token)}`)
-            .then((response) => {
+            .then(async (response) => {
                 if (!response.ok) throw new Error('Invalid confirmation link');
+                const result = await response.json();
+                const role: ConfirmedRole = String(result?.role).toLowerCase() === 'teacher' ? 'teacher' : 'student';
+                setConfirmedRole(role);
                 setState('confirmed');
-                redirectTimer.current = setTimeout(() => router.replace('/Login'), 1800);
+                redirectTimer.current = setTimeout(() => continueToLogin(role), 1800);
             })
             .catch(() => setState('invalid'));
 
         return () => {
             if (redirectTimer.current) clearTimeout(redirectTimer.current);
         };
-    }, [router, token]);
+    }, [continueToLogin, token]);
 
     const confirmed = state === 'confirmed';
     const invalid = state === 'invalid';
@@ -67,21 +85,21 @@ export default function ConfirmEmail() {
                         {state === 'confirming' ? 'VERIFYING YOUR ACCOUNT' : confirmed ? 'EMAIL CONFIRMED' : 'LINK NOT AVAILABLE'}
                     </Text>
                     <Text style={styles.title}>
-                        {state === 'confirming' ? 'Confirming your email...' : confirmed ? 'You’re ready to learn!' : 'This link is invalid'}
+                        {state === 'confirming' ? 'Confirming your email...' : confirmed ? confirmedRole === 'teacher' ? 'Your teacher account is ready!' : 'You’re ready to learn!' : 'This link is invalid'}
                     </Text>
                     <Text style={styles.message}>
                         {state === 'confirming'
                             ? 'Please wait while JapLearn securely verifies your account.'
                             : confirmed
-                                ? 'Your email address has been confirmed. We’re taking you to the login page now.'
+                                ? `Your email address has been confirmed. We’re taking you to the ${confirmedRole === 'teacher' ? 'teacher portal' : 'student'} login now.`
                                 : 'This confirmation link may be incomplete, expired, or already used. You can return to Login and request help if needed.'}
                     </Text>
 
-                    {confirmed && <Text style={styles.redirectText}>Redirecting to Login...</Text>}
+                    {confirmed && <Text style={styles.redirectText}>Redirecting to {confirmedRole === 'teacher' ? 'Teacher Login' : 'Student Login'}...</Text>}
 
                     {state !== 'confirming' && (
-                        <Pressable style={styles.loginButton} onPress={() => router.replace('/Login')}>
-                            <Text style={styles.loginButtonText}>CONTINUE TO LOGIN</Text>
+                        <Pressable style={styles.loginButton} onPress={() => continueToLogin(confirmed ? confirmedRole : 'student')}>
+                            <Text style={styles.loginButtonText}>CONTINUE TO {confirmed && confirmedRole === 'teacher' ? 'TEACHER' : 'STUDENT'} LOGIN</Text>
                             <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
                         </Pressable>
                     )}

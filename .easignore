@@ -1,0 +1,27 @@
+# Source-control and installed dependencies
+.git/
+node_modules/
+
+# Expo and local verification output
+.expo/
+.expo-export-*/
+dist/
+dist-*/
+web-build/
+android/
+ios/
+
+# Local/editor files
+.vscode/
+.DS_Store
+*.log
+*.tsbuildinfo
+.env*.local
+
+# Native signing material must never be uploaded from the workspace
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
