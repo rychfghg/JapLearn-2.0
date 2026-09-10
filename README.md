@@ -9,21 +9,26 @@
   [![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB?logo=react&logoColor=111827)](https://reactnative.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-  Android · iOS · Web
+  Android App · Desktop Web · Mobile Web
 </div>
 
 ---
 
 ## Overview
 
-JapLearn is a student-focused Japanese language application featuring:
+JapLearn is a connected Japanese-learning platform for students and teachers. The current release is available as an **Android application** and a responsive **web application**. iPhone and iPad users can use the web version in Safari or another modern browser; a native iOS application is not currently released.
+
+The student experience includes:
 
 - Guided Kana, vocabulary, and grammar lessons
-- Quack-a-Mole, Quackman, QuackSlate, and QuackSituate activities
-- QuackResponse communication exercises
-- QuackTalk speaking practice with Sumi
-- Student progress, scores, mastery, and achievements
-- Teacher-class enrollment and synchronized learning records
+- **Quack-a-Mole** for fast recognition practice
+- **Quackman** for Japanese word challenges
+- **QuackSlate** for solo sentence practice and teacher-code sessions
+- **QuackSituate**, including Expression Match and politeness-focused situational practice
+- **QuackResponse**, including Reply Coach, Response Rush, and Dialogue Relay
+- **QuackTalk**, including Guided Phrase Practice and Talk with Sumi
+- **QuackProgress** for scores, mastery, completion, focus areas, and communication feedback
+- Per-account classroom enrollment and synchronized learning records across supported devices
 
 This repository contains the **Expo/React Native student frontend**. Authentication, progress storage, classes, teacher synchronization, and email services are provided by the separate Spring Boot backend.
 
@@ -34,7 +39,8 @@ This repository contains the **Expo/React Native student frontend**. Authenticat
 | App | React Native 0.76 + Expo SDK 52 |
 | Language | TypeScript |
 | Navigation | Expo Router |
-| Storage | AsyncStorage |
+| Local device state | AsyncStorage |
+| Synced records | Spring Boot API + MongoDB |
 | Audio | Expo AV |
 | Icons | Expo Vector Icons |
 | Web | React Native Web |
@@ -45,7 +51,7 @@ This repository contains the **Expo/React Native student frontend**. Authenticat
 - Node.js 20 LTS or newer
 - npm
 - Git
-- Expo Go for development on a physical phone
+- Expo Go or an Android development build for physical-device testing
 - A running JapLearn backend for server-connected features
 
 ## Setup
@@ -62,7 +68,7 @@ Start the application:
 npx expo start
 ```
 
-Scan the QR code with Expo Go, or press `w` to open the web version.
+Scan the QR code with Expo Go on Android, or press `w` to open the web version. On iPhone or iPad, use the deployed web application in the browser for the currently supported experience.
 
 If cached files cause unexpected behavior:
 
@@ -122,13 +128,15 @@ npx eas-cli build -p android --profile production
 
 The `apk` profile is for direct device testing. The `production` profile produces the store-ready Android build.
 
+> Native iOS builds are not part of the current JapLearn release. Do not advertise App Store availability until an iOS build has been implemented, tested, and published.
+
 ## Web Build
 
 ```bash
 npx expo export --platform web
 ```
 
-The production student website is available at [japlearn.com](https://japlearn.com) and is generated in `dist/`. The included `vercel.json` supports direct Expo Router links such as `/ResetPassword`.
+The production student website is available at [japlearn.com](https://japlearn.com) and is generated in `dist/`. It supports desktop browsers, Android browsers, and iPhone/iPad browsers. The included `vercel.json` supports direct Expo Router links such as `/ResetPassword`.
 
 The teacher and admin website is available separately at [portal.japlearn.com](https://portal.japlearn.com).
 
@@ -156,7 +164,7 @@ Japlearn-1/
 2. Test the changed screen on a narrow phone layout.
 3. Verify audio, fonts, icons, and local images.
 4. Confirm timers and audio stop when leaving game screens.
-5. Run Android and web export checks.
+5. Run Android and web export checks. Also test the responsive web layout in Safari-compatible mobile dimensions.
 6. Ensure credentials and generated builds are not staged.
 
 ## Troubleshooting
@@ -172,6 +180,12 @@ Japlearn-1/
 
 - Confirm the Render backend is reachable.
 - A sleeping free-tier service may need time to wake up.
+
+### Accessing JapLearn on iPhone or iPad
+
+- Open [japlearn.com](https://japlearn.com) in Safari or another modern browser.
+- Allow microphone access when using supported speaking activities.
+- There is currently no native iOS/App Store version.
 
 ### Fonts, icons, or images look stale
 
