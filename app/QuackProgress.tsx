@@ -7,8 +7,6 @@ import styles from '../styles/stylesQuackProgress';
 import expoconfig from '../expoconfig';
 import { AuthContext } from '../context/AuthContext';
 import StudentBottomNav from '../components/StudentBottomNav';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { RESPONSE_RUSH_BEST_SCORE_KEY } from './QuackResponseTimed';
 
 type MasteryItem = { name: string; percentage: number };
 type ProgressSummary = { overallMastery: number; completedActivities: number; weakAreaCount: number; recommendation: string; masteryItems: MasteryItem[] };
@@ -59,12 +57,8 @@ export default function QuackProgress() {
       return;
     }
 
-    const localBest = Number(await AsyncStorage.getItem(`quackamole_high_score:${email.toLowerCase()}`)) || 0;
-    setQuackamoleBest(localBest);
-    // Local value keeps the UI useful offline; the dedicated backend game
-    // record below is authoritative across devices.
-    const responseRushLocalBest = Number(await AsyncStorage.getItem(`${RESPONSE_RUSH_BEST_SCORE_KEY}:${email.toLowerCase()}`)) || 0;
-    setResponseRushBest(responseRushLocalBest);
+    setQuackamoleBest(0);
+    setResponseRushBest(0);
     fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(email)}&game=QUACKRESPONSE_RUSH`)
       .then((response) => response.status === 204 ? null : response.json())
       .then((record) => {

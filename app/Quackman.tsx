@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { View, Text, Image, ImageBackground, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { stylesQuackman } from '../styles/stylesQuackman';
@@ -9,7 +9,8 @@ import expoconfig from '../expoconfig';
 import { router } from 'expo-router';
 import { Audio } from 'expo-av';
 import { loadBundledSound } from '../utils/nativeAudio';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from '../context/AuthContext';
+import { saveAccountScore } from '../services/accountScoreService';
 
 const allRomaji = [
     'a', 'i', 'u', 'e', 'o', 'ka', 'ki', 'ku', 'ke', 'ko', 'sa', 'shi', 'su', 'se', 'so', 'ta', 'chi', 'tsu', 'te', 'to',
@@ -21,6 +22,7 @@ const allRomaji = [
 type QuackmanQuestion = { hint: string; word: string[] };
 
 const Quackman = () => {
+    const { user } = useContext(AuthContext);
     const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
     const [data, setData] = useState<QuackmanQuestion[]>([]);
     const [romajiGrid, setRomajiGrid] = useState<string[]>([]);
@@ -41,16 +43,11 @@ const Quackman = () => {
 
     useEffect(() => {
         if (!gameOver || savedResult.current || !data.length) return;
+        if (!user?.email) return;
         savedResult.current = true;
-        AsyncStorage.getItem('user').then((value) => {
-            const player = value ? JSON.parse(value) : null;
-            if (!player?.email) return;
-            return fetch(`${expoconfig.API_URL}/api/scores/high-score`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: `${player.fname || ''} ${player.lname || ''}`.trim(), email: player.email, game: 'QUACKMAN', date: new Date().toISOString(), score: correctAnswersCount, maxScore: data.length, correctAnswers: correctAnswersCount, totalQuestions: data.length, completed: true, mode: 'SOLO' }),
-            });
-        }).catch(() => undefined);
-    }, [gameOver, correctAnswersCount, data.length]);
+        void saveAccountScore({ name: `${user.fname || ''} ${user.lname || ''}`.trim(), email: user.email, game: 'QUACKMAN', date: new Date().toISOString(), score: correctAnswersCount, maxScore: data.length, correctAnswers: correctAnswersCount, totalQuestions: data.length, completed: true, mode: 'SOLO' })
+            .catch((error) => { savedResult.current = false; console.warn(error.message); });
+    }, [gameOver, correctAnswersCount, data.length, user]);
 
     // Angel animation states
     const [showAngel, setShowAngel] = useState(false);

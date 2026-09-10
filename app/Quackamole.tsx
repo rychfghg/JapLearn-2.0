@@ -26,7 +26,7 @@ const Mole = ({ width, height }: { width: number; height: number }) => (
 import expoconfig from '../expoconfig';
 import { styles } from '../styles/stylesMole';
 import { AuthContext } from '../context/AuthContext';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getAccountHighScore, saveAccountScore } from '../services/accountScoreService';
 
 type GamePhase = 'loading' | 'tutorial' | 'ready' | 'playing' | 'result';
 type HoleValue = string | null;
@@ -132,10 +132,7 @@ export default function Quackamole() {
 
   useEffect(() => {
     if (!user?.email) return;
-    const storageKey = `quackamole_high_score:${user.email.toLowerCase()}`;
-    AsyncStorage.getItem(storageKey).then((value) => value && setHighScore(Number(value) || 0));
-    fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(user.email)}&game=QUACKAMOLE`)
-      .then((response) => response.status === 204 ? null : response.json())
+    getAccountHighScore(user.email, 'QUACKAMOLE')
       .then((record) => record && setHighScore((current) => Math.max(current, record.score || 0)))
       .catch(() => undefined);
   }, [user?.email]);
@@ -161,11 +158,9 @@ export default function Quackamole() {
     setNewBest(wasNewBest);
     const best = Math.max(score, highScore);
     setHighScore(best);
-    AsyncStorage.setItem(`quackamole_high_score:${user.email.toLowerCase()}`, String(best));
-    fetch(`${expoconfig.API_URL}/api/scores/high-score`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: `${user.fname} ${user.lname}`.trim(), email: user.email, game: 'QUACKAMOLE', date: new Date().toISOString(), score, maxScore: totalWhacks, correctAnswers: score, totalQuestions: totalWhacks, completed: true, mode: 'SOLO' }),
-    }).then((response) => { if (!response.ok) throw new Error(`Score save failed: ${response.status}`); return response.json(); }).then((record) => setHighScore((current) => Math.max(current, record.score || 0))).catch((error) => console.warn(error.message));
+    void saveAccountScore({ name: `${user.fname} ${user.lname}`.trim(), email: user.email, game: 'QUACKAMOLE', date: new Date().toISOString(), score, maxScore: totalWhacks, correctAnswers: score, totalQuestions: totalWhacks, completed: true, mode: 'SOLO' })
+      .then((record) => setHighScore((current) => Math.max(current, record.score || 0)))
+      .catch((error) => { savedRound.current = false; console.warn(error.message); });
   }, [phase]);
 
   useEffect(() => { if (loading >= 100 && phase === 'loading') setTimeout(() => mounted.current && setPhase('tutorial'), 220); }, [loading, phase]);

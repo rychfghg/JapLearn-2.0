@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Image, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -9,7 +8,6 @@ import styles from '../styles/stylesQuackResponse';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import QuackSituateMissionLoader from '../components/QuackSituateMissionLoader';
-import { RESPONSE_RUSH_BEST_SCORE_KEY } from './QuackResponseTimed';
 
 const games = [
   { title:'Guided Response', displayTitle:'Reply Coach', subtitle:'Build the right reply', description:'Follow helpful cues and learn how natural Japanese responses are formed.', route:'/QuackResponseGuided', icon:'chatbubble-ellipses-outline', label:'GUIDED MODE', color:'#6E4BC6', tint:'#EEE8FC', mascot:require('../assets/talk.png'), locked:false },
@@ -20,8 +18,7 @@ const games = [
 // Unlock rule for every chapter after the first: finish the previous one,
 // OR reach at least 60% in any single attempt at it — whichever comes
 // first. Reply Coach reports this through the backend; Response Rush has
-// no backend model yet, so it reports through the same locally-persisted
-// best score it writes to on every answer (see QuackResponseTimed.tsx).
+// server-side account progress saved by each game.
 const UNLOCK_THRESHOLD = 60;
 
 // Layout constants for the winding "level map" trail. Purely visual — none
@@ -84,13 +81,8 @@ export default function QuackResponse() {
       })
       .catch(() => undefined);
 
-    // Check both the completed high score and the current server-side run.
-    // This makes the unlock follow the account across devices while the local
-    // value remains a useful offline cache.
+    // Check the completed score and current server-side run for this account.
     Promise.all([
-      AsyncStorage.getItem(`${RESPONSE_RUSH_BEST_SCORE_KEY}:${user.email.toLowerCase()}`)
-        .then((stored) => Number(stored) || 0)
-        .catch(() => 0),
       fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(user.email)}&game=QUACKRESPONSE_RUSH`)
         .then(async (response) => response.status === 204 ? null : response.json())
         .then((record) => record

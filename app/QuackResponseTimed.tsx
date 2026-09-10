@@ -22,11 +22,9 @@ import { AuthContext } from '../context/AuthContext';
 import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
 import expoconfig from '../expoconfig';
 
-// Local best-score key for Response Rush, mirroring the pattern the
-// Quack-a-Mole high score already uses. This screen has no backend model
-// yet (see the note above), so QuackResponse's unlock check and
-// QuackProgress's score display both read this same key.
-export const RESPONSE_RUSH_BEST_SCORE_KEY = 'response_rush_best_score';
+// This device entry is only an interrupted-round resume snapshot.
+// Completed scores and personal bests are stored against the signed-in
+// account by the backend and are never sourced from this cache.
 const RESPONSE_RUSH_RESUME_KEY = 'response_rush_resume_v1';
 
 // ---------------------------------------------------------------------------
@@ -1401,22 +1399,6 @@ export default function QuackResponseTimed() {
       method: 'DELETE',
     }).catch(() => undefined);
   }, [answers, currentNode?.type, maxPoints, resumeKey, totalPoints, user]);
-
-  // Keep the existing local best as an offline cache. The same percentage is
-  // also included in the backend progress snapshot above for cross-device unlocks.
-  useEffect(() => {
-    if (!user?.email || answers.length === 0) return;
-    const attemptMax = (currentNode?.id === 'n_ending' ? TOTAL_CHOICES : answers.length) * 3;
-    const attemptPercent = attemptMax ? Math.round((totalPoints / attemptMax) * 100) : 0;
-    const key = `${RESPONSE_RUSH_BEST_SCORE_KEY}:${user.email.toLowerCase()}`;
-    AsyncStorage.getItem(key)
-      .then((stored) => {
-        const previous = Number(stored) || 0;
-        if (attemptPercent > previous) return AsyncStorage.setItem(key, String(attemptPercent));
-        return undefined;
-      })
-      .catch(() => undefined);
-  }, [answers.length, totalPoints, currentNode?.id, user?.email]);
 
   useEffect(() => () => {
     musicGeneration.current += 1;
