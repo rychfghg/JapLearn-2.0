@@ -5,18 +5,18 @@
 
   **Interactive Japanese learning through lessons, speaking practice, and games.**
 
-  [![Expo](https://img.shields.io/badge/Expo-SDK%2052-4630EB?logo=expo&logoColor=white)](https://expo.dev/)
+  [![Android APK](https://img.shields.io/badge/Android%20APK-Available-3DDC84?logo=android&logoColor=white)](https://expo.dev/accounts/reybacolod/projects/japlearn/builds/1a3d3435-7a43-4340-8e21-997d69f5f0b6)
   [![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB?logo=react&logoColor=111827)](https://reactnative.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-  Android App · Desktop Web · Mobile Web
+  Android APK · Desktop Web · Mobile Web
 </div>
 
 ---
 
 ## Overview
 
-JapLearn is a connected Japanese-learning platform for students and teachers. The current release is available as an **Android application** and a responsive **web application**. iPhone and iPad users can use the web version in Safari or another modern browser; a native iOS application is not currently released.
+JapLearn is a connected Japanese-learning platform for students and teachers. The current release is available as a standalone, installable **Android APK** and a responsive **web application**. The Android APK does not require Expo Go. iPhone and iPad users can use the web version in Safari or another modern browser; a native iOS application is not currently released.
 
 The student experience includes:
 
@@ -32,6 +32,20 @@ The student experience includes:
 
 This repository contains the **Expo/React Native student frontend**. Authentication, progress storage, classes, teacher synchronization, and email services are provided by the separate Spring Boot backend.
 
+## Download JapLearn
+
+### Android
+
+Download the current standalone Android APK:
+
+**[Download JapLearn for Android](https://expo.dev/accounts/reybacolod/projects/japlearn/builds/1a3d3435-7a43-4340-8e21-997d69f5f0b6)**
+
+Open the download page on an Android device, download the `.apk`, and approve installation from the browser when Android requests permission. Expo Go is not required to install or run this release.
+
+### Web
+
+Use JapLearn in a browser at **[japlearn.com](https://japlearn.com)**. The web version supports desktop browsers, Android browsers, and Safari on iPhone and iPad.
+
 ## Tech Stack
 
 | Area | Technology |
@@ -41,7 +55,7 @@ This repository contains the **Expo/React Native student frontend**. Authenticat
 | Navigation | Expo Router |
 | Local device state | AsyncStorage |
 | Synced records | Spring Boot API + MongoDB |
-| Audio | Expo AV |
+| Audio | Expo AV + React Native Audio API |
 | Icons | Expo Vector Icons |
 | Web | React Native Web |
 | Builds | EAS Build |
@@ -51,7 +65,8 @@ This repository contains the **Expo/React Native student frontend**. Authenticat
 - Node.js 20 LTS or newer
 - npm
 - Git
-- Expo Go or an Android development build for physical-device testing
+- An Android device for testing the standalone APK
+- Expo Go or an Android development build only when testing the project during local development
 - A running JapLearn backend for server-connected features
 
 ## Setup
@@ -68,7 +83,7 @@ Start the application:
 npx expo start
 ```
 
-Scan the QR code with Expo Go on Android, or press `w` to open the web version. On iPhone or iPad, use the deployed web application in the browser for the currently supported experience.
+For local development, scan the QR code with Expo Go on Android or press `w` to open the web version. Regular users should install the standalone APK from the download section above and do not need Expo Go. On iPhone or iPad, use the deployed web application in the browser for the currently supported experience.
 
 If cached files cause unexpected behavior:
 
@@ -126,7 +141,9 @@ Create an Android App Bundle for Google Play:
 npx eas-cli build -p android --profile production
 ```
 
-The `apk` profile is for direct device testing. The `production` profile produces the store-ready Android build.
+The `apk` profile produces the standalone Android package used for direct installation and testing. The `production` profile produces an Android App Bundle intended for a future Google Play release.
+
+The currently published APK is available from the [JapLearn Android build page](https://expo.dev/accounts/reybacolod/projects/japlearn/builds/1a3d3435-7a43-4340-8e21-997d69f5f0b6). EAS is the build service used to compile the APK; the resulting application runs independently and does not require Expo Go.
 
 > Native iOS builds are not part of the current JapLearn release. Do not advertise App Store availability until an iOS build has been implemented, tested, and published.
 
@@ -149,6 +166,7 @@ Japlearn-1/
 ├── components/     # Reusable interface components
 ├── context/        # Authentication and shared application state
 ├── data/           # Local lesson and game content
+├── patches/        # Native dependency compatibility fixes applied during installation
 ├── styles/         # Screen-specific styles
 ├── types/          # TypeScript definitions
 ├── utils/          # API, asset, and application utilities
@@ -160,7 +178,7 @@ Japlearn-1/
 
 ## Before Committing
 
-1. Confirm the app opens through Expo.
+1. Confirm the standalone Android APK installs and opens successfully; use Expo only for local development checks.
 2. Test the changed screen on a narrow phone layout.
 3. Verify audio, fonts, icons, and local images.
 4. Confirm timers and audio stop when leaving game screens.
