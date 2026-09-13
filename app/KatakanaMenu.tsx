@@ -4,6 +4,7 @@ import React, { useCallback, useContext, useState } from 'react';
 import { Image, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
+import { offlineProgressFetch } from '../services/offlineProgress';
 import styles from '../styles/stylesKanaJourney';
 
 type Progress = {
@@ -28,7 +29,7 @@ export default function KatakanaMenu() {
   const loadProgress = useCallback(async () => {
     if (!user?.email) return;
     try {
-      const response = await fetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`);
+      const response = await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`);
       if (!response.ok) throw new Error('Could not load Katakana progress.');
       const data: Progress = await response.json();
       setProgress(data);
@@ -37,7 +38,7 @@ export default function KatakanaMenu() {
       const kanaComplete = data.hiragana1 && data.hiragana2 && data.hiragana3 && data.katakana1 && data.katakana2 && data.katakana3;
       if (fromExercise === 'true' && kanaComplete && !data.badge1) {
         setShowBadge(true);
-        await fetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}/updateField?field=badge1&value=true`, { method: 'PUT' });
+        await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}/updateField?field=badge1&value=true`, { method: 'PUT' });
       }
     } catch (error) {
       console.error('Could not load Katakana progress:', error);

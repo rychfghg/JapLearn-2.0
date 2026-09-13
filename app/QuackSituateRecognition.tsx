@@ -20,6 +20,8 @@ import QuackSituateExit from '../components/QuackSituateExit';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import { stylesRecognition as styles } from '../styles/stylesQuackSituateRecognition';
+import { loadOfflineContent, queueOfflineSubmission, syncOfflineSubmissions } from '../services/offlineSync';
+import { useOfflineMediaUri } from '../services/offlineMedia';
 
 type Choice = { japanese: string; romaji: string };
 type Question = {
@@ -548,12 +550,7 @@ export default function QuackSituateRecognition() {
 
     const restore = async () => {
       try {
-        const response = await fetch(
-          `${expoconfig.API_URL}/api/situational/questions?gameType=RECOGNITION&activeOnly=true`,
-          { signal: controller.signal },
-        );
-        if (!response.ok) throw new Error('questions');
-        const data: Question[] = await response.json();
+        const data = await loadOfflineContent<Question[]>('/api/situational/questions?gameType=RECOGNITION&activeOnly=true');
         const ordered = [...data]
           .sort((a, b) => a.order - b.order)
           .map((item) => ({ ...item, choices: shuffle(item.choices) }));
@@ -701,6 +698,7 @@ export default function QuackSituateRecognition() {
   }, [index, correctCount, easyMistakes, hardMistakes, hintsUsed, phase, questions.length, storageKey, user?.email]);
 
   const question = questions[index];
+  const offlineSceneUri = useOfflineMediaUri(question?.imageUrl);
   const isHard = question?.difficulty === 'HARD';
   const mistakes = isHard ? hardMistakes : easyMistakes;
   const maxMistakes = isHard ? 3 : 6;
@@ -734,13 +732,11 @@ export default function QuackSituateRecognition() {
   const sceneImage = useMemo(() => {
     if (question?.imageUrl) {
       return {
-        uri: question.imageUrl.startsWith('http')
-          ? question.imageUrl
-          : `${expoconfig.API_URL}${question.imageUrl}`,
+        uri: offlineSceneUri,
       };
     }
     return sceneImages[question?.sceneKey] || sceneImages.school;
-  }, [question?.imageUrl, question?.sceneKey]);
+  }, [offlineSceneUri, question?.imageUrl, question?.sceneKey]);
 
   const playSfx = async (source: any) => {
     try {
@@ -776,10 +772,7 @@ export default function QuackSituateRecognition() {
     if (!user?.email) return;
     setSaving(true);
     try {
-      await fetch(`${expoconfig.API_URL}/api/situational/attempts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await queueOfflineSubmission(user.email, '/api/situational/attempts', {
           email: user.email,
           name: `${user.fname || ''} ${user.lname || ''}`.trim(),
           gameType: 'RECOGNITION',
@@ -789,8 +782,8 @@ export default function QuackSituateRecognition() {
           totalQuestions: questions.length,
           correctAnswers: correctCount,
           completed: true,
-        }),
-      });
+        });
+      void syncOfflineSubmissions(user.email);
       await AsyncStorage.removeItem(storageKey);
       await fetch(
         `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=RECOGNITION`,

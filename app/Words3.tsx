@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesWords';
 import expoconfig from '../expoconfig';
+import { offlineProgressFetch } from '../services/offlineProgress';
 import { AuthContext } from '../context/AuthContext';
 import useLessonResume from '../hooks/useLessonResume';
 
@@ -41,7 +42,7 @@ export default function Words3() {
     setIsSaving(true);
     setSaveState('saving');
     try {
-      const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=vocab3&value=true`, { method: 'PUT', headers: { 'Content-Type': 'application/json' } });
+      const response = await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=vocab3&value=true`, { method: 'PUT', headers: { 'Content-Type': 'application/json' } });
       if (!response.ok) throw new Error(`Progress save failed (${response.status})`);
       setSaveState('saved');
     } catch (error) {

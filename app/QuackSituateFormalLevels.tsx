@@ -13,6 +13,7 @@ import {
 import { AuthContext } from '../context/AuthContext';
 import { POLITENESS_LEVELS } from '../data/politenessScenarios';
 import expoconfig from '../expoconfig';
+import { getPendingSubmissions, loadOfflineAccountJson, loadOfflineContent } from '../services/offlineSync';
 
 type Attempt = {
   id: string;
@@ -37,19 +38,19 @@ export default function QuackSituateFormalLevels() {
   useEffect(() => {
     if (!user?.email) return;
 
-    fetch(
-      `${expoconfig.API_URL}/api/situational/attempts?email=${encodeURIComponent(user.email)}&gameType=POLITENESS`,
-    )
-      .then((response) => response.ok ? response.json() : [])
-      .then((records: Attempt[]) => setAttempts(records))
-      .catch(() => setAttempts([]));
+    const path = `/api/situational/attempts?email=${encodeURIComponent(user.email)}&gameType=POLITENESS`;
+    Promise.all([
+      loadOfflineAccountJson<Attempt[]>(user.email, path).catch(() => []),
+      getPendingSubmissions(user.email),
+    ]).then(([records, pending]) => setAttempts([
+      ...records,
+      ...pending.filter((entry) => entry.path === '/api/situational/attempts' && entry.body.gameType === 'POLITENESS')
+        .map((entry) => ({ ...entry.body, id: entry.id } as Attempt)),
+    ])).catch(() => setAttempts([]));
   }, [user?.email]);
 
   useEffect(() => {
-    fetch(
-      `${expoconfig.API_URL}/api/situational/questions?gameType=POLITENESS&activeOnly=false`,
-    )
-      .then((response) => response.ok ? response.json() : [])
+    loadOfflineContent<PublishedQuestion[]>('/api/situational/questions?gameType=POLITENESS')
       .then((questions: PublishedQuestion[]) => {
         if (!questions.length) {
           setPublishedLevels(null);

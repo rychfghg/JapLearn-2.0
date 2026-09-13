@@ -11,6 +11,7 @@ import { Audio } from 'expo-av';
 import { loadBundledSound } from '../utils/nativeAudio';
 import { AuthContext } from '../context/AuthContext';
 import { saveAccountScore } from '../services/accountScoreService';
+import { loadOfflineContent } from '../services/offlineSync';
 
 const allRomaji = [
     'a', 'i', 'u', 'e', 'o', 'ka', 'ki', 'ku', 'ke', 'ko', 'sa', 'shi', 'su', 'se', 'so', 'ta', 'chi', 'tsu', 'te', 'to',
@@ -156,8 +157,7 @@ const Quackman = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`${expoconfig.API_URL}/api/quackmancontent`);
-                const json = await response.json();
+                const json = await loadOfflineContent<Array<{ description: string; romajiWord: string }>>('/api/quackmancontent');
                 if (json.length > 0) {
                     const transformedData = json.map((item: { description: string; romajiWord: string }) => ({
                         hint: item.description,

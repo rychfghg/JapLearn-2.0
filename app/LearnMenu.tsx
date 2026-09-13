@@ -20,6 +20,8 @@ import { AuthContext } from '../context/AuthContext';
 import StudentBottomNav from '../components/StudentBottomNav';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { loadOfflineContent } from '../services/offlineSync';
+import { offlineProgressFetch } from '../services/offlineProgress';
 
 const learnMascotGuides = [
   { image: require('../assets/idle.png'), label: 'Ready to learn?', text: 'Follow the learning map and build your Japanese one step at a time.' },
@@ -54,8 +56,7 @@ const LearnMenu = () => {
       const classCode = await AsyncStorage.getItem('classCode');
       if (!classCode) return;
       try {
-        const response = await fetch(`${expoconfig.API_URL}/api/lesson/getLessonByClass/${encodeURIComponent(classCode)}`);
-        if (response.ok) setClassLessons(await response.json());
+        setClassLessons(await loadOfflineContent<any[]>(`/api/lesson/getLessonByClass/${encodeURIComponent(classCode)}`));
       } catch (error) {
         console.log('Could not load teacher lessons:', error);
       }
@@ -89,7 +90,7 @@ const LearnMenu = () => {
   const checkProgress = async () => {
     if (!user?.email) return;
     try {
-      const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}`, {
+      const response = await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${user.email}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -175,7 +176,7 @@ const LearnMenu = () => {
   
       // After animations are done, update the backend
       if (!user?.email) return;
-      const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=badge3&value=true`, {
+      const response = await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=badge3&value=true`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -4,6 +4,7 @@ import React, { useCallback, useContext, useState } from 'react';
 import { Image, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
+import { offlineProgressFetch } from '../services/offlineProgress';
 import styles from '../styles/stylesKanaJourney';
 
 export default function KanaMenu() {
@@ -13,7 +14,7 @@ export default function KanaMenu() {
 
   useFocusEffect(useCallback(() => {
     if (!user?.email) return;
-    fetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`)
+    offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`)
       .then((response) => response.ok ? response.json() : null)
       .then((progress) => setHiraganaComplete(Boolean(progress?.hiragana1 && progress?.hiragana2 && progress?.hiragana3)))
       .catch(() => setHiraganaComplete(false));

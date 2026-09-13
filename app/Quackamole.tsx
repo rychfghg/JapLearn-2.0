@@ -27,6 +27,7 @@ import expoconfig from '../expoconfig';
 import { styles } from '../styles/stylesMole';
 import { AuthContext } from '../context/AuthContext';
 import { getAccountHighScore, saveAccountScore } from '../services/accountScoreService';
+import { loadOfflineContent } from '../services/offlineSync';
 
 type GamePhase = 'loading' | 'tutorial' | 'ready' | 'playing' | 'result';
 type HoleValue = string | null;
@@ -166,8 +167,7 @@ export default function Quackamole() {
   useEffect(() => { if (loading >= 100 && phase === 'loading') setTimeout(() => mounted.current && setPhase('tutorial'), 220); }, [loading, phase]);
 
   useEffect(() => {
-    fetch(`${expoconfig.API_URL}/api/quackamolecontent`)
-      .then((response) => response.ok ? response.json() : Promise.reject())
+    loadOfflineContent<Array<{ kana?: string[]; romaji?: string[] }>>('/api/quackamolecontent')
       .then((data) => {
         const kana = data.flatMap((item: { kana?: string[] }) => item.kana || []);
         const romaji = data.flatMap((item: { romaji?: string[] }) => item.romaji || []);

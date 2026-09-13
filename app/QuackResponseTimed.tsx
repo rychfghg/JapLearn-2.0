@@ -21,6 +21,7 @@ import styles from '../styles/stylesQuackResponseGuided';
 import { AuthContext } from '../context/AuthContext';
 import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
 import expoconfig from '../expoconfig';
+import { queueOfflineSubmission, syncOfflineSubmissions } from '../services/offlineSync';
 
 // This device entry is only an interrupted-round resume snapshot.
 // Completed scores and personal bests are stored against the signed-in
@@ -1378,10 +1379,7 @@ export default function QuackResponseTimed() {
     scoreSaved.current = true;
     const today = new Date().toISOString().slice(0, 10);
     const correctAnswers = answers.filter((answer) => GOOD_TIERS.includes(answer.evaluation)).length;
-    void fetch(`${expoconfig.API_URL}/api/scores/high-score`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    void queueOfflineSubmission(user.email, '/api/scores/high-score', {
         name: `${user.fname ?? ''} ${user.lname ?? ''}`.trim(),
         email: user.email,
         date: today,
@@ -1392,8 +1390,7 @@ export default function QuackResponseTimed() {
         correctAnswers,
         totalQuestions: TOTAL_CHOICES,
         completed: true,
-      }),
-    }).catch(() => undefined);
+      }).then(() => syncOfflineSubmissions(user.email)).catch(() => undefined);
     if (resumeKey) void AsyncStorage.removeItem(resumeKey);
     void fetch(`${expoconfig.API_URL}/api/response-rush/progress?email=${encodeURIComponent(user.email)}`, {
       method: 'DELETE',

@@ -1,4 +1,4 @@
-import { SafeAreaView, Text, View, Pressable, Image, Platform, StatusBar, ScrollView, useWindowDimensions, Animated } from 'react-native';
+import { SafeAreaView, Text, View, Pressable, Image, Platform, StatusBar, ScrollView, useWindowDimensions, Animated, AppState } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import styles from '../styles/stylesMenu';
@@ -6,14 +6,6 @@ import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import { Ionicons } from '@expo/vector-icons';
 import StudentBottomNav from '../components/StudentBottomNav';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const dateKey = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
 
 const Menu = () => {
     const { user } = useContext(AuthContext);
@@ -54,70 +46,53 @@ const Menu = () => {
     }, []);
 
     useEffect(() => {
-        if (!user?.email) return;
+        if (!user?.email) {
+            setDailyMinutes(0);
+            setGoalStreak(0);
+            return;
+        }
 
-        const todayDate = new Date();
-        const today = dateKey(todayDate);
-        const accountKey = user.email.trim().toLowerCase();
-        const storageKey = `dailyGoalMinutes:${accountKey}:${today}`;
-        let currentMinutes = 0;
-        let goalRecorded = false;
+        let active = true;
+        let requestInFlight = false;
+        const email = user.email;
 
-        const loadAccountStreak = async () => {
+        const syncGoal = async (recordMinute: boolean) => {
+            if (requestInFlight) return;
+            requestInFlight = true;
             try {
-                const response = await fetch(
-                    `${expoconfig.API_URL}/api/users/daily-goal/streak?email=${encodeURIComponent(user.email)}`,
-                );
-
+                const response = recordMinute
+                    ? await fetch(`${expoconfig.API_URL}/api/users/daily-goal/minute`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email }),
+                    })
+                    : await fetch(`${expoconfig.API_URL}/api/users/daily-goal/streak?email=${encodeURIComponent(email)}`);
                 if (!response.ok) return;
-
                 const data = await response.json();
-                setGoalStreak(Number(data?.streak) || 0);
-                goalRecorded = Boolean(data?.completedToday);
-            } catch (error) {
-                console.warn('Unable to load account streak.', error);
-            }
-        };
-
-        const recordCompletedGoal = async () => {
-            if (goalRecorded) return;
-            goalRecorded = true;
-
-            try {
-                const response = await fetch(`${expoconfig.API_URL}/api/users/daily-goal/complete`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: user.email }),
-                });
-
-                if (!response.ok) {
-                    goalRecorded = false;
-                    return;
+                if (active) {
+                    setDailyMinutes(Math.min(Math.max(Number(data?.minutes) || 0, 0), 20));
+                    setGoalStreak(Number(data?.streak) || 0);
                 }
-
-                const data = await response.json();
-                setGoalStreak(Number(data?.streak) || 0);
             } catch (error) {
-                goalRecorded = false;
-                console.warn('Unable to save account streak.', error);
+                console.warn('Unable to sync daily goal.', error);
+            } finally {
+                requestInFlight = false;
             }
         };
 
-        Promise.all([AsyncStorage.getItem(storageKey), loadAccountStreak()]).then(([storedMinutes]) => {
-            currentMinutes = Math.min(Number(storedMinutes) || 0, 20);
-            setDailyMinutes(currentMinutes);
-
-            if (currentMinutes >= 20) recordCompletedGoal();
-        });
-
+        setDailyMinutes(0);
+        setGoalStreak(0);
+        syncGoal(false);
         const goalTimer = setInterval(() => {
-            currentMinutes = Math.min(currentMinutes + 1, 20);
-            setDailyMinutes(currentMinutes);
-            AsyncStorage.setItem(storageKey, String(currentMinutes));
-            if (currentMinutes >= 20) recordCompletedGoal();
+            if (AppState.currentState !== 'active') return;
+            if (Platform.OS === 'web' && typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+            syncGoal(true);
         }, 60000);
 
-        return () => clearInterval(goalTimer);
+        return () => {
+            active = false;
+            clearInterval(goalTimer);
+        };
     }, [user?.email]);
 
     const flipCard = (card: 'play' | 'progress') => {

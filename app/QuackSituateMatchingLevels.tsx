@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import expoconfig from '../expoconfig';
+import { getPendingSubmissions, loadOfflineAccountJson, loadOfflineContent } from '../services/offlineSync';
 
 const difficulties = [
   { level: 1, title: 'Easy', area: 'Everyday Garden', subtitle: 'Familiar greetings and daily moments', icon: 'leaf-outline' as const, color: '#66B73D', tint: '#EAF7E2', side: 'left' as const },
@@ -25,20 +26,22 @@ export default function QuackSituateMatchingLevels() {
     AsyncStorage.getItem('user').then(async value => {
       try {
         const email = value ? JSON.parse(value).email : '';
-        const [progressResponse, contentResponse] = await Promise.all([
-          fetch(`${expoconfig.API_URL}/api/situational/expression-match/progress?email=${encodeURIComponent(email)}`),
-          fetch(`${expoconfig.API_URL}/api/situational/questions?gameType=EXPRESSION_MATCH`),
+        const progressPath = `/api/situational/expression-match/progress?email=${encodeURIComponent(email)}`;
+        const [progressResult, contentResult, pending] = await Promise.all([
+          loadOfflineAccountJson<any>(email, progressPath).catch(() => null),
+          loadOfflineContent<any[]>('/api/situational/questions?gameType=EXPRESSION_MATCH').catch(() => []),
+          getPendingSubmissions(email),
         ]);
-        if (progressResponse.ok) {
-          const data = await progressResponse.json();
-          setUnlocked(Math.min(3, data.unlockedLevel || 1));
-          setCompletedSets(data.completedSets || []);
-          setAttempts(data.attempts || 0);
-          setAverageAccuracy(data.averageAccuracy || 0);
-          setBestAccuracy(data.bestAccuracy || 0);
-        }
-        if (contentResponse.ok) {
-          const records = await contentResponse.json();
+        const offlineAttempts = pending.filter((entry) => entry.path === '/api/situational/attempts' && entry.body.gameType === 'EXPRESSION_MATCH' && entry.body.completed);
+        const savedSets = progressResult?.completedSets || [];
+        const pendingSets = offlineAttempts.map((entry) => `${entry.body.level}-${entry.body.setNumber}`);
+        setCompletedSets([...new Set([...savedSets, ...pendingSets])]);
+        setUnlocked(Math.min(3, Math.max(progressResult?.unlockedLevel || 1, ...offlineAttempts.map((entry) => Math.min(3, Number(entry.body.level) + 1)))));
+        setAttempts((progressResult?.attempts || 0) + offlineAttempts.length);
+        setAverageAccuracy(progressResult?.averageAccuracy || 0);
+        setBestAccuracy(progressResult?.bestAccuracy || 0);
+        if (contentResult.length) {
+          const records = contentResult;
           const nextCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0 };
           records.forEach((item: any) => {
             const choices = Array.isArray(item.choices) ? item.choices : [];

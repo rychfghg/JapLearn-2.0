@@ -4,6 +4,7 @@ import React, { useCallback, useContext, useState } from 'react';
 import { Image, Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
+import { offlineProgressFetch } from '../services/offlineProgress';
 import styles from '../styles/stylesKanaJourney';
 
 type Progress = { basics1: boolean; basics2: boolean; basics3: boolean };
@@ -22,7 +23,7 @@ export default function HiraganaMenu() {
 
   useFocusEffect(useCallback(() => {
     if (!user?.email) return;
-    fetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`)
+    offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`)
       .then(async (response) => {
         if (response.status === 404) {
           const created = await fetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`, { method: 'POST' });

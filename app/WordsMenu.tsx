@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
+import { offlineProgressFetch } from '../services/offlineProgress';
 import styles from '../styles/stylesWordMenu';
 
 const WordsMenu = () => {
@@ -20,7 +21,7 @@ const WordsMenu = () => {
   const fetchProgress = async () => {
     if (!user?.email) return;
     try {
-      const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}`);
+      const response = await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${user.email}`);
       const data = await response.json();
       setCompletedLessons({ vocab1: Boolean(data.vocab1), vocab2: Boolean(data.vocab2), vocab3: Boolean(data.vocab3) });
     } catch (error) {
@@ -32,11 +33,11 @@ const WordsMenu = () => {
     if (badgeCheckCompleted.current || fromWords !== 'true' || !user?.email) return;
     badgeCheckCompleted.current = true;
     try {
-      const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}`);
+      const response = await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${user.email}`);
       const progress = await response.json();
       if (progress.vocab1 && progress.vocab2 && progress.vocab3 && !progress.badge2) {
         setBadgeVisible(true);
-        await fetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=badge2&value=true`, { method: 'PUT', headers: { 'Content-Type': 'application/json' } });
+        await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=badge2&value=true`, { method: 'PUT', headers: { 'Content-Type': 'application/json' } });
       }
     } catch (error) {
       console.log('Error checking badge conditions:', error);

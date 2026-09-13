@@ -18,6 +18,8 @@ import QuackSituateExit from '../components/QuackSituateExit';
 import { POLITENESS_SCENARIOS, PolitenessScenario } from '../data/politenessScenarios';
 import expoconfig from '../expoconfig';
 import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
+import { loadOfflineContent, queueOfflineSubmission, syncOfflineSubmissions } from '../services/offlineSync';
+import { resolveOfflineMediaUri, useOfflineMediaUri } from '../services/offlineMedia';
 
 const scenes = [
   require('../assets/img/background/school a hallway st2 day.png'),
@@ -129,8 +131,7 @@ export default function QuackSituateFormal() {
 
   useEffect(() => {
     let active = true;
-    fetch(`${expoconfig.API_URL}/api/situational/questions?gameType=POLITENESS`)
-      .then((response) => response.ok ? response.json() : Promise.reject(new Error('Politeness content unavailable')))
+    loadOfflineContent<any[]>('/api/situational/questions?gameType=POLITENESS')
       .then((records: any[]) => {
         const mapped = records
           .filter((record) => Number(record.level || 1) === level)
@@ -186,6 +187,7 @@ export default function QuackSituateFormal() {
   const sound = useRef<Audio.Sound | null>(null);
   const fallbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const question = questions[index];
+  const offlineImageUri = useOfflineMediaUri(question?.imageUrl);
   const selectedChoice = selectedIndex === null ? null : question.choices[selectedIndex];
   const answeredCorrectly = selectedChoice?.correct === true;
 
@@ -231,7 +233,7 @@ export default function QuackSituateFormal() {
 
     try {
       const loaded = await loadBundledSound(
-        question.audioUrl ? { uri: question.audioUrl } : npcVoices[(question.id - 1) % npcVoices.length],
+        question.audioUrl ? { uri: await resolveOfflineMediaUri(question.audioUrl) } : npcVoices[(question.id - 1) % npcVoices.length],
         {
           shouldPlay: true,
           volume: 1,
@@ -323,12 +325,7 @@ export default function QuackSituateFormal() {
     try {
       const storedUser = JSON.parse((await AsyncStorage.getItem('user')) || '{}');
 
-      await fetch(`${expoconfig.API_URL}/api/situational/attempts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const attempt = {
           email: storedUser.email,
           name: `${storedUser.fname || ''} ${storedUser.lname || ''}`.trim(),
           gameType: 'POLITENESS',
@@ -340,8 +337,15 @@ export default function QuackSituateFormal() {
           level,
           setNumber: resumeIndex,
           topic: questions[0]?.location || 'Politeness and social tone',
-        }),
-      });
+        };
+      if (completed) {
+        await queueOfflineSubmission(storedUser.email, '/api/situational/attempts', attempt);
+        void syncOfflineSubmissions(storedUser.email);
+      } else {
+        await fetch(`${expoconfig.API_URL}/api/situational/attempts`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(attempt),
+        });
+      }
     } catch {}
   };
 
@@ -422,7 +426,7 @@ export default function QuackSituateFormal() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ImageBackground
-        source={question.imageUrl ? { uri: question.imageUrl } : scenes[index % scenes.length]}
+        source={question.imageUrl ? { uri: offlineImageUri } : scenes[index % scenes.length]}
         style={styles.background}
         resizeMode="cover"
       >

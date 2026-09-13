@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import Game3 from './Game3';
 import { styles } from '../styles/content3Styles';
 import expoconfig from '../expoconfig';
+import { offlineProgressFetch } from '../services/offlineProgress';
 import { AuthContext } from '../context/AuthContext';
 
 const talk = require('../assets/talk.png');
@@ -98,11 +99,11 @@ export default function Content3() {
     if (!user?.email) return;
     setPhase('saving');
     try {
-      const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}`, { headers: { 'Content-Type': 'application/json' } });
+      const response = await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${user.email}`, { headers: { 'Content-Type': 'application/json' } });
       if (!response.ok) { setPhase('final'); return; }
       const data = await response.json();
       if (!data?.sentence) {
-        const update = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=sentence&value=true`, { method: 'PUT', headers: { 'Content-Type': 'application/json' } });
+        const update = await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=sentence&value=true`, { method: 'PUT', headers: { 'Content-Type': 'application/json' } });
         const result = await update.json();
         if (!update.ok || !result.success) { setPhase('final'); return; }
       }

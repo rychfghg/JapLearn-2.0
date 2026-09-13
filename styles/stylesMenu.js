@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { platformShadow } from '../utils/platformShadow';
 
 const styles = StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: '#FCFAFF' },
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
     headerCopyCompact: { width: '56%' },
     mascotStageCompact: { width: '44%', height: 245, marginRight: -10 },
     mascotImageCompact: { width: 178, height: 225 },
-    goalCard: { minHeight: 105, marginTop: 22, backgroundColor: '#FFFFFF', borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', shadowColor: '#4D385F', shadowOpacity: 0.11, shadowRadius: 16, shadowOffset: { width: 0, height: 7 }, elevation: 5 },
+    goalCard: { minHeight: 105, marginTop: 22, backgroundColor: '#FFFFFF', borderRadius: 22, padding: 14, flexDirection: 'row', alignItems: 'center', ...platformShadow('#4D385F', 0.11, 16, 7, 5) },
     goalCardCompact: { minHeight: 88, marginTop: 14, borderRadius: 18, padding: 10 },
     goalIcon: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#FFF0DA', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
     goalCopy: { flex: 1 },
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
     goalTrack: { height: 7, borderRadius: 4, backgroundColor: '#EDE8F0', marginTop: 8, overflow: 'hidden' },
     goalFill: { width: '72%', height: '100%', borderRadius: 4, backgroundColor: '#8F35E4' },
     content: { paddingHorizontal: 20, marginTop: -4 },
-    classContainer: { backgroundColor: '#EFF8E8', borderRadius: 22, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#B9DB9D', shadowColor: '#55793B', shadowOpacity: 0.10, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 4 },
+    classContainer: { backgroundColor: '#EFF8E8', borderRadius: 22, padding: 16, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#B9DB9D', ...platformShadow('#55793B', 0.10, 12, 5, 4) },
     classContainerCompact: { padding: 12, borderRadius: 18 },
     classCharacter: { position: 'absolute', right: 48, bottom: -18, color: 'rgba(91,152,47,0.06)', fontFamily: 'Jua', fontSize: 96 },
     classIconWrap: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#76BE43', alignItems: 'center', justifyContent: 'center', marginRight: 13 },

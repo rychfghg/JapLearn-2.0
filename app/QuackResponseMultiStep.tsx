@@ -6,6 +6,7 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Animated, Image, ImageBackground, Modal, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
+import { queueOfflineSubmission, syncOfflineSubmissions } from '../services/offlineSync';
 import styles from '../styles/stylesQuackResponseGuided';
 import dialogueRelayAudio from './dialogueRelayAudio';
 import { RELAY_SCENES, RELAY_TOTAL_RESPONSES, RELAY_TRIVIA, RelayChoice } from './dialogueRelayContent';
@@ -94,7 +95,7 @@ export default function DialogueRelay(){
   const afterFeedback=()=>{setSelected(null);if(answers.length===BONUS_AT&&!bonusPromptSeen){setBonusPromptSeen(true);setPhase('bonusIntro');void persist({bonusPromptSeen:true});}else void advance();};
   const narrationTap=()=>{void ensureMusic();if(!narrationDone){setTyped(scene.narration);setNarrationDone(true);return;}setTriviaIndex(0);setCultureVisible(true);};
   const closeTrivia=()=>{const notes=RELAY_TRIVIA[scene.id]||[scene.etiquette];if(triviaIndex+1<notes.length){setTriviaIndex(triviaIndex+1);return;}setCultureVisible(false);setTriviaIndex(0);setPhase('sumi');};
-  const sendScore=async(finalBonusCorrect=bonusCorrectCount)=>{if(!user?.email)return;const right=answers.filter(a=>a.correct).length;const earned=answers.reduce((sum,a)=>sum+a.points,0)+finalBonusCorrect;try{await fetch(`${expoconfig.API_URL}/api/scores/high-score`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email,game:'QUACKRESPONSE_RELAY',mode:'DIALOGUE_RELAY',score:earned,maxScore:80,correctAnswers:right+finalBonusCorrect,totalQuestions:30,completed:true,date:new Date().toISOString()})});}catch{}};
+  const sendScore=async(finalBonusCorrect=bonusCorrectCount)=>{if(!user?.email)return;const right=answers.filter(a=>a.correct).length;const earned=answers.reduce((sum,a)=>sum+a.points,0)+finalBonusCorrect;try{await queueOfflineSubmission(user.email,'/api/scores/high-score',{email:user.email,game:'QUACKRESPONSE_RELAY',mode:'DIALOGUE_RELAY',score:earned,maxScore:80,correctAnswers:right+finalBonusCorrect,totalQuestions:30,completed:true,date:new Date().toISOString()});void syncOfflineSubmissions(user.email);}catch{}};
   const stopRecordingPlayback=async()=>{const sound=recordingPlayback.current;recordingPlayback.current=null;setRecordingPlaybackActive(false);if(sound){sound.setOnPlaybackStatusUpdate(null);await sound.stopAsync().catch(()=>{});await sound.unloadAsync().catch(()=>{});}};
   const startRecording=async()=>{
     if(recordingActionBusy.current||recording||recordingPlaybackActive||activeAudioKey)return;

@@ -19,6 +19,8 @@ import {
 import QuackSituateExit from '../components/QuackSituateExit';
 import expoconfig from '../expoconfig';
 import { loadBundledSound } from '../utils/nativeAudio';
+import { loadOfflineContent, queueOfflineSubmission, syncOfflineSubmissions } from '../services/offlineSync';
+import { resolveOfflineMediaUri, useOfflineMediaUri } from '../services/offlineMedia';
 
 type Choice = {
   japanese: string;
@@ -164,6 +166,8 @@ export default function QuackSituateMatching() {
   const current = moments.length > 0
     ? moments[Math.min(momentIndex, moments.length - 1)]
     : undefined;
+  const correctImageUri = useOfflineMediaUri(current?.imageUrl);
+  const alternativeImageUri = useOfflineMediaUri(current?.secondaryImageUrl);
   const currentAnswer = current ? getAnswer(current) : null;
   const answeredCount = correctCount + mistakes;
   const accuracy = answeredCount > 0 ? correctCount / answeredCount : 0;
@@ -190,6 +194,8 @@ export default function QuackSituateMatching() {
     try {
       const user = await getUser();
       if (!user.email) return;
+      await AsyncStorage.setItem(`expressionRun:${user.email.trim().toLowerCase()}:${runGameType}`,
+        JSON.stringify({ questionIndex, correctCount: savedCorrectCount, mistakes: savedMistakes, savedAt: Date.now() }));
       await fetch(`${expoconfig.API_URL}/api/situational/runs/current`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -246,15 +252,7 @@ export default function QuackSituateMatching() {
 
     void (async () => {
       try {
-        const response = await fetch(
-          `${expoconfig.API_URL}/api/situational/questions?gameType=EXPRESSION_MATCH`,
-        );
-
-        if (!response.ok) {
-          throw new Error('Expression Match could not load.');
-        }
-
-        const all: Moment[] = await response.json();
+        const all = await loadOfflineContent<Moment[]>('/api/situational/questions?gameType=EXPRESSION_MATCH');
         const published = all
           .filter(item => item.level === level)
           .filter(item => {
@@ -276,13 +274,22 @@ export default function QuackSituateMatching() {
 
         const user = await getUser();
         if (user.email && selected.length > 0) {
-          const runResponse = await fetch(
-            `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
-          );
+          const runKey = `expressionRun:${user.email.trim().toLowerCase()}:${runGameType}`;
+          const localRaw = await AsyncStorage.getItem(runKey);
+          const localRun = localRaw ? JSON.parse(localRaw) : null;
+          let run: any = localRun;
+          try {
+            const runResponse = await fetch(
+              `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
+            );
+            if (runResponse.ok && runResponse.status !== 204) {
+              const remoteRun = await runResponse.json();
+              if (!localRun || new Date(remoteRun.updatedAt || 0).getTime() > Number(localRun.savedAt || 0)) run = remoteRun;
+            }
+          } catch { /* The on-device checkpoint remains available offline. */ }
           // 204 means there is no unfinished checkpoint. It has no JSON body
           // and is the normal state for a fresh game or replay.
-          if (active && runResponse.ok && runResponse.status !== 204) {
-            const run = await runResponse.json();
+          if (active && run) {
             const savedQuestionIndex = Math.max(0, Number(run.questionIndex) || 0);
             const resumeIndex = Math.min(savedQuestionIndex, selected.length - 1);
             const resumedCorrect = Math.min(
@@ -295,7 +302,8 @@ export default function QuackSituateMatching() {
               await fetch(
                 `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
                 { method: 'DELETE' },
-              );
+              ).catch(() => undefined);
+              await AsyncStorage.removeItem(runKey);
               setMomentIndex(0);
               setCorrectCount(0);
               setMistakes(0);
@@ -351,7 +359,7 @@ export default function QuackSituateMatching() {
     try {
       await momentAudio.current?.unloadAsync();
       const loaded = await Audio.Sound.createAsync(
-        { uri: mediaUrl(current.audioUrl) },
+        { uri: await resolveOfflineMediaUri(current.audioUrl) },
         {
           shouldPlay: true,
           volume: 1,
@@ -399,10 +407,7 @@ export default function QuackSituateMatching() {
   const storeCompletedAttempt = async () => {
     const user = await getUser();
 
-    const response = await fetch(`${expoconfig.API_URL}/api/situational/attempts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    await queueOfflineSubmission(user.email, '/api/situational/attempts', {
         email: user.email,
         name: [user.fname, user.lname].filter(Boolean).join(' '),
         gameType: 'EXPRESSION_MATCH',
@@ -416,14 +421,14 @@ export default function QuackSituateMatching() {
         correctAnswers: correctCount,
         stars,
         completed: true,
-      }),
-    });
-    if (!response.ok) throw new Error(`Attempt save failed: ${response.status}`);
+      });
+    void syncOfflineSubmissions(user.email);
 
     await fetch(
       `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
       { method: 'DELETE' },
-    );
+    ).catch(() => undefined);
+    await AsyncStorage.removeItem(`expressionRun:${user.email.trim().toLowerCase()}:${runGameType}`);
     setAttemptStored(true);
   };
 
@@ -517,8 +522,8 @@ export default function QuackSituateMatching() {
     );
   }
 
-  const correctImage = { uri: mediaUrl(current.imageUrl) };
-  const alternativeImage = { uri: mediaUrl(current.secondaryImageUrl) };
+  const correctImage = { uri: correctImageUri };
+  const alternativeImage = { uri: alternativeImageUri };
   const topTarget = correctPosition === 'top'
     ? { image: correctImage, scenario: current.scenario }
     : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };

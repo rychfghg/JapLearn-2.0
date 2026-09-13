@@ -3,12 +3,14 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Font from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, AppState } from 'react-native';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { AuthContext, AuthProvider } from '../context/AuthContext';
 import { ClassCodeProvider } from '../context/ClassCodeContext';
 import { LessonProgressProvider, useLessonProgress } from '../context/LessonProgressContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { syncOfflineSubmissions } from '../services/offlineSync';
+import { primeOfflineContent } from '../services/offlineContent';
 // import { createDrawerNavigator, DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
 
 
@@ -102,6 +104,25 @@ const RootLayout = () => {
   const router = useRouter();
   // const [isDrawerOpen, setDrawerOpen] = useState(false);
   const segments = useSegments();
+
+  useEffect(() => {
+    if (!user?.email || user.role?.toLowerCase() !== 'student') return;
+    const sync = () => {
+      void syncOfflineSubmissions(user.email);
+      void primeOfflineContent();
+    };
+    sync();
+    const appListener = AppState.addEventListener('change', (state) => {
+      if (state === 'active') sync();
+    });
+    const timer = setInterval(() => void syncOfflineSubmissions(user.email), 20000);
+    if (Platform.OS === 'web' && typeof window !== 'undefined') window.addEventListener('online', sync);
+    return () => {
+      appListener.remove();
+      clearInterval(timer);
+      if (Platform.OS === 'web' && typeof window !== 'undefined') window.removeEventListener('online', sync);
+    };
+  }, [user?.email, user?.role]);
 
   useEffect(() => {
     let cancelled = false;

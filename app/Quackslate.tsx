@@ -10,6 +10,8 @@ import expoconfig from '../expoconfig';
 import { Image } from 'react-native';
 import { Audio } from 'expo-av';  // Import expo-av to play audio
 import { AuthContext } from '../context/AuthContext';
+import { loadOfflineContent } from '../services/offlineSync';
+import { saveAccountScore } from '../services/accountScoreService';
 
 type SlateContent = {
     englishWord: string;
@@ -202,11 +204,10 @@ const playAnswerSound = async (isCorrect: boolean) => {
                 return; // Prevent fetch when navigating away or game is finished
             }
     
-            const response = await fetch(isSystemMode
-                ? `${expoconfig.API_URL}/api/quackslate/question-bank/system?limit=10`
-                : `${expoconfig.API_URL}/api/quackslateContent/getByGameCode/${gameCode}`);
-            if (response.ok) {
-                const rawData = await response.json();
+            const rawData = isSystemMode
+                ? await loadOfflineContent<any[]>('/api/quackslate/question-bank/system?limit=10')
+                : await (await fetch(`${expoconfig.API_URL}/api/quackslateContent/getByGameCode/${gameCode}`)).json();
+            if (Array.isArray(rawData)) {
                 const data: SlateContent[] = isSystemMode ? rawData.map((item: any) => ({
                     englishWord: item.prompt,
                     translatedWord: item.translation,
@@ -419,13 +420,12 @@ const playAnswerSound = async (isCorrect: boolean) => {
                         // Teacher-coded play remains a session record for the teacher,
                         // but is deliberately excluded from personal QuackProgress.
                         const scoreEndpoint = isSystemMode ? '/api/scores/high-score' : '/api/scores/save';
-                        const response = await fetch(`${expoconfig.API_URL}${scoreEndpoint}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(scoreData)
-                        });
-                        if (!response.ok) {
-                            throw new Error('Failed to save score');
+                        if (isSystemMode) await saveAccountScore(scoreData);
+                        else {
+                            const response = await fetch(`${expoconfig.API_URL}${scoreEndpoint}`, {
+                                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(scoreData)
+                            });
+                            if (!response.ok) throw new Error('Failed to save score');
                         }
                         console.log('Score saved successfully:', newScore);
                     } catch (error) {

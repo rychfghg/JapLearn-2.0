@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext'; // Import AuthContext
 import expoconfig from '../expoconfig';
+import { offlineProgressFetch } from '../services/offlineProgress';
 import ExerciseCompletionBadge from '../components/ExerciseCompletionBadge';
 import ExerciseGameHeader from '../components/ExerciseGameHeader';
 import ExerciseCompletePanel from '../components/ExerciseCompletePanel';
@@ -128,7 +129,7 @@ const CharacterExercise5 = () => {
     const handleCompleteExercise = async () => {
         if (user && user.email) {
             try {
-              const response = await fetch(
+              const response = await offlineProgressFetch(
                 `${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=katakana2&value=true`,
                 {
                   method: 'PUT',

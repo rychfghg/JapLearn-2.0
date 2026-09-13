@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesWords';
 import expoconfig from '../expoconfig';
+import { offlineProgressFetch } from '../services/offlineProgress';
 import { AuthContext } from '../context/AuthContext';
 import useLessonResume from '../hooks/useLessonResume';
 
@@ -61,7 +62,7 @@ const Words = () => {
       let fieldToUpdate = 'vocab1';
 
       // Update the field using the API
-      const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=${fieldToUpdate}&value=true`, {
+      const response = await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${user.email}/updateField?field=${fieldToUpdate}&value=true`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -3,7 +3,7 @@
     "name": "JapLearn",
     "slug": "japlearn",
     "scheme": "japlearn",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/APPLOGO_ICON_1024.png",
     "userInterfaceStyle": "light",

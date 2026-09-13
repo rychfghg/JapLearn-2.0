@@ -1,4 +1,5 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+import { platformShadow } from '../utils/platformShadow';
 
 const styles = StyleSheet.create({
   button: {
@@ -7,12 +8,13 @@ const styles = StyleSheet.create({
     width:  '100%',
     borderRadius: 16,
     borderColor: '#8AC25A',
-    borderBottomWidth: 6,
+    borderBottomWidth: Platform.OS === 'android' ? 0 : 6,
     height: 60,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 9,
+    ...(Platform.OS === 'android' ? platformShadow('#5B9032', 0.22, 10, 5, 2) : {}),
   },
   buttonPressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
 

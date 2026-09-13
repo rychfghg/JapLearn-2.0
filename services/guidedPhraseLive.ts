@@ -6,13 +6,39 @@ export type ConversationEvaluation={contextScore:number;japaneseAttempted:boolea
 export type GuidedLiveCallbacks={onConnected:()=>void;onSpeaking:(value:boolean)=>void;onInputTranscript:(text:string)=>void;onOutputTranscript:(text:string)=>void;onTurn:(turn:GuidedPhraseTurn)=>void;onEvaluation:(value:MeaningEvaluation)=>void;onConversationEvaluation?:(value:ConversationEvaluation)=>void;onError:(message:string)=>void;onComplete:()=>void};
 export type GuidedLiveAccess={token:string;model:string;websocketUrl:string;voice:string;systemInstruction:string;practicesRemaining:number;sessionId?:string;responsesCompleted?:number};
 
-const bytesToBase64=(bytes:Uint8Array)=>{let binary='';for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return globalThis.btoa(binary);};
-const base64ToBytes=(value:string)=>{const binary=globalThis.atob(value);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return bytes;};
+const base64Alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+const base64Lookup=new Uint8Array(128);
+for(let i=0;i<base64Alphabet.length;i++)base64Lookup[base64Alphabet.charCodeAt(i)]=i;
+const bytesToBase64=(bytes:Uint8Array)=>{
+  const result:string[]=[];
+  for(let i=0;i<bytes.length;i+=3){
+    const a=bytes[i],b=i+1<bytes.length?bytes[i+1]:0,c=i+2<bytes.length?bytes[i+2]:0;
+    result.push(base64Alphabet[a>>2],base64Alphabet[((a&3)<<4)|(b>>4)],i+1<bytes.length?base64Alphabet[((b&15)<<2)|(c>>6)]:'=',i+2<bytes.length?base64Alphabet[c&63]:'=');
+  }
+  return result.join('');
+};
+const base64ToBytes=(value:string)=>{
+  const clean=value.replace(/[^A-Za-z0-9+/=]/g,'');
+  const padding=clean.endsWith('==')?2:clean.endsWith('=')?1:0;
+  const bytes=new Uint8Array(Math.max(0,Math.floor(clean.length/4)*3-padding));
+  let offset=0;
+  for(let i=0;i<clean.length;i+=4){
+    const a=base64Lookup[clean.charCodeAt(i)],b=base64Lookup[clean.charCodeAt(i+1)];
+    const c=clean[i+2]==='='?0:base64Lookup[clean.charCodeAt(i+2)];
+    const d=clean[i+3]==='='?0:base64Lookup[clean.charCodeAt(i+3)];
+    if(offset<bytes.length)bytes[offset++]=(a<<2)|(b>>4);
+    if(offset<bytes.length)bytes[offset++]=((b&15)<<4)|(c>>2);
+    if(offset<bytes.length)bytes[offset++]=((c&3)<<6)|d;
+  }
+  return bytes;
+};
 const isBrowser=typeof document!=='undefined';
 
 export class GeminiGuidedPhraseLive {
   private socket:WebSocket|null=null;
-  private audioContext=new AudioContext({sampleRate:24000});
+  // Create the native audio graph only when playback starts. Constructing it
+  // while a screen mounts can terminate Android before an error can be shown.
+  private audioContext:AudioContext|null=null;
   private nextPlaybackAt=0;
   private setupResolve:(()=>void)|null=null;
   private setupReject:((error:Error)=>void)|null=null;
@@ -37,10 +63,16 @@ export class GeminiGuidedPhraseLive {
   private heldAudio:string[]=[];
   constructor(private callbacks:GuidedLiveCallbacks,private mode:'guided'|'conversation'='guided'){}
 
+  private nativeAudioContext(){
+    if(!this.audioContext)this.audioContext=new AudioContext({sampleRate:24000});
+    return this.audioContext;
+  }
+
   async activateAudio(){
     if(isBrowser){const BrowserAudioContext=(globalThis as any).AudioContext||(globalThis as any).webkitAudioContext;if(!BrowserAudioContext)throw new Error('Audio playback is unavailable in this browser.');if(!this.browserNativeContext||this.browserNativeContext.state==='closed')this.browserNativeContext=new BrowserAudioContext({sampleRate:24000});await this.browserNativeContext.resume();if(this.browserNativeContext.state!=='running')throw new Error('Tap once more to enable Sumi’s voice.');this.browserAudioUnlocked=true;this.browserNextPlaybackAt=this.browserNativeContext.currentTime+0.06;const queued=this.browserPendingPcm.splice(0);for(const pcm of queued)this.scheduleBrowserPcm(pcm);return;}
-    await this.audioContext.resume();
-    if((this.audioContext as any).state!=='running')throw new Error('Audio playback is still blocked by this browser.');
+    const context=this.nativeAudioContext();
+    await context.resume();
+    if(context.state!=='running')throw new Error('Sumi’s audio could not start on this device.');
     const queued=this.pendingAudio.splice(0);
     for(const encoded of queued)this.playPcm24(encoded);
   }
@@ -70,8 +102,8 @@ export class GeminiGuidedPhraseLive {
   endUserAudio(){this.modelTurnActive=true;this.send({realtimeInput:{activityEnd:{}}});}
   holdPlayback(){this.playbackHeld=true;}
   releasePlayback(){this.playbackHeld=false;const queued=this.heldAudio.splice(0);for(const encoded of queued)this.playPcm24(encoded);if(!queued.length&&!this.modelTurnActive){this.callbacks.onSpeaking(false);this.drainPracticeRequest();}}
-  interrupt(){this.nextPlaybackAt=this.audioContext.currentTime;this.pendingAudio=[];this.heldAudio=[];this.playbackHeld=false;if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=null;if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;for(const source of this.browserSources){try{source.stop();}catch{}}this.browserSources.clear();this.browserNextPlaybackAt=this.browserNativeContext?.currentTime||0;for(const source of this.nativeSources){try{source.stop();}catch{}}this.nativeSources.clear();this.browserPendingPcm=[];this.activePlaybackCount=0;this.callbacks.onSpeaking(false);}
-  close(){this.intentionallyClosed=true;this.interrupt();void this.browserNativeContext?.close?.();this.browserNativeContext=null;this.socket?.close();this.socket=null;void this.audioContext.suspend();}
+  interrupt(){this.nextPlaybackAt=this.audioContext?.currentTime||0;this.pendingAudio=[];this.heldAudio=[];this.playbackHeld=false;if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=null;if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;for(const source of this.browserSources){try{source.stop();}catch{}}this.browserSources.clear();this.browserNextPlaybackAt=this.browserNativeContext?.currentTime||0;for(const source of this.nativeSources){try{source.stop();}catch{}}this.nativeSources.clear();this.browserPendingPcm=[];this.activePlaybackCount=0;this.callbacks.onSpeaking(false);}
+  close(){this.intentionallyClosed=true;this.interrupt();void this.browserNativeContext?.close?.();this.browserNativeContext=null;this.socket?.close();this.socket=null;void this.audioContext?.close().catch(()=>undefined);this.audioContext=null;}
 
   private send(value:unknown){if(this.socket?.readyState===WebSocket.OPEN)this.socket.send(JSON.stringify(value));}
   private sendTextTurn(text:string){this.modelTurnActive=true;this.send({clientContent:{turns:[{role:'user',parts:[{text}]}],turnComplete:true}});}
@@ -125,15 +157,16 @@ export class GeminiGuidedPhraseLive {
   private playPcm24(encoded:string){
     if(this.playbackHeld){this.heldAudio.push(encoded);return;}
     if(isBrowser){const pcm=base64ToBytes(encoded);if(this.browserAudioUnlocked)this.scheduleBrowserPcm(pcm);else this.browserPendingPcm.push(pcm);return;}
-    if((this.audioContext as any).state!=='running'){
+    const context=this.nativeAudioContext();
+    if(context.state!=='running'){
       this.pendingAudio.push(encoded);
       return;
     }
     const bytes=base64ToBytes(encoded);const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);const frames=Math.floor(bytes.byteLength/2);
-    const buffer=this.audioContext.createBuffer(1,frames,24000);const channel=buffer.getChannelData(0);for(let i=0;i<frames;i++)channel[i]=view.getInt16(i*2,true)/32768;
-    const source=this.audioContext.createBufferSource();source.buffer=buffer;source.connect(this.audioContext.destination);
-    this.activePlaybackCount++;this.nativeSources.add(source);source.onEnded=()=>{this.nativeSources.delete(source);this.activePlaybackCount=Math.max(0,this.activePlaybackCount-1);if(this.activePlaybackCount===0&&this.pendingAudio.length===0&&(this.mode!=='conversation'||!this.modelTurnActive)){if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=null;this.callbacks.onSpeaking(false);this.drainPracticeRequest();}};
-    const start=Math.max(this.audioContext.currentTime+0.02,this.nextPlaybackAt);source.start(start);this.nextPlaybackAt=start+buffer.duration;this.callbacks.onSpeaking(true);if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=setTimeout(()=>{if(this.activePlaybackCount>0){this.activePlaybackCount=0;this.nativeSources.clear();this.callbacks.onSpeaking(false);this.drainPracticeRequest();}},Math.max(3000,Math.ceil((this.nextPlaybackAt-this.audioContext.currentTime)*1000)+2000));
+    const buffer=context.createBuffer(1,frames,24000);const channel=buffer.getChannelData(0);for(let i=0;i<frames;i++)channel[i]=view.getInt16(i*2,true)/32768;
+    const source=context.createBufferSource();source.buffer=buffer;source.connect(context.destination);
+    this.activePlaybackCount++;this.nativeSources.add(source);source.onEnded=()=>{this.nativeSources.delete(source);this.activePlaybackCount=Math.max(0,this.activePlaybackCount-1);if(this.activePlaybackCount===0&&this.pendingAudio.length===0&&!this.modelTurnActive){if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=null;this.callbacks.onSpeaking(false);this.drainPracticeRequest();}};
+    const start=Math.max(context.currentTime+0.02,this.nextPlaybackAt);source.start(start);this.nextPlaybackAt=start+buffer.duration;this.callbacks.onSpeaking(true);if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=setTimeout(()=>{if(this.activePlaybackCount>0&&!this.modelTurnActive){this.activePlaybackCount=0;this.nativeSources.clear();this.callbacks.onSpeaking(false);this.drainPracticeRequest();}},Math.max(3000,Math.ceil((this.nextPlaybackAt-context.currentTime)*1000)+2000));
   }
   private finishBrowserTurn(){
     if(this.browserSources.size===0&&this.browserPendingPcm.length===0){this.callbacks.onSpeaking(false);this.drainPracticeRequest();return;}
