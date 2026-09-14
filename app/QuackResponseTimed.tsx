@@ -1377,7 +1377,7 @@ export default function QuackResponseTimed() {
   useEffect(() => {
     if (currentNode?.type !== 'ENDING' || !user?.email || scoreSaved.current) return;
     scoreSaved.current = true;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toISOString();
     const correctAnswers = answers.filter((answer) => GOOD_TIERS.includes(answer.evaluation)).length;
     void queueOfflineSubmission(user.email, '/api/scores/high-score', {
         name: `${user.fname ?? ''} ${user.lname ?? ''}`.trim(),
