@@ -69,8 +69,11 @@ const QuackslateWait = () => {
                     const serverOffset = new Date(data.serverNow).getTime() - Date.now();
                     setRemaining(Math.max(0, Math.ceil((new Date(data.startsAt).getTime() - Date.now() - serverOffset) / 1000)));
                 }
+            } else if (response.status === 404 || response.status === 410) {
+                setClosed(true);
+                setRemaining(null);
             } else {
-                console.error('Failed to poll quiz start');
+                console.error('Failed to poll quiz start', response.status);
             }
         } catch (error) {
             console.error('Error while polling quiz start:', error);
@@ -78,7 +81,7 @@ const QuackslateWait = () => {
     };
 
     useEffect(() => {
-        if (!quizStarted) {
+        if (!quizStarted && !closed) {
             changeTrivia();
             const triviaInterval = setInterval(changeTrivia, 5000); // Change trivia every 5 seconds
             void pollForQuizStart();
@@ -91,10 +94,10 @@ const QuackslateWait = () => {
                 clearInterval(countdown);
             };
         }
-    }, [quizStarted]);
+    }, [quizStarted, closed, gameCode]);
 
     const handleBackPress = () => {
-        router.back();
+        router.replace('/QuackslateMenu');
     };
 
     return (
@@ -123,8 +126,9 @@ const QuackslateWait = () => {
                             style={{ width: 50, height: 50 }}
                         />
                         <Text style={stylesSlate.waitTitle}>
-                            {closed ? 'This class session has ended.' : remaining === null ? 'Checking the scheduled start time...' : `Starts automatically in ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`}
+                            {closed ? 'This class code is no longer available.' : remaining === null ? 'Checking the scheduled start time...' : `Starts automatically in ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`}
                         </Text>
+                        {closed && <Pressable onPress={() => router.replace('/QuackslateMenu')}><Text style={stylesSlate.waitTitle}>Return to QuackSlate</Text></Pressable>}
     
                         {/* Trivia Section */}
                         <View style={stylesSlate.triviaHeader}>
