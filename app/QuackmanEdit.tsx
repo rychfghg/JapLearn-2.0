@@ -6,6 +6,7 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import CustomButton from '../components/CustomButton';
 import {useRouter, useLocalSearchParams } from 'expo-router';
 import expoconfig from '../expoconfig';
+import { portalFetch as fetch } from '../services/portalFetch';
  
 const QuackmanEdit = () => {
     const [modalVisible, setModalVisible] = useState(false);

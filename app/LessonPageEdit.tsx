@@ -7,6 +7,7 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import { AuthContext } from '../context/AuthContext';
 import CustomButton from '../components/CustomButton';
 import expoconfig from '../expoconfig';
+import { portalFetch as fetch } from '../services/portalFetch';
 
 const LessonPageEdit = () => {
     const { user } = useContext(AuthContext);

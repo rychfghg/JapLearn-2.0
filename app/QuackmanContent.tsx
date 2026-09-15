@@ -6,6 +6,7 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import CustomButton from '../components/CustomButton';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import expoconfig from '../expoconfig';
+import { portalFetch as fetch } from '../services/portalFetch';
 
 const QuackmanContent = () => {
     const { classCode } = useLocalSearchParams();

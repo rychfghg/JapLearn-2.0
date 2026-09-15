@@ -1,14 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Image, Modal, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import expoconfig from '../expoconfig';
+import { AuthContext } from '../context/AuthContext';
 
 const scene = require('../assets/quackslate-twilight-workshop-v4.png');
 const loadingMascotImage = require('../assets/hello.png');
 
 export default function QuackslateMenu() {
   const router = useRouter();
+  const { user } = useContext(AuthContext);
   const [progress, setProgress] = useState(5);
   const [loading, setLoading] = useState(true);
   const [joinOpen, setJoinOpen] = useState(false);
@@ -33,8 +35,13 @@ export default function QuackslateMenu() {
     if (!normalized) return setMessage('Enter the session code shared by your teacher.');
     setJoining(true);
     try {
-      const response = await fetch(`${expoconfig.API_URL}/api/quackslateLevels/getGameCode/${normalized}`);
-      if (!response.ok) throw new Error('This classroom session is not available. Check the code and try again.');
+      if (!user?.email || !user.portalSessionToken) throw new Error('Sign in again to join this classroom session.');
+      const response = await fetch(`${expoconfig.API_URL}/api/quackslate/session/${encodeURIComponent(normalized)}/join`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Student-Token': user.portalSessionToken }, body: JSON.stringify({ email: user.email }),
+      });
+      if (!response.ok) throw new Error(await response.text() || 'This classroom session is not available.');
+      const session = await response.json();
+      if (session.status === 'ENDED' || session.status === 'DRAFT') throw new Error('This session is not open for students.');
       setJoinOpen(false);
       router.push({ pathname: '/QuackslateWait', params: { gameCode: normalized } });
     } catch (error) {

@@ -8,6 +8,7 @@ import styles from '../styles/stylesMenu';
 import stylesSlate from '../styles/StylesSlate';
 import { stylesEdit } from '../styles/stylesEdit';
 import expoconfig from '../expoconfig';
+import { portalFetch as fetch } from '../services/portalFetch';
 
 const QuackslateHost = () => {
     const { gameCode, classCode, title } = useLocalSearchParams();

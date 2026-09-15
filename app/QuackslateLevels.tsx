@@ -5,6 +5,7 @@ import BackIcon from '../assets/svg/back-icon.svg';
 import CustomButton from '../components/CustomButton';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import expoconfig from '../expoconfig';
+import { portalFetch as fetch } from '../services/portalFetch';
 
 const QuackslateLevels = () => {
     const [newGameCode, setNewGameCode] = useState(''); // Store generated game code

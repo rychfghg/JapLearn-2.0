@@ -7,7 +7,7 @@ import {
     ImageBackground,
     Image,
 } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Profile from '../assets/svg/user_pf.svg';
 const Background = require('../assets/quackslate-twilight-workshop-v4.png');
@@ -22,6 +22,9 @@ import expoconfig from '../expoconfig';
 const QuackslateWait = () => {
     const { gameCode } = useLocalSearchParams();
     const [quizStarted, setQuizStarted] = useState(false);
+    const [remaining, setRemaining] = useState<number | null>(null);
+    const [closed, setClosed] = useState(false);
+    const navigating = useRef(false);
     const [trivia, setTrivia] = useState('');
     const router = useRouter();
 
@@ -45,20 +48,26 @@ const QuackslateWait = () => {
     };
 
     const pollForQuizStart = async () => {
-        if (quizStarted) return;
+        if (navigating.current) return;
 
         try {
             const response = await fetch(
-                `${expoconfig.API_URL}/api/quackslateLevels/isQuizStarted/${gameCode}`
+                `${expoconfig.API_URL}/api/quackslate/session/${encodeURIComponent(String(gameCode))}`
             );
             if (response.ok) {
                 const data = await response.json();
-                if (data.quizStarted && !quizStarted) {
+                if (data.status === 'LIVE' && !navigating.current) {
+                    navigating.current = true;
                     setQuizStarted(true);
-                    router.push({
+                    router.replace({
                         pathname: '/Quackslate',
-                        params: { gameCode },
+                        params: { gameCode: String(gameCode) },
                     });
+                } else if (data.status === 'ENDED') {
+                    setClosed(true);
+                } else if (data.startsAt) {
+                    const serverOffset = new Date(data.serverNow).getTime() - Date.now();
+                    setRemaining(Math.max(0, Math.ceil((new Date(data.startsAt).getTime() - Date.now() - serverOffset) / 1000)));
                 }
             } else {
                 console.error('Failed to poll quiz start');
@@ -72,11 +81,14 @@ const QuackslateWait = () => {
         if (!quizStarted) {
             changeTrivia();
             const triviaInterval = setInterval(changeTrivia, 5000); // Change trivia every 5 seconds
+            void pollForQuizStart();
             const pollInterval = setInterval(pollForQuizStart, 3000); // Poll every 3 seconds
+            const countdown = setInterval(() => setRemaining((value) => value === null ? null : Math.max(0, value - 1)), 1000);
 
             return () => {
                 clearInterval(triviaInterval);
                 clearInterval(pollInterval); // Stop polling when quiz starts
+                clearInterval(countdown);
             };
         }
     }, [quizStarted]);
@@ -87,7 +99,7 @@ const QuackslateWait = () => {
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <ImageBackground source={Background} style={styles.backgroundImage}>
+            <ImageBackground source={Background} style={{ flex: 1 }}>
                 <View style={styles.container}>
                     {/* Header Section */}
                     <View style={[styles.header, { padding: 20 }]}>
@@ -96,8 +108,8 @@ const QuackslateWait = () => {
                                 <BackIcon width={20} height={20} fill={'white'} />
                             </View>
                         </TouchableOpacity>
-                        <View style={styles.leftContainer}></View>
-                        <View style={styles.rightContainer}>
+                        <View></View>
+                        <View>
                             <Pressable onPress={() => router.push('/Profile')}>
                                 <Profile width={65} height={65} />
                             </Pressable>
@@ -111,7 +123,7 @@ const QuackslateWait = () => {
                             style={{ width: 50, height: 50 }}
                         />
                         <Text style={stylesSlate.waitTitle}>
-                            Waiting for the teacher to start the assessment...
+                            {closed ? 'This class session has ended.' : remaining === null ? 'Checking the scheduled start time...' : `Starts automatically in ${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, '0')}`}
                         </Text>
     
                         {/* Trivia Section */}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Text, View, ScrollView, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import { stylesEdit } from '../styles/stylesEdit'; // Ensure this file exists with appropriate styles
 import expoconfig from '../expoconfig';
+import { portalFetch as fetch } from '../services/portalFetch';
 
 const QuackamoleContent = () => {
     const screenWidth = Dimensions.get('window').width;

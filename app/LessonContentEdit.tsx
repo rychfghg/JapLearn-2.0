@@ -12,6 +12,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { Picker } from '@react-native-picker/picker';
 import { Audio } from 'expo-av';
 import expoconfig from '../expoconfig';
+import { portalFetch as fetch } from '../services/portalFetch';
 
 const LessonContentEdit = () => {
     const { user } = useContext(AuthContext);

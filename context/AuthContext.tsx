@@ -7,6 +7,7 @@ interface User {
   fname: string;
   lname: string;
   role: string;
+  portalSessionToken?: string;
 }
 
 const isStoredUser = (value: unknown): value is User => {

@@ -5,6 +5,7 @@ import { stylesEdit } from '../styles/stylesEdit';
 import BackIcon from '../assets/svg/back-icon.svg';
 import expoconfig from '../expoconfig';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { portalFetch as fetch } from '../services/portalFetch';
 
 const QuackamoleEdit = () => {
     const { classCode } = useLocalSearchParams();

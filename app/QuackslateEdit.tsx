@@ -7,6 +7,7 @@ import CustomButton from '../components/CustomButton';
 import expoconfig from '../expoconfig';  
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import stylesSlate from '../styles/StylesSlate';
+import { portalFetch as fetch } from '../services/portalFetch';
 
 const QuackslateEdit = () => {
     const { gameCode, classCode, title } = useLocalSearchParams();  

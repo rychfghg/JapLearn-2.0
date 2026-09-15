@@ -127,6 +127,7 @@ const Login = () => {
                 fname: data.fname,
                 lname: data.lname,
                 role: data.role?.toLowerCase(),
+                portalSessionToken: data.portalSessionToken,
             };
 
             let userClassCode = '';

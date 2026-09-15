@@ -11,6 +11,7 @@ import Icon2 from '../assets/svg/gameIcon2.svg';
 import Icon3 from '../assets/svg/gameIcon3.svg';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
+import { portalFetch as fetch } from '../services/portalFetch';
 
 const ClassDashboard = () => {
     const [activeCategory, setActiveCategory] = useState('MEMBERS');

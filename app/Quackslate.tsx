@@ -25,6 +25,12 @@ type SlateContent = {
 const Quackslate = () => {
     const { gameCode, mode } = useLocalSearchParams();
     const isSystemMode = mode === 'system';
+    const isScheduledTeacherMode = !isSystemMode && typeof gameCode === 'string' && !!gameCode;
+    const [sessionSeconds, setSessionSeconds] = useState<number | null>(null);
+    const sessionEndsAt = useRef<number | null>(null);
+    const serverOffset = useRef(0);
+    const scoreRef = useRef(0);
+    const scoreSubmitted = useRef(false);
     const [shuffledButtons, setShuffledButtons] = useState<string[]>([]);
     const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
     const [timer, setTimer] = useState(10);
@@ -175,6 +181,14 @@ const playAnswerSound = async (isCorrect: boolean) => {
 
     const handleBackPress = () => {
         console.log("Stopping QuackSlate and returning to its menu...");
+        if (isScheduledTeacherMode && !scoreSubmitted.current && user?.email && user.portalSessionToken) {
+            scoreSubmitted.current = true;
+            void fetch(`${expoconfig.API_URL}/api/quackslate/session/${encodeURIComponent(String(gameCode))}/score`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Student-Token': user.portalSessionToken },
+                body: JSON.stringify({ email: user.email, score: scoreRef.current, completed: false,
+                    clientAttemptId: `${String(gameCode)}-${user.email}-${Date.now()}` }),
+            }).catch((error) => console.error('Could not save the partial class score:', error));
+        }
         stopGame();
         router.replace('/QuackslateMenu');
     };
@@ -273,7 +287,7 @@ const playAnswerSound = async (isCorrect: boolean) => {
 
     const pollForNextQuestion = async () => {
         try {
-            if (isSystemMode || !gameCode || isWaitingForNext || isGameFinished) {
+            if (isSystemMode || isScheduledTeacherMode || !gameCode || isWaitingForNext || isGameFinished) {
                 console.log("Polling skipped. Either the quiz is finished, waiting for next question, or gameCode is missing.");
                 return; // Skip polling if the quiz is finished or in waiting state
             }
@@ -340,7 +354,7 @@ const playAnswerSound = async (isCorrect: boolean) => {
         fetchContent(); // Fetch content when component mounts
 
         // Start polling for the next question every 3 seconds
-        if (!isSystemMode) pollingInterval.current = setInterval(pollForNextQuestion, 3000);
+        if (!isSystemMode && !isScheduledTeacherMode) pollingInterval.current = setInterval(pollForNextQuestion, 3000);
 
         return () => {
             // Cleanup logic on unmount
@@ -387,6 +401,7 @@ const playAnswerSound = async (isCorrect: boolean) => {
         // Calculate new score
         const newScore = isAnswerCorrect ? score + 1 : score;
         setScore(newScore);
+        scoreRef.current = newScore;
     
         if (currentIndex === content.length - 1 && isMounted.current) {
             setIsLastQuestionAnswered(true);
@@ -412,18 +427,21 @@ const playAnswerSound = async (isCorrect: boolean) => {
                         correctAnswers: newScore,
                         totalQuestions: totalItems || content.length,
                         completed: true,
-                        mode: isSystemMode ? 'SOLO' : 'TEACHER_CODED'
+                        mode: isSystemMode ? 'SOLO' : 'TEACHER_CODED',
+                        clientAttemptId: `${String(gameCode || 'solo')}-${user.email}-${Date.now()}`
                     };
     
                     try {
                         // Solo contributes to the learner's persistent personal best.
                         // Teacher-coded play remains a session record for the teacher,
                         // but is deliberately excluded from personal QuackProgress.
-                        const scoreEndpoint = isSystemMode ? '/api/scores/high-score' : '/api/scores/save';
+                        const scoreEndpoint = isSystemMode ? '/api/scores/high-score' : `/api/quackslate/session/${encodeURIComponent(String(gameCode))}/score`;
                         if (isSystemMode) await saveAccountScore(scoreData);
                         else {
+                            if (scoreSubmitted.current) return;
+                            scoreSubmitted.current = true;
                             const response = await fetch(`${expoconfig.API_URL}${scoreEndpoint}`, {
-                                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(scoreData)
+                                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Student-Token': user.portalSessionToken || '' }, body: JSON.stringify(scoreData)
                             });
                             if (!response.ok) throw new Error('Failed to save score');
                         }
@@ -435,7 +453,7 @@ const playAnswerSound = async (isCorrect: boolean) => {
                     setIsLastQuestionAnswered(false);
                 }
             }, 3000);
-        } else if (isMounted.current && !isGameFinished && isSystemMode) {
+        } else if (isMounted.current && !isGameFinished && (isSystemMode || isScheduledTeacherMode)) {
             setIsWaitingForNext(true);
             setTimer(0);
             setIsAnswerModalVisible(true);
@@ -451,6 +469,53 @@ const playAnswerSound = async (isCorrect: boolean) => {
             setIsAnswerModalVisible(true);
         }
     };
+
+    useEffect(() => {
+        if (!isScheduledTeacherMode) return;
+        let active = true;
+        const code = String(gameCode);
+        const finishForSchedule = async () => {
+            if (!active || scoreSubmitted.current || hasExited.current) return;
+            scoreSubmitted.current = true;
+            clearPolling();
+            if (completionTimeout.current) clearTimeout(completionTimeout.current);
+            if (nextQuestionTimeout.current) clearTimeout(nextQuestionTimeout.current);
+            setIsGameFinished(true);
+            setIsWaitingForNext(true);
+            setTimer(0);
+            try {
+                if (user?.email && user.portalSessionToken) {
+                    const response = await fetch(`${expoconfig.API_URL}/api/quackslate/session/${encodeURIComponent(code)}/score`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Student-Token': user.portalSessionToken },
+                        body: JSON.stringify({ email: user.email, score: scoreRef.current, completed: false,
+                            clientAttemptId: `${code}-${user.email}-${Date.now()}` }),
+                    });
+                    if (!response.ok) console.error('Could not save the timed class score:', await response.text());
+                }
+            } catch (error) { console.error('Could not save the timed class score:', error); }
+            if (active && !hasExited.current) router.replace('/QuackslateMenu');
+        };
+        const refresh = async () => {
+            try {
+                const response = await fetch(`${expoconfig.API_URL}/api/quackslate/session/${encodeURIComponent(code)}`);
+                if (!response.ok || !active) return;
+                const data = await response.json();
+                serverOffset.current = new Date(data.serverNow).getTime() - Date.now();
+                sessionEndsAt.current = data.endsAt ? new Date(data.endsAt).getTime() : null;
+                if (data.status === 'ENDED') void finishForSchedule();
+                if (data.status === 'UPCOMING') router.replace({ pathname: '/QuackslateWait', params: { gameCode: code } });
+            } catch (error) { console.error('Session clock unavailable:', error); }
+        };
+        void refresh();
+        const polling = setInterval(() => void refresh(), 5000);
+        const ticking = setInterval(() => {
+            if (sessionEndsAt.current === null) return;
+            const seconds = Math.max(0, Math.ceil((sessionEndsAt.current - Date.now() - serverOffset.current) / 1000));
+            setSessionSeconds(seconds);
+            if (seconds === 0) void finishForSchedule();
+        }, 1000);
+        return () => { active = false; clearInterval(polling); clearInterval(ticking); };
+    }, [gameCode, isScheduledTeacherMode, user?.email]);
     
 
 
@@ -521,7 +586,7 @@ const playAnswerSound = async (isCorrect: boolean) => {
                             <Text style={stylesSlate.roundText}>{(currentIndex ?? 0) + 1} / {content.length || 1}</Text>
                         </View>
                         <View style={stylesSlate.timerContainer}>
-                            <Animated.Text style={[stylesSlate.timerText, { color: timerColor }]}>{timer}s</Animated.Text>
+                            <Animated.Text style={[stylesSlate.timerText, { color: timerColor }]}>{timer}s{isScheduledTeacherMode && sessionSeconds !== null ? ` · ${Math.floor(sessionSeconds / 60)}:${String(sessionSeconds % 60).padStart(2, '0')} left` : ''}</Animated.Text>
                         </View>
                     </View>
 
