@@ -53,16 +53,17 @@ const LearnMenu = () => {
 
   useEffect(() => {
     const loadClassLessons = async () => {
-      const classCode = await AsyncStorage.getItem('classCode');
-      if (!classCode) return;
+      if (!user?.email || !user.portalSessionToken) return;
       try {
-        setClassLessons(await loadOfflineContent<any[]>(`/api/lesson/getLessonByClass/${encodeURIComponent(classCode)}`));
+        const response = await fetch(`${expoconfig.API_URL}/api/student/lessons?email=${encodeURIComponent(user.email)}`, { headers: { 'X-Student-Token': user.portalSessionToken } });
+        if (!response.ok) throw new Error(await response.text());
+        setClassLessons(await response.json());
       } catch (error) {
         console.log('Could not load teacher lessons:', error);
       }
     };
     loadClassLessons();
-  }, [user?.email]);
+  }, [user?.email, user?.portalSessionToken]);
 
   useEffect(() => {
     const mascotTimer = setInterval(() => {
@@ -224,12 +225,7 @@ const LearnMenu = () => {
     }
   };
 
-  const openClassLesson = (lesson: any) => {
-    const type = String(lesson.lesson_type || '').toUpperCase();
-    if (type === 'KANA') router.push('/KanaMenu');
-    else if (type === 'GRAMMAR') router.push('/Content3');
-    else router.push('/WordsMenu');
-  };
+  const openClassLesson = (lesson: any) => router.push({ pathname:'/TeacherLesson', params:{ lessonId:String(lesson.id) } });
 
   return (
     <SafeAreaView style={[styles.safeArea, darkMode && styles.darkPage]}>

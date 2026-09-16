@@ -45,7 +45,7 @@ const routeAccessConfig: Record<string, string[]> = {
   student: [
     'Menu', 'ResetButton', 'Quackamole', 'Quackslate', 'QuackslateWait', 'QuackslateMenu', 'NewMenu', 'Words1', 'KanaMenu', 'HiraganaMenu', 'KatakanaMenu', 'HiraganaSet1',
     'HiraganaSet2', 'HiraganaSet3', 'KatakanaSet1', 'KatakanaSet2', 'KatakanaSet3', 'Quackman', 'StartMenu',
-    'Profile', 'Lessons', 'LessonKanaGame', 'LearnMenu', 'Exercises', 'Content3', 'Game3', 'CharacterExercise1',
+    'Profile', 'Lessons', 'LessonKanaGame', 'LearnMenu', 'TeacherLesson', 'Exercises', 'Content3', 'Game3', 'CharacterExercise1',
     'CharacterExercise2', 'CharacterExercise3', 'CharacterExercise4', 'CharacterExercise5', 'CharacterExercise6', 'WordsMenu', 
     'Words2', 'Words3', 'WordsPractice', 'QuackSituate', 'QuackSituate',
 'QuackSituateRecognition',
@@ -253,6 +253,7 @@ const RootLayout = () => {
         <Stack.Screen name="LearnMenu" />
         <Stack.Screen name="Exercises" />
         <Stack.Screen name="Lessons" />
+        <Stack.Screen name="TeacherLesson" />
         <Stack.Screen name="LessonKanaGame" />
         <Stack.Screen name="LessonPageEdit" />
         <Stack.Screen name="LessonContentEdit" />
