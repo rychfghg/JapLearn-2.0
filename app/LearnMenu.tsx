@@ -272,7 +272,7 @@ const LearnMenu = () => {
               <Text style={[styles.sectionTitle, darkMode && styles.darkTitle]}>Your lessons</Text>
               <Text style={[styles.sectionSubtitle, darkMode && styles.darkMuted]}>Complete each path to unlock the next.</Text>
             </View>
-            <View style={styles.pathCount}><Text style={styles.pathCountText}>3 PATHS</Text></View>
+            <View style={styles.pathCount}><Text style={styles.pathCountText}>{3 + classLessons.length} PATHS</Text></View>
           </View>
 
           <View style={styles.mapContainer}>
@@ -331,11 +331,12 @@ const LearnMenu = () => {
           <View style={styles.mapStep}>
             <View style={styles.mapRail}>
               <View style={[styles.mapNode, isGrammarUnlocked ? styles.mapNodeOrange : styles.mapNodeLocked]}>
-                <Ionicons name={isGrammarUnlocked ? 'star' : 'lock-closed'} size={17} color="#FFFFFF" />
+                <Ionicons name={isGrammarUnlocked ? (classLessons.length ? 'checkmark' : 'star') : 'lock-closed'} size={17} color="#FFFFFF" />
               </View>
+              {classLessons.length > 0 && <View style={[styles.mapLine, isGrammarUnlocked ? styles.mapLineUnlocked : styles.mapLineLocked]} />}
             </View>
             <View style={styles.mapCardWrap}>
-              <Text style={isGrammarUnlocked ? styles.milestoneLabelOrange : styles.milestoneLabelLocked}>{isGrammarUnlocked ? 'FINAL MILESTONE' : 'LOCKED MILESTONE'}</Text>
+              <Text style={isGrammarUnlocked ? styles.milestoneLabelOrange : styles.milestoneLabelLocked}>{isGrammarUnlocked ? (classLessons.length ? 'NEXT MILESTONE' : 'FINAL MILESTONE') : 'LOCKED MILESTONE'}</Text>
               <ImageButton
                 title="GRAMMAR"
                 subtitle="Understand basic grammar"
@@ -353,25 +354,17 @@ const LearnMenu = () => {
               />
             </View>
           </View>
-          </View>
-
-          {classLessons.length > 0 && (
-            <View style={styles.classLessonSection}>
-              <View style={styles.sectionHeading}>
-                <View><Text style={[styles.sectionTitle, darkMode && styles.darkTitle]}>From your teacher</Text><Text style={[styles.sectionSubtitle, darkMode && styles.darkMuted]}>Additional milestones created for your class.</Text></View>
-                <View style={styles.pathCount}><Text style={styles.pathCountText}>{classLessons.length} ADDED</Text></View>
+          {classLessons.map((lesson, index) => {
+            const isLast = index === classLessons.length - 1;
+            return <View style={styles.mapStep} key={lesson.id || index}>
+              <View style={styles.mapRail}><View style={[styles.mapNode, isGrammarUnlocked ? styles.mapNodeOrange : styles.mapNodeLocked]}><Ionicons name={isGrammarUnlocked ? (isLast ? 'star' : 'school') : 'lock-closed'} size={17} color="#FFFFFF" /></View>{!isLast && <View style={[styles.mapLine, isGrammarUnlocked ? styles.mapLineUnlocked : styles.mapLineLocked]} />}</View>
+              <View style={styles.mapCardWrap}>
+                <Text style={styles.milestoneLabelOrange}>{isLast ? 'FINAL MILESTONE' : 'TEACHER MILESTONE'}</Text>
+                <ImageButton title={lesson.lesson_title || lesson.lessonTitle || 'Class lesson'} subtitle={`${lesson.pdfPageCount || 0} slides · Added by your teacher`} onPress={() => openClassLesson(lesson)} imageSource={require('../assets/img/grammar_button.png')} infoContent="A presentation lesson assigned to your class by your teacher." disabled={!isGrammarUnlocked} buttonStyle={!isGrammarUnlocked ? styles.disabledButton : null} textStyle={!isGrammarUnlocked ? styles.disabledText : null} variant="learn" lessonNumber={String(index + 4).padStart(2, '0')} iconName="easel-outline" accentColor="#E8912D" darkMode={darkMode} />
               </View>
-              {classLessons.map((lesson, index) => (
-                <View style={styles.mapStep} key={lesson.id || index}>
-                  <View style={styles.mapRail}><View style={[styles.mapNode, styles.mapNodeOrange]}><Ionicons name="school" size={17} color="#FFFFFF" /></View>{index < classLessons.length - 1 && <View style={[styles.mapLine, styles.mapLineUnlocked]} />}</View>
-                  <View style={styles.mapCardWrap}>
-                    <Text style={styles.milestoneLabelOrange}>TEACHER MILESTONE</Text>
-                    <ImageButton title={lesson.lesson_title || lesson.lessonTitle || 'Class lesson'} subtitle={`${lesson.lesson_type || 'ENRICHMENT'} · Added by your teacher`} onPress={() => openClassLesson(lesson)} imageSource={require('../assets/img/grammar_button.png')} infoContent="An additional lesson assigned to your class by your teacher." variant="learn" lessonNumber={String(index + 4).padStart(2, '0')} iconName="school-outline" accentColor="#E8912D" darkMode={darkMode} />
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
+            </View>;
+          })}
+          </View>
 
           {tipVisible && (
             <View style={[styles.tipCard, darkMode && styles.darkTip]}>
