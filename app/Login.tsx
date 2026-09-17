@@ -9,6 +9,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     ScrollView,
+    useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import CustomModal from '../components/CustomModal';
@@ -24,6 +25,8 @@ import { Ionicons } from '@expo/vector-icons';
 //Checking  
 
 const Login = () => {
+    const { width } = useWindowDimensions();
+    const isWide = width >= 860;
     const { login } = useContext(AuthContext);
     const { setClassCode } = useClassCode();
 
@@ -196,29 +199,36 @@ const Login = () => {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-                <View style={styles.imageContainer}>
+                <View style={[styles.authShell, isWide && styles.authShellWide]}>
+                <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
+                    <View style={styles.welcomeBadge}><Ionicons name="sparkles-outline" size={15} color="#5B9637" /><Text style={styles.welcomeBadgeText}>YOUR JAPANESE JOURNEY</Text></View>
                     <View style={styles.mascotWrap}>
                         <Logo width={132} height={132} />
                     </View>
                     <Text style={styles.titleText}>JAPLEARN 2.0</Text>
-                    <Text style={styles.subtitleText}>Learn Japanese, one step at a time.</Text>
+                    <Text style={styles.welcomeTitle}>Continue learning with confidence.</Text>
+                    <Text style={styles.subtitleText}>Practice useful Japanese, build your progress, and keep every achievement connected to your account.</Text>
                 </View>
 
-                <View style={styles.formCard}>
-                <Text style={styles.formTitle}>Sign in</Text>
-                <Text style={styles.formSubtitle}>Enter your details to continue learning.</Text>
+                <View style={[styles.formCard, isWide && styles.formCardWide]}>
+                <View style={styles.formHeadingIcon}><Ionicons name="person-outline" size={22} color="#8423D9" /></View>
+                <Text style={styles.formEyebrow}>STUDENT ACCOUNT</Text>
+                <Text style={styles.formTitle}>Welcome back</Text>
+                <Text style={styles.formSubtitle}>Sign in to continue your Japanese practice.</Text>
+                <Text style={styles.fieldLabel}>Email address</Text>
                 <View style={styles.inputContainer}>
                     <Ionicons name="mail-outline" size={21} color="#8423D9" style={styles.inputIcon} />
                 <TextInput
                     style={styles.input}
                     value={email}
-                    placeholder="Email"
+                    placeholder="you@example.com"
                     autoCapitalize="none"
                     inputMode="email"
                     onChangeText={(text) => setEmail(text.replace(/\s/g, '').toLowerCase())}
                 />
                 </View>
 
+                <Text style={styles.fieldLabel}>Password</Text>
                 <View style={styles.passwordContainer}>
                     <Ionicons name="lock-closed-outline" size={21} color="#8423D9" style={styles.inputIcon} />
                     <TextInput
@@ -249,7 +259,7 @@ const Login = () => {
                         <View style={styles.button}><ActivityIndicator size="small" color="#FFFFFF" /></View>
                     ) : (
                         <Pressable onPress={handleLogin} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-                            <Text style={styles.buttonText}>Login</Text>
+                            <Text style={styles.buttonText}>Sign in</Text>
                             <Ionicons name="arrow-forward" size={21} color="#FFFFFF" />
                         </Pressable>
                     )}
@@ -262,6 +272,7 @@ const Login = () => {
                     <Pressable onPress={() => setForgotPasswordVisible(true)} hitSlop={8}>
                         <Text style={styles.linkText}>Forgot password?</Text>
                     </Pressable>
+                </View>
                 </View>
                 </View>
 
@@ -281,14 +292,17 @@ const Login = () => {
             <Modal visible={forgotPasswordVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
+                        <View style={styles.modalAccent} />
                         <Pressable onPress={() => setForgotPasswordVisible(false)} style={styles.modalClose} hitSlop={10}>
                             <Ionicons name="close" size={22} color="#66596F" />
                         </Pressable>
-                        <View style={styles.modalIconWrap}>
-                            <Ionicons name="key-outline" size={28} color="#8423D9" />
-                        </View>
+                        <View style={styles.modalIconHalo}><View style={styles.modalIconWrap}>
+                            <Ionicons name="lock-open-outline" size={29} color="#8423D9" />
+                        </View></View>
+                        <Text style={styles.modalEyebrow}>ACCOUNT RECOVERY</Text>
                         <Text style={styles.modalTitle}>Reset Password</Text>
-                        <Text style={styles.modalDescription}>Enter your account email and we’ll send you a password reset link.</Text>
+                        <Text style={styles.modalDescription}>Enter the email connected to your account. We’ll send a secure link so you can choose a new password.</Text>
+                        <Text style={styles.resetFieldLabel}>Email address</Text>
                         <View style={styles.resetInputContainer}>
                             <Ionicons name="mail-outline" size={21} color="#8423D9" />
                             <TextInput

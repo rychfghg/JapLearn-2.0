@@ -1,4 +1,5 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+import { platformShadow } from '../utils/platformShadow';
 
 const styles = StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: '#FCFAFF' },
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     sectionSubtitle: { color: '#837787', fontSize: 11, marginTop: 2 },
     activityCount: { backgroundColor: '#EFF8E8', borderRadius: 99, paddingHorizontal: 9, paddingVertical: 6 },
     activityCountText: { color: '#5A9E36', fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
-    featuredCard: { minHeight: 128, borderRadius: 24, padding: 17, backgroundColor: '#8423D9', flexDirection: 'row', alignItems: 'center', overflow: 'hidden', borderBottomWidth: 5, borderBottomColor: '#6417A6', shadowColor: '#4B1B63', shadowOpacity: 0.17, shadowRadius: 14, shadowOffset: { width: 0, height: 7 }, elevation: 6 },
+    featuredCard: { minHeight: 128, borderRadius: 24, padding: 17, backgroundColor: '#8423D9', flexDirection: 'row', alignItems: 'center', overflow: 'hidden', borderBottomWidth: Platform.OS === 'android' ? 0 : 5, borderBottomColor: '#6417A6', ...platformShadow('#4B1B63',0.14,14,7,4) },
     featuredCharacter: { position: 'absolute', right: 37, bottom: -34, color: 'rgba(255,255,255,0.08)', fontFamily: 'Jua', fontSize: 112 },
     featuredIcon: { width: 55, height: 55, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
     featuredCopy: { flex: 1 },

@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { platformShadow } from '../utils/platformShadow';
 
 const styles = StyleSheet.create({
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     heroTopBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', zIndex: 5 },
     headerIntro: { flex: 1, paddingRight: 14 },
     konnichiwa: { color: '#8ED94D', fontSize: 10, fontWeight: '900', letterSpacing: 1.6, marginBottom: 4 },
-    profileButton: { width: 50, height: 50, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#4A315D', shadowOpacity: 0.14, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 6 },
+    profileButton: { width: 50, height: 50, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', ...platformShadow('#4A315D',0.10,12,5,3) },
     heroBody: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingTop: 8 },
     headerCopy: { width: '53%', zIndex: 3 },
     greeting: { color: '#23153B', fontFamily: 'Jua', fontSize: 28, lineHeight: 34 },
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     sectionSubtitle: { color: '#817586', fontSize: 12, marginTop: 2 },
     streakPill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#FFF5DD', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 7 },
     streakText: { color: '#9A6515', fontSize: 11, fontWeight: '700' },
-    primaryCard: { minHeight: 190, borderRadius: 26, padding: 20, overflow: 'hidden', backgroundColor: '#8423D9', flexDirection: 'row', alignItems: 'center', borderBottomWidth: 5, borderBottomColor: '#6417A6', shadowColor: '#52206F', shadowOpacity: 0.18, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 7 },
+    primaryCard: { minHeight: 190, borderRadius: 26, padding: 20, overflow: 'hidden', backgroundColor: '#8423D9', flexDirection: 'row', alignItems: 'center', borderBottomWidth: Platform.OS === 'android' ? 0 : 5, borderBottomColor: '#6417A6', ...platformShadow('#52206F',0.14,16,8,4) },
     primaryGlow: { position: 'absolute', width: 210, height: 210, borderRadius: 105, right: -72, top: -91, backgroundColor: 'rgba(255,255,255,0.055)' },
     cardPressed: { opacity: 0.88, transform: [{ scale: 0.99 }] },
     cardIconPrimary: { width: 58, height: 58, borderRadius: 19, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center', marginRight: 16, alignSelf: 'flex-start', marginTop: 5 },
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     flipWrapper: { flex: 1, minHeight: 210 },
     flipFace: { ...StyleSheet.absoluteFillObject, backfaceVisibility: 'hidden' },
     flipBack: { position: 'absolute' },
-    smallCard: { flex: 1, minHeight: 210, backgroundColor: '#FFFFFF', borderRadius: 23, padding: 17, borderWidth: 1, borderColor: '#ECE5EF', shadowColor: '#462A5E', shadowOpacity: 0.10, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 5, overflow: 'hidden' },
+    smallCard: { flex: 1, minHeight: 210, backgroundColor: '#FFFFFF', borderRadius: 23, padding: 17, borderWidth: 1, borderColor: '#ECE5EF', ...platformShadow('#462A5E',0.08,14,6,3), overflow: 'hidden' },
     smallIcon: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
     playIcon: { backgroundColor: '#F0E4FA' },
     progressIcon: { backgroundColor: '#EAF7DF' },
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     progressCharacter: { position: 'absolute', right: -4, bottom: -28, color: 'rgba(90,157,43,0.065)', fontFamily: 'Jua', fontSize: 112 },
     chartSilhouette: { position: 'absolute', right: -12, bottom: -16 },
     infoButton: { position: 'absolute', right: 11, top: 11, width: 30, height: 30, borderRadius: 11, backgroundColor: '#F7F2FA', alignItems: 'center', justifyContent: 'center', zIndex: 5 },
-    backCard: { flex: 1, minHeight: 210, backgroundColor: '#FFFFFF', borderRadius: 23, padding: 17, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E9E1EE', shadowColor: '#462A5E', shadowOpacity: 0.10, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 5 },
+    backCard: { flex: 1, minHeight: 210, backgroundColor: '#FFFFFF', borderRadius: 23, padding: 17, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E9E1EE', ...platformShadow('#462A5E',0.08,14,6,3) },
     backTitle: { color: '#462A5E', fontFamily: 'Jua', fontSize: 16, marginTop: 10, textAlign: 'center' },
     backDescription: { color: '#817586', fontSize: 11, lineHeight: 16, textAlign: 'center', marginTop: 6 },
     backHint: { color: '#9C8FA3', fontSize: 9, fontWeight: '700', marginTop: 13 },

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TextInput, View, Pressable, Modal } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TextInput, View, Pressable, Modal, useWindowDimensions } from 'react-native';
 import CustomModal from '../components/CustomModal';
 import PrivacyModal from '../components/PrivacyModal';
 import styles from '../styles/stylesSignup';
@@ -10,6 +10,8 @@ import PrivacyPolicyModal from '../components/PrivacyPolicyModal';
 import Logo from '../assets/svg/jpLogo.svg';
 
 const Signup = () => {
+    const { width } = useWindowDimensions();
+    const isWide = width >= 900;
     const params = useLocalSearchParams();
     const [hasCheckedModal, setHasCheckedModal] = useState(false);
     const [fname, setFname] = useState('');
@@ -153,20 +155,24 @@ const Signup = () => {
             <View style={styles.backgroundOrbTop} />
             <View style={styles.backgroundOrbBottom} />
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-                <View style={styles.contentWrapper}>
-                    <View style={styles.imageContainer}>
+                <View style={[styles.contentWrapper, isWide && styles.contentWrapperWide]}>
+                    <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
+                        <View style={styles.welcomeBadge}><Ionicons name="leaf-outline" size={15} color="#5B9637" /><Text style={styles.welcomeBadgeText}>BEGIN YOUR JOURNEY</Text></View>
                         <Logo width={88} height={88} />
                         <Text style={styles.brandText}>JAPLEARN 2.0</Text>
-                        <Text style={styles.titleText}>Create your account</Text>
-                        <Text style={styles.subtitleText}>Start your Japanese learning journey today.</Text>
+                        <Text style={styles.heroTitle}>Japanese practice made for steady progress.</Text>
+                        <Text style={styles.subtitleText}>Create one student account to keep lessons, games, daily goals, and feedback in sync.</Text>
                     </View>
-                    <View style={styles.formCard}>
+                    <View style={[styles.formCard, isWide && styles.formCardWide]}>
+                    <View style={styles.formHeading}><View style={styles.formHeadingIcon}><Ionicons name="person-add-outline" size={22} color="#8423D9" /></View><View><Text style={styles.formEyebrow}>STUDENT REGISTRATION</Text><Text style={styles.titleText}>Create your account</Text></View></View>
+                    <Text style={styles.formSubtitle}>Use your details below to start learning.</Text>
+                    <Text style={styles.fieldLabel}>First name</Text>
                     <View style={styles.inputShell}>
                     <Ionicons name="person-outline" size={21} color="#8423D9" />
                     <TextInput
                         style={[styles.input, errors.fname ? styles.errorInput : null]}
                         value={fname}
-                        placeholder="Firstname"
+                        placeholder="First name"
                         autoCapitalize="none"
                         maxLength={30}
                         onChangeText={(text) => {
@@ -183,12 +189,13 @@ const Signup = () => {
                     />
                     </View>
 
+                    <Text style={styles.fieldLabel}>Last name</Text>
                     <View style={styles.inputShell}>
                     <Ionicons name="person-outline" size={21} color="#8423D9" />
                     <TextInput
                         style={[styles.input, errors.lname ? styles.errorInput : null]}
                         value={lname}
-                        placeholder="Lastname"
+                        placeholder="Last name"
                         autoCapitalize="none"
                         maxLength={30}
                         onChangeText={(text) => {
@@ -205,6 +212,7 @@ const Signup = () => {
                     />
                     </View>
 
+                    <Text style={styles.fieldLabel}>Email address</Text>
                     <View style={[styles.inputShell, errors.email ? styles.errorInput : null]}>
                     <Ionicons name="mail-outline" size={21} color="#8423D9" />
                     <TextInput
@@ -227,6 +235,7 @@ const Signup = () => {
 
                     {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
+                    <Text style={styles.fieldLabel}>Password</Text>
                     <View style={styles.passwordContainer}>
                         <Ionicons name="lock-closed-outline" size={21} color="#8423D9" />
                         <TextInput
@@ -259,6 +268,7 @@ const Signup = () => {
                     </View>
                     {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
+                    <Text style={styles.fieldLabel}>Confirm password</Text>
                     <View style={styles.passwordContainer}>
                         <Ionicons name="shield-checkmark-outline" size={21} color="#8423D9" />
                         <TextInput

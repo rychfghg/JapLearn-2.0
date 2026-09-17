@@ -77,11 +77,11 @@ export class GeminiGuidedPhraseLive {
     for(const encoded of queued)this.playPcm24(encoded);
   }
 
-  async connect(access:GuidedLiveAccess){
+  async connect(access:GuidedLiveAccess,options:{deferNativeAudio?:boolean}={}){
     // Native apps can activate immediately. Browsers must wait for the
     // explicit user gesture in activateAudio(), otherwise mobile autoplay
     // policy can reject the whole Gemini connection before setup begins.
-    if(!isBrowser)await this.activateAudio();
+    if(!isBrowser&&!options.deferNativeAudio)await this.activateAudio();
     this.intentionallyClosed=false;
     const url=`${access.websocketUrl}?access_token=${encodeURIComponent(access.token)}`;
     await new Promise<void>((resolve,reject)=>{
@@ -157,7 +157,10 @@ export class GeminiGuidedPhraseLive {
   private playPcm24(encoded:string){
     if(this.playbackHeld){this.heldAudio.push(encoded);return;}
     if(isBrowser){const pcm=base64ToBytes(encoded);if(this.browserAudioUnlocked)this.scheduleBrowserPcm(pcm);else this.browserPendingPcm.push(pcm);return;}
-    const context=this.nativeAudioContext();
+    // When native activation is deferred, keep audio queued without creating
+    // the native graph during screen mount.
+    if(!this.audioContext){this.pendingAudio.push(encoded);return;}
+    const context=this.audioContext;
     if(context.state!=='running'){
       this.pendingAudio.push(encoded);
       return;

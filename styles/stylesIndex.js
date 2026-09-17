@@ -1,4 +1,5 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+import { platformShadow } from '../utils/platformShadow';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#FBF9FD' },
@@ -9,7 +10,7 @@ const styles = StyleSheet.create({
   cloudOne: { position: 'absolute', width: 82, height: 16, borderRadius: 20, right: 25, top: 188, backgroundColor: 'rgba(255,255,255,.76)' },
   cloudTwo: { position: 'absolute', width: 54, height: 13, borderRadius: 18, right: 105, top: 216, backgroundColor: 'rgba(255,255,255,.68)' },
   brandRow: { flexDirection: 'row', alignItems: 'center' },
-  logoPlate: { width: 54, height: 54, borderRadius: 17, backgroundColor: '#8423D9', alignItems: 'center', justifyContent: 'center', marginRight: 12, shadowColor: '#5D168F', shadowOpacity: .2, shadowRadius: 9, shadowOffset: { width: 0, height: 5 }, elevation: 4 },
+  logoPlate: { width: 54, height: 54, borderRadius: 17, backgroundColor: '#8423D9', alignItems: 'center', justifyContent: 'center', marginRight: 12, ...platformShadow('#5D168F',.16,9,5,3) },
   appLogo: { width: 44, height: 44, borderRadius: 13 },
   brandName: { color: '#2E193C', fontSize: 20, fontWeight: '900', letterSpacing: .8 },
   brandSubtitle: { color: '#75667D', fontSize: 10, marginTop: 2 },
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
   mascot: { width: 190, height: 228, zIndex: 3, marginBottom: 3 },
   mascotGround: { position: 'absolute', width: 188, height: 20, borderRadius: 10, bottom: 0, backgroundColor: 'rgba(132,35,217,.11)' },
   actions: { gap: 10 },
-  primaryButton: { height: 58, borderRadius: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#8423D9', borderBottomWidth: 5, borderBottomColor: '#6515A8', shadowColor: '#6420A0', shadowOpacity: .2, shadowRadius: 9, shadowOffset: { width: 0, height: 5 }, elevation: 4 },
+  primaryButton: { height: 58, borderRadius: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#8423D9', borderBottomWidth: Platform.OS === 'android' ? 0 : 5, borderBottomColor: '#6515A8', ...platformShadow('#6420A0',.16,9,5,3) },
   primaryButtonText: { color: '#FFF', fontFamily: 'Jua', fontSize: 17 },
   primaryArrow: { position: 'absolute', right: 12, width: 35, height: 35, borderRadius: 12, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center' },
   secondaryButton: { height: 54, borderRadius: 18, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFF', borderWidth: 1, borderColor: '#DDD0E4' },

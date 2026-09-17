@@ -574,6 +574,9 @@ const playAnswerSound = async (isCorrect: boolean) => {
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <ImageBackground source={Background} style={{ flex: 1 }} resizeMode="cover">
+                <View pointerEvents="none" style={stylesSlate.gameBackdropTint} />
+                <View pointerEvents="none" style={stylesSlate.gameGlowOne} />
+                <View pointerEvents="none" style={stylesSlate.gameGlowTwo} />
                 <View style={stylesSlate.gameScreen}>
                     <View style={stylesSlate.gameHeader}>
                         <TouchableOpacity onPress={handleBackPress}>

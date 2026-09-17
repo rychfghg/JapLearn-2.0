@@ -49,9 +49,9 @@ export default function QuackProgressAnalytics() {
   ];
   const completedCore = lessonItems.filter(item => item.done).length;
 
-  return <SafeAreaView style={styles.safeArea}><View style={styles.container}>
+  return <SafeAreaView style={[styles.safeArea,{backgroundColor:'#F2ECF6'}]}><View style={[styles.container,{backgroundColor:'#F2ECF6'}]}>
     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
+      <View style={[styles.header,{borderRadius:30,borderColor:'#D7C2E3',shadowColor:'#482254',shadowOpacity:.09,shadowRadius:15,shadowOffset:{width:0,height:6},elevation:3}]}>
         <View style={styles.headerCircle} /><Text style={styles.headerCharacter}>析</Text>
         <View style={styles.topRow}><Pressable onPress={() => router.push('/QuackProgress')} style={styles.backButton}><BackIcon width={18} height={18} fill="#462A5E" /></Pressable><View style={styles.wordmark}><Ionicons name="analytics" size={15} color="#8423D9" /><Text style={styles.wordmarkText}>PROGRESS REPORT</Text></View><View style={styles.masteryBadge}><Text style={styles.masteryValue}>{analytics?.overallMastery || 0}%</Text><Text style={styles.masteryLabel}>MASTERY</Text></View></View>
         <View style={styles.headerCopy}><Text style={styles.eyebrow}>ANALYTICS & INSIGHTS</Text><Text style={styles.headerTitle}>Your learning report</Text><Text style={styles.headerText}>Understand your accuracy, learning patterns, focus areas, and activity history.</Text></View>

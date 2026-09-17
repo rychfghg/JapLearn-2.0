@@ -20,6 +20,17 @@ async function request(url:string,options:RequestInit={}){
  const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),45000);
  try{return await fetch(url,{...options,signal:controller.signal});}finally{clearTimeout(timeout);}
 }
+async function activateDeviceAudio(mode:'playback'|'recording'){
+ if(Platform.OS==='web')return;
+ // Android does not need iOS category values. Applying those values while a
+ // screen mounts can terminate the native audio session on some APK builds.
+ if(Platform.OS==='ios'){
+  AudioManager.setAudioSessionOptions(mode==='recording'
+   ?{iosCategory:'playAndRecord',iosMode:'default',iosOptions:['defaultToSpeaker','allowBluetoothHFP']}
+   :{iosCategory:'playback',iosMode:'spokenAudio',iosOptions:['allowBluetoothA2DP']});
+ }
+ await AudioManager.setAudioSessionActivity(true);
+}
 type State='connecting'|'thinking'|'start'|'speaking'|'ready'|'listening'|'saving'|'finished'|'error';
 
 export default function TalkWithSumiLiveRoom(){
@@ -28,9 +39,36 @@ export default function TalkWithSumiLiveRoom(){
  const frame=state==='speaking'?(blinked?speakingBlink:mouth?speaking:idle):state==='listening'?listening:(blinked?blink:idle);
  useEffect(()=>{const id=setInterval(()=>{setBlinked(true);setTimeout(()=>setBlinked(false),150);},3500);return()=>clearInterval(id);},[]);
  useEffect(()=>{if(state!=='speaking'){setMouth(false);return;}const id=setInterval(()=>setMouth(value=>!value),170);return()=>clearInterval(id);},[state]);
- useEffect(()=>{if(!user?.email){setState('error');setMessage('Sign in to talk with Sumi.');return;}let active=true;mounted.current=true;const start=async()=>{try{const response=await request(`${expoconfig.API_URL}/api/talk-with-sumi/live-token`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email})});const body=await response.json();if(body.resetsAt)setResetAt(body.resetsAt);if(typeof body.remaining==='number')setRemaining(body.remaining);if(!response.ok)throw new Error(body.message||'The conversation could not open.');if(!active)return;if(Platform.OS!=='web'){AudioManager.setAudioSessionOptions({iosCategory:'playback',iosMode:'spokenAudio',iosOptions:['allowBluetoothA2DP']});await AudioManager.setAudioSessionActivity(true);}const live=new GeminiGuidedPhraseLive({onConnected:()=>{if(!active)return;setState(Platform.OS==='web'?'start':'thinking');setMessage(Platform.OS==='web'?'Tap Start conversation so Sumi can greet you.':'Sumi is greeting you…');},onSpeaking:value=>{if(!active||ending.current)return;if(value){setState('speaking');setMessage('Listen to Sumi…');}else {setState(current=>current==='start'||current==='error'||current==='listening'||current==='saving'||current==='finished'?current:'ready');setMessage('Your turn—tap the microphone and answer naturally.');}},onInputTranscript:text=>{const clean=text.trim();if(clean)transcriptsRef.current=[...transcriptsRef.current,clean].slice(-30);},onOutputTranscript:()=>undefined,onTurn:()=>undefined,onEvaluation:()=>undefined,onConversationEvaluation:value=>{evaluationsRef.current=[...evaluationsRef.current,value];},onError:text=>{if(!active||ending.current)return;setState('error');setMessage(text);},onComplete:()=>{setState('error');setMessage('The live conversation ended. Save your session and return to QuackTalk.');}},'conversation');liveRef.current=live;await live.connect(body as GuidedLiveAccess);}catch(error){setState('error');setMessage(error instanceof Error?error.message:'The conversation could not open.');}};void start();return()=>{active=false;mounted.current=false;transmitting.current=false;if(recordingTimeout.current)clearTimeout(recordingTimeout.current);liveRef.current?.close();void recorderRef.current?.stop();webStreamRef.current?.getTracks?.().forEach((track:any)=>track.stop());void webContextRef.current?.close?.();};},[user?.email]);
+ useEffect(()=>{
+  if(!user?.email){setState('error');setMessage('Sign in to talk with Sumi.');return;}
+  let active=true;mounted.current=true;
+  const start=async()=>{
+   try{
+    const response=await request(`${expoconfig.API_URL}/api/talk-with-sumi/live-token`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email})});
+    const raw=await response.text();let body:any={};
+    try{body=raw?JSON.parse(raw):{};}catch{throw new Error(response.ok?'The conversation service returned an unreadable response.':'The conversation service is temporarily unavailable.');}
+    if(body.resetsAt)setResetAt(body.resetsAt);
+    if(typeof body.remaining==='number')setRemaining(body.remaining);
+    if(!response.ok)throw new Error(body.message||'The conversation could not open.');
+    if(!active)return;
+    const live=new GeminiGuidedPhraseLive({
+     onConnected:()=>{if(!active)return;setState('start');setMessage('Tap Start conversation so Sumi can greet you.');},
+     onSpeaking:value=>{if(!active||ending.current)return;if(value){setState('speaking');setMessage('Listen to Sumi…');}else{setState(current=>current==='start'||current==='error'||current==='listening'||current==='saving'||current==='finished'?current:'ready');setMessage('Your turn—tap the microphone and answer naturally.');}},
+     onInputTranscript:text=>{const clean=text.trim();if(clean)transcriptsRef.current=[...transcriptsRef.current,clean].slice(-30);},
+     onOutputTranscript:()=>undefined,onTurn:()=>undefined,onEvaluation:()=>undefined,
+     onConversationEvaluation:value=>{evaluationsRef.current=[...evaluationsRef.current,value];},
+     onError:text=>{if(!active||ending.current)return;setState('error');setMessage(text);},
+     onComplete:()=>{setState('error');setMessage('The live conversation ended. Save your session and return to QuackTalk.');}
+    },'conversation');
+    liveRef.current=live;
+    await live.connect(body as GuidedLiveAccess,{deferNativeAudio:true});
+   }catch(error){if(active){setState('error');setMessage(error instanceof Error?error.message:'The conversation could not open.');}}
+  };
+  void start();
+  return()=>{active=false;mounted.current=false;transmitting.current=false;if(recordingTimeout.current)clearTimeout(recordingTimeout.current);liveRef.current?.close();try{recorderRef.current?.stop();}catch{}webStreamRef.current?.getTracks?.().forEach((track:any)=>track.stop());void webContextRef.current?.close?.();if(Platform.OS!=='web')void AudioManager.setAudioSessionActivity(false).catch(()=>undefined);};
+ },[user?.email]);
 
- const unlock=async()=>{try{setState('thinking');await liveRef.current?.activateAudio();setMessage('Sumi is greeting you…');}catch(error){setState('start');setMessage(error instanceof Error?error.message:'Tap again to start the conversation.');}};
+ const unlock=async()=>{try{setState('thinking');setMessage('Sumi is greeting you…');await activateDeviceAudio('playback');await liveRef.current?.activateAudio();}catch(error){setState('start');setMessage(error instanceof Error?error.message:'Tap again to start the conversation.');}};
  const startWeb=async()=>{const devices=(globalThis.navigator as any)?.mediaDevices;if(!devices?.getUserMedia)throw new Error('Microphone recording is unavailable in this browser.');const stream=await devices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}});const AC=(globalThis as any).AudioContext||(globalThis as any).webkitAudioContext;const context=new AC();await context.resume();const source=context.createMediaStreamSource(stream);const processor=context.createScriptProcessor(2048,1,1);const silent=context.createGain();silent.gain.value=0;processor.onaudioprocess=(event:any)=>{const input=event.inputBuffer.getChannelData(0);const ratio=context.sampleRate/16000;const output=new Float32Array(Math.max(1,Math.floor(input.length/ratio)));for(let i=0;i<output.length;i++)output[i]=input[Math.min(input.length-1,Math.floor(i*ratio))];if(transmitting.current)liveRef.current?.sendPcm16(output);};source.connect(processor);processor.connect(silent);silent.connect(context.destination);const MR=(globalThis as any).MediaRecorder;if(!MR)throw new Error('This browser cannot prepare speech review.');const recorder=new MR(stream);chunksRef.current=[];recorder.ondataavailable=(event:any)=>{if(event.data?.size)chunksRef.current.push(event.data);};webStreamRef.current=stream;webContextRef.current=context;webProcessorRef.current=processor;webRecorderRef.current=recorder;recorder.start(250);};
  const startMic=async()=>{
   if(state!=='ready'||micBusy.current||ending.current||remaining<=0)return;
@@ -45,8 +83,7 @@ export default function TalkWithSumiLiveRoom(){
    await live.activateAudio();live.interrupt();setState('thinking');
    if(Platform.OS==='web')await startWeb();
    else{
-    AudioManager.setAudioSessionOptions({iosCategory:'playAndRecord',iosMode:'default',iosOptions:['defaultToSpeaker','allowBluetoothHFP']});
-    await AudioManager.setAudioSessionActivity(true);
+    await activateDeviceAudio('recording');
     const recorder=new AudioRecorder();recorderRef.current=recorder;
     const file=recorder.enableFileOutput({format:FileFormat.Wav,preset:FilePreset.Medium});
     if(file.status==='error')throw new Error(file.message);
@@ -66,7 +103,28 @@ export default function TalkWithSumiLiveRoom(){
    liveRef.current?.endUserAudio();setState('ready');setMessage(error instanceof Error?error.message:'The microphone could not start.');
   }finally{micBusy.current=false;}
  };
- const stopMic=async()=>{if(state!=='listening'||micBusy.current)return;micBusy.current=true;transmitting.current=false;if(recordingTimeout.current)clearTimeout(recordingTimeout.current);try{let audio:string|Blob|null=null;if(Platform.OS==='web'){const recorder=webRecorderRef.current;webRecorderRef.current=null;if(recorder){audio=await new Promise<Blob>((resolve,reject)=>{recorder.onerror=()=>reject(new Error('Recording could not finish.'));recorder.onstop=()=>resolve(new Blob(chunksRef.current,{type:recorder.mimeType||'audio/webm'}));recorder.stop();});}webProcessorRef.current?.disconnect?.();webStreamRef.current?.getTracks?.().forEach((track:any)=>track.stop());await webContextRef.current?.close?.();webProcessorRef.current=null;webStreamRef.current=null;webContextRef.current=null;}else{const recorder=recorderRef.current;recorderRef.current=null;if(recorder){const result=recorder.stop();recorder.clearOnAudioReady();if(result.status==='success'&&result.path)audio=result.path;}AudioManager.setAudioSessionOptions({iosCategory:'playback',iosMode:'spokenAudio',iosOptions:['allowBluetoothA2DP']});await AudioManager.setAudioSessionActivity(true).catch(()=>undefined);}await liveRef.current?.activateAudio();liveRef.current?.endUserAudio();if(!audio)throw new Error('No speech was recorded. Please try again.');countRef.current+=1;setTurns(countRef.current);setState('thinking');setMessage('Sumi is thinking about your answer…');const review=assess(audio);pending.current.push(review);}catch(error){setState('ready');setMessage(error instanceof Error?error.message:'Please try your response again.');}finally{micBusy.current=false;}};
+ const stopMic=async()=>{
+  if(state!=='listening'||micBusy.current)return;
+  micBusy.current=true;transmitting.current=false;
+  if(recordingTimeout.current)clearTimeout(recordingTimeout.current);
+  try{
+   let audio:string|Blob|null=null;
+   if(Platform.OS==='web'){
+    const recorder=webRecorderRef.current;webRecorderRef.current=null;
+    if(recorder){audio=await new Promise<Blob>((resolve,reject)=>{recorder.onerror=()=>reject(new Error('Recording could not finish.'));recorder.onstop=()=>resolve(new Blob(chunksRef.current,{type:recorder.mimeType||'audio/webm'}));recorder.stop();});}
+    webProcessorRef.current?.disconnect?.();webStreamRef.current?.getTracks?.().forEach((track:any)=>track.stop());await webContextRef.current?.close?.();webProcessorRef.current=null;webStreamRef.current=null;webContextRef.current=null;
+   }else{
+    const recorder=recorderRef.current;recorderRef.current=null;
+    if(recorder){const result=recorder.stop();recorder.clearOnAudioReady();if(result.status==='success'&&result.path)audio=result.path;}
+    await activateDeviceAudio('playback').catch(()=>undefined);
+   }
+   await liveRef.current?.activateAudio();liveRef.current?.endUserAudio();
+   if(!audio)throw new Error('No speech was recorded. Please try again.');
+   countRef.current+=1;setTurns(countRef.current);setState('thinking');setMessage('Sumi is thinking about your answer…');
+   const review=assess(audio);pending.current.push(review);
+  }catch(error){setState('ready');setMessage(error instanceof Error?error.message:'Please try your response again.');}
+  finally{micBusy.current=false;}
+ };
  const assess=async(audio:string|Blob)=>{try{const form=new FormData();if(typeof audio==='string')form.append('audio',{uri:audio.startsWith('file:')?audio:`file://${audio}`,name:'conversation-turn.wav',type:'audio/wav'} as any);else form.append('audio',audio,'conversation-turn.webm');const response=await request(`${expoconfig.API_URL}/api/talk-with-sumi/assess`,{method:'POST',body:form});const body=await response.json();if(!response.ok)throw new Error('One response could not be assessed.');if(body.speechDetected!==false)scoresRef.current=[...scoresRef.current,body];}catch{if(mounted.current)setSaveError('Some speech feedback is unavailable. Only successful assessments will contribute to your score.');}};
 const finish=async()=>{if(ending.current||state==='finished'||micBusy.current)return;if(state==='listening'){await stopMic();}ending.current=true;setState('saving');setMessage('Saving your conversation feedback…');liveRef.current?.close();await Promise.allSettled(pending.current);const scores=scoresRef.current;const evaluations=evaluationsRef.current;const avg=(key:keyof Scores)=>scores.length?Math.round(scores.reduce((sum,item)=>sum+Number(item[key]||0),0)/scores.length):0;const pronunciation=avg('pronunciation'),accuracy=avg('accuracy'),fluency=avg('fluency'),completeness=avg('completeness');const contextual=evaluations.length?Math.round(evaluations.reduce((sum,item)=>sum+Number(item.contextScore||0),0)/evaluations.length):0;const overall=Math.round(((pronunciation+accuracy+fluency+completeness)/4+contextual)/2);const areas=[...new Set(evaluations.map(item=>item.improvementArea).filter(Boolean))].slice(0,8);try{const response=await request(`${expoconfig.API_URL}/api/talk-with-sumi/complete`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:sessionId.current,email:user?.email,name:`${user?.fname??''} ${user?.lname??''}`.trim(),durationSeconds:Math.max(1,Math.round((Date.now()-startedAt.current)/1000)),conversationTurns:countRef.current,score:overall,pronunciationScore:pronunciation,accuracyScore:accuracy,fluencyScore:fluency,completenessScore:completeness,contextualAccuracy:contextual,expressionsPracticed:transcriptsRef.current,areasForImprovement:areas,turnAssessments:scores,feedbackSummary:evaluations.slice(-3).map(item=>item.assessment).filter(Boolean).join(' ')||'Keep building confidence through short, natural Japanese exchanges.'})});if(!response.ok)throw new Error('Your feedback could not be saved.');setState('finished');setMessage('Your conversation and feedback are saved.');}catch(error){ending.current=false;setSaveError(error instanceof Error?error.message:'Your feedback could not be saved.');setState('error');}};
  const leave=async()=>{if((countRef.current>0||state==='listening')&&state!=='finished')await finish();else router.replace('/QuackTalk');};

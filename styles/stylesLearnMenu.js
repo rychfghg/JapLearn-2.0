@@ -1,4 +1,5 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
+import { platformShadow } from '../utils/platformShadow';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#FCFAFF' },
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
   dialogueStepActive: { width: 18, backgroundColor: '#8423D9' },
   scrollContent: { paddingBottom: 112 },
   contentBody: { paddingHorizontal: 20 },
-  introCard: { minHeight: 132, borderRadius: 25, backgroundColor: '#8423D9', padding: 19, paddingRight: 65, flexDirection: 'row', alignItems: 'center', overflow: 'hidden', borderBottomWidth: 5, borderBottomColor: '#6817AA', shadowColor: '#4C1C68', shadowOpacity: 0.16, shadowRadius: 15, shadowOffset: { width: 0, height: 7 }, elevation: 6 },
+  introCard: { minHeight: 132, borderRadius: 25, backgroundColor: '#8423D9', padding: 19, paddingRight: 65, flexDirection: 'row', alignItems: 'center', overflow: 'hidden', borderBottomWidth: Platform.OS === 'android' ? 0 : 5, borderBottomColor: '#6817AA', ...platformShadow('#4C1C68',0.13,15,7,4) },
   introIcon: { width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
   introCopy: { flex: 1, zIndex: 2 },
   introTitle: { color: '#FFFFFF', fontFamily: 'Jua', fontSize: 19 },

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import expoconfig from '../expoconfig';
@@ -23,6 +23,9 @@ export default function QuackslateWait() {
   const [remaining, setRemaining] = useState<number | null>(null);
   const [closed, setClosed] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
+  const { height } = useWindowDimensions();
+  const compact = height < 760;
+  const veryCompact = height < 660;
 
   useEffect(() => {
     if (closed || navigating.current || !code) return;
@@ -68,27 +71,27 @@ export default function QuackslateWait() {
   return <SafeAreaView style={s.screen}>
     <ImageBackground source={background} resizeMode="cover" style={s.background} imageStyle={s.backgroundImage}>
       <View style={s.shade} />
-      <ScrollView contentContainerStyle={s.layout} showsVerticalScrollIndicator={false}>
-        <View style={s.header}>
+      <View style={[s.layout, compact && s.layoutCompact, veryCompact && s.layoutVeryCompact]}>
+        <View style={[s.header, compact && s.headerCompact]}>
           <Pressable accessibilityRole="button" accessibilityLabel="Back to QuackSlate" style={s.back} onPress={() => router.replace('/QuackslateMenu')}><Ionicons name="arrow-back" size={21} color="#44234F" /></Pressable>
           <Text style={s.headerTitle}>QUACKSLATE</Text>
           <View style={s.headerSpacer} />
         </View>
-        <View style={s.main}>
+        <View style={[s.main, compact && s.mainCompact]}>
           <View style={s.waitBadge}><Ionicons name="cloud-done-outline" size={15} color="#FFFFFF" /><Text style={s.waitBadgeText}>CONNECTED TO CLASS</Text></View>
-          <View style={s.mascotStage}><View style={s.mascotHalo} /><View style={s.mascotCircle}><Image source={mascot} resizeMode="contain" style={s.mascot} /></View></View>
-          <View style={s.card}>
+          <View style={[s.mascotStage, compact && s.mascotStageCompact]}><View style={[s.mascotHalo, compact && s.mascotHaloCompact]} /><View style={[s.mascotCircle, compact && s.mascotCircleCompact]}><Image source={mascot} resizeMode="contain" style={[s.mascot, compact && s.mascotCompact]} /></View></View>
+          <View style={[s.card, compact && s.cardCompact, veryCompact && s.cardVeryCompact]}>
             <View style={s.statePill}><Ionicons name={closed ? 'close-circle-outline' : 'time-outline'} size={17} color={closed ? '#BD5463' : '#6AAB3D'} /><Text style={[s.stateText, closed && s.closedText]}>{closed ? 'SESSION UNAVAILABLE' : 'YOUR CLASS IS ALMOST READY'}</Text></View>
             <Text style={s.title}>{closed ? 'This class code has closed' : 'Ready when your teacher starts'}</Text>
             <Text style={s.description}>{closed ? 'Return to QuackSlate and ask your teacher for another code.' : 'You are checked in. Your sentence round opens automatically when the scheduled time begins.'}</Text>
             <View style={s.codeRow}><View style={s.codeIcon}><Ionicons name="key-outline" size={21} color="#7B2FC0" /></View><View><Text style={s.codeLabel}>CLASS CODE</Text><Text style={s.code}>{code || '—'}</Text></View><Ionicons name="checkmark-circle" size={22} color="#6AAB3D" style={s.codeCheck} /></View>
             {!closed && <View style={s.countdownCard}><View style={s.countdownHeading}><Ionicons name="alarm-outline" size={18} color="#7B2FC0" /><Text style={s.countdownLabel}>STARTS IN</Text></View><Text style={s.countdown}>{countdown}</Text><Text style={s.countdownNote}>{remaining == null ? 'Checking your teacher’s schedule…' : remaining === 0 ? 'Opening your round…' : 'No need to refresh. We’ll take you in automatically.'}</Text></View>}
-            {!closed && <View style={s.waitTimeline}><View style={s.timelineItem}><View style={[s.timelineDot,s.timelineDotDone]}><Ionicons name="checkmark" size={13} color="#fff" /></View><Text style={s.timelineDone}>Code accepted</Text></View><View style={s.timelineLine} /><View style={s.timelineItem}><View style={[s.timelineDot,s.timelineDotActive]}><Ionicons name="time-outline" size={13} color="#7B2FC0" /></View><Text style={s.timelineActive}>Waiting room</Text></View><View style={s.timelineLine} /><View style={s.timelineItem}><View style={s.timelineDot}><Ionicons name="play" size={11} color="#A796AE" /></View><Text style={s.timelineText}>Play</Text></View></View>}
+            {!closed && !veryCompact && <View style={s.waitTimeline}><View style={s.timelineItem}><View style={[s.timelineDot,s.timelineDotDone]}><Ionicons name="checkmark" size={13} color="#fff" /></View><Text style={s.timelineDone}>Code accepted</Text></View><View style={s.timelineLine} /><View style={s.timelineItem}><View style={[s.timelineDot,s.timelineDotActive]}><Ionicons name="time-outline" size={13} color="#7B2FC0" /></View><Text style={s.timelineActive}>Waiting room</Text></View><View style={s.timelineLine} /><View style={s.timelineItem}><View style={s.timelineDot}><Ionicons name="play" size={11} color="#A796AE" /></View><Text style={s.timelineText}>Play</Text></View></View>}
             {closed && <Pressable style={s.returnButton} onPress={() => router.replace('/QuackslateMenu')}><Text style={s.returnText}>Back to QuackSlate</Text><Ionicons name="arrow-forward" size={17} color="#fff" /></Pressable>}
           </View>
-          {!closed && <View style={s.tipCard}><View style={s.tipHeader}><Ionicons name="bulb-outline" size={19} color="#739D2B" /><Text style={s.tipTitle}>WHILE YOU WAIT</Text></View><Text style={s.tipText}>{tips[tipIndex]}</Text><View style={s.tipDots}>{tips.map((_, index) => <View key={index} style={[s.tipDot, index === tipIndex && s.tipDotActive]} />)}</View></View>}
+          {!closed && !veryCompact && <View style={[s.tipCard, compact && s.tipCardCompact]}><View style={s.tipHeader}><Ionicons name="bulb-outline" size={19} color="#739D2B" /><Text style={s.tipTitle}>WHILE YOU WAIT</Text></View><Text style={s.tipText}>{tips[tipIndex]}</Text>{!compact && <View style={s.tipDots}>{tips.map((_, index) => <View key={index} style={[s.tipDot, index === tipIndex && s.tipDotActive]} />)}</View>}</View>}
         </View>
-      </ScrollView>
+      </View>
     </ImageBackground>
   </SafeAreaView>;
 }
@@ -97,7 +100,7 @@ const s = StyleSheet.create({
   screen:{flex:1,backgroundColor:'#261138'},
   background:{flex:1}, backgroundImage:{opacity:0.68},
   shade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(35,15,49,0.62)'},
-  layout:{flexGrow:1,paddingHorizontal:20,paddingBottom:32},
+  layout:{flex:1,paddingHorizontal:20,paddingBottom:18},layoutCompact:{paddingHorizontal:16,paddingBottom:10},layoutVeryCompact:{paddingBottom:6},
   header:{height:82,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
   back:{width:44,height:44,borderRadius:15,backgroundColor:'#fff',alignItems:'center',justifyContent:'center'},
   headerTitle:{color:'#fff',fontSize:14,fontWeight:'900',letterSpacing:2},
@@ -131,4 +134,8 @@ const s = StyleSheet.create({
   tipTitle:{fontSize:10,letterSpacing:1.2,fontWeight:'900',color:'#709634'},
   tipText:{fontSize:13,color:'#4F6245',lineHeight:19,marginTop:9},
   tipDots:{flexDirection:'row',gap:5,marginTop:13}, tipDot:{width:5,height:5,borderRadius:3,backgroundColor:'#CDE2AA'},tipDotActive:{width:18,backgroundColor:'#84B847'},
+  headerCompact:{height:58},mainCompact:{paddingTop:2,justifyContent:'center'},
+  mascotStageCompact:{width:106,height:74},mascotHaloCompact:{width:94,height:94,borderRadius:47},mascotCircleCompact:{width:78,height:78,borderRadius:39,borderWidth:4,marginBottom:-13},mascotCompact:{width:73,height:73},
+  cardCompact:{borderRadius:24,paddingHorizontal:16,paddingTop:29,paddingBottom:14},cardVeryCompact:{paddingTop:25,paddingBottom:10},
+  tipCardCompact:{paddingHorizontal:14,paddingVertical:10,marginTop:9},
 });

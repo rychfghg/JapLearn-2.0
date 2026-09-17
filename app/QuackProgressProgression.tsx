@@ -46,9 +46,9 @@ export default function QuackProgressProgression() {
   const mastery = progression?.currentMastery || 0;
   const requirement = progression?.unlockRequirement || 80;
 
-  return <SafeAreaView style={styles.safeArea}><View style={styles.container}>
+  return <SafeAreaView style={[styles.safeArea,{backgroundColor:'#F2EDF6'}]}><View style={[styles.container,{backgroundColor:'#F2EDF6'}]}>
     <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
+      <View style={[styles.header,{borderRadius:30,borderColor:'#CFE1C3',shadowColor:'#35502A',shadowOpacity:.08,shadowRadius:14,shadowOffset:{width:0,height:6},elevation:3}]}>
         <View style={styles.headerCircle} /><Text style={styles.headerCharacter}>進</Text>
         <View style={styles.topRow}><Pressable onPress={() => router.push('/QuackProgress')} style={styles.backButton}><BackIcon width={18} height={18} fill="#462A5E" /></Pressable><View style={styles.wordmark}><Ionicons name="trail-sign-outline" size={16} color="#65A936" /><Text style={styles.wordmarkText}>MASTERY ROADMAP</Text></View><View style={styles.headerIcon}><Ionicons name="flag-outline" size={22} color="#65A936" /></View></View>
         <View style={styles.headerCopy}><Text style={styles.eyebrow}>PROGRESSION & REINFORCEMENT</Text><Text style={styles.headerTitle}>Build your mastery</Text><Text style={styles.headerText}>Follow each communication stage and revisit skills that need more practice.</Text></View>
