@@ -37,7 +37,11 @@ const styles = StyleSheet.create({
   authShell: {
     width:'100%', maxWidth:410, alignSelf:'center',
   },
-  authShellWide: { maxWidth:450 },
+  authShellWide: {
+    maxWidth:900, minHeight:610, flexDirection:'row', backgroundColor:'#FFFFFF',
+    borderRadius:32, overflow:'hidden', borderWidth:1, borderColor:'#EAE2EE',
+    ...platformShadow('#3C194E',0.12,28,12,5),
+  },
   backgroundOrbTop: {
     position: 'absolute', width: 290, height: 290, borderRadius: 145,
     backgroundColor: '#EFE0FB', top: -128, right: -104,
@@ -62,12 +66,18 @@ const styles = StyleSheet.create({
   },
 
   imageContainer: {
-    flexDirection:'row', alignItems: 'center', gap:13,
+    alignItems: 'center',
     width: '100%',
     marginBottom: 24,
     paddingHorizontal: 4,
   },
-  imageContainerWide:{alignItems:'center',marginBottom:0},
+  imageContainerWide:{width:'43%',marginBottom:0,paddingHorizontal:34,paddingVertical:34,justifyContent:'space-between',backgroundColor:'#F2E7FB'},
+  brandRow:{flexDirection:'row',alignItems:'center',gap:13,alignSelf:'flex-start'},
+  desktopVisual:{flex:1,width:'100%',alignItems:'center',justifyContent:'center',paddingTop:18},
+  desktopHalo:{position:'absolute',width:270,height:270,borderRadius:135,backgroundColor:'#E5CFF8'},
+  desktopMascot:{width:225,height:270,zIndex:1},
+  desktopJapanese:{fontSize:13,fontWeight:'900',letterSpacing:1.5,color:'#68A83C',marginTop:5,zIndex:2},
+  desktopTitle:{fontSize:24,lineHeight:30,fontWeight:'900',letterSpacing:-0.5,color:'#382341',textAlign:'center',marginTop:8,zIndex:2},
   welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:7},
   welcomeBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#568E35'},
   mascotWrap: { alignItems: 'center', justifyContent: 'center' },
@@ -79,12 +89,12 @@ const styles = StyleSheet.create({
     borderWidth:1, borderColor:'#EAE2EE',
     ...platformShadow('#3C194E', 0.10, 20, 8, 4),
   },
-  formCardWide:{paddingHorizontal:25},
+  formCardWide:{flex:1,justifyContent:'center',borderWidth:0,borderRadius:0,paddingHorizontal:58,paddingVertical:42,shadowOpacity:0,elevation:0},
   formHeadingIcon:{width:42,height:42,borderRadius:14,backgroundColor:'#F1E5FA',alignItems:'center',justifyContent:'center',marginBottom:11},
   formEyebrow:{fontSize:8,fontWeight:'900',letterSpacing:1.2,color:'#6AAB3D',marginBottom:5},
   cardHeading: { alignItems: 'flex-start', marginBottom: 22 },
   cardHeadingMark: { width: 30, height: 4, borderRadius: 99, backgroundColor: '#8ED94D', marginBottom: 10 },
-  formTitle: { fontSize: 30, lineHeight:36, fontWeight:'900', color: '#302036', letterSpacing:-0.7 },
+  formTitle: { fontSize: 30, lineHeight:36, fontWeight:'800', color: '#302036', letterSpacing:-0.5 },
   formSubtitle: { color: '#817586', fontSize: 13, lineHeight:19, marginTop:3 },
   fieldLabel:{fontSize:12,fontWeight:'800',color:'#514057',marginBottom:8,marginLeft:2},
   inputContainer: {
@@ -132,7 +142,7 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: '#35213F',
-    fontSize: 23,
+    fontSize: 22,
     fontFamily: 'Jua'  
   },
   brandCaption:{fontSize:9,fontWeight:'900',letterSpacing:1.4,color:'#72AD43',marginTop:2},

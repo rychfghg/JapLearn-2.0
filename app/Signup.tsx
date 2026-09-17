@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, TextInput, View, Pressable, Modal, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, Text, TextInput, View, Pressable, Modal, useWindowDimensions } from 'react-native';
 import CustomModal from '../components/CustomModal';
 import PrivacyModal from '../components/PrivacyModal';
 import styles from '../styles/stylesSignup';
@@ -158,16 +158,24 @@ const Signup = () => {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                 <View style={[styles.contentWrapper, isWide && styles.contentWrapperWide]}>
                     <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
-                        <Logo width={64} height={64} />
-                        <View>
-                            <Text style={styles.brandText}>JapLearn 2.0</Text>
-                            <Text style={styles.brandCaption}>STUDENT REGISTRATION</Text>
+                        <View style={styles.brandRow}>
+                            <Logo width={56} height={56} />
+                            <View>
+                                <Text style={styles.brandText}>JapLearn 2.0</Text>
+                                <Text style={styles.brandCaption}>STUDENT REGISTRATION</Text>
+                            </View>
                         </View>
+                        {isWide && <View style={styles.desktopVisual}>
+                            <View style={styles.desktopHalo} />
+                            <Image source={require('../assets/hello.png')} style={styles.desktopMascot} resizeMode="contain" />
+                            <Text style={styles.desktopJapanese}>はじめよう</Text>
+                            <Text style={styles.desktopTitle}>Begin your Japanese journey.</Text>
+                        </View>}
                     </View>
                     <View style={[styles.formCard, isWide && styles.formCardWide]}>
                     <View style={styles.cardHeading}>
-                        <Text style={styles.titleText}>Join JapLearn</Text>
-                        <Text style={styles.formSubtitle}>Create your student account.</Text>
+                        <Text style={styles.titleText}>Create account</Text>
+                        <Text style={styles.formSubtitle}>Set up your student profile.</Text>
                     </View>
                     <Text style={styles.fieldLabel}>Your name</Text>
                     <View style={styles.nameRow}>

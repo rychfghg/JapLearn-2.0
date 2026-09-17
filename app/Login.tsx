@@ -6,6 +6,7 @@ import {
     View,
     Pressable,
     ActivityIndicator,
+    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -202,17 +203,25 @@ const Login = () => {
                 >
                 <View style={[styles.authShell, isWide && styles.authShellWide]}>
                 <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
-                    <Logo width={64} height={64} />
-                    <View>
+                    <View style={styles.brandRow}>
+                        <Logo width={56} height={56} />
+                        <View>
                         <Text style={styles.titleText}>JapLearn 2.0</Text>
                         <Text style={styles.brandCaption}>STUDENT ACCESS</Text>
+                        </View>
                     </View>
+                    {isWide && <View style={styles.desktopVisual}>
+                        <View style={styles.desktopHalo} />
+                        <Image source={require('../assets/hello.png')} style={styles.desktopMascot} resizeMode="contain" />
+                        <Text style={styles.desktopJapanese}>いっしょに学ぼう</Text>
+                        <Text style={styles.desktopTitle}>Japanese starts here.</Text>
+                    </View>}
                 </View>
 
                 <View style={[styles.formCard, isWide && styles.formCardWide]}>
                 <View style={styles.cardHeading}>
                     <Text style={styles.formTitle}>Sign in</Text>
-                    <Text style={styles.formSubtitle}>Enter your account details.</Text>
+                    <Text style={styles.formSubtitle}>Use your student account to continue.</Text>
                 </View>
                 <Text style={styles.fieldLabel}>Email address</Text>
                 <View style={[styles.inputContainer, activeField === 'email' && styles.inputFocused]}>
