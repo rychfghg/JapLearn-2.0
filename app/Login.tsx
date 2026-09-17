@@ -20,7 +20,6 @@ import { AuthContext } from '../context/AuthContext';
 import { useClassCode } from '../context/ClassCodeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 
 
 //Checking  
@@ -37,6 +36,7 @@ const Login = () => {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalMessage, setModalMessage] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [activeField, setActiveField] = useState<'email' | 'password' | null>(null);
     const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
 
@@ -201,22 +201,21 @@ const Login = () => {
                     showsVerticalScrollIndicator={false}
                 >
                 <View style={[styles.authShell, isWide && styles.authShellWide]}>
-                <LinearGradient colors={['#6520B6', '#922AE2']} start={{x:0,y:0}} end={{x:1,y:1}} style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
-                    <View style={styles.brandGlow} />
-                    <View style={styles.brandDotOne} />
-                    <View style={styles.brandDotTwo} />
-                    <View style={styles.mascotWrap}>
-                        <Logo width={76} height={76} />
+                <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
+                    <Logo width={64} height={64} />
+                    <View>
+                        <Text style={styles.titleText}>JapLearn 2.0</Text>
+                        <Text style={styles.brandCaption}>STUDENT ACCESS</Text>
                     </View>
-                    <Text style={styles.titleText}>JapLearn 2.0</Text>
-                </LinearGradient>
+                </View>
 
                 <View style={[styles.formCard, isWide && styles.formCardWide]}>
                 <View style={styles.cardHeading}>
-                    <View style={styles.cardHeadingMark} />
                     <Text style={styles.formTitle}>Sign in</Text>
+                    <Text style={styles.formSubtitle}>Enter your account details.</Text>
                 </View>
-                <View style={styles.inputContainer}>
+                <Text style={styles.fieldLabel}>Email address</Text>
+                <View style={[styles.inputContainer, activeField === 'email' && styles.inputFocused]}>
                     <Ionicons name="mail-outline" size={21} color="#8423D9" style={styles.inputIcon} />
                 <TextInput
                     style={styles.input}
@@ -227,11 +226,19 @@ const Login = () => {
                     inputMode="email"
                     autoComplete="email"
                     accessibilityLabel="Email address"
+                    onFocus={() => setActiveField('email')}
+                    onBlur={() => setActiveField(null)}
                     onChangeText={(text) => setEmail(text.replace(/\s/g, '').toLowerCase())}
                 />
                 </View>
 
-                <View style={styles.passwordContainer}>
+                <View style={styles.passwordLabelRow}>
+                    <Text style={styles.fieldLabel}>Password</Text>
+                    <Pressable onPress={() => setForgotPasswordVisible(true)} hitSlop={8}>
+                        <Text style={styles.forgotText}>Forgot password?</Text>
+                    </Pressable>
+                </View>
+                <View style={[styles.passwordContainer, activeField === 'password' && styles.inputFocused]}>
                     <Ionicons name="lock-closed-outline" size={21} color="#8423D9" style={styles.inputIcon} />
                     <TextInput
                         style={[styles.input, styles.passwordInput]}
@@ -242,6 +249,8 @@ const Login = () => {
                         autoCapitalize="none"
                         autoComplete="current-password"
                         accessibilityLabel="Password"
+                        onFocus={() => setActiveField('password')}
+                        onBlur={() => setActiveField(null)}
                         onChangeText={(text) => setPassword(text.replace(/\s/g, ''))}
                     />
 
@@ -259,12 +268,6 @@ const Login = () => {
                     )}
                 </View>
 
-                <View style={styles.forgotRow}>
-                    <Pressable onPress={() => setForgotPasswordVisible(true)} hitSlop={8}>
-                        <Text style={styles.forgotText}>Forgot password?</Text>
-                    </Pressable>
-                </View>
-
                 <View style={styles.buttonContainer}>
                     {loading ? (
                         <View style={styles.button}><ActivityIndicator size="small" color="#FFFFFF" /></View>
@@ -276,7 +279,7 @@ const Login = () => {
                 </View>
                 <View style={styles.linkContainer}>
                     <Pressable onPress={() => router.push('/Signup')} hitSlop={8}>
-                        <Text style={styles.linkPrompt}>New to JapLearn? <Text style={styles.linkText}>Create account</Text></Text>
+                        <Text style={styles.linkPrompt}>New to JapLearn? <Text style={styles.linkText}>Join now</Text></Text>
                     </Pressable>
                 </View>
                 </View>

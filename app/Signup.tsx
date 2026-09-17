@@ -8,7 +8,6 @@ import { Ionicons } from '@expo/vector-icons';
 import expoconfig from '../expoconfig';
 import PrivacyPolicyModal from '../components/PrivacyPolicyModal';
 import Logo from '../assets/svg/jpLogo.svg';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const Signup = () => {
     const { width } = useWindowDimensions();
@@ -25,6 +24,7 @@ const Signup = () => {
     const [modalMessage, setModalMessage] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showCPassword, setShowCPassword] = useState(false);
+    const [activeField, setActiveField] = useState<string | null>(null);
     const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
     const [hasAgreedToPrivacy, setHasAgreedToPrivacy] = useState(false);
 
@@ -157,22 +157,21 @@ const Signup = () => {
             <View style={styles.backgroundOrbBottom} />
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                 <View style={[styles.contentWrapper, isWide && styles.contentWrapperWide]}>
-                    <LinearGradient colors={['#6520B6', '#922AE2']} start={{x:0,y:0}} end={{x:1,y:1}} style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
-                        <View style={styles.brandGlow} />
-                        <View style={styles.brandDotOne} />
-                        <View style={styles.brandDotTwo} />
-                        <View style={styles.logoBadge}>
-                            <Logo width={76} height={76} />
+                    <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
+                        <Logo width={64} height={64} />
+                        <View>
+                            <Text style={styles.brandText}>JapLearn 2.0</Text>
+                            <Text style={styles.brandCaption}>STUDENT REGISTRATION</Text>
                         </View>
-                        <Text style={styles.brandText}>JapLearn 2.0</Text>
-                    </LinearGradient>
+                    </View>
                     <View style={[styles.formCard, isWide && styles.formCardWide]}>
                     <View style={styles.cardHeading}>
-                        <View style={styles.cardHeadingMark} />
-                        <Text style={styles.titleText}>Create account</Text>
+                        <Text style={styles.titleText}>Join JapLearn</Text>
+                        <Text style={styles.formSubtitle}>Create your student account.</Text>
                     </View>
+                    <Text style={styles.fieldLabel}>Your name</Text>
                     <View style={styles.nameRow}>
-                        <View style={[styles.inputShell, styles.nameField, errors.fname ? styles.errorInput : null]}>
+                        <View style={[styles.inputShell, styles.nameField, activeField === 'fname' && styles.inputFocused, errors.fname ? styles.errorInput : null]}>
                         <Ionicons name="person-outline" size={20} color="#8423D9" />
                         <TextInput
                             style={styles.input}
@@ -183,6 +182,7 @@ const Signup = () => {
                             autoComplete="given-name"
                             accessibilityLabel="First name"
                             maxLength={30}
+                            onFocus={() => setActiveField('fname')}
                             onChangeText={(text) => {
                                 const formattedText = text
                                     .trimStart()
@@ -193,10 +193,10 @@ const Signup = () => {
                                     setErrors((prevErrors) => ({ ...prevErrors, fname: '' }));
                                 }
                             }}
-                            onBlur={() => setFname(fname.trimEnd())}
+                            onBlur={() => { setActiveField(null); setFname(fname.trimEnd()); }}
                         />
                         </View>
-                        <View style={[styles.inputShell, styles.nameField, errors.lname ? styles.errorInput : null]}>
+                        <View style={[styles.inputShell, styles.nameField, activeField === 'lname' && styles.inputFocused, errors.lname ? styles.errorInput : null]}>
                         <TextInput
                             style={styles.input}
                             value={lname}
@@ -206,6 +206,7 @@ const Signup = () => {
                             autoComplete="family-name"
                             accessibilityLabel="Last name"
                             maxLength={30}
+                            onFocus={() => setActiveField('lname')}
                             onChangeText={(text) => {
                                 const formattedText = text
                                     .trimStart()
@@ -216,13 +217,14 @@ const Signup = () => {
                                     setErrors((prevErrors) => ({ ...prevErrors, lname: '' }));
                                 }
                             }}
-                            onBlur={() => setLname(lname.trimEnd())}
+                            onBlur={() => { setActiveField(null); setLname(lname.trimEnd()); }}
                         />
                         </View>
                     </View>
                     {(errors.fname || errors.lname) ? <Text style={styles.errorText}>{errors.fname || errors.lname}</Text> : null}
 
-                    <View style={[styles.inputShell, errors.email ? styles.errorInput : null]}>
+                    <Text style={styles.fieldLabel}>Email address</Text>
+                    <View style={[styles.inputShell, activeField === 'email' && styles.inputFocused, errors.email ? styles.errorInput : null]}>
                     <Ionicons name="mail-outline" size={21} color="#8423D9" />
                     <TextInput
                         style={styles.input}
@@ -234,6 +236,8 @@ const Signup = () => {
                         autoComplete="email"
                         accessibilityLabel="Email address"
                         maxLength={50}
+                        onFocus={() => setActiveField('email')}
+                        onBlur={() => setActiveField(null)}
                         onChangeText={(text) => {
                             const formattedText = text.replace(/\s/g, '').toLowerCase();
                             setEmail(formattedText);
@@ -247,7 +251,8 @@ const Signup = () => {
 
                     {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
-                    <View style={[styles.passwordContainer, errors.password ? styles.errorInput : null]}>
+                    <Text style={styles.fieldLabel}>Password</Text>
+                    <View style={[styles.passwordContainer, activeField === 'password' && styles.inputFocused, errors.password ? styles.errorInput : null]}>
                         <Ionicons name="lock-closed-outline" size={21} color="#8423D9" />
                         <TextInput
                             style={[styles.input, styles.passwordInput]}
@@ -258,6 +263,8 @@ const Signup = () => {
                             autoCapitalize="none"
                             autoComplete="new-password"
                             accessibilityLabel="Password"
+                            onFocus={() => setActiveField('password')}
+                            onBlur={() => setActiveField(null)}
                             onChangeText={(text) => {
                                 const formattedText = text.replace(/\s/g, '');
                                 setPassword(formattedText);
@@ -282,7 +289,8 @@ const Signup = () => {
                     </View>
                     {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
-                    <View style={[styles.passwordContainer, errors.cpassword ? styles.errorInput : null]}>
+                    <Text style={styles.fieldLabel}>Confirm password</Text>
+                    <View style={[styles.passwordContainer, activeField === 'cpassword' && styles.inputFocused, errors.cpassword ? styles.errorInput : null]}>
                         <Ionicons name="shield-checkmark-outline" size={21} color="#8423D9" />
                         <TextInput
                             style={[styles.input, styles.passwordInput]}
@@ -293,6 +301,8 @@ const Signup = () => {
                             autoCapitalize="none"
                             autoComplete="new-password"
                             accessibilityLabel="Repeat password"
+                            onFocus={() => setActiveField('cpassword')}
+                            onBlur={() => setActiveField(null)}
                             onChangeText={(text) => {
                                 const formattedText = text.replace(/\s/g, '');
                                 setCPassword(formattedText);
@@ -322,7 +332,7 @@ const Signup = () => {
                             <View style={styles.button}><ActivityIndicator size="small" color="#FFFFFF" /></View>
                         ) : (
                             <Pressable onPress={signup2} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-                                <Text style={styles.buttonText}>Create account</Text>
+                                <Text style={styles.buttonText}>Create my account</Text>
                             </Pressable>
                         )}
                     </View>
