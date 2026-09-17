@@ -5,8 +5,8 @@ const uiFont = Platform.select({ android: 'sans-serif', ios: 'System', web: 'Int
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#7B2CBF', padding: 12, width: '100%', borderRadius: 12,
-    height: 52,
+    backgroundColor: '#7B2CBF', paddingLeft: 20, paddingRight: 7, width: '100%', borderRadius: 15,
+    height: 56,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9,
   },
   buttonPressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
+  buttonIcon:{position:'absolute',right:7,width:42,height:42,borderRadius:12,backgroundColor:'#FFFFFF',alignItems:'center',justifyContent:'center'},
 
   buttonContainer: {
     alignItems:'center',
@@ -25,7 +26,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FBF8FD',
     overflow: 'hidden',
   },
   keyboardView: { flex: 1 },
@@ -67,15 +68,18 @@ const styles = StyleSheet.create({
   imageContainer: {
     alignItems: 'center',
     width: '100%',
-    marginBottom: 42, paddingHorizontal: 2,
+    marginBottom: 34, paddingHorizontal: 2,
   },
   imageContainerWide:{width:'43%',marginBottom:0,paddingHorizontal:34,paddingVertical:34,justifyContent:'space-between',backgroundColor:'#F2E7FB'},
-  brandRow:{flexDirection:'row',alignItems:'center',gap:11,alignSelf:'center'},
+  brandRow:{flexDirection:'row',alignItems:'center',gap:12,alignSelf:'center'},
+  logoShell:{width:62,height:62,borderRadius:19,backgroundColor:'#F0E4FA',borderWidth:1,borderColor:'#DFC8F0',alignItems:'center',justifyContent:'center'},
+  mobileBrandAccent:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:9,marginBottom:18},
+  mobileAccentLine:{width:28,height:2,borderRadius:2,backgroundColor:'#DCC6ED'},
   desktopVisual:{flex:1,width:'100%',alignItems:'center',justifyContent:'center',paddingTop:18},
   desktopHalo:{position:'absolute',width:270,height:270,borderRadius:135,backgroundColor:'#E5CFF8'},
   desktopMascot:{width:225,height:270,zIndex:1},
-  desktopJapanese:{fontSize:13,fontWeight:'900',letterSpacing:1.5,color:'#68A83C',marginTop:5,zIndex:2},
-  desktopTitle:{fontSize:24,lineHeight:30,fontWeight:'900',letterSpacing:-0.5,color:'#382341',textAlign:'center',marginTop:8,zIndex:2},
+  desktopJapanese:{fontFamily:uiFont,fontSize:13,fontWeight:'400',letterSpacing:.5,color:'#68A83C',marginTop:5,zIndex:2},
+  desktopTitle:{fontFamily:uiFont,fontSize:24,lineHeight:31,fontWeight:'400',letterSpacing:-0.3,color:'#382341',textAlign:'center',marginTop:8,zIndex:2},
   welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:7},
   welcomeBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#568E35'},
   mascotWrap: { alignItems: 'center', justifyContent: 'center' },
@@ -93,10 +97,10 @@ const styles = StyleSheet.create({
   formSubtitle: { fontFamily:uiFont,color: '#817586', fontSize: 13, lineHeight:19, marginTop:5 },
   fieldLabel:{fontFamily:uiFont,fontSize:12,fontWeight:'500',color:'#514B55',marginBottom:8,marginLeft:1},
   inputContainer: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF',
-    borderWidth: 1, borderColor:'#DDD7E0', borderRadius: 12, paddingHorizontal: 14, marginBottom: 14,
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8F3FB',
+    borderWidth: 1, borderColor:'#E5D9EA', borderRadius: 14, paddingHorizontal: 14, marginBottom: 14,
   },
-  inputFocused:{borderColor:'#7B2CBF',backgroundColor:'#FFFFFF'},
+  inputFocused:{borderColor:'#8A35D1',backgroundColor:'#FFFFFF',borderWidth:1.5},
   inputIcon: { marginRight: 2 },
   
   linkContainer: {
@@ -115,7 +119,7 @@ const styles = StyleSheet.create({
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor:'#DDD7E0', borderRadius: 12,
+    backgroundColor: '#F8F3FB', borderWidth: 1, borderColor:'#E5D9EA', borderRadius: 14,
     paddingLeft: 15,
     marginBottom: 0,
     position: 'relative',
@@ -136,7 +140,7 @@ const styles = StyleSheet.create({
     color: '#302936', fontFamily:uiFont,
     fontSize: 20, fontWeight:'400', letterSpacing:-0.2,
   },
-  brandCaption:{fontSize:9,fontWeight:'900',letterSpacing:1.4,color:'#72AD43',marginTop:2},
+  brandCaption:{fontFamily:uiFont,fontSize:10,fontWeight:'500',letterSpacing:.7,color:'#65A63B',marginTop:3},
 
   policyTextContainer: {
     flexDirection: 'row',
@@ -163,12 +167,9 @@ const styles = StyleSheet.create({
   },
   
   modalContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 20, // Add vertical spacing between elements
-    paddingHorizontal: 26,paddingTop:34,paddingBottom:26,
-    backgroundColor: '#FFFCFF',
-    borderRadius: 30,
+    justifyContent: 'center', alignItems: 'center',
+    paddingHorizontal: 24,paddingTop:30,paddingBottom:24,
+    backgroundColor: '#FFFFFF', borderRadius: 22,
     width: '100%',
     maxWidth: 430,
     shadowColor: '#24152F', shadowOpacity: 0.25, shadowRadius: 24,
@@ -177,42 +178,37 @@ const styles = StyleSheet.create({
   modalAccent:{position:'absolute',top:0,left:55,right:55,height:5,backgroundColor:'#8ED94D',borderBottomLeftRadius:5,borderBottomRightRadius:5},
   modalClose: { position: 'absolute', right: 18, top: 18, zIndex: 2, padding: 4 },
   modalIconWrap: {
-    width: 60, height: 60, borderRadius: 20, backgroundColor: '#F0E4FA',
+    width: 54, height: 54, borderRadius: 18, backgroundColor: '#F2E8F9',
     alignItems: 'center', justifyContent: 'center',
   },
-  modalIconHalo:{width:76,height:76,borderRadius:25,backgroundColor:'#FAF4FE',borderWidth:1,borderColor:'#E6D3F2',alignItems:'center',justifyContent:'center',marginBottom:14},
+  modalIconHalo:{width:68,height:68,borderRadius:22,backgroundColor:'#FAF7FC',borderWidth:1,borderColor:'#E7DAED',alignItems:'center',justifyContent:'center',marginBottom:16},
   modalEyebrow:{fontSize:8,fontWeight:'900',letterSpacing:1.2,color:'#6AAB3D',marginBottom:6},
   
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontFamily:uiFont,fontSize: 22,fontWeight: '400',
     marginBottom: 8,
     textAlign: 'center',
     color: '#462A5E',
   },
-  modalDescription: { color: '#817586', fontSize: 14, lineHeight: 21, textAlign: 'center', marginBottom: 20 },
+  modalDescription: { fontFamily:uiFont,color: '#817586', fontSize: 14, lineHeight: 21, textAlign: 'center', marginBottom: 20 },
   resetFieldLabel:{width:'100%',fontSize:11,fontWeight:'800',color:'#54415E',marginBottom:7,marginLeft:2},
   resetInputContainer: {
     width: '100%', flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F6F3F8', borderWidth: 1, borderColor: '#E8E0ED',
-    borderRadius: 15, paddingHorizontal: 15, marginBottom: 16,
+    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#DDD7E0',
+    borderRadius: 12, paddingHorizontal: 14, marginBottom: 16,
   },
   buttonReset: {
-    backgroundColor: '#8423D9',
+    backgroundColor: '#7B2CBF',
     padding: 12,
     width:  '100%',
-    borderRadius: 16,
-    borderColor: '#6D1CAD',
-    borderBottomWidth: Platform.OS === 'android' ? 0 : 4,
-    height: 58,
+    borderRadius: 12, height: 52,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9,
     
   },
 
   buttonTextReset: {
     color: '#fff',
-    fontSize: 17,
-    fontWeight: '700',
+    fontFamily:uiFont,fontSize: 15,fontWeight: '500',
   },
 });
 

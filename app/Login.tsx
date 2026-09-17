@@ -157,8 +157,10 @@ const Login = () => {
     };
 
     const handleForgotPassword = async () => {
-        if (!forgotPasswordEmail.trim()) {
-            setModalMessage('Please provide an email address.');
+        const normalizedEmail = forgotPasswordEmail.trim().toLowerCase();
+        const validEmail = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(normalizedEmail);
+        if (!validEmail) {
+            setModalMessage('Enter a valid email address, such as name@gmail.com.');
             setModalVisible(true);
             return;
         }
@@ -170,7 +172,7 @@ const Login = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    email: forgotPasswordEmail.trim().toLowerCase(),
+                    email: normalizedEmail,
                 }),
             });
 
@@ -190,8 +192,8 @@ const Login = () => {
 
     return (
         <View style={styles.container}>
-            {isWide && <View style={styles.backgroundOrbTop} />}
-            {isWide && <View style={styles.backgroundOrbBottom} />}
+            <View pointerEvents="none" style={styles.backgroundOrbTop} />
+            <View pointerEvents="none" style={styles.backgroundOrbBottom} />
             <KeyboardAvoidingView
                 style={styles.keyboardView}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -203,11 +205,16 @@ const Login = () => {
                 >
                 <View style={[styles.authShell, isWide && styles.authShellWide]}>
                 <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
+                    {!isWide && <View style={styles.mobileBrandAccent}>
+                        <View style={styles.mobileAccentLine} />
+                        <Ionicons name="sparkles" size={15} color="#72B544" />
+                        <View style={styles.mobileAccentLine} />
+                    </View>}
                     <View style={styles.brandRow}>
-                        <Logo width={56} height={56} />
+                        <View style={styles.logoShell}><Logo width={50} height={50} /></View>
                         <View>
                         <Text style={styles.titleText}>JapLearn 2.0</Text>
-                        {isWide && <Text style={styles.brandCaption}>Student access</Text>}
+                        <Text style={styles.brandCaption}>{isWide ? 'Student access' : '日本語を楽しく学ぼう'}</Text>
                         </View>
                     </View>
                     {isWide && <View style={styles.desktopVisual}>
@@ -220,6 +227,7 @@ const Login = () => {
 
                 <View style={[styles.formCard, isWide && styles.formCardWide]}>
                 <View style={styles.cardHeading}>
+                    <View style={styles.cardHeadingMark} />
                     <Text style={styles.formTitle}>Sign in</Text>
                     {isWide && <Text style={styles.formSubtitle}>Use your student account to continue.</Text>}
                 </View>
@@ -284,6 +292,7 @@ const Login = () => {
                     ) : (
                         <Pressable onPress={handleLogin} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
                             <Text style={styles.buttonText}>Sign in</Text>
+                            <View style={styles.buttonIcon}><Ionicons name="arrow-forward" size={17} color="#7B2CBF" /></View>
                         </Pressable>
                     )}
                 </View>
@@ -311,17 +320,14 @@ const Login = () => {
             <Modal visible={forgotPasswordVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <View style={styles.modalAccent} />
                         <Pressable onPress={() => setForgotPasswordVisible(false)} style={styles.modalClose} hitSlop={10}>
                             <Ionicons name="close" size={22} color="#66596F" />
                         </Pressable>
                         <View style={styles.modalIconHalo}><View style={styles.modalIconWrap}>
                             <Ionicons name="lock-open-outline" size={29} color="#8423D9" />
                         </View></View>
-                        <Text style={styles.modalEyebrow}>ACCOUNT RECOVERY</Text>
-                        <Text style={styles.modalTitle}>Reset Password</Text>
-                        <Text style={styles.modalDescription}>Enter the email connected to your account. We’ll send a secure link so you can choose a new password.</Text>
-                        <Text style={styles.resetFieldLabel}>Email address</Text>
+                        <Text style={styles.modalTitle}>Reset password</Text>
+                        <Text style={styles.modalDescription}>Enter the email connected to your account and we’ll send you a reset link.</Text>
                         <View style={styles.resetInputContainer}>
                             <Ionicons name="mail-outline" size={21} color="#8423D9" />
                             <TextInput
@@ -347,6 +353,8 @@ const Login = () => {
                 visible={modalVisible}
                 message={modalMessage}
                 onClose={() => setModalVisible(false)}
+                variant="auth"
+                title="Account notice"
             />
         </View>
     );

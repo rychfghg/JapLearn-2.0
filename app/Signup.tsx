@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, Text, TextInput, View, Pressable, Modal, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, Text, TextInput, View, Pressable, useWindowDimensions } from 'react-native';
 import CustomModal from '../components/CustomModal';
-import PrivacyModal from '../components/PrivacyModal';
 import styles from '../styles/stylesSignup';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -153,16 +152,21 @@ const Signup = () => {
 
     return (
         <View style={styles.container}>
-            {isWide && <View style={styles.backgroundOrbTop} />}
-            {isWide && <View style={styles.backgroundOrbBottom} />}
+            <View pointerEvents="none" style={styles.backgroundOrbTop} />
+            <View pointerEvents="none" style={styles.backgroundOrbBottom} />
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                 <View style={[styles.contentWrapper, isWide && styles.contentWrapperWide]}>
                     <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
+                        {!isWide && <View style={styles.mobileBrandAccent}>
+                            <View style={styles.mobileAccentLine} />
+                            <Ionicons name="sparkles" size={15} color="#72B544" />
+                            <View style={styles.mobileAccentLine} />
+                        </View>}
                         <View style={styles.brandRow}>
-                            <Logo width={56} height={56} />
+                            <View style={styles.logoShell}><Logo width={50} height={50} /></View>
                             <View>
                                 <Text style={styles.brandText}>JapLearn 2.0</Text>
-                                {isWide && <Text style={styles.brandCaption}>Student registration</Text>}
+                                <Text style={styles.brandCaption}>{isWide ? 'Student registration' : '日本語を楽しく学ぼう'}</Text>
                             </View>
                         </View>
                         {isWide && <View style={styles.desktopVisual}>
@@ -174,6 +178,7 @@ const Signup = () => {
                     </View>
                     <View style={[styles.formCard, isWide && styles.formCardWide]}>
                     <View style={styles.cardHeading}>
+                        <View style={styles.cardHeadingMark} />
                         <Text style={styles.titleText}>Create account</Text>
                         {isWide && <Text style={styles.formSubtitle}>Set up your student profile.</Text>}
                     </View>
@@ -341,6 +346,7 @@ const Signup = () => {
                         ) : (
                             <Pressable onPress={signup2} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
                                 <Text style={styles.buttonText}>Create account</Text>
+                                <View style={styles.buttonIcon}><Ionicons name="arrow-forward" size={17} color="#7B2CBF" /></View>
                             </Pressable>
                         )}
                     </View>
@@ -357,23 +363,21 @@ const Signup = () => {
                     visible={modalVisible}
                     message={modalMessage}
                     onClose={() => setModalVisible(false)}
+                    variant="auth"
+                    title="Account notice"
                 />
 
                 {privacyModalVisible && (
-                    <Modal visible={privacyModalVisible} transparent animationType="fade">
-                        <View style={styles.modalWrapper}>
-                            <PrivacyPolicyModal
-                                key={privacyModalVisible ? 'modal-opened' : 'modal-closed'}
-                                visible={privacyModalVisible}
-                                onAgree={() => {
-                                    setHasAgreedToPrivacy(true);
-                                    setPrivacyModalVisible(false);
-                                    signup(true);
-                                }}
-                                onClose={() => setPrivacyModalVisible(false)}
-                            />
-                        </View>
-                    </Modal>
+                    <PrivacyPolicyModal
+                        key={privacyModalVisible ? 'modal-opened' : 'modal-closed'}
+                        visible={privacyModalVisible}
+                        onAgree={() => {
+                            setHasAgreedToPrivacy(true);
+                            setPrivacyModalVisible(false);
+                            signup(true);
+                        }}
+                        onClose={() => setPrivacyModalVisible(false)}
+                    />
                 )}
 
             </ScrollView>

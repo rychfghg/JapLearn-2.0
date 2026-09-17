@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, Text, View, StyleSheet, Dimensions } from 'react-native';
-import CustomButton from './CustomButton'; // Assuming you have a CustomButton component
+import { Modal, ScrollView, Text, View, StyleSheet, Dimensions, Pressable, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+const uiFont = Platform.select({ android: 'sans-serif', ios: 'System', web: 'Inter, system-ui, sans-serif' });
 
 const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
     const [canAgree, setCanAgree] = useState(false);
@@ -31,6 +33,14 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
+                    <View style={styles.headerRow}>
+                        <View style={styles.headerIcon}><Ionicons name="shield-checkmark-outline" size={22} color="#7B2CBF" /></View>
+                        <View style={styles.headerCopy}>
+                            <Text style={styles.header}>Privacy policy</Text>
+                            <Text style={styles.headerHint}>Scroll to the end to continue.</Text>
+                        </View>
+                        <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8}><Ionicons name="close" size={21} color="#726977" /></Pressable>
+                    </View>
                     <ScrollView
                         ref={scrollViewRef}
                         contentContainerStyle={styles.scrollContainer}
@@ -38,7 +48,6 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
                         scrollEventThrottle={16}
                         showsVerticalScrollIndicator={false}
                     >
-                        <Text style={styles.header}>JapLearn Privacy Policy</Text>
                         <Text style={styles.paragraph}>
                             Welcome to JapLearn. Your privacy is our priority, and we are committed
                             to safeguarding your personal data. This Privacy Policy outlines the
@@ -98,19 +107,10 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
                             users and take immediate steps to minimize risks.
                         </Text>
                     </ScrollView>
-                    <CustomButton
-                        title="I Agree"
-                        onPress={onAgree}
-                        buttonStyle={[
-                            styles.agreeButton,
-                            { backgroundColor: canAgree ? '#4CAF50' : '#ccc' },
-                        ]}
-                        textStyle={[
-                            styles.agreeButtonText,
-                            { color: canAgree ? '#fff' : '#666' },
-                        ]}
-                        disabled={!canAgree}
-                    />
+                    <Pressable disabled={!canAgree} onPress={onAgree} style={[styles.agreeButton,!canAgree&&styles.agreeButtonDisabled]}>
+                        <Text style={[styles.agreeButtonText,!canAgree&&styles.agreeButtonTextDisabled]}>Agree and continue</Text>
+                        <Ionicons name="arrow-forward" size={18} color={canAgree?'#FFFFFF':'#9A939E'} />
+                    </Pressable>
                 </View>
             </View>
         </Modal>
@@ -122,7 +122,7 @@ const { height } = Dimensions.get('window');
 const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(31, 23, 36, 0.55)',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -130,58 +130,52 @@ const styles = StyleSheet.create({
         width: '90%',
         maxHeight: height * 0.8,
         backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
+        borderRadius: 22,
+        padding: 22,
     },
+    headerRow:{flexDirection:'row',alignItems:'center',marginBottom:18},
+    headerIcon:{width:44,height:44,borderRadius:14,backgroundColor:'#F2E8F9',alignItems:'center',justifyContent:'center',marginRight:12},
+    headerCopy:{flex:1},
+    closeButton:{width:36,height:36,borderRadius:18,backgroundColor:'#F5F2F6',alignItems:'center',justifyContent:'center'},
+    headerHint:{fontFamily:uiFont,fontSize:12,color:'#847B88',marginTop:2},
     scrollContainer: {
         paddingBottom: 20,
     },
     header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 20,
-        color: '#4CAF50',
-        fontFamily: 'Jua',
+        fontFamily:uiFont,fontSize: 20,fontWeight: '400',color: '#302A34',
     },
     subtitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily:uiFont,fontSize: 16,fontWeight: '500',
         marginTop: 10,
         marginBottom: 5,
-        color: '#4CAF50',
-        fontFamily: 'Jua',
+        color: '#5B3B70',
     },
     paragraph: {
-        fontSize: 16,
+        fontFamily:uiFont,fontSize: 14,
         lineHeight: 22,
         marginBottom: 10,
         color: '#555',
-        fontFamily: 'Jua',
     },
     listItem: {
-        fontSize: 16,
+        fontFamily:uiFont,fontSize: 14,
         lineHeight: 24,
         marginBottom: 5,
         color: '#555',
-        fontFamily: 'Jua',
     },
     bold: {
-        fontWeight: 'bold',
-        fontFamily: 'Jua',
+        fontWeight: '500',
     },
     agreeButton: {
-        paddingVertical: 12,
-        borderRadius: 8,
-        marginTop: 10,
+        height:52,borderRadius: 12,marginTop: 16,
+        backgroundColor:'#7B2CBF',flexDirection:'row',gap:8,
         alignItems: 'center',
         justifyContent: 'center',
     },
+    agreeButtonDisabled:{backgroundColor:'#ECE8EE'},
     agreeButtonText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        fontFamily: 'Jua',
+        fontFamily:uiFont,fontSize: 15,fontWeight: '500',color:'#FFFFFF',
     },
+    agreeButtonTextDisabled:{color:'#9A939E'},
 });
 
 export default PrivacyPolicyModal;

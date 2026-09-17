@@ -5,8 +5,8 @@ const uiFont = Platform.select({ android: 'sans-serif', ios: 'System', web: 'Int
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: '#7B2CBF', padding: 10, width: '100%', borderRadius: 12,
-        height: 52,
+        backgroundColor: '#7B2CBF', paddingLeft: 20, paddingRight: 7, width: '100%', borderRadius: 15,
+        height: 56,
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9,
     },
     buttonPressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
@@ -15,6 +15,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontFamily:uiFont,fontSize: 15,fontWeight: '500',
     },
+    buttonIcon:{position:'absolute',right:7,width:42,height:42,borderRadius:12,backgroundColor:'#FFFFFF',alignItems:'center',justifyContent:'center'},
 
     buttonContainer: {
         alignItems: 'center',
@@ -23,7 +24,7 @@ const styles = StyleSheet.create({
 
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#FBF8FD',
         overflow: 'hidden',
     },
     scrollContent: { flexGrow: 1, justifyContent:'center',paddingHorizontal: 24, paddingTop:Platform.OS==='web'?32:30,paddingBottom:24 },
@@ -45,8 +46,8 @@ const styles = StyleSheet.create({
     formCardWide:{flex:1,justifyContent:'center',borderWidth:0,borderRadius:0,paddingHorizontal:52,paddingVertical:34,shadowOpacity:0,elevation:0},
     inputShell: {
         flexDirection: 'row', alignItems: 'center', gap: 2,
-        backgroundColor: '#FFFFFF', borderWidth: 1, borderColor:'#DDD7E0',
-        borderRadius: 12, paddingHorizontal: 14, marginBottom: 12,
+        backgroundColor: '#F8F3FB', borderWidth: 1, borderColor:'#E5D9EA',
+        borderRadius: 14, paddingHorizontal: 14, marginBottom: 12,
     },
 
     input: {
@@ -57,21 +58,24 @@ const styles = StyleSheet.create({
     imageContainer: {
         alignItems: 'center',
         width: '100%',
-        marginBottom: 34,
+        marginBottom: 28,
         paddingHorizontal: 4,
     },
     imageContainerWide:{width:'42%',marginBottom:0,paddingHorizontal:32,paddingVertical:34,justifyContent:'space-between',backgroundColor:'#F2E7FB'},
-    brandRow:{flexDirection:'row',alignItems:'center',gap:11,alignSelf:'center'},
+    brandRow:{flexDirection:'row',alignItems:'center',gap:12,alignSelf:'center'},
+    logoShell:{width:62,height:62,borderRadius:19,backgroundColor:'#F0E4FA',borderWidth:1,borderColor:'#DFC8F0',alignItems:'center',justifyContent:'center'},
+    mobileBrandAccent:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:9,marginBottom:18},
+    mobileAccentLine:{width:28,height:2,borderRadius:2,backgroundColor:'#DCC6ED'},
     desktopVisual:{flex:1,width:'100%',alignItems:'center',justifyContent:'center',paddingTop:12},
     desktopHalo:{position:'absolute',width:270,height:270,borderRadius:135,backgroundColor:'#E5CFF8'},
     desktopMascot:{width:225,height:270,zIndex:1},
-    desktopJapanese:{fontSize:13,fontWeight:'900',letterSpacing:1.5,color:'#68A83C',marginTop:5,zIndex:2},
-    desktopTitle:{fontSize:23,lineHeight:29,fontWeight:'900',letterSpacing:-0.5,color:'#382341',textAlign:'center',marginTop:8,zIndex:2},
+    desktopJapanese:{fontFamily:uiFont,fontSize:13,fontWeight:'400',letterSpacing:.5,color:'#68A83C',marginTop:5,zIndex:2},
+    desktopTitle:{fontFamily:uiFont,fontSize:23,lineHeight:30,fontWeight:'400',letterSpacing:-0.3,color:'#382341',textAlign:'center',marginTop:8,zIndex:2},
     logoBadge: { alignItems: 'center', justifyContent: 'center' },
     welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:8},
     welcomeBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#568E35'},
     brandText: { color: '#302936', fontFamily:uiFont,fontSize: 20,fontWeight:'400',letterSpacing:-0.2 },
-    brandCaption:{fontSize:9,fontWeight:'900',letterSpacing:1.4,color:'#72AD43',marginTop:2},
+    brandCaption:{fontFamily:uiFont,fontSize:10,fontWeight:'500',letterSpacing:.7,color:'#65A63B',marginTop:3},
     cardHeading: { alignItems: 'flex-start', marginBottom: 21 },
     cardHeadingMark: { width: 30, height: 4, borderRadius: 99, backgroundColor: '#8ED94D', marginBottom: 10 },
     nameRow: { flexDirection: 'row', gap: 10 },
@@ -83,7 +87,7 @@ const styles = StyleSheet.create({
     formEyebrow:{fontSize:8,fontWeight:'900',letterSpacing:1.1,color:'#6AAB3D',marginBottom:2},
     formSubtitle:{fontFamily:uiFont,color:'#817586',fontSize:13,lineHeight:19,marginTop:5},
     fieldLabel:{fontFamily:uiFont,fontSize:12,fontWeight:'500',color:'#514B55',marginBottom:8,marginLeft:1},
-    inputFocused:{borderColor:'#7B2CBF',backgroundColor:'#FFFFFF'},
+    inputFocused:{borderColor:'#8A35D1',backgroundColor:'#FFFFFF',borderWidth:1.5},
 
     linkContainer: {
         marginTop: 20,
@@ -112,8 +116,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         position: 'relative',
         width: '100%',
-        backgroundColor: '#FFFFFF', borderWidth: 1, borderColor:'#DDD7E0',
-        borderRadius: 12, paddingLeft: 14, marginBottom: 12,
+        backgroundColor: '#F8F3FB', borderWidth: 1, borderColor:'#E5D9EA',
+        borderRadius: 14, paddingLeft: 14, marginBottom: 12,
     },
     passwordInput: {
         flex: 1,
