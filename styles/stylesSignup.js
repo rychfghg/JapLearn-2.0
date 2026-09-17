@@ -3,21 +3,21 @@ import { platformShadow } from '../utils/platformShadow';
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: '#8ED94D',
+        backgroundColor: '#8423D9',
         padding: 10,
         width: '100%',
         borderRadius: 16,
-        borderColor: '#8AC25A',
-        borderBottomWidth: Platform.OS === 'android' ? 0 : 5,
-        height: 60,
+        borderColor: '#8423D9',
+        borderBottomWidth: 0,
+        height: 56,
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9,
-        ...(Platform.OS === 'android' ? platformShadow('#5B9032', 0.22, 10, 5, 2) : {}),
+        ...platformShadow('#5E1A93', 0.18, 12, 6, 3),
     },
     buttonPressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
 
     buttonText: {
         color: '#fff',
-        fontSize: 21,
+        fontSize: 18,
         fontFamily: 'Jua',
     },
 
@@ -28,12 +28,12 @@ const styles = StyleSheet.create({
 
     container: {
         flex: 1,
-        backgroundColor: '#FBF9FD',
+        backgroundColor: '#F8F4FC',
         overflow: 'hidden',
     },
-    scrollContent: { flexGrow: 1, justifyContent:'center',paddingHorizontal: 20, paddingVertical: 30 },
-    contentWrapper: { width: '100%', maxWidth: 520, alignSelf: 'center' },
-    contentWrapperWide:{maxWidth:1100,minHeight:690,flexDirection:'row',alignItems:'stretch',borderRadius:34,overflow:'hidden',backgroundColor:'#FFF',borderWidth:1,borderColor:'#E6DDEB',...platformShadow('#3B2146',0.12,24,10,5)},
+    scrollContent: { flexGrow: 1, justifyContent:'center',paddingHorizontal: 20, paddingTop:Platform.OS==='web'?30:18,paddingBottom:30 },
+    contentWrapper: { width: '100%', maxWidth: 470, alignSelf: 'center' },
+    contentWrapperWide:{maxWidth:500},
     backgroundOrbTop: {
         position: 'absolute', width: 250, height: 250, borderRadius: 125,
         backgroundColor: '#F0E4FA', top: -120, right: -75,
@@ -43,14 +43,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#EAF7DF', bottom: -110, left: -75,
     },
     formCard: {
-        backgroundColor: '#FFFFFF', borderRadius: 26, padding: 22,
-        shadowColor: '#462A5E', shadowOpacity: 0.12, shadowRadius: 20,
-        shadowOffset: { width: 0, height: 8 }, elevation: 6,
+        backgroundColor: '#FFFFFF', borderRadius: 24, padding: 21,
+        borderWidth:1,borderColor:'#E8DFEC',
+        ...platformShadow('#462A5E',0.09,16,7,3),
     },
-    formCardWide:{flex:1.15,borderRadius:0,paddingHorizontal:46,paddingVertical:36,justifyContent:'center',shadowOpacity:0,elevation:0},
+    formCardWide:{paddingHorizontal:25},
     inputShell: {
         flexDirection: 'row', alignItems: 'center', gap: 2,
-        backgroundColor: '#F6F3F8', borderWidth: 1, borderColor: '#E8E0ED',
+        backgroundColor: '#FAF8FB', borderWidth: 1, borderColor: '#E8E0ED',
         borderRadius: 15, paddingHorizontal: 15, marginBottom: 12,
     },
 
@@ -61,16 +61,16 @@ const styles = StyleSheet.create({
 
     imageContainer: {
         alignItems: 'center',
-        marginBottom: 24,
+        marginBottom: 15,
     },
-    imageContainerWide:{flex:.85,justifyContent:'center',alignItems:'flex-start',paddingHorizontal:48,paddingVertical:46,marginBottom:0,backgroundColor:'#F2E8F9'},
-    welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:18},
+    imageContainerWide:{alignItems:'center',marginBottom:15},
+    welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:8},
     welcomeBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#568E35'},
-    brandText: { color: '#8ED94D', fontSize: 20, fontFamily: 'Jua', marginTop: 8 },
-    heroTitle:{fontFamily:'Jua',fontSize:28,lineHeight:35,color:'#3C2348',textAlign:'center',maxWidth:390,marginTop:14},
-    subtitleText: { color: '#74687A', fontSize: 14,lineHeight:21, marginTop: 8, textAlign: 'center',maxWidth:390 },
+    brandText: { color: '#8423D9', fontSize: 18, fontFamily: 'Jua', marginTop: 4 },
+    heroTitle:{fontFamily:'Jua',fontSize:22,lineHeight:28,color:'#3C2348',textAlign:'center',maxWidth:350,marginTop:5},
+    subtitleText: { color: '#74687A', fontSize: 12,lineHeight:18, marginTop: 4, textAlign: 'center',maxWidth:350 },
     formHeading:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:8},
-    formHeadingIcon:{width:46,height:46,borderRadius:15,backgroundColor:'#F1E5FA',alignItems:'center',justifyContent:'center'},
+    formHeadingIcon:{width:42,height:42,borderRadius:14,backgroundColor:'#F1E5FA',alignItems:'center',justifyContent:'center'},
     formEyebrow:{fontSize:8,fontWeight:'900',letterSpacing:1.1,color:'#6AAB3D',marginBottom:2},
     formSubtitle:{color:'#817586',fontSize:12,lineHeight:18,marginBottom:17},
     fieldLabel:{fontSize:11,fontWeight:'800',color:'#54415E',marginBottom:7,marginLeft:2},
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         position: 'relative',
         width: '100%',
-        backgroundColor: '#F6F3F8', borderWidth: 1, borderColor: '#E8E0ED',
+        backgroundColor: '#FAF8FB', borderWidth: 1, borderColor: '#E8E0ED',
         borderRadius: 15, paddingLeft: 15, marginBottom: 12,
     },
     passwordInput: {

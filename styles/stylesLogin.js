@@ -3,24 +3,24 @@ import { platformShadow } from '../utils/platformShadow';
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#8ED94D',
+    backgroundColor: '#8423D9',
     padding: 12,
     width:  '100%',
     borderRadius: 16,
-    borderColor: '#8AC25A',
-    borderBottomWidth: Platform.OS === 'android' ? 0 : 6,
-    height: 60,
+    borderColor: '#8423D9',
+    borderBottomWidth: 0,
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 9,
-    ...(Platform.OS === 'android' ? platformShadow('#5B9032', 0.22, 10, 5, 2) : {}),
+    ...platformShadow('#5E1A93', 0.18, 12, 6, 3),
   },
   buttonPressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
 
   buttonText: {
     color: '#fff',
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: 'Jua',
   },
 
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#FBF9FD',
+    backgroundColor: '#F8F4FC',
     overflow: 'hidden',
   },
   keyboardView: { flex: 1 },
@@ -39,11 +39,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 20,
-    paddingTop: 46,
-    paddingBottom: 28,
+    paddingTop: Platform.OS === 'web' ? 34 : 18,
+    paddingBottom: 22,
   },
-  authShell: { width:'100%', maxWidth:480, alignSelf:'center' },
-  authShellWide: { maxWidth:1040, minHeight:620, flexDirection:'row', alignItems:'stretch', borderRadius:34, overflow:'hidden', backgroundColor:'#FFFFFF', borderWidth:1, borderColor:'#E6DDEB', ...platformShadow('#3B2146',0.12,24,10,5) },
+  authShell: { width:'100%', maxWidth:440, alignSelf:'center' },
+  authShellWide: { maxWidth:480 },
   backgroundOrbTop: {
     position: 'absolute', width: 260, height: 260, borderRadius: 130,
     backgroundColor: '#F0E4FA', top: -105, right: -85,
@@ -69,27 +69,27 @@ const styles = StyleSheet.create({
 
   imageContainer: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
-  imageContainerWide:{flex:1,justifyContent:'center',alignItems:'flex-start',paddingHorizontal:52,paddingVertical:48,marginBottom:0,backgroundColor:'#F2E8F9'},
-  welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:10},
+  imageContainerWide:{alignItems:'center',marginBottom:16},
+  welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:7},
   welcomeBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#568E35'},
-  mascotWrap: { width: 132, height: 132, alignItems: 'center', justifyContent: 'center' },
-  welcomeTitle:{fontFamily:'Jua',fontSize:28,lineHeight:34,color:'#3C2348',textAlign:'center',maxWidth:380,marginTop:12},
-  subtitleText: { fontSize: 14, lineHeight:21,color: '#706576', marginTop: 8, textAlign: 'center',maxWidth:390 },
+  mascotWrap: { width: 88, height: 88, alignItems: 'center', justifyContent: 'center', transform:[{scale:.72}] },
+  welcomeTitle:{fontFamily:'Jua',fontSize:23,lineHeight:29,color:'#3C2348',textAlign:'center',maxWidth:340,marginTop:5},
+  subtitleText: { fontSize: 12, lineHeight:18,color: '#786D7D', marginTop: 4, textAlign: 'center',maxWidth:340 },
   formCard: {
-    backgroundColor: '#FFFFFF', borderRadius: 26, padding: 22,
-    shadowColor: '#462A5E', shadowOpacity: 0.12, shadowRadius: 20,
-    shadowOffset: { width: 0, height: 8 }, elevation: 6,
+    backgroundColor: '#FFFFFF', borderRadius: 24, padding: 21,
+    borderWidth:1,borderColor:'#E8DFEC',
+    ...platformShadow('#462A5E',0.09,16,7,3),
   },
-  formCardWide:{flex:1.05,borderRadius:0,justifyContent:'center',paddingHorizontal:54,shadowOpacity:0,elevation:0},
-  formHeadingIcon:{width:46,height:46,borderRadius:15,backgroundColor:'#F1E5FA',alignItems:'center',justifyContent:'center',marginBottom:14},
+  formCardWide:{paddingHorizontal:25},
+  formHeadingIcon:{width:42,height:42,borderRadius:14,backgroundColor:'#F1E5FA',alignItems:'center',justifyContent:'center',marginBottom:11},
   formEyebrow:{fontSize:8,fontWeight:'900',letterSpacing:1.2,color:'#6AAB3D',marginBottom:5},
-  formTitle: { fontFamily:'Jua',fontSize: 28, color: '#462A5E', marginBottom: 5 },
-  formSubtitle: { color: '#817586', fontSize: 13, lineHeight:19,marginBottom: 20 },
+  formTitle: { fontFamily:'Jua',fontSize: 25, color: '#462A5E', marginBottom: 3 },
+  formSubtitle: { color: '#817586', fontSize: 12, lineHeight:18,marginBottom: 17 },
   fieldLabel:{fontSize:11,fontWeight:'800',color:'#54415E',marginBottom:7,marginLeft:2},
   inputContainer: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F6F3F8',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#FAF8FB',
     borderWidth: 1, borderColor: '#E8E0ED', borderRadius: 15, paddingHorizontal: 15,
     marginBottom: 12,
   },
@@ -104,13 +104,13 @@ const styles = StyleSheet.create({
 
   linkText: {
       color: '#8423D9',
-      fontWeight: '600',
-      fontSize: 14,
+      fontWeight: '800',
+      fontSize: 12,
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F6F3F8',
+    backgroundColor: '#FAF8FB',
     borderWidth: 1,
     borderColor: '#E8E0ED',
     borderRadius: 15,
@@ -131,9 +131,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   titleText: {
-    color: '#8ED94D',
-    marginTop: 8,
-    fontSize: 28,
+    color: '#8423D9',
+    marginTop: 2,
+    fontSize: 20,
     fontFamily: 'Jua'  
   },
 

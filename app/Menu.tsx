@@ -1,4 +1,4 @@
-import { SafeAreaView, Text, View, Pressable, Image, Platform, StatusBar, ScrollView, useWindowDimensions, Animated, AppState } from 'react-native';
+import { SafeAreaView, Text, View, Pressable, Image, Platform, StatusBar, ScrollView, useWindowDimensions, Animated, AppState, Modal, TextInput, ActivityIndicator } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import styles from '../styles/stylesMenu';
@@ -6,13 +6,20 @@ import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import { Ionicons } from '@expo/vector-icons';
 import StudentBottomNav from '../components/StudentBottomNav';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useClassCode } from '../context/ClassCodeContext';
 
 const Menu = () => {
     const { user } = useContext(AuthContext);
+    const { setClassCode: saveClassCode } = useClassCode();
     const router = useRouter();
     const { width } = useWindowDimensions();
     const isCompact = width < 390;
     const [classCode, setClassCode] = useState('');
+    const [classPromptVisible, setClassPromptVisible] = useState(false);
+    const [classCodeInput, setClassCodeInput] = useState('');
+    const [classPromptError, setClassPromptError] = useState('');
+    const [joiningClass, setJoiningClass] = useState(false);
     const [mascotFrame, setMascotFrame] = useState(0);
     const mascotFrames = [require('../assets/idle.png'), require('../assets/hello.png'), require('../assets/talk.png')];
     const [dailyMinutes, setDailyMinutes] = useState(0);
@@ -29,7 +36,13 @@ const Menu = () => {
                 const response = await fetch(`${expoconfig.API_URL}/api/students/getStudentByEmail?email=${user?.email}`);
                 if (response.ok) {
                     const student = await response.json();
-                    setClassCode(student?.classCode || 'Unknown');
+                    const assignedCode = String(student?.classCode || '').trim();
+                    setClassCode(assignedCode);
+                    if (!assignedCode) {
+                        const promptKey = `classCodePromptSeen:${String(user?.email || '').toLowerCase()}`;
+                        const alreadySeen = await AsyncStorage.getItem(promptKey);
+                        if (!alreadySeen) setClassPromptVisible(true);
+                    }
                 } else {
                     console.error('Failed to fetch class code:', response.statusText);
                 }
@@ -39,6 +52,34 @@ const Menu = () => {
         };
         if (user?.email) fetchClassCode();
     }, [user]);
+
+    const dismissClassPrompt = async () => {
+        if (user?.email) await AsyncStorage.setItem(`classCodePromptSeen:${user.email.toLowerCase()}`, 'true');
+        setClassPromptVisible(false);
+        setClassPromptError('');
+    };
+
+    const joinClass = async () => {
+        const code = classCodeInput.trim();
+        if (!code || !user?.email || joiningClass) {
+            if (!code) setClassPromptError('Enter the class code shared by your teacher.');
+            return;
+        }
+        setJoiningClass(true);setClassPromptError('');
+        try {
+            const response = await fetch(`${expoconfig.API_URL}/api/students/joinClass?email=${encodeURIComponent(user.email)}&classCode=${encodeURIComponent(code)}`, { method: 'POST' });
+            if (!response.ok) {
+                const message = await response.text();
+                throw new Error(message || 'That class code could not be found.');
+            }
+            await AsyncStorage.setItem('classCode', code);
+            await AsyncStorage.setItem(`classCodePromptSeen:${user.email.toLowerCase()}`, 'true');
+            await saveClassCode(code);
+            setClassCode(code);setClassPromptVisible(false);setClassCodeInput('');
+        } catch (error) {
+            setClassPromptError(error instanceof Error ? error.message.replace(/^.*"message":"?([^"}]+).*$/,'$1') : 'The class could not be joined.');
+        } finally { setJoiningClass(false); }
+    };
 
     useEffect(() => {
         const waveTimer = setInterval(() => setMascotFrame((frame) => (frame + 1) % mascotFrames.length), 700);
@@ -158,7 +199,7 @@ const Menu = () => {
                                 <View style={styles.classCopy}>
                                     <Text style={styles.classLabel}>YOUR CLASS</Text>
                                     <Text style={[styles.classText, isCompact && styles.classTextCompact]}>Foreign Language 3 · Nihongo 1</Text>
-                                    <Text style={styles.classCode}>FLO33 {classCode}</Text>
+                                    <Text style={styles.classCode}>{classCode || 'No teacher class connected yet'}</Text>
                                 </View>
                                 <Ionicons name="checkmark-circle" size={23} color="#72B83F" />
                             </View>
@@ -213,6 +254,23 @@ const Menu = () => {
                     </ScrollView>
                     <StudentBottomNav active="home" />
                 </View>
+            <Modal visible={classPromptVisible} transparent animationType="fade" statusBarTranslucent onRequestClose={()=>void dismissClassPrompt()}>
+                <View style={styles.classPromptBackdrop}>
+                    <View style={styles.classPromptCard}>
+                        <View style={styles.classPromptAccent}/>
+                        <Pressable accessibilityLabel="Skip class code" onPress={()=>void dismissClassPrompt()} style={styles.classPromptClose}><Ionicons name="close" size={20} color="#796C80"/></Pressable>
+                        <View style={styles.classPromptIcon}><Ionicons name="school-outline" size={28} color="#FFFFFF"/></View>
+                        <Text style={styles.classPromptEyebrow}>OPTIONAL CLASS CONNECTION</Text>
+                        <Text style={styles.classPromptTitle}>Do you have a class code?</Text>
+                        <Text style={styles.classPromptText}>Join your teacher’s classroom to receive assigned lessons and activities. You can skip this and add a code later from Profile.</Text>
+                        <View style={[styles.classPromptInput,classPromptError&&styles.classPromptInputError]}><Ionicons name="key-outline" size={20} color="#8423D9"/><TextInput value={classCodeInput} onChangeText={value=>{setClassCodeInput(value.replace(/\s/g,'').toLowerCase());setClassPromptError('');}} autoCapitalize="none" autoCorrect={false} placeholder="Example: nihonggo1234" placeholderTextColor="#A99BAF" style={styles.classPromptField}/></View>
+                        {!!classPromptError&&<Text style={styles.classPromptError}>{classPromptError}</Text>}
+                        <Pressable disabled={joiningClass} onPress={()=>void joinClass()} style={({pressed})=>[styles.classPromptPrimary,(pressed||joiningClass)&&{opacity:.75}]}>{joiningClass?<ActivityIndicator color="#FFFFFF"/>:<><Text style={styles.classPromptPrimaryText}>Join classroom</Text><Ionicons name="arrow-forward" size={19} color="#FFFFFF"/></>}</Pressable>
+                        <Pressable onPress={()=>void dismissClassPrompt()} style={styles.classPromptSkip}><Text style={styles.classPromptSkipText}>Skip for now</Text></Pressable>
+                        <View style={styles.classPromptHint}><Ionicons name="person-circle-outline" size={18} color="#6C9E45"/><Text style={styles.classPromptHintText}>Later: Profile → Class connection</Text></View>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 };

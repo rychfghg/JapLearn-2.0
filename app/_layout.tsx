@@ -44,7 +44,7 @@ const getFonts = async () => {
 const routeAccessConfig: Record<string, string[]> = {
   student: [
     'Menu', 'ResetButton', 'Quackamole', 'Quackslate', 'QuackslateWait', 'QuackslateMenu', 'NewMenu', 'Words1', 'KanaMenu', 'HiraganaMenu', 'KatakanaMenu', 'HiraganaSet1',
-    'HiraganaSet2', 'HiraganaSet3', 'KatakanaSet1', 'KatakanaSet2', 'KatakanaSet3', 'Quackman', 'StartMenu',
+    'HiraganaSet2', 'HiraganaSet3', 'KatakanaSet1', 'KatakanaSet2', 'KatakanaSet3', 'Quackman',
     'Profile', 'Lessons', 'LessonKanaGame', 'LearnMenu', 'TeacherLesson', 'Exercises', 'Content3', 'Game3', 'CharacterExercise1',
     'CharacterExercise2', 'CharacterExercise3', 'CharacterExercise4', 'CharacterExercise5', 'CharacterExercise6', 'WordsMenu', 
     'Words2', 'Words3', 'WordsPractice', 'QuackSituate', 'QuackSituate',
@@ -185,13 +185,7 @@ const RootLayout = () => {
     const normalizedRole = String(user.role || '').toLowerCase();
 
     if (normalizedRole === 'student') {
-      AsyncStorage.getItem('classCode')
-        .then((classCode) => {
-          router.replace(classCode ? '/Menu' : '/StartMenu');
-        })
-        .catch(() => {
-          router.replace('/Menu');
-        });
+      router.replace('/Menu');
       return;
     }
 
@@ -237,7 +231,6 @@ const RootLayout = () => {
         <Stack.Screen name="ResetPassword" />
         <Stack.Screen name="ConfirmEmail" />
         <Stack.Screen name="Menu" />
-        <Stack.Screen name="StartMenu" />
         <Stack.Screen name="Profile" />
         <Stack.Screen name="TeacherDashboard" />
         <Stack.Screen name="ProfileTeacher" />

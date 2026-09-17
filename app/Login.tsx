@@ -45,7 +45,7 @@ const Login = () => {
         if (cleanRole === 'teacher') {
             router.replace('/TeacherDashboard');
         } else if (cleanRole === 'student') {
-            router.replace(userClassCode ? '/Menu' : '/StartMenu');
+            router.replace('/Menu');
         } else {
             router.replace('/Login');
         }
