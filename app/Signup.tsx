@@ -157,15 +157,11 @@ const Signup = () => {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                 <View style={[styles.contentWrapper, isWide && styles.contentWrapperWide]}>
                     <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
-                        <View style={styles.welcomeBadge}><Ionicons name="leaf-outline" size={15} color="#5B9637" /><Text style={styles.welcomeBadgeText}>BEGIN YOUR JOURNEY</Text></View>
                         <Logo width={88} height={88} />
-                        <Text style={styles.brandText}>JAPLEARN 2.0</Text>
-                        <Text style={styles.heroTitle}>Japanese practice made for steady progress.</Text>
-                        <Text style={styles.subtitleText}>Create one student account to keep lessons, games, daily goals, and feedback in sync.</Text>
+                        <Text style={styles.brandText}>JAPLEARN</Text>
                     </View>
                     <View style={[styles.formCard, isWide && styles.formCardWide]}>
-                    <View style={styles.formHeading}><View style={styles.formHeadingIcon}><Ionicons name="person-add-outline" size={22} color="#8423D9" /></View><View><Text style={styles.formEyebrow}>STUDENT REGISTRATION</Text><Text style={styles.titleText}>Create your account</Text></View></View>
-                    <Text style={styles.formSubtitle}>Use your details below to start learning.</Text>
+                    <Text style={styles.titleText}>Create account</Text>
                     <Text style={styles.fieldLabel}>First name</Text>
                     <View style={styles.inputShell}>
                     <Ionicons name="person-outline" size={21} color="#8423D9" />

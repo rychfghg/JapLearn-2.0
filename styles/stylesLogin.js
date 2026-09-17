@@ -69,12 +69,12 @@ const styles = StyleSheet.create({
 
   imageContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   imageContainerWide:{alignItems:'center',marginBottom:16},
   welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:7},
   welcomeBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#568E35'},
-  mascotWrap: { width: 88, height: 88, alignItems: 'center', justifyContent: 'center', transform:[{scale:.72}] },
+  mascotWrap: { width: 78, height: 78, borderRadius:22,alignItems: 'center', justifyContent: 'center', transform:[{scale:.68}] },
   welcomeTitle:{fontFamily:'Jua',fontSize:23,lineHeight:29,color:'#3C2348',textAlign:'center',maxWidth:340,marginTop:5},
   subtitleText: { fontSize: 12, lineHeight:18,color: '#786D7D', marginTop: 4, textAlign: 'center',maxWidth:340 },
   formCard: {
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
   formCardWide:{paddingHorizontal:25},
   formHeadingIcon:{width:42,height:42,borderRadius:14,backgroundColor:'#F1E5FA',alignItems:'center',justifyContent:'center',marginBottom:11},
   formEyebrow:{fontSize:8,fontWeight:'900',letterSpacing:1.2,color:'#6AAB3D',marginBottom:5},
-  formTitle: { fontFamily:'Jua',fontSize: 25, color: '#462A5E', marginBottom: 3 },
+  formTitle: { fontFamily:'Jua',fontSize: 27, color: '#3B2446', marginBottom: 20 },
   formSubtitle: { color: '#817586', fontSize: 12, lineHeight:18,marginBottom: 17 },
   fieldLabel:{fontSize:11,fontWeight:'800',color:'#54415E',marginBottom:7,marginLeft:2},
   inputContainer: {
@@ -132,8 +132,8 @@ const styles = StyleSheet.create({
   },
   titleText: {
     color: '#8423D9',
-    marginTop: 2,
-    fontSize: 20,
+    marginTop: 4,
+    fontSize: 21,
     fontFamily: 'Jua'  
   },
 

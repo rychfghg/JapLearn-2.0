@@ -61,12 +61,12 @@ const styles = StyleSheet.create({
 
     imageContainer: {
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 17,
     },
     imageContainerWide:{alignItems:'center',marginBottom:15},
     welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:8},
     welcomeBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#568E35'},
-    brandText: { color: '#8423D9', fontSize: 18, fontFamily: 'Jua', marginTop: 4 },
+    brandText: { color: '#8423D9', fontSize: 20, fontFamily: 'Jua', marginTop: 5 },
     heroTitle:{fontFamily:'Jua',fontSize:22,lineHeight:28,color:'#3C2348',textAlign:'center',maxWidth:350,marginTop:5},
     subtitleText: { color: '#74687A', fontSize: 12,lineHeight:18, marginTop: 4, textAlign: 'center',maxWidth:350 },
     formHeading:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:8},
@@ -118,11 +118,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     titleText: {
-        fontSize: 25,
+        fontSize: 27,
         fontFamily: 'Jua',
-        color: '#462A5E',
+        color: '#3B2446',
         marginTop: 0,
-        textAlign: 'center',
+        marginBottom: 20,
+        textAlign: 'left',
     },
 
     modalWrapper: {

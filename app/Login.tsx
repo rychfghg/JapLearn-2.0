@@ -201,20 +201,14 @@ const Login = () => {
                 >
                 <View style={[styles.authShell, isWide && styles.authShellWide]}>
                 <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
-                    <View style={styles.welcomeBadge}><Ionicons name="sparkles-outline" size={15} color="#5B9637" /><Text style={styles.welcomeBadgeText}>YOUR JAPANESE JOURNEY</Text></View>
                     <View style={styles.mascotWrap}>
                         <Logo width={132} height={132} />
                     </View>
-                    <Text style={styles.titleText}>JAPLEARN 2.0</Text>
-                    <Text style={styles.welcomeTitle}>Continue learning with confidence.</Text>
-                    <Text style={styles.subtitleText}>Practice useful Japanese, build your progress, and keep every achievement connected to your account.</Text>
+                    <Text style={styles.titleText}>JAPLEARN</Text>
                 </View>
 
                 <View style={[styles.formCard, isWide && styles.formCardWide]}>
-                <View style={styles.formHeadingIcon}><Ionicons name="person-outline" size={22} color="#8423D9" /></View>
-                <Text style={styles.formEyebrow}>STUDENT ACCOUNT</Text>
-                <Text style={styles.formTitle}>Welcome back</Text>
-                <Text style={styles.formSubtitle}>Sign in to continue your Japanese practice.</Text>
+                <Text style={styles.formTitle}>Sign in</Text>
                 <Text style={styles.fieldLabel}>Email address</Text>
                 <View style={styles.inputContainer}>
                     <Ionicons name="mail-outline" size={21} color="#8423D9" style={styles.inputIcon} />
