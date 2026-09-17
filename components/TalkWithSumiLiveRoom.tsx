@@ -26,7 +26,7 @@ async function activateDeviceAudio(mode:'playback'|'recording'){
  // screen mounts can terminate the native audio session on some APK builds.
  if(Platform.OS==='ios'){
   AudioManager.setAudioSessionOptions(mode==='recording'
-   ?{iosCategory:'playAndRecord',iosMode:'default',iosOptions:['defaultToSpeaker','allowBluetoothHFP']}
+   ?{iosCategory:'playAndRecord',iosMode:'default',iosOptions:['defaultToSpeaker','allowBluetooth']}
    :{iosCategory:'playback',iosMode:'spokenAudio',iosOptions:['allowBluetoothA2DP']});
  }
  await AudioManager.setAudioSessionActivity(true);
@@ -42,10 +42,6 @@ export default function TalkWithSumiLiveRoom(){
  useEffect(()=>{
   if(!user?.email){setState('error');setMessage('Sign in to talk with Sumi.');return;}
   let active=true;mounted.current=true;
-  if(Platform.OS!=='web'){
-   AudioManager.setAudioSessionOptions({iosCategory:'playback',iosMode:'spokenAudio',iosOptions:['allowAirPlay','allowBluetoothA2DP']});
-   void AudioManager.setAudioSessionActivity(true).catch(()=>undefined);
-  }
   const start=async()=>{
    try{
     const response=await request(`${expoconfig.API_URL}/api/talk-with-sumi/live-token`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email})});
@@ -56,7 +52,7 @@ export default function TalkWithSumiLiveRoom(){
     if(!response.ok)throw new Error(body.message||'The conversation could not open.');
     if(!active)return;
     const live=new GeminiGuidedPhraseLive({
-     onConnected:()=>{if(!active)return;setState('thinking');setMessage('Sumi is greeting you…');},
+     onConnected:()=>{if(!active)return;setState('start');setMessage('Tap Start conversation so Sumi can greet you.');},
      onSpeaking:value=>{if(!active||ending.current)return;if(value){setState('speaking');setMessage('Listen to Sumi…');}else{setState(current=>current==='start'||current==='error'||current==='listening'||current==='saving'||current==='finished'?current:'ready');setMessage('Your turn—tap the microphone and answer naturally.');}},
      onInputTranscript:text=>{const clean=text.trim();if(clean)transcriptsRef.current=[...transcriptsRef.current,clean].slice(-30);},
      onOutputTranscript:()=>undefined,onTurn:()=>undefined,onEvaluation:()=>undefined,
@@ -65,14 +61,18 @@ export default function TalkWithSumiLiveRoom(){
      onComplete:()=>{setState('error');setMessage('The live conversation ended. Save your session and return to QuackTalk.');}
     },'conversation');
     liveRef.current=live;
-    await live.connect(body as GuidedLiveAccess);
+    // Talk with Sumi must not construct or activate the native playback graph
+    // while the route is mounting. Some Android builds terminate the activity
+    // when that happens. Queue Sumi's opening audio and unlock it only from the
+    // learner's explicit Start tap.
+    await live.connect(body as GuidedLiveAccess,{deferNativeAudio:true});
    }catch(error){if(active){setState('error');setMessage(error instanceof Error?error.message:'The conversation could not open.');}}
   };
   void start();
   return()=>{active=false;mounted.current=false;transmitting.current=false;if(recordingTimeout.current)clearTimeout(recordingTimeout.current);liveRef.current?.close();try{recorderRef.current?.stop();}catch{}webStreamRef.current?.getTracks?.().forEach((track:any)=>track.stop());void webContextRef.current?.close?.();if(Platform.OS!=='web')void AudioManager.setAudioSessionActivity(false).catch(()=>undefined);};
  },[user?.email]);
 
- const unlock=async()=>{try{setState('thinking');setMessage('Sumi is greeting you…');await activateDeviceAudio('playback');await liveRef.current?.activateAudio();}catch(error){setState('ready');setMessage(error instanceof Error?error.message:'Tap the microphone when you are ready.');}};
+ const unlock=async()=>{try{setState('thinking');setMessage('Sumi is greeting you…');await activateDeviceAudio('playback');await liveRef.current?.activateAudio();}catch(error){setState('start');setMessage(error instanceof Error?error.message:'Tap again to start the conversation.');}};
  const startWeb=async()=>{const devices=(globalThis.navigator as any)?.mediaDevices;if(!devices?.getUserMedia)throw new Error('Microphone recording is unavailable in this browser.');const stream=await devices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}});const AC=(globalThis as any).AudioContext||(globalThis as any).webkitAudioContext;const context=new AC();await context.resume();const source=context.createMediaStreamSource(stream);const processor=context.createScriptProcessor(2048,1,1);const silent=context.createGain();silent.gain.value=0;processor.onaudioprocess=(event:any)=>{const input=event.inputBuffer.getChannelData(0);const ratio=context.sampleRate/16000;const output=new Float32Array(Math.max(1,Math.floor(input.length/ratio)));for(let i=0;i<output.length;i++)output[i]=input[Math.min(input.length-1,Math.floor(i*ratio))];if(transmitting.current)liveRef.current?.sendPcm16(output);};source.connect(processor);processor.connect(silent);silent.connect(context.destination);const MR=(globalThis as any).MediaRecorder;if(!MR)throw new Error('This browser cannot prepare speech review.');const recorder=new MR(stream);chunksRef.current=[];recorder.ondataavailable=(event:any)=>{if(event.data?.size)chunksRef.current.push(event.data);};webStreamRef.current=stream;webContextRef.current=context;webProcessorRef.current=processor;webRecorderRef.current=recorder;recorder.start(250);};
  const startMic=async()=>{
   if(state!=='ready'||micBusy.current||ending.current||remaining<=0)return;

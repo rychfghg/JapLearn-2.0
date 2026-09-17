@@ -46,7 +46,7 @@ export default function GuidedPhraseLiveRoom(){
    await live.activateAudio();setAudioUnlocked(true);live.interrupt();setState('thinking');
    if(Platform.OS==='web')await startWebMic();
    else{
-    AudioManager.setAudioSessionOptions({iosCategory:'playAndRecord',iosMode:'default',iosOptions:['defaultToSpeaker','allowBluetoothHFP']});
+   AudioManager.setAudioSessionOptions({iosCategory:'playAndRecord',iosMode:'default',iosOptions:['defaultToSpeaker','allowBluetooth']});
     await AudioManager.setAudioSessionActivity(true);
     const recorder=new AudioRecorder();recorderRef.current=recorder;
     const file=recorder.enableFileOutput({format:FileFormat.Wav,preset:FilePreset.Medium});
