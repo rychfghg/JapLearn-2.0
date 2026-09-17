@@ -33,7 +33,7 @@ const Quackslate = () => {
     const scoreSubmitted = useRef(false);
     const [shuffledButtons, setShuffledButtons] = useState<string[]>([]);
     const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
-    const [timer, setTimer] = useState(10);
+    const [timer, setTimer] = useState(15);
     const [content, setContent] = useState<SlateContent[]>([]);
     const [currentIndex, setCurrentIndex] = useState<number | null>(0);
     const [japaneseText, setJapaneseText] = useState('');
@@ -543,7 +543,7 @@ const playAnswerSound = async (isCorrect: boolean) => {
     
     
 
-    const resetTimer = () => setTimer(10);
+    const resetTimer = () => setTimer(15);
 
     const shuffleButtons = (buttons: string[]) => {
         const shuffled = [...buttons];

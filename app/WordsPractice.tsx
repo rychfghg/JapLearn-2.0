@@ -60,7 +60,7 @@ export default function WordsPractice() {
     <View style={styles.progress}><View style={[styles.progressFill, { width: `${((index + 1) / mixed.length) * 100}%` }]} /></View>
     <View style={styles.quizCard}>
       <View style={styles.questionHead}><View style={styles.questionTag}><Ionicons name="images-outline" size={14} color="#8423D9" /><Text style={styles.questionTagText}>VISUAL RECALL</Text></View><Text style={styles.prompt}>Which Japanese word matches this picture?</Text></View>
-      <View style={styles.imageStage}><Image source={item.image} style={styles.image} /></View>
+      <View style={styles.imageStage}><View style={styles.imageHalo} /><Image source={item.image} style={styles.image} resizeMode="contain" /></View>
       <View style={styles.hintRow}><Text style={styles.hintLabel}>English clue</Text><Ionicons name="arrow-forward" size={13} color="#8B7E90" /><Text style={styles.hint}>{item.meaning}</Text></View>
       <View style={styles.choices}>{item.choices.map(choice => {
         const correct = Boolean(selected) && choice === item.answer;

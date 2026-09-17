@@ -104,7 +104,7 @@ const Words = () => {
         {currentWord ? (
           <View style={styles.contentContainer}>
             {/* Word Image */}
-            <View style={styles.imageStage}><View style={styles.imageAccent} /><View style={styles.imageAccentSmall} /><Image source={currentWord.image} style={styles.image} /></View>
+            <View style={styles.imageStage}><View style={styles.imageAccent} /><View style={styles.imageAccentSmall} /><Image source={currentWord.image} style={styles.image} resizeMode="contain" /></View>
             <View style={styles.wordContent}>
             <Text style={styles.categoryLabel}>Picture dictionary · Set 2</Text>
             <Text style={styles.japanese}>{currentWord.word}</Text><Text style={styles.romaji}>{currentWord.romaji}</Text><Text style={styles.english}>{currentWord.translation}</Text>

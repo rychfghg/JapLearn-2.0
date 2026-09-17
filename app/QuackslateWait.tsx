@@ -56,7 +56,9 @@ export default function QuackslateWait() {
       }
     };
     void check();
-    const poll = setInterval(() => void check(), 3000);
+    // Keep automatic entry responsive without creating a request spike when
+    // an entire classroom waits behind the same Wi-Fi connection.
+    const poll = setInterval(() => void check(), 5000);
     const tick = setInterval(() => setRemaining(value => value == null ? null : Math.max(0, value - 1)), 1000);
     const tipsTimer = setInterval(() => setTipIndex(value => (value + 1) % tips.length), 9000);
     return () => { active = false; clearInterval(poll); clearInterval(tick); clearInterval(tipsTimer); };
@@ -73,13 +75,15 @@ export default function QuackslateWait() {
           <View style={s.headerSpacer} />
         </View>
         <View style={s.main}>
-          <View style={s.mascotCircle}><Image source={mascot} resizeMode="contain" style={s.mascot} /></View>
+          <View style={s.waitBadge}><Ionicons name="cloud-done-outline" size={15} color="#FFFFFF" /><Text style={s.waitBadgeText}>CONNECTED TO CLASS</Text></View>
+          <View style={s.mascotStage}><View style={s.mascotHalo} /><View style={s.mascotCircle}><Image source={mascot} resizeMode="contain" style={s.mascot} /></View></View>
           <View style={s.card}>
             <View style={s.statePill}><Ionicons name={closed ? 'close-circle-outline' : 'time-outline'} size={17} color={closed ? '#BD5463' : '#6AAB3D'} /><Text style={[s.stateText, closed && s.closedText]}>{closed ? 'SESSION UNAVAILABLE' : 'YOUR CLASS IS ALMOST READY'}</Text></View>
             <Text style={s.title}>{closed ? 'This class code has closed' : 'Ready when your teacher starts'}</Text>
             <Text style={s.description}>{closed ? 'Return to QuackSlate and ask your teacher for another code.' : 'You are checked in. Your sentence round opens automatically when the scheduled time begins.'}</Text>
             <View style={s.codeRow}><View style={s.codeIcon}><Ionicons name="key-outline" size={21} color="#7B2FC0" /></View><View><Text style={s.codeLabel}>CLASS CODE</Text><Text style={s.code}>{code || '—'}</Text></View><Ionicons name="checkmark-circle" size={22} color="#6AAB3D" style={s.codeCheck} /></View>
             {!closed && <View style={s.countdownCard}><View style={s.countdownHeading}><Ionicons name="alarm-outline" size={18} color="#7B2FC0" /><Text style={s.countdownLabel}>STARTS IN</Text></View><Text style={s.countdown}>{countdown}</Text><Text style={s.countdownNote}>{remaining == null ? 'Checking your teacher’s schedule…' : remaining === 0 ? 'Opening your round…' : 'No need to refresh. We’ll take you in automatically.'}</Text></View>}
+            {!closed && <View style={s.waitTimeline}><View style={s.timelineItem}><View style={[s.timelineDot,s.timelineDotDone]}><Ionicons name="checkmark" size={13} color="#fff" /></View><Text style={s.timelineDone}>Code accepted</Text></View><View style={s.timelineLine} /><View style={s.timelineItem}><View style={[s.timelineDot,s.timelineDotActive]}><Ionicons name="time-outline" size={13} color="#7B2FC0" /></View><Text style={s.timelineActive}>Waiting room</Text></View><View style={s.timelineLine} /><View style={s.timelineItem}><View style={s.timelineDot}><Ionicons name="play" size={11} color="#A796AE" /></View><Text style={s.timelineText}>Play</Text></View></View>}
             {closed && <Pressable style={s.returnButton} onPress={() => router.replace('/QuackslateMenu')}><Text style={s.returnText}>Back to QuackSlate</Text><Ionicons name="arrow-forward" size={17} color="#fff" /></Pressable>}
           </View>
           {!closed && <View style={s.tipCard}><View style={s.tipHeader}><Ionicons name="bulb-outline" size={19} color="#739D2B" /><Text style={s.tipTitle}>WHILE YOU WAIT</Text></View><Text style={s.tipText}>{tips[tipIndex]}</Text><View style={s.tipDots}>{tips.map((_, index) => <View key={index} style={[s.tipDot, index === tipIndex && s.tipDotActive]} />)}</View></View>}
@@ -91,17 +95,19 @@ export default function QuackslateWait() {
 
 const s = StyleSheet.create({
   screen:{flex:1,backgroundColor:'#261138'},
-  background:{flex:1}, backgroundImage:{opacity:0.55},
-  shade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(36,17,52,0.56)'},
+  background:{flex:1}, backgroundImage:{opacity:0.68},
+  shade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(35,15,49,0.62)'},
   layout:{flexGrow:1,paddingHorizontal:20,paddingBottom:32},
   header:{height:82,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
   back:{width:44,height:44,borderRadius:15,backgroundColor:'#fff',alignItems:'center',justifyContent:'center'},
   headerTitle:{color:'#fff',fontSize:14,fontWeight:'900',letterSpacing:2},
   headerSpacer:{width:44},
-  main:{flex:1,justifyContent:'center',alignItems:'center',paddingTop:24},
-  mascotCircle:{width:126,height:126,borderRadius:63,backgroundColor:'#F3E8FC',borderWidth:6,borderColor:'#fff',alignItems:'center',justifyContent:'center',marginBottom:-18,zIndex:1},
+  main:{flex:1,justifyContent:'center',alignItems:'center',paddingTop:22},
+  waitBadge:{flexDirection:'row',alignItems:'center',gap:7,marginBottom:13,paddingHorizontal:13,paddingVertical:8,borderRadius:99,backgroundColor:'rgba(118,176,70,.92)',borderWidth:1,borderColor:'rgba(255,255,255,.35)'},waitBadgeText:{color:'#fff',fontSize:8,fontWeight:'900',letterSpacing:1.2},
+  mascotStage:{width:142,height:118,alignItems:'center',justifyContent:'center',zIndex:2},mascotHalo:{position:'absolute',width:142,height:142,borderRadius:71,backgroundColor:'rgba(255,255,255,.15)',borderWidth:1,borderColor:'rgba(255,255,255,.35)'},
+  mascotCircle:{width:112,height:112,borderRadius:56,backgroundColor:'#F3E8FC',borderWidth:5,borderColor:'#fff',alignItems:'center',justifyContent:'center',marginBottom:-18,zIndex:1,shadowColor:'#1F0C2A',shadowOpacity:.25,shadowRadius:17,shadowOffset:{width:0,height:9},elevation:8},
   mascot:{width:105,height:105},
-  card:{width:'100%',maxWidth:500,borderRadius:27,backgroundColor:'#fff',paddingHorizontal:22,paddingTop:38,paddingBottom:23,alignItems:'center'},
+  card:{width:'100%',maxWidth:500,borderRadius:30,backgroundColor:'#FFFCFF',paddingHorizontal:22,paddingTop:42,paddingBottom:23,alignItems:'center',borderWidth:1,borderColor:'rgba(255,255,255,.72)',shadowColor:'#1F0C2A',shadowOpacity:.24,shadowRadius:25,shadowOffset:{width:0,height:13},elevation:12},
   statePill:{flexDirection:'row',gap:7,alignItems:'center',backgroundColor:'#F0F9E8',borderRadius:999,paddingHorizontal:12,paddingVertical:7},
   stateText:{color:'#5C9431',fontSize:10,fontWeight:'900',letterSpacing:1.2},
   closedText:{color:'#BD5463'},
@@ -112,14 +118,15 @@ const s = StyleSheet.create({
   codeLabel:{fontSize:9,fontWeight:'900',letterSpacing:1.1,color:'#927DA0'},
   code:{fontSize:19,fontWeight:'900',letterSpacing:2,color:'#5A2575',marginTop:2},
   codeCheck:{marginLeft:'auto'},
-  countdownCard:{width:'100%',borderRadius:18,backgroundColor:'#F4EBFC',paddingVertical:20,alignItems:'center',marginTop:14},
+  countdownCard:{width:'100%',borderRadius:21,backgroundColor:'#F4EBFC',paddingVertical:20,alignItems:'center',marginTop:14,borderWidth:1,borderColor:'#E5D3F2'},
   countdownHeading:{flexDirection:'row',alignItems:'center',gap:7},
   countdownLabel:{fontSize:10,fontWeight:'900',letterSpacing:1.3,color:'#8355A0'},
   countdown:{fontFamily:'Jua',fontSize:50,color:'#792BC4',marginTop:3},
   countdownNote:{fontSize:11,color:'#8A759A',textAlign:'center',paddingHorizontal:12},
+  waitTimeline:{width:'100%',flexDirection:'row',alignItems:'flex-start',justifyContent:'center',marginTop:18,paddingHorizontal:4},timelineItem:{width:74,alignItems:'center',gap:6},timelineLine:{flex:1,height:2,marginTop:14,backgroundColor:'#E6DDE9'},timelineDot:{width:29,height:29,borderRadius:15,backgroundColor:'#F0EBF2',alignItems:'center',justifyContent:'center'},timelineDotDone:{backgroundColor:'#72AC48'},timelineDotActive:{backgroundColor:'#F0E3FA',borderWidth:1,borderColor:'#D4B7E7'},timelineDone:{fontSize:8,fontWeight:'800',color:'#6B9E43',textAlign:'center'},timelineActive:{fontSize:8,fontWeight:'800',color:'#7B2FC0',textAlign:'center'},timelineText:{fontSize:8,fontWeight:'800',color:'#A18FA8',textAlign:'center'},
   returnButton:{marginTop:22,backgroundColor:'#7B2FC0',borderRadius:13,paddingVertical:14,paddingHorizontal:20,flexDirection:'row',alignItems:'center',gap:9},
   returnText:{color:'#fff',fontWeight:'800'},
-  tipCard:{width:'100%',maxWidth:500,borderRadius:18,backgroundColor:'#F7FFE9',padding:18,marginTop:15},
+  tipCard:{width:'100%',maxWidth:500,borderRadius:20,backgroundColor:'rgba(250,255,241,.97)',padding:18,marginTop:16,borderWidth:1,borderColor:'#DCEBC9',shadowColor:'#1D1025',shadowOpacity:.12,shadowRadius:14,shadowOffset:{width:0,height:7},elevation:5},
   tipHeader:{flexDirection:'row',gap:8,alignItems:'center'},
   tipTitle:{fontSize:10,letterSpacing:1.2,fontWeight:'900',color:'#709634'},
   tipText:{fontSize:13,color:'#4F6245',lineHeight:19,marginTop:9},

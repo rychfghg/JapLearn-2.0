@@ -53,7 +53,7 @@ const WordsMenu = () => {
   const LessonCard = ({ title, copy, status, image, green, locked, onPress }: any) => (
     <Pressable style={[styles.setCard, locked && styles.setCardLocked]} disabled={locked} onPress={onPress}>
       <View style={[styles.imagePanel, green && styles.imagePanelGreen]}>
-        <Text style={styles.cardCharacter}>{green ? '職' : '人'}</Text><Image source={image} style={styles.cardImage} resizeMode="cover" fadeDuration={0} />
+        <View style={styles.cardImageHalo} /><Text style={styles.cardCharacter}>{green ? '職' : '人'}</Text><Image source={image} style={styles.cardImage} resizeMode="contain" fadeDuration={0} />
       </View>
       <View style={styles.cardContent}>
         <View style={styles.cardTop}><Text style={[styles.status, status === 'COMPLETED' && styles.statusDone]}>{status}</Text><Ionicons name={status === 'COMPLETED' ? 'checkmark-circle' : locked ? 'lock-closed' : 'images-outline'} size={20} color={status === 'COMPLETED' ? '#61B936' : locked ? '#A99DAE' : '#8423D9'} /></View>
@@ -78,9 +78,9 @@ const WordsMenu = () => {
         <Pressable style={[styles.reviewCard, !isReviewUnlocked && styles.reviewCardLocked]} disabled={!isReviewUnlocked} onPress={() => router.push('/WordsPractice')}>
           <View style={styles.reviewGlow} />
           <View style={styles.reviewArtwork}>
-            <View style={[styles.reviewPhoto, styles.reviewPhotoBack]}><Image source={require('../assets/words3_image/train.png')} style={styles.reviewPhotoImage} /></View>
-            <View style={[styles.reviewPhoto, styles.reviewPhotoMiddle]}><Image source={require('../assets/words_premium/words2-teacher.png')} style={styles.reviewPhotoImage} /></View>
-            <View style={[styles.reviewPhoto, styles.reviewPhotoFront]}><Image source={require('../assets/words_premium/words1-friend.png')} style={styles.reviewPhotoImage} /></View>
+            <View style={[styles.reviewPhoto, styles.reviewPhotoBack]}><Image source={require('../assets/words3_image/train.png')} style={styles.reviewPhotoImage} resizeMode="contain" /></View>
+            <View style={[styles.reviewPhoto, styles.reviewPhotoMiddle]}><Image source={require('../assets/words_premium/words2-teacher.png')} style={styles.reviewPhotoImage} resizeMode="contain" /></View>
+            <View style={[styles.reviewPhoto, styles.reviewPhotoFront]}><Image source={require('../assets/words_premium/words1-friend.png')} style={styles.reviewPhotoImage} resizeMode="contain" /></View>
             <View style={styles.reviewSpark}><Ionicons name={isReviewUnlocked ? 'sparkles' : 'lock-closed'} size={18} color="#FFFFFF" /></View>
           </View>
           <View style={styles.reviewContent}>

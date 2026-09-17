@@ -107,7 +107,7 @@ const Words = () => {
           <View style={styles.contentContainer}>
             <View style={styles.imageStage}>
               <View style={styles.imageAccent} /><View style={styles.imageAccentSmall} />
-              <Image source={currentWord.image} style={styles.image} />
+              <Image source={currentWord.image} style={styles.image} resizeMode="contain" />
             </View>
             <View style={styles.wordContent}>
               <Text style={styles.categoryLabel}>Picture dictionary · Set 1</Text>
