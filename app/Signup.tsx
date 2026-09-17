@@ -318,7 +318,6 @@ const Signup = () => {
                             <View style={styles.button}><ActivityIndicator size="small" color="#FFFFFF" /></View>
                         ) : (
                             <Pressable onPress={signup2} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-                                <Ionicons name="person-add-outline" size={21} color="#FFFFFF" />
                                 <Text style={styles.buttonText}>Create account</Text>
                             </Pressable>
                         )}

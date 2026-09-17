@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackProgressAnalytics';
@@ -15,6 +16,7 @@ type AnalyticsData = { overallMastery: number; situationalAccuracy: number; inte
 type LessonProgress = { hiragana1: boolean; hiragana2: boolean; hiragana3: boolean; katakana1: boolean; katakana2: boolean; katakana3: boolean; vocab1: boolean; vocab2: boolean; vocab3: boolean; sentence: boolean };
 
 export default function QuackProgressAnalytics() {
+  const isFocused = useIsFocused();
   const { user } = useContext(AuthContext);
   const [tab, setTab] = useState<'summary' | 'mistakes' | 'history'>('summary');
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -22,9 +24,15 @@ export default function QuackProgressAnalytics() {
   const [lessonProgress, setLessonProgress] = useState<LessonProgress | null>(null);
 
   useEffect(() => {
-    fetchAnalytics();
-    if (user?.email) fetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`).then(response => response.ok ? response.json() : null).then(setLessonProgress).catch(() => setLessonProgress(null));
-  }, [user?.email]);
+    if (!isFocused) return;
+    const refresh = () => {
+      fetchAnalytics();
+      if (user?.email) fetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`).then(response => response.ok ? response.json() : null).then(setLessonProgress).catch(() => setLessonProgress(null));
+    };
+    refresh();
+    const timer = setInterval(refresh, 20000);
+    return () => clearInterval(timer);
+  }, [isFocused, user?.email]);
 
   const fetchAnalytics = async () => {
     try {

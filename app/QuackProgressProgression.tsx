@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackProgressProgression';
@@ -14,13 +15,19 @@ type Reinforcement = { id?: number; title: string; mistake: string; retry: strin
 type ProgressionData = { currentMastery: number; unlockRequirement: number; masteryHint: string; coachMessage: string; stages: Stage[]; reinforcement: Reinforcement[] };
 
 export default function QuackProgressProgression() {
+  const isFocused = useIsFocused();
   const { user } = useContext(AuthContext);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedRetry, setSelectedRetry] = useState<Reinforcement | null>(null);
   const [progression, setProgression] = useState<ProgressionData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { fetchProgression(); }, []);
+  useEffect(() => {
+    if (!isFocused) return;
+    fetchProgression();
+    const timer = setInterval(fetchProgression, 20000);
+    return () => clearInterval(timer);
+  }, [isFocused, user?.email]);
 
   const fetchProgression = async () => {
     try {

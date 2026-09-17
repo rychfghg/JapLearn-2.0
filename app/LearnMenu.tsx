@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import styles from '../styles/stylesLearnMenu';
 import BackIcon from '../assets/svg/back-icon.svg';
 import ImageButton from '../components/ImageButton';
@@ -32,6 +33,7 @@ const learnMascotGuides = [
 ] as const;
 
 const LearnMenu = () => {
+  const isFocused = useIsFocused();
   const { fromContent3 } = useLocalSearchParams(); // Query param to check if routed from Content3
   const router = useRouter();
 
@@ -52,6 +54,7 @@ const LearnMenu = () => {
   const darkMode = false;
 
   useEffect(() => {
+    if (!isFocused) return;
     const loadClassLessons = async () => {
       if (!user?.email || !user.portalSessionToken) return;
       try {
@@ -63,7 +66,9 @@ const LearnMenu = () => {
       }
     };
     loadClassLessons();
-  }, [user?.email, user?.portalSessionToken]);
+    const timer = setInterval(loadClassLessons, 30000);
+    return () => clearInterval(timer);
+  }, [isFocused, user?.email, user?.portalSessionToken]);
 
   useEffect(() => {
     const mascotTimer = setInterval(() => {

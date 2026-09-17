@@ -3,15 +3,10 @@ import { platformShadow } from '../utils/platformShadow';
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: '#8423D9',
-        padding: 10,
-        width: '100%',
-        borderRadius: 16,
-        borderColor: '#8423D9',
-        borderBottomWidth: 0,
-        height: 56,
+        backgroundColor: '#7D20D4', padding: 10, width: '100%', borderRadius: 14,
+        borderColor: '#7D20D4', borderBottomWidth: 0, height: 54,
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9,
-        ...platformShadow('#5E1A93', 0.18, 12, 6, 3),
+        ...platformShadow('#5E1A93', 0.2, 10, 5, 2),
     },
     buttonPressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
 
@@ -28,11 +23,15 @@ const styles = StyleSheet.create({
 
     container: {
         flex: 1,
-        backgroundColor: '#F8F4FC',
+        backgroundColor: '#F3EDF7',
         overflow: 'hidden',
     },
-    scrollContent: { flexGrow: 1, justifyContent:'center',paddingHorizontal: 22, paddingTop:Platform.OS==='web'?34:22,paddingBottom:30 },
-    contentWrapper: { width: '100%', maxWidth: 450, alignSelf: 'center' },
+    scrollContent: { flexGrow: 1, justifyContent:'center',paddingHorizontal: 18, paddingTop:Platform.OS==='web'?28:18,paddingBottom:24 },
+    contentWrapper: {
+        width: '100%', maxWidth: 430, alignSelf: 'center', backgroundColor:'#FFFFFF',
+        borderRadius:32, overflow:'hidden', borderWidth:1, borderColor:'#E7DBED',
+        ...platformShadow('#3C194E', 0.13, 24, 10, 5),
+    },
     contentWrapperWide:{maxWidth:470},
     backgroundOrbTop: {
         position: 'absolute', width: 290, height: 290, borderRadius: 145,
@@ -43,15 +42,14 @@ const styles = StyleSheet.create({
         backgroundColor: '#E9F6DE', bottom: -128, left: -92,
     },
     formCard: {
-        backgroundColor: '#FFFDFF', borderRadius: 28, paddingHorizontal: 22, paddingVertical: 24,
-        borderWidth:1,borderColor:'#E9DDEF', overflow: 'hidden',
-        ...platformShadow('#462A5E',0.11,20,9,4),
+        backgroundColor: '#FFFFFF', borderTopLeftRadius: 30, borderTopRightRadius: 30,
+        paddingHorizontal: 22, paddingTop: 25, paddingBottom: 23, marginTop:-20,
     },
     formCardWide:{paddingHorizontal:25},
     inputShell: {
         flexDirection: 'row', alignItems: 'center', gap: 2,
-        backgroundColor: '#F9F6FB', borderWidth: 1.5, borderColor: '#E2D6E8',
-        borderRadius: 16, paddingHorizontal: 14, marginBottom: 13,
+        backgroundColor: '#F5F1F7', borderWidth: 0,
+        borderRadius: 14, paddingHorizontal: 14, marginBottom: 12,
     },
 
     input: {
@@ -61,19 +59,22 @@ const styles = StyleSheet.create({
 
     imageContainer: {
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 0,
+        paddingTop: 27,
+        paddingBottom: 41,
+        backgroundColor: '#7D20D4',
     },
-    imageContainerWide:{alignItems:'center',marginBottom:15},
+    imageContainerWide:{alignItems:'center',marginBottom:0},
     logoBadge: {
-        width: 88, height: 88, borderRadius: 26, alignItems: 'center', justifyContent: 'center',
-        backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E8D9F2',
-        ...platformShadow('#5D2777', 0.12, 13, 5, 2),
+        width: 82, height: 82, borderRadius: 24, alignItems: 'center', justifyContent: 'center',
+        backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(255,255,255,0.72)',
+        ...platformShadow('#321044', 0.2, 12, 5, 3),
     },
     welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:8},
     welcomeBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#568E35'},
-    brandText: { color: '#3B2446', fontSize: 23, fontFamily: 'Jua', marginTop: 8 },
-    cardHeading: { alignItems: 'center', marginBottom: 23 },
-    cardHeadingMark: { width: 38, height: 5, borderRadius: 99, backgroundColor: '#8ED94D', marginBottom: 12 },
+    brandText: { color: '#FFFFFF', fontSize: 24, fontFamily: 'Jua', marginTop: 8 },
+    cardHeading: { alignItems: 'flex-start', marginBottom: 21 },
+    cardHeadingMark: { width: 30, height: 4, borderRadius: 99, backgroundColor: '#8ED94D', marginBottom: 10 },
     nameRow: { flexDirection: 'row', gap: 10 },
     nameField: { flex: 1, minWidth: 0 },
     heroTitle:{fontFamily:'Jua',fontSize:22,lineHeight:28,color:'#3C2348',textAlign:'center',maxWidth:350,marginTop:5},
@@ -113,8 +114,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         position: 'relative',
         width: '100%',
-        backgroundColor: '#F9F6FB', borderWidth: 1.5, borderColor: '#E2D6E8',
-        borderRadius: 16, paddingLeft: 14, marginBottom: 13,
+        backgroundColor: '#F5F1F7', borderWidth: 0,
+        borderRadius: 14, paddingLeft: 14, marginBottom: 12,
     },
     passwordInput: {
         flex: 1,
@@ -128,10 +129,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     titleText: {
-        fontSize: 28,
+        fontSize: 29,
         fontFamily: 'Jua',
         color: '#3B2446',
-        textAlign: 'center',
+        textAlign: 'left',
     },
 
     modalWrapper: {

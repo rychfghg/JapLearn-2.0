@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackProgress';
@@ -23,6 +24,7 @@ const guides = [
 ] as const;
 
 export default function QuackProgress() {
+  const isFocused = useIsFocused();
   const { user } = useContext(AuthContext);
   const [summary, setSummary] = useState<ProgressSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -42,8 +44,11 @@ export default function QuackProgress() {
   const [expandedGames, setExpandedGames] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    if (!isFocused) return;
     fetchProgressSummary();
-  }, [user?.email]);
+    const timer = setInterval(fetchProgressSummary, 20000);
+    return () => clearInterval(timer);
+  }, [isFocused, user?.email]);
 
   useEffect(() => {
     const timer = setInterval(() => setGuide((current) => (current + 1) % guides.length), 2600);

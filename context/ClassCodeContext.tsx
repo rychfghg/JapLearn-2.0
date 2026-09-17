@@ -1,10 +1,14 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { AppState, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthContext } from './AuthContext';
+import expoconfig from '../expoconfig';
 
 const ClassCodeContext = createContext();
 
 export const ClassCodeProvider = ({ children }) => {
     const [classCode, setClassCodeState] = useState('');
+    const { user } = useContext(AuthContext);
 
     useEffect(() => {
         const loadClassCode = async () => {
@@ -25,8 +29,37 @@ export const ClassCodeProvider = ({ children }) => {
         await AsyncStorage.setItem('classCode', safeCode);
     };
 
+    const refreshClassCode = useCallback(async () => {
+        if (!user?.email || user.role?.toLowerCase() !== 'student') return;
+        try {
+            const response = await fetch(`${expoconfig.API_URL}/api/students/getStudentByEmail?email=${encodeURIComponent(user.email)}`);
+            if (!response.ok) return;
+            const student = await response.json();
+            const latestCode = String(student?.classCode || '').trim();
+            if (latestCode === classCode) return;
+            setClassCodeState(latestCode);
+            await AsyncStorage.setItem('classCode', latestCode);
+        } catch {
+            // Preserve the last synced class while offline.
+        }
+    }, [classCode, user?.email, user?.role]);
+
+    useEffect(() => {
+        if (!user?.email || user.role?.toLowerCase() !== 'student') return;
+        void refreshClassCode();
+        const listener = AppState.addEventListener('change', state => {
+            if (state === 'active') void refreshClassCode();
+        });
+        const timer = setInterval(() => {
+            if (AppState.currentState !== 'active') return;
+            if (Platform.OS === 'web' && typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+            void refreshClassCode();
+        }, 20000);
+        return () => { listener.remove(); clearInterval(timer); };
+    }, [refreshClassCode, user?.email, user?.role]);
+
     return (
-        <ClassCodeContext.Provider value={{ classCode, setClassCode }}>
+        <ClassCodeContext.Provider value={{ classCode, setClassCode, refreshClassCode }}>
             {children}
         </ClassCodeContext.Provider>
     );

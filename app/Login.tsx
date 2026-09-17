@@ -255,23 +255,24 @@ const Login = () => {
                     )}
                 </View>
 
+                <View style={styles.forgotRow}>
+                    <Pressable onPress={() => setForgotPasswordVisible(true)} hitSlop={8}>
+                        <Text style={styles.forgotText}>Forgot password?</Text>
+                    </Pressable>
+                </View>
+
                 <View style={styles.buttonContainer}>
                     {loading ? (
                         <View style={styles.button}><ActivityIndicator size="small" color="#FFFFFF" /></View>
                     ) : (
                         <Pressable onPress={handleLogin} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
                             <Text style={styles.buttonText}>Sign in</Text>
-                            <Ionicons name="arrow-forward" size={21} color="#FFFFFF" />
                         </Pressable>
                     )}
                 </View>
                 <View style={styles.linkContainer}>
                     <Pressable onPress={() => router.push('/Signup')} hitSlop={8}>
-                        <Text style={styles.linkText}>Create an account</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => setForgotPasswordVisible(true)} hitSlop={8}>
-                        <Text style={styles.linkText}>Forgot password?</Text>
+                        <Text style={styles.linkPrompt}>New to JapLearn? <Text style={styles.linkText}>Create account</Text></Text>
                     </Pressable>
                 </View>
                 </View>
