@@ -20,6 +20,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useClassCode } from '../context/ClassCodeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 
 //Checking  
@@ -200,12 +201,15 @@ const Login = () => {
                     showsVerticalScrollIndicator={false}
                 >
                 <View style={[styles.authShell, isWide && styles.authShellWide]}>
-                <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
+                <LinearGradient colors={['#6520B6', '#922AE2']} start={{x:0,y:0}} end={{x:1,y:1}} style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
+                    <View style={styles.brandGlow} />
+                    <View style={styles.brandDotOne} />
+                    <View style={styles.brandDotTwo} />
                     <View style={styles.mascotWrap}>
                         <Logo width={76} height={76} />
                     </View>
                     <Text style={styles.titleText}>JapLearn 2.0</Text>
-                </View>
+                </LinearGradient>
 
                 <View style={[styles.formCard, isWide && styles.formCardWide]}>
                 <View style={styles.cardHeading}>

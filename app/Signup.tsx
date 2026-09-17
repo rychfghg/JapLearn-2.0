@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import expoconfig from '../expoconfig';
 import PrivacyPolicyModal from '../components/PrivacyPolicyModal';
 import Logo from '../assets/svg/jpLogo.svg';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const Signup = () => {
     const { width } = useWindowDimensions();
@@ -156,12 +157,15 @@ const Signup = () => {
             <View style={styles.backgroundOrbBottom} />
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                 <View style={[styles.contentWrapper, isWide && styles.contentWrapperWide]}>
-                    <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
+                    <LinearGradient colors={['#6520B6', '#922AE2']} start={{x:0,y:0}} end={{x:1,y:1}} style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
+                        <View style={styles.brandGlow} />
+                        <View style={styles.brandDotOne} />
+                        <View style={styles.brandDotTwo} />
                         <View style={styles.logoBadge}>
                             <Logo width={76} height={76} />
                         </View>
                         <Text style={styles.brandText}>JapLearn 2.0</Text>
-                    </View>
+                    </LinearGradient>
                     <View style={[styles.formCard, isWide && styles.formCardWide]}>
                     <View style={styles.cardHeading}>
                         <View style={styles.cardHeadingMark} />

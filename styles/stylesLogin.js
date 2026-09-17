@@ -65,19 +65,24 @@ const styles = StyleSheet.create({
 
   imageContainer: {
     alignItems: 'center',
+    width: '100%',
     marginBottom: 0,
     paddingTop: 30,
     paddingBottom: 43,
-    backgroundColor: '#7D20D4',
+    overflow: 'hidden',
   },
   imageContainerWide:{alignItems:'center',marginBottom:0},
   welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:7},
   welcomeBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#568E35'},
   mascotWrap: {
+    zIndex: 2,
     width: 82, height: 82, borderRadius: 24, alignItems: 'center', justifyContent: 'center',
     backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: 'rgba(255,255,255,0.72)',
     ...platformShadow('#321044', 0.2, 12, 5, 3),
   },
+  brandGlow: { position:'absolute', width:210, height:210, borderRadius:105, backgroundColor:'rgba(255,255,255,0.09)', right:-64, top:-92 },
+  brandDotOne: { position:'absolute', width:18, height:18, borderRadius:9, backgroundColor:'rgba(142,217,77,0.72)', left:32, top:34 },
+  brandDotTwo: { position:'absolute', width:8, height:8, borderRadius:4, backgroundColor:'rgba(255,255,255,0.55)', right:45, bottom:37 },
   welcomeTitle:{fontFamily:'Jua',fontSize:23,lineHeight:29,color:'#3C2348',textAlign:'center',maxWidth:340,marginTop:5},
   subtitleText: { fontSize: 12, lineHeight:18,color: '#786D7D', marginTop: 4, textAlign: 'center',maxWidth:340 },
   formCard: {
@@ -134,6 +139,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   titleText: {
+    zIndex: 2,
     color: '#FFFFFF',
     marginTop: 9,
     fontSize: 24,
