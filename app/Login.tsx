@@ -202,27 +202,31 @@ const Login = () => {
                 <View style={[styles.authShell, isWide && styles.authShellWide]}>
                 <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
                     <View style={styles.mascotWrap}>
-                        <Logo width={132} height={132} />
+                        <Logo width={76} height={76} />
                     </View>
-                    <Text style={styles.titleText}>JAPLEARN</Text>
+                    <Text style={styles.titleText}>JapLearn 2.0</Text>
                 </View>
 
                 <View style={[styles.formCard, isWide && styles.formCardWide]}>
-                <Text style={styles.formTitle}>Sign in</Text>
-                <Text style={styles.fieldLabel}>Email address</Text>
+                <View style={styles.cardHeading}>
+                    <View style={styles.cardHeadingMark} />
+                    <Text style={styles.formTitle}>Sign in</Text>
+                </View>
                 <View style={styles.inputContainer}>
                     <Ionicons name="mail-outline" size={21} color="#8423D9" style={styles.inputIcon} />
                 <TextInput
                     style={styles.input}
                     value={email}
-                    placeholder="you@example.com"
+                    placeholder="Email address"
+                    placeholderTextColor="#A69AAA"
                     autoCapitalize="none"
                     inputMode="email"
+                    autoComplete="email"
+                    accessibilityLabel="Email address"
                     onChangeText={(text) => setEmail(text.replace(/\s/g, '').toLowerCase())}
                 />
                 </View>
 
-                <Text style={styles.fieldLabel}>Password</Text>
                 <View style={styles.passwordContainer}>
                     <Ionicons name="lock-closed-outline" size={21} color="#8423D9" style={styles.inputIcon} />
                     <TextInput
@@ -230,7 +234,10 @@ const Login = () => {
                         secureTextEntry={!showPassword}
                         value={password}
                         placeholder="Password"
+                        placeholderTextColor="#A69AAA"
                         autoCapitalize="none"
+                        autoComplete="current-password"
+                        accessibilityLabel="Password"
                         onChangeText={(text) => setPassword(text.replace(/\s/g, ''))}
                     />
 

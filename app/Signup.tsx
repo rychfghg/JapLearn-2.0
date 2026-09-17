@@ -157,66 +157,78 @@ const Signup = () => {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                 <View style={[styles.contentWrapper, isWide && styles.contentWrapperWide]}>
                     <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
-                        <Logo width={88} height={88} />
-                        <Text style={styles.brandText}>JAPLEARN</Text>
+                        <View style={styles.logoBadge}>
+                            <Logo width={76} height={76} />
+                        </View>
+                        <Text style={styles.brandText}>JapLearn 2.0</Text>
                     </View>
                     <View style={[styles.formCard, isWide && styles.formCardWide]}>
-                    <Text style={styles.titleText}>Create account</Text>
-                    <Text style={styles.fieldLabel}>First name</Text>
-                    <View style={styles.inputShell}>
-                    <Ionicons name="person-outline" size={21} color="#8423D9" />
-                    <TextInput
-                        style={[styles.input, errors.fname ? styles.errorInput : null]}
-                        value={fname}
-                        placeholder="First name"
-                        autoCapitalize="none"
-                        maxLength={30}
-                        onChangeText={(text) => {
-                            const formattedText = text
-                                .trimStart()
-                                .replace(/\s+/g, ' ')
-                                .replace(/\b\w/g, c => c.toUpperCase());
-                            setFname(formattedText);
-                            if (formattedText) {
-                                setErrors((prevErrors) => ({ ...prevErrors, fname: '' }));
-                            }
-                        }}
-                        onBlur={() => setFname(fname.trimEnd())}
-                    />
+                    <View style={styles.cardHeading}>
+                        <View style={styles.cardHeadingMark} />
+                        <Text style={styles.titleText}>Create account</Text>
                     </View>
-
-                    <Text style={styles.fieldLabel}>Last name</Text>
-                    <View style={styles.inputShell}>
-                    <Ionicons name="person-outline" size={21} color="#8423D9" />
-                    <TextInput
-                        style={[styles.input, errors.lname ? styles.errorInput : null]}
-                        value={lname}
-                        placeholder="Last name"
-                        autoCapitalize="none"
-                        maxLength={30}
-                        onChangeText={(text) => {
-                            const formattedText = text
-                                .trimStart()
-                                .replace(/\s+/g, ' ')
-                                .replace(/\b\w/g, c => c.toUpperCase());
-                            setLname(formattedText);
-                            if (formattedText) {
-                                setErrors((prevErrors) => ({ ...prevErrors, lname: '' }));
-                            }
-                        }}
-                        onBlur={() => setLname(lname.trimEnd())}
-                    />
+                    <View style={styles.nameRow}>
+                        <View style={[styles.inputShell, styles.nameField, errors.fname ? styles.errorInput : null]}>
+                        <Ionicons name="person-outline" size={20} color="#8423D9" />
+                        <TextInput
+                            style={styles.input}
+                            value={fname}
+                            placeholder="First name"
+                            placeholderTextColor="#A69AAA"
+                            autoCapitalize="words"
+                            autoComplete="given-name"
+                            accessibilityLabel="First name"
+                            maxLength={30}
+                            onChangeText={(text) => {
+                                const formattedText = text
+                                    .trimStart()
+                                    .replace(/\s+/g, ' ')
+                                    .replace(/\b\w/g, c => c.toUpperCase());
+                                setFname(formattedText);
+                                if (formattedText) {
+                                    setErrors((prevErrors) => ({ ...prevErrors, fname: '' }));
+                                }
+                            }}
+                            onBlur={() => setFname(fname.trimEnd())}
+                        />
+                        </View>
+                        <View style={[styles.inputShell, styles.nameField, errors.lname ? styles.errorInput : null]}>
+                        <TextInput
+                            style={styles.input}
+                            value={lname}
+                            placeholder="Last name"
+                            placeholderTextColor="#A69AAA"
+                            autoCapitalize="words"
+                            autoComplete="family-name"
+                            accessibilityLabel="Last name"
+                            maxLength={30}
+                            onChangeText={(text) => {
+                                const formattedText = text
+                                    .trimStart()
+                                    .replace(/\s+/g, ' ')
+                                    .replace(/\b\w/g, c => c.toUpperCase());
+                                setLname(formattedText);
+                                if (formattedText) {
+                                    setErrors((prevErrors) => ({ ...prevErrors, lname: '' }));
+                                }
+                            }}
+                            onBlur={() => setLname(lname.trimEnd())}
+                        />
+                        </View>
                     </View>
+                    {(errors.fname || errors.lname) ? <Text style={styles.errorText}>{errors.fname || errors.lname}</Text> : null}
 
-                    <Text style={styles.fieldLabel}>Email address</Text>
                     <View style={[styles.inputShell, errors.email ? styles.errorInput : null]}>
                     <Ionicons name="mail-outline" size={21} color="#8423D9" />
                     <TextInput
                         style={styles.input}
                         value={email}
-                        placeholder="Email"
+                        placeholder="Email address"
+                        placeholderTextColor="#A69AAA"
                         autoCapitalize="none"
                         inputMode="email"
+                        autoComplete="email"
+                        accessibilityLabel="Email address"
                         maxLength={50}
                         onChangeText={(text) => {
                             const formattedText = text.replace(/\s/g, '').toLowerCase();
@@ -231,15 +243,17 @@ const Signup = () => {
 
                     {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
-                    <Text style={styles.fieldLabel}>Password</Text>
-                    <View style={styles.passwordContainer}>
+                    <View style={[styles.passwordContainer, errors.password ? styles.errorInput : null]}>
                         <Ionicons name="lock-closed-outline" size={21} color="#8423D9" />
                         <TextInput
-                            style={[styles.input, styles.passwordInput, errors.password ? styles.errorInput : null]}
+                            style={[styles.input, styles.passwordInput]}
                             secureTextEntry={!showPassword}
                             value={password}
                             placeholder="Password"
+                            placeholderTextColor="#A69AAA"
                             autoCapitalize="none"
+                            autoComplete="new-password"
+                            accessibilityLabel="Password"
                             onChangeText={(text) => {
                                 const formattedText = text.replace(/\s/g, '');
                                 setPassword(formattedText);
@@ -264,15 +278,17 @@ const Signup = () => {
                     </View>
                     {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
-                    <Text style={styles.fieldLabel}>Confirm password</Text>
-                    <View style={styles.passwordContainer}>
+                    <View style={[styles.passwordContainer, errors.cpassword ? styles.errorInput : null]}>
                         <Ionicons name="shield-checkmark-outline" size={21} color="#8423D9" />
                         <TextInput
-                            style={[styles.input, styles.passwordInput, errors.cpassword ? styles.errorInput : null]}
+                            style={[styles.input, styles.passwordInput]}
                             secureTextEntry={!showCPassword}
                             value={cpassword}
-                            placeholder="Confirm Password"
+                            placeholder="Repeat password"
+                            placeholderTextColor="#A69AAA"
                             autoCapitalize="none"
+                            autoComplete="new-password"
+                            accessibilityLabel="Repeat password"
                             onChangeText={(text) => {
                                 const formattedText = text.replace(/\s/g, '');
                                 setCPassword(formattedText);
