@@ -153,8 +153,8 @@ const Signup = () => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.backgroundOrbTop} />
-            <View style={styles.backgroundOrbBottom} />
+            {isWide && <View style={styles.backgroundOrbTop} />}
+            {isWide && <View style={styles.backgroundOrbBottom} />}
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                 <View style={[styles.contentWrapper, isWide && styles.contentWrapperWide]}>
                     <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
@@ -162,7 +162,7 @@ const Signup = () => {
                             <Logo width={56} height={56} />
                             <View>
                                 <Text style={styles.brandText}>JapLearn 2.0</Text>
-                                <Text style={styles.brandCaption}>STUDENT REGISTRATION</Text>
+                                {isWide && <Text style={styles.brandCaption}>Student registration</Text>}
                             </View>
                         </View>
                         {isWide && <View style={styles.desktopVisual}>
@@ -175,12 +175,12 @@ const Signup = () => {
                     <View style={[styles.formCard, isWide && styles.formCardWide]}>
                     <View style={styles.cardHeading}>
                         <Text style={styles.titleText}>Create account</Text>
-                        <Text style={styles.formSubtitle}>Set up your student profile.</Text>
+                        {isWide && <Text style={styles.formSubtitle}>Set up your student profile.</Text>}
                     </View>
-                    <Text style={styles.fieldLabel}>Your name</Text>
+                    {isWide && <Text style={styles.fieldLabel}>Your name</Text>}
                     <View style={styles.nameRow}>
                         <View style={[styles.inputShell, styles.nameField, activeField === 'fname' && styles.inputFocused, errors.fname ? styles.errorInput : null]}>
-                        <Ionicons name="person-outline" size={20} color="#8423D9" />
+                        <Ionicons name="person-outline" size={19} color={activeField === 'fname' ? '#7B2CBF' : '#958B9A'} />
                         <TextInput
                             style={styles.input}
                             value={fname}
@@ -231,9 +231,9 @@ const Signup = () => {
                     </View>
                     {(errors.fname || errors.lname) ? <Text style={styles.errorText}>{errors.fname || errors.lname}</Text> : null}
 
-                    <Text style={styles.fieldLabel}>Email address</Text>
+                    {isWide && <Text style={styles.fieldLabel}>Email address</Text>}
                     <View style={[styles.inputShell, activeField === 'email' && styles.inputFocused, errors.email ? styles.errorInput : null]}>
-                    <Ionicons name="mail-outline" size={21} color="#8423D9" />
+                    <Ionicons name="mail-outline" size={20} color={activeField === 'email' ? '#7B2CBF' : '#958B9A'} />
                     <TextInput
                         style={styles.input}
                         value={email}
@@ -259,9 +259,9 @@ const Signup = () => {
 
                     {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
-                    <Text style={styles.fieldLabel}>Password</Text>
+                    {isWide && <Text style={styles.fieldLabel}>Password</Text>}
                     <View style={[styles.passwordContainer, activeField === 'password' && styles.inputFocused, errors.password ? styles.errorInput : null]}>
-                        <Ionicons name="lock-closed-outline" size={21} color="#8423D9" />
+                        <Ionicons name="lock-closed-outline" size={20} color={activeField === 'password' ? '#7B2CBF' : '#958B9A'} />
                         <TextInput
                             style={[styles.input, styles.passwordInput]}
                             secureTextEntry={!showPassword}
@@ -297,9 +297,9 @@ const Signup = () => {
                     </View>
                     {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
-                    <Text style={styles.fieldLabel}>Confirm password</Text>
+                    {isWide && <Text style={styles.fieldLabel}>Confirm password</Text>}
                     <View style={[styles.passwordContainer, activeField === 'cpassword' && styles.inputFocused, errors.cpassword ? styles.errorInput : null]}>
-                        <Ionicons name="shield-checkmark-outline" size={21} color="#8423D9" />
+                        <Ionicons name="shield-checkmark-outline" size={20} color={activeField === 'cpassword' ? '#7B2CBF' : '#958B9A'} />
                         <TextInput
                             style={[styles.input, styles.passwordInput]}
                             secureTextEntry={!showCPassword}
@@ -340,7 +340,7 @@ const Signup = () => {
                             <View style={styles.button}><ActivityIndicator size="small" color="#FFFFFF" /></View>
                         ) : (
                             <Pressable onPress={signup2} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-                                <Text style={styles.buttonText}>Create my account</Text>
+                                <Text style={styles.buttonText}>Create account</Text>
                             </Pressable>
                         )}
                     </View>

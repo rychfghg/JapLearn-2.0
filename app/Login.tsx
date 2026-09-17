@@ -190,8 +190,8 @@ const Login = () => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.backgroundOrbTop} />
-            <View style={styles.backgroundOrbBottom} />
+            {isWide && <View style={styles.backgroundOrbTop} />}
+            {isWide && <View style={styles.backgroundOrbBottom} />}
             <KeyboardAvoidingView
                 style={styles.keyboardView}
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -207,7 +207,7 @@ const Login = () => {
                         <Logo width={56} height={56} />
                         <View>
                         <Text style={styles.titleText}>JapLearn 2.0</Text>
-                        <Text style={styles.brandCaption}>STUDENT ACCESS</Text>
+                        {isWide && <Text style={styles.brandCaption}>Student access</Text>}
                         </View>
                     </View>
                     {isWide && <View style={styles.desktopVisual}>
@@ -221,11 +221,11 @@ const Login = () => {
                 <View style={[styles.formCard, isWide && styles.formCardWide]}>
                 <View style={styles.cardHeading}>
                     <Text style={styles.formTitle}>Sign in</Text>
-                    <Text style={styles.formSubtitle}>Use your student account to continue.</Text>
+                    {isWide && <Text style={styles.formSubtitle}>Use your student account to continue.</Text>}
                 </View>
-                <Text style={styles.fieldLabel}>Email address</Text>
+                {isWide && <Text style={styles.fieldLabel}>Email address</Text>}
                 <View style={[styles.inputContainer, activeField === 'email' && styles.inputFocused]}>
-                    <Ionicons name="mail-outline" size={21} color="#8423D9" style={styles.inputIcon} />
+                    <Ionicons name="mail-outline" size={20} color={activeField === 'email' ? '#7B2CBF' : '#958B9A'} style={styles.inputIcon} />
                 <TextInput
                     style={styles.input}
                     value={email}
@@ -241,14 +241,9 @@ const Login = () => {
                 />
                 </View>
 
-                <View style={styles.passwordLabelRow}>
-                    <Text style={styles.fieldLabel}>Password</Text>
-                    <Pressable onPress={() => setForgotPasswordVisible(true)} hitSlop={8}>
-                        <Text style={styles.forgotText}>Forgot password?</Text>
-                    </Pressable>
-                </View>
+                {isWide && <Text style={styles.fieldLabel}>Password</Text>}
                 <View style={[styles.passwordContainer, activeField === 'password' && styles.inputFocused]}>
-                    <Ionicons name="lock-closed-outline" size={21} color="#8423D9" style={styles.inputIcon} />
+                    <Ionicons name="lock-closed-outline" size={20} color={activeField === 'password' ? '#7B2CBF' : '#958B9A'} style={styles.inputIcon} />
                     <TextInput
                         style={[styles.input, styles.passwordInput]}
                         secureTextEntry={!showPassword}
@@ -275,6 +270,12 @@ const Login = () => {
                             />
                         </Pressable>
                     )}
+                </View>
+
+                <View style={styles.forgotRow}>
+                    <Pressable onPress={() => setForgotPasswordVisible(true)} hitSlop={8}>
+                        <Text style={styles.forgotText}>Forgot password?</Text>
+                    </Pressable>
                 </View>
 
                 <View style={styles.buttonContainer}>

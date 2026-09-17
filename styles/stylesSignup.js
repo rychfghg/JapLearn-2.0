@@ -1,19 +1,19 @@
 import { Platform, StyleSheet } from 'react-native';
 import { platformShadow } from '../utils/platformShadow';
 
+const uiFont = Platform.select({ android: 'sans-serif', ios: 'System', web: 'Inter, system-ui, sans-serif' });
+
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: '#7526C9', padding: 10, width: '100%', borderRadius: 16,
-        height: 56,
+        backgroundColor: '#7B2CBF', padding: 10, width: '100%', borderRadius: 12,
+        height: 52,
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9,
-        ...platformShadow('#5E1A93', 0.16, 8, 4, 2),
     },
     buttonPressed: { opacity: 0.86, transform: [{ scale: 0.99 }] },
 
     buttonText: {
         color: '#fff',
-        fontSize: 16,
-        fontWeight: '800',
+        fontFamily:uiFont,fontSize: 15,fontWeight: '500',
     },
 
     buttonContainer: {
@@ -23,12 +23,12 @@ const styles = StyleSheet.create({
 
     container: {
         flex: 1,
-        backgroundColor: '#F8F5FA',
+        backgroundColor: '#FFFFFF',
         overflow: 'hidden',
     },
-    scrollContent: { flexGrow: 1, justifyContent:'center',paddingHorizontal: 22, paddingTop:Platform.OS==='web'?36:24,paddingBottom:28 },
+    scrollContent: { flexGrow: 1, justifyContent:'center',paddingHorizontal: 24, paddingTop:Platform.OS==='web'?32:30,paddingBottom:24 },
     contentWrapper: {
-        width: '100%', maxWidth: 420, alignSelf: 'center',
+        width: '100%', maxWidth: 390, alignSelf: 'center',
     },
     contentWrapperWide:{maxWidth:940,minHeight:680,flexDirection:'row',backgroundColor:'#FFFFFF',borderRadius:32,overflow:'hidden',borderWidth:1,borderColor:'#EAE2EE',...platformShadow('#3C194E',0.12,28,12,5)},
     backgroundOrbTop: {
@@ -40,31 +40,28 @@ const styles = StyleSheet.create({
         backgroundColor: '#E9F6DE', bottom: -128, left: -92,
     },
     formCard: {
-        backgroundColor: '#FFFFFF', borderRadius:26,
-        paddingHorizontal: 22, paddingTop: 25, paddingBottom: 23,
-        borderWidth:1,borderColor:'#EAE2EE',
-        ...platformShadow('#3C194E',0.10,20,8,4),
+        backgroundColor: 'transparent', paddingHorizontal: 0, paddingVertical: 0,
     },
     formCardWide:{flex:1,justifyContent:'center',borderWidth:0,borderRadius:0,paddingHorizontal:52,paddingVertical:34,shadowOpacity:0,elevation:0},
     inputShell: {
         flexDirection: 'row', alignItems: 'center', gap: 2,
-        backgroundColor: '#FAF8FB', borderWidth: 1, borderColor:'#E7DFEB',
-        borderRadius: 16, paddingHorizontal: 14, marginBottom: 13,
+        backgroundColor: '#FFFFFF', borderWidth: 1, borderColor:'#DDD7E0',
+        borderRadius: 12, paddingHorizontal: 14, marginBottom: 12,
     },
 
     input: {
-        flex: 1, color: '#35243D', paddingHorizontal: 9, height: 56,
+        flex: 1, color: '#29232D', fontFamily:uiFont,paddingHorizontal: 9, height: 52,
         fontSize: 15, outlineStyle: 'none', outlineWidth: 0,
     },
 
     imageContainer: {
         alignItems: 'center',
         width: '100%',
-        marginBottom: 22,
+        marginBottom: 34,
         paddingHorizontal: 4,
     },
     imageContainerWide:{width:'42%',marginBottom:0,paddingHorizontal:32,paddingVertical:34,justifyContent:'space-between',backgroundColor:'#F2E7FB'},
-    brandRow:{flexDirection:'row',alignItems:'center',gap:13,alignSelf:'flex-start'},
+    brandRow:{flexDirection:'row',alignItems:'center',gap:11,alignSelf:'center'},
     desktopVisual:{flex:1,width:'100%',alignItems:'center',justifyContent:'center',paddingTop:12},
     desktopHalo:{position:'absolute',width:270,height:270,borderRadius:135,backgroundColor:'#E5CFF8'},
     desktopMascot:{width:225,height:270,zIndex:1},
@@ -73,9 +70,9 @@ const styles = StyleSheet.create({
     logoBadge: { alignItems: 'center', justifyContent: 'center' },
     welcomeBadge:{flexDirection:'row',alignItems:'center',gap:7,backgroundColor:'#EEF7E7',borderRadius:99,paddingHorizontal:11,paddingVertical:7,marginBottom:8},
     welcomeBadgeText:{fontSize:8,fontWeight:'900',letterSpacing:1,color:'#568E35'},
-    brandText: { color: '#35213F', fontSize: 23, fontFamily: 'Jua' },
+    brandText: { color: '#302936', fontFamily:uiFont,fontSize: 20,fontWeight:'400',letterSpacing:-0.2 },
     brandCaption:{fontSize:9,fontWeight:'900',letterSpacing:1.4,color:'#72AD43',marginTop:2},
-    cardHeading: { alignItems: 'flex-start', marginBottom: 22 },
+    cardHeading: { alignItems: 'flex-start', marginBottom: 21 },
     cardHeadingMark: { width: 30, height: 4, borderRadius: 99, backgroundColor: '#8ED94D', marginBottom: 10 },
     nameRow: { flexDirection: 'row', gap: 10 },
     nameField: { flex: 1, minWidth: 0 },
@@ -84,9 +81,9 @@ const styles = StyleSheet.create({
     formHeading:{flexDirection:'row',alignItems:'center',gap:12,marginBottom:8},
     formHeadingIcon:{width:42,height:42,borderRadius:14,backgroundColor:'#F1E5FA',alignItems:'center',justifyContent:'center'},
     formEyebrow:{fontSize:8,fontWeight:'900',letterSpacing:1.1,color:'#6AAB3D',marginBottom:2},
-    formSubtitle:{color:'#817586',fontSize:13,lineHeight:19,marginTop:3},
-    fieldLabel:{fontSize:12,fontWeight:'800',color:'#514057',marginBottom:8,marginLeft:2},
-    inputFocused:{borderColor:'#8423D9',backgroundColor:'#FFFFFF',shadowColor:'#8423D9',shadowOpacity:0.08,shadowRadius:8,shadowOffset:{width:0,height:2},elevation:1},
+    formSubtitle:{fontFamily:uiFont,color:'#817586',fontSize:13,lineHeight:19,marginTop:5},
+    fieldLabel:{fontFamily:uiFont,fontSize:12,fontWeight:'500',color:'#514B55',marginBottom:8,marginLeft:1},
+    inputFocused:{borderColor:'#7B2CBF',backgroundColor:'#FFFFFF'},
 
     linkContainer: {
         marginTop: 20,
@@ -94,11 +91,9 @@ const styles = StyleSheet.create({
     },
 
     linkText: {
-        color: '#8423D9',
-        fontWeight: '700',
-        fontSize: 14,
+        color: '#7B2CBF',fontFamily:uiFont,fontWeight: '500',fontSize: 13,
     },
-    linkPrompt: { color: '#817586', fontSize: 14 },
+    linkPrompt: { color: '#817586', fontFamily:uiFont,fontSize: 13 },
 
     errorInput: {
         borderWidth: 1,
@@ -117,8 +112,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         position: 'relative',
         width: '100%',
-        backgroundColor: '#FAF8FB', borderWidth: 1, borderColor:'#E7DFEB',
-        borderRadius: 16, paddingLeft: 14, marginBottom: 13,
+        backgroundColor: '#FFFFFF', borderWidth: 1, borderColor:'#DDD7E0',
+        borderRadius: 12, paddingLeft: 14, marginBottom: 12,
     },
     passwordInput: {
         flex: 1,
@@ -132,9 +127,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     titleText: {
-        fontSize: 29, lineHeight:35,
-        fontWeight:'800', letterSpacing:-0.5,
-        color: '#302036',
+        fontFamily:uiFont,fontSize: 28, lineHeight:34,
+        fontWeight:'400', letterSpacing:-0.3,color: '#29232D',
         textAlign: 'left',
     },
 
