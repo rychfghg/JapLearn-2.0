@@ -4,16 +4,19 @@ export const styles = StyleSheet.create({
   background: {
     flex: 1,
     minHeight: 0,
-    paddingTop: 36,
-    paddingHorizontal: 16,
+    alignSelf: 'stretch',
     overflow: 'hidden',
     backgroundColor: '#E8E2DE',
   },
   webBackground: { width: '100vw', minHeight: '100vh' },
-  backgroundArtwork: {
-    ...StyleSheet.absoluteFillObject,
-    width: undefined,
-    height: undefined,
+  // Padding lives here, not on the image container. On native, Yoga lays absolutely
+  // positioned children inside the parent's content box, so padding on the image
+  // container would inset the artwork and leave an uncovered frame.
+  content: {
+    flex: 1,
+    minHeight: 0,
+    paddingTop: 36,
+    paddingHorizontal: 16,
   },
   softShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(247,241,250,.12)' },
   lightOrb: { position: 'absolute', top: 130, left: -70, width: 150, height: 150, borderRadius: 75, backgroundColor: 'rgba(229,204,255,.18)' },

@@ -134,22 +134,19 @@ export default function Content3() {
   const progress = phase === 'lesson' ? (dialogueIndex + 1) / dialogues.length : 1;
 
   return (
-    <View
+    <ImageBackground
+      source={background}
       style={[
         styles.background,
         Platform.OS === 'web' ? styles.webBackground : { width: nativeScreenWidth },
       ]}
+      resizeMode="cover"
     >
-      <ImageBackground
-        source={background}
-        style={styles.backgroundArtwork}
-        resizeMode="cover"
-        pointerEvents="none"
-      />
-      <View style={styles.softShade} />
-      <Animated.View style={[styles.lightOrb, { transform: [{ translateX: driftX }] }]} />
+      <View style={styles.softShade} pointerEvents="none" />
+      <Animated.View pointerEvents="none" style={[styles.lightOrb, { transform: [{ translateX: driftX }] }]} />
       <Animated.Text style={[styles.fallingLeaf, { transform: [{ translateX: driftX }, { rotate: '20deg' }] }]}>🍃</Animated.Text>
 
+      <View style={styles.content}>
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={() => router.replace('/LearnMenu')}><Ionicons name="arrow-back" size={23} color="#432653" /></Pressable>
         <View style={styles.headerCopy}><Text style={styles.pathLabel}>JAPLEARN · FINAL LESSON</Text><View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress * 100}%` }]} /></View></View>
@@ -182,7 +179,8 @@ export default function Content3() {
           </View>
         </View>
       )}
-    </View>
+      </View>
+    </ImageBackground>
   );
 }
 
