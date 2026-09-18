@@ -2,7 +2,12 @@ import { Platform, StyleSheet } from 'react-native';
 import { platformShadow } from '../utils/platformShadow';
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FCFAFF' },
+  safeArea: {
+      flex: 1,
+      backgroundColor: '#FCFAFF',
+      width: Platform.OS === 'web' ? '100vw' : '100%',
+      minHeight: Platform.OS === 'web' ? '100vh' : undefined,
+  },
   container: {
       flex: 1,
       minHeight: 0,

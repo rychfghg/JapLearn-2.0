@@ -1,7 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
-  background: { flex: 1, backgroundColor: '#FBF8FF' },
+  background: {
+    flex: 1,
+    backgroundColor: '#FBF8FF',
+    width: Platform.OS === 'web' ? '100vw' : '100%',
+    minHeight: Platform.OS === 'web' ? '100vh' : undefined,
+  },
   container: { flex: 1, minHeight: 0, paddingHorizontal: 18, paddingTop: 34, paddingBottom: 18 },
   ambientCircle: { position: 'absolute', width: 330, height: 330, borderRadius: 165, backgroundColor: '#F0E3FF', top: -125, right: -120 },
   ambientLeaf: { position: 'absolute', width: 150, height: 150, borderRadius: 75, backgroundColor: '#EFF8E9', bottom: -35, left: -60, opacity: 0.8 },

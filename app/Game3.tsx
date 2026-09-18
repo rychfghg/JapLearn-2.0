@@ -224,7 +224,7 @@ const Game3 = ({ onGameOver, onExit }) => {
   }
 
   return (
-    <ImageBackground source={require('../assets/fightbg.png')} style={styles.background}>
+    <ImageBackground source={require('../assets/fightbg.png')} style={styles.background} resizeMode="cover">
       <View style={styles.container}>
         <TouchableOpacity style={styles.battleBackButton} onPress={() => setShowExitConfirm(true)} activeOpacity={0.85}>
           <Ionicons name="arrow-back" size={23} color="#432653" />

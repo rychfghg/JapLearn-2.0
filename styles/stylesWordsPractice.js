@@ -1,6 +1,14 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 export default StyleSheet.create({
-  screen: { flex: 1, minHeight: 0, backgroundColor: '#FAF7FD', paddingHorizontal: 16, paddingTop: 32, paddingBottom: 16 },
+  screen: {
+    flex: 1,
+    minHeight: Platform.OS === 'web' ? '100vh' : 0,
+    width: Platform.OS === 'web' ? '100vw' : '100%',
+    backgroundColor: '#FAF7FD',
+    paddingHorizontal: 16,
+    paddingTop: 32,
+    paddingBottom: 16,
+  },
   ambientTop: { position: 'absolute', width: 310, height: 310, borderRadius: 155, backgroundColor: '#EFDFFC', right: -145, top: -145 },
   ambientBottom: { position: 'absolute', width: 180, height: 180, borderRadius: 90, backgroundColor: '#EDF7E7', left: -95, bottom: -75 },
   topRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 }, backButton: { width: 52, height: 52, borderRadius: 17, backgroundColor: '#FFF', borderWidth: 1, borderColor: '#E7DAED', alignItems: 'center', justifyContent: 'center', shadowColor: '#452452', shadowOpacity: 0.09, shadowRadius: 10, elevation: 3 }, headerCopy: { flex: 1, marginLeft: 14 }, topEyebrow: { color: '#68B63D', fontSize: 8, fontWeight: '900', letterSpacing: 1.3 }, topLabel: { color: '#3F244C', fontFamily: 'Jua', fontSize: 21, marginTop: 2 }, countPill: { borderRadius: 17, backgroundColor: '#EFE2F9', paddingHorizontal: 12, paddingVertical: 8 }, topCount: { color: '#8423D9', fontSize: 9, fontWeight: '900' },

@@ -153,24 +153,50 @@ const RootLayout = () => {
 
     const html = document.documentElement;
     const body = document.body;
+    const root = document.getElementById('root');
     const previousHtmlOverflow = html.style.overflow;
     const previousHtmlHeight = html.style.height;
+    const previousHtmlWidth = html.style.width;
     const previousBodyOverflow = body.style.overflow;
     const previousBodyHeight = body.style.height;
+    const previousBodyWidth = body.style.width;
+    const previousBodyMargin = body.style.margin;
     const previousBodyOverscroll = body.style.overscrollBehavior;
+    const previousRootWidth = root?.style.width;
+    const previousRootMaxWidth = root?.style.maxWidth;
+    const previousRootHeight = root?.style.height;
+    const previousRootMargin = root?.style.margin;
 
     html.style.height = '100%';
+    html.style.width = '100%';
     html.style.overflow = 'hidden';
     body.style.height = '100%';
+    body.style.width = '100%';
+    body.style.margin = '0';
     body.style.overflow = 'hidden';
     body.style.overscrollBehavior = 'none';
+    if (root) {
+      root.style.width = '100%';
+      root.style.maxWidth = 'none';
+      root.style.height = '100%';
+      root.style.margin = '0';
+    }
 
     return () => {
       html.style.overflow = previousHtmlOverflow;
       html.style.height = previousHtmlHeight;
+      html.style.width = previousHtmlWidth;
       body.style.overflow = previousBodyOverflow;
       body.style.height = previousBodyHeight;
+      body.style.width = previousBodyWidth;
+      body.style.margin = previousBodyMargin;
       body.style.overscrollBehavior = previousBodyOverscroll;
+      if (root) {
+        root.style.width = previousRootWidth || '';
+        root.style.maxWidth = previousRootMaxWidth || '';
+        root.style.height = previousRootHeight || '';
+        root.style.margin = previousRootMargin || '';
+      }
     };
   }, []);
 

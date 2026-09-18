@@ -1,7 +1,12 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
-  background: { flex: 1, backgroundColor: '#FBF8FF' },
+  background: {
+    flex: 1,
+    backgroundColor: '#FBF8FF',
+    width: Platform.OS === 'web' ? '100vw' : '100%',
+    minHeight: Platform.OS === 'web' ? '100vh' : undefined,
+  },
   scrollContent: { paddingBottom: 50 },
   hero: { minHeight: 310, paddingHorizontal: 24, paddingTop: 48, paddingBottom: 25, overflow: 'hidden' },
   heroCompact: { minHeight: 332, paddingHorizontal: 18 },

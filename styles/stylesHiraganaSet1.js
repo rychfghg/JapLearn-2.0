@@ -1,10 +1,13 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    width: Platform.OS === 'web' ? '100vw' : '100%',
+    minHeight: Platform.OS === 'web' ? '100vh' : undefined,
     resizeMode: 'cover',
   },
+  backgroundImage: { width: '100%', height: '100%' },
   container: {
     flexGrow: 1,
     minHeight: '100%',

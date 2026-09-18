@@ -130,7 +130,7 @@ export default function Content3() {
   const progress = phase === 'lesson' ? (dialogueIndex + 1) / dialogues.length : 1;
 
   return (
-    <ImageBackground source={background} style={styles.background} resizeMode="cover">
+    <ImageBackground source={background} style={styles.background} resizeMode="cover" imageStyle={styles.backgroundImage}>
       <View style={styles.softShade} />
       <Animated.View style={[styles.lightOrb, { transform: [{ translateX: driftX }] }]} />
       <Animated.Text style={[styles.fallingLeaf, { transform: [{ translateX: driftX }, { rotate: '20deg' }] }]}>🍃</Animated.Text>

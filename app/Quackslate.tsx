@@ -1,4 +1,4 @@
-import { SafeAreaView, TouchableOpacity, Text, View, ImageBackground, Modal, Animated } from 'react-native';
+import { SafeAreaView, TouchableOpacity, Text, View, ImageBackground, Modal, Animated, Platform } from 'react-native';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 const Background = require('../assets/quackslate-twilight-workshop-v4.png');
@@ -572,8 +572,8 @@ const playAnswerSound = async (isCorrect: boolean) => {
     }, [timer, isGameFinished, isAnswerModalVisible, currentIndex, content]);
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
-            <ImageBackground source={Background} style={{ flex: 1 }} resizeMode="cover">
+        <SafeAreaView style={{ flex: 1, width: Platform.OS === 'web' ? '100vw' : '100%', minHeight: Platform.OS === 'web' ? '100vh' : undefined }}>
+            <ImageBackground source={Background} style={{ flex: 1, width: '100%', height: '100%' }} resizeMode="cover">
                 <View pointerEvents="none" style={stylesSlate.gameBackdropTint} />
                 <View pointerEvents="none" style={stylesSlate.gameGlowOne} />
                 <View pointerEvents="none" style={stylesSlate.gameGlowTwo} />

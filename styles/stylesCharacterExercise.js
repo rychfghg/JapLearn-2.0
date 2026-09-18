@@ -1,10 +1,13 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   screenBackground: {
     flex: 1,
+    width: Platform.OS === 'web' ? '100vw' : '100%',
+    minHeight: Platform.OS === 'web' ? '100vh' : undefined,
     backgroundColor: '#FBF8FE',
   },
+  screenBackgroundImage: { width: '100%', height: '100%' },
   header: {
     minHeight: 82,
     paddingTop: 22,
