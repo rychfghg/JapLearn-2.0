@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Image, ImageBackground, Pressable, Text, View } from 'react-native';
+import { Animated, Image, ImageBackground, Platform, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { loadBundledSound } from '../utils/nativeAudio';
@@ -130,7 +130,13 @@ export default function Content3() {
   const progress = phase === 'lesson' ? (dialogueIndex + 1) / dialogues.length : 1;
 
   return (
-    <ImageBackground source={background} style={styles.background} resizeMode="cover">
+    <View style={[styles.background, Platform.OS === 'web' && styles.webBackground]}>
+      <ImageBackground
+        source={background}
+        style={styles.backgroundArtwork}
+        resizeMode="cover"
+        pointerEvents="none"
+      />
       <View style={styles.softShade} />
       <Animated.View style={[styles.lightOrb, { transform: [{ translateX: driftX }] }]} />
       <Animated.Text style={[styles.fallingLeaf, { transform: [{ translateX: driftX }, { rotate: '20deg' }] }]}>🍃</Animated.Text>
@@ -167,7 +173,7 @@ export default function Content3() {
           </View>
         </View>
       )}
-    </ImageBackground>
+    </View>
   );
 }
 

@@ -1,16 +1,20 @@
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   background: {
     flex: 1,
-    alignSelf: 'stretch',
-    minHeight: Platform.OS === 'web' ? '100vh' : 0,
-    width: Platform.OS === 'web' ? '100vw' : undefined,
+    minHeight: 0,
     paddingTop: 36,
     paddingHorizontal: 16,
     overflow: 'hidden',
+    backgroundColor: '#E8E2DE',
   },
-  backgroundImage: { width: '100%', height: '100%' },
+  webBackground: { width: '100vw', minHeight: '100vh' },
+  backgroundArtwork: {
+    ...StyleSheet.absoluteFillObject,
+    width: undefined,
+    height: undefined,
+  },
   softShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(247,241,250,.12)' },
   lightOrb: { position: 'absolute', top: 130, left: -70, width: 150, height: 150, borderRadius: 75, backgroundColor: 'rgba(229,204,255,.18)' },
   fallingLeaf: { position: 'absolute', top: 190, left: -45, fontSize: 22, opacity: .5 },
