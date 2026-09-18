@@ -168,7 +168,7 @@ const CharacterExercise2 = () => {
     }, [currentSetIndex]);
 
     return (
-        <ImageBackground source={require('../assets/img/LessonJourneyBackground.png')} style={styles.screenBackground} resizeMode="cover" imageStyle={styles.screenBackgroundImage}>
+        <ImageBackground source={require('../assets/img/LessonJourneyBackground.png')} style={styles.screenBackground} resizeMode="cover">
             <View style={styles.header}>
                 <TouchableOpacity onPress={handleBackPress}>
                     <View style={styles.backButtonContainer}>

@@ -3,7 +3,8 @@ import { Platform, StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   background: {
     flex: 1,
-    width: Platform.OS === 'web' ? '100vw' : '100%',
+    alignSelf: 'stretch',
+    width: Platform.OS === 'web' ? '100vw' : undefined,
     height: Platform.OS === 'web' ? '100vh' : '100%',
     overflow: 'hidden',
   },

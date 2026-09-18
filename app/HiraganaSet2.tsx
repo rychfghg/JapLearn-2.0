@@ -78,7 +78,6 @@ const HiraganaSet2 = () => {
       source={require('../assets/img/LessonJourneyBackground.png')}
       style={styles.background}
       resizeMode="cover"
-      imageStyle={styles.backgroundImage}
     >
       <ScrollView
         contentContainerStyle={styles.container}

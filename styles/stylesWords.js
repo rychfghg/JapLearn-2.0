@@ -3,8 +3,9 @@ import { Platform, StyleSheet } from 'react-native';
 export default StyleSheet.create({
   background: {
     flex: 1,
+    alignSelf: 'stretch',
     backgroundColor: '#FBF8FF',
-    width: Platform.OS === 'web' ? '100vw' : '100%',
+    width: Platform.OS === 'web' ? '100vw' : undefined,
     minHeight: Platform.OS === 'web' ? '100vh' : undefined,
   },
   container: { flex: 1, minHeight: 0, paddingHorizontal: 18, paddingTop: 34, paddingBottom: 18 },

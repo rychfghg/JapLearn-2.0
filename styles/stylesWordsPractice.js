@@ -2,8 +2,9 @@ import { Platform, StyleSheet } from 'react-native';
 export default StyleSheet.create({
   screen: {
     flex: 1,
+    alignSelf: 'stretch',
     minHeight: Platform.OS === 'web' ? '100vh' : 0,
-    width: Platform.OS === 'web' ? '100vw' : '100%',
+    width: Platform.OS === 'web' ? '100vw' : undefined,
     backgroundColor: '#FAF7FD',
     paddingHorizontal: 16,
     paddingTop: 32,

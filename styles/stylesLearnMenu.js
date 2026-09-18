@@ -4,8 +4,9 @@ import { platformShadow } from '../utils/platformShadow';
 const styles = StyleSheet.create({
   safeArea: {
       flex: 1,
+      alignSelf: 'stretch',
       backgroundColor: '#FCFAFF',
-      width: Platform.OS === 'web' ? '100vw' : '100%',
+      width: Platform.OS === 'web' ? '100vw' : undefined,
       minHeight: Platform.OS === 'web' ? '100vh' : undefined,
   },
   container: {

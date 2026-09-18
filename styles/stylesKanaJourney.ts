@@ -3,8 +3,9 @@ import { Platform, StyleSheet } from 'react-native';
 export default StyleSheet.create({
   safeArea: {
     flex: 1,
+    alignSelf: 'stretch',
     backgroundColor: '#FBF8FE',
-    width: Platform.OS === 'web' ? '100vw' : '100%',
+    width: Platform.OS === 'web' ? '100vw' : undefined,
     minHeight: Platform.OS === 'web' ? '100vh' : undefined,
   },
   container: { flex: 1 },
