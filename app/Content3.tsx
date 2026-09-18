@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Image, ImageBackground, Platform, Pressable, Text, View } from 'react-native';
+import { Animated, Dimensions, Image, ImageBackground, Platform, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { loadBundledSound } from '../utils/nativeAudio';
@@ -50,6 +50,10 @@ const postCinematicDialogues = [
 const finalDialogue = { title: 'The path is open', text: 'We did it! Your grammar guided us safely through the forest. The final lesson is now complete.', image: hello };
 
 export default function Content3() {
+  const { width: windowWidth } = useWindowDimensions();
+  const nativeScreenWidth = Platform.OS === 'web'
+    ? undefined
+    : Math.max(windowWidth, Dimensions.get('screen').width);
   const { user } = useContext(AuthContext);
   const router = useRouter();
   const [dialogueIndex, setDialogueIndex] = useState(0);
@@ -130,7 +134,12 @@ export default function Content3() {
   const progress = phase === 'lesson' ? (dialogueIndex + 1) / dialogues.length : 1;
 
   return (
-    <View style={[styles.background, Platform.OS === 'web' && styles.webBackground]}>
+    <View
+      style={[
+        styles.background,
+        Platform.OS === 'web' ? styles.webBackground : { width: nativeScreenWidth },
+      ]}
+    >
       <ImageBackground
         source={background}
         style={styles.backgroundArtwork}

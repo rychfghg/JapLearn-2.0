@@ -7,7 +7,8 @@ const styles = StyleSheet.create({
       alignSelf: 'stretch',
       backgroundColor: '#FCFAFF',
       width: Platform.OS === 'web' ? '100vw' : undefined,
-      minHeight: Platform.OS === 'web' ? '100vh' : undefined,
+      height: Platform.OS === 'web' ? '100dvh' : undefined,
+      minHeight: Platform.OS === 'web' ? 0 : undefined,
   },
   container: {
       flex: 1,

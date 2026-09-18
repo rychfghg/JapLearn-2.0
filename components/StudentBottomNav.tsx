@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,8 +32,12 @@ export default function StudentBottomNav({ active }: { active?: Tab }) {
 
   if (keyboardVisible) return null;
 
+  const dockStyle = Platform.OS === 'web'
+    ? ({ position: 'fixed', bottom: 'max(8px, env(safe-area-inset-bottom))' } as any)
+    : { bottom: bottomOffset };
+
   return (
-    <View style={[styles.nav, { bottom: bottomOffset }]}>
+    <View style={[styles.nav, dockStyle]}>
       {items.map((item) => {
         const selected = item.key === active;
         const isTalk = item.key === 'talk';
