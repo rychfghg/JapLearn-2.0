@@ -354,7 +354,7 @@ const playAnswerSound = async (isCorrect: boolean) => {
         fetchContent(); // Fetch content when component mounts
 
         // Start polling for the next question every 3 seconds
-        if (!isSystemMode && !isScheduledTeacherMode) pollingInterval.current = setInterval(pollForNextQuestion, 3000);
+        if (!isSystemMode && !isScheduledTeacherMode) pollingInterval.current = setInterval(pollForNextQuestion, 4000 + Math.floor(Math.random() * 1000));
 
         return () => {
             // Cleanup logic on unmount
