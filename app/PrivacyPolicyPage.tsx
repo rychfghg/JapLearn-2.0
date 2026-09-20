@@ -10,42 +10,62 @@ const sections = [
   {
     icon: 'person-outline' as const,
     title: 'Information we collect',
-    body: 'We collect information you provide when creating and using your account, such as your name, email address, class information, learning activity, scores, lesson completion, and achievements. We may also receive basic technical information needed to keep the app working correctly.',
+    body: 'Account details you give us: your first and last name, email address, password (stored encrypted, never in readable form), your role as a student, and the class code you join. Learning records we create as you use JapLearn: lesson completion, quiz answers, game scores and attempts, badges, streaks, daily goal minutes, and speaking practice results. Basic technical information needed to run and troubleshoot the service, such as your app version and the date and time of activity.',
+  },
+  {
+    icon: 'mic-outline' as const,
+    title: 'Microphone and voice recordings',
+    body: 'Speaking activities (Talk with Sumi, Guided Phrase Practice, Dialogue Relay and similar exercises) record your voice only while you are in that activity and only after you allow microphone access on your device. Your recorded speech is sent securely to Microsoft Azure Speech Services to measure pronunciation, accuracy, fluency and completeness. What you said, as text, is also sent to Google Gemini to generate learning feedback. JapLearn stores the resulting transcript, scores and feedback with your account. We do not store the raw audio recording after it has been assessed, and we never use your voice for advertising or to identify you.',
+  },
+  {
+    icon: 'phone-portrait-outline' as const,
+    title: 'Device permissions we request',
+    body: 'Microphone: required for speaking activities; you can decline and still use every other part of JapLearn. Internet access: required to sign in, save progress and load lessons. Vibration: short feedback during some games. Photos and files: only used if you attach an image or document to lesson content. JapLearn does not request your location, contacts, camera roll scanning, phone number, calendar or SMS.',
   },
   {
     icon: 'sparkles-outline' as const,
     title: 'How we use information',
-    body: 'Your information is used to create and manage your account, save learning progress, unlock lessons, display achievements, support classroom features, improve the learning experience, respond to support requests, and maintain the security and reliability of JapLearn.',
+    body: 'To create and manage your account, save and sync your learning progress, unlock lessons, award badges, show your scores, run classroom activities your teacher assigns, give speaking feedback, answer your support requests, and keep JapLearn secure and reliable. We do not use your information for advertising, and we do not sell it.',
   },
   {
     icon: 'school-outline' as const,
-    title: 'Classes and learning progress',
-    body: 'When you join a class, authorized teachers may be able to view relevant student information and learning progress needed to manage the class and support your learning. JapLearn does not use your learning records for unrelated advertising.',
-  },
-  {
-    icon: 'shield-checkmark-outline' as const,
-    title: 'Data protection',
-    body: 'We use reasonable administrative and technical safeguards designed to protect your information. No digital service can guarantee absolute security, so you should protect your password, avoid sharing account access, and contact us if you notice suspicious activity.',
+    title: 'What your teacher can see',
+    body: 'When you join a class with a class code, the teacher who owns that class can see your name, email address, lesson progress, quiz and game scores, and speaking practice results for that class. Teachers cannot see your password. Other students cannot see your records.',
   },
   {
     icon: 'people-outline' as const,
-    title: 'Information sharing',
-    body: 'We do not sell your personal information. Information may be shared only when necessary to operate JapLearn, provide classroom functionality, comply with applicable requirements, protect users and the service, or when you have authorized the sharing.',
+    title: 'Companies that process data for us',
+    body: 'MongoDB Atlas stores your account and learning records. Render hosts the JapLearn server. Microsoft Azure Speech Services assesses your pronunciation. Google Gemini generates conversation and learning feedback. Brevo sends account emails such as confirmation, password reset and account deletion. Expo delivers app updates. These providers process data only to deliver JapLearn to you. We do not sell personal information or share it for advertising.',
+  },
+  {
+    icon: 'lock-closed-outline' as const,
+    title: 'Data protection',
+    body: 'Your connection to JapLearn uses encrypted HTTPS. Passwords are hashed with bcrypt and cannot be read by us. Sign-in sessions expire, and teacher access is limited to that teacher\'s own classes. No online service can promise perfect security, so keep your password private and tell us if you notice anything suspicious.',
   },
   {
     icon: 'server-outline' as const,
     title: 'Storage and retention',
-    body: 'We retain account and learning information while it is needed to provide JapLearn and meet legitimate operational or legal requirements. Information may be deleted or anonymized when it is no longer necessary, subject to applicable requirements and system backup schedules.',
+    body: 'Your data is stored on servers operated by our providers and may be processed outside the Philippines. We keep account and learning information while your account is active. If you delete your account, your records are removed immediately, although routine encrypted backups may retain copies for a short period before they expire.',
+  },
+  {
+    icon: 'trash-outline' as const,
+    title: 'Deleting your account',
+    body: 'You can delete your JapLearn account at any time from Profile, then Delete account. You can also delete it from a web browser at portal.japlearn.com/delete-account without installing the app. Deletion permanently removes your account, lesson progress, badges, quiz and game scores, and speaking feedback. It cannot be undone. If you can no longer access your email address, contact japlearnofficial@gmail.com and we will verify and delete the account for you.',
   },
   {
     icon: 'options-outline' as const,
-    title: 'Your choices',
-    body: 'You may review information shown in your profile, update supported account details, reset your password, or contact JapLearn about questions involving your information. Some information is required for account, class, and progress features to function.',
+    title: 'Your choices and rights',
+    body: 'You can view your profile details, join or change your class, reset your password, decline microphone access, and request a copy or correction of your information by contacting us. Some details, such as your email address, are required for the account to work.',
+  },
+  {
+    icon: 'happy-outline' as const,
+    title: 'Children and school use',
+    body: 'JapLearn is made for classroom use and is intended for learners aged 13 and above, or younger learners enrolled by their school with the consent of a parent, guardian or the school. If you believe a child has created an account without the proper consent, contact japlearnofficial@gmail.com and we will delete it.',
   },
   {
     icon: 'refresh-outline' as const,
-    title: 'Policy updates',
-    body: 'We may update this policy when JapLearn features or privacy practices change. The current version will be available in the app with its effective date. Continued use after an update means the revised policy applies to future use of the service.',
+    title: 'Policy updates and contact',
+    body: 'We update this policy when JapLearn features or privacy practices change, and the current version is always available in the app and at portal.japlearn.com/privacy with its effective date. For any privacy question or request, email japlearnofficial@gmail.com.',
   },
 ];
 
@@ -85,7 +105,7 @@ export default function PrivacyPolicyPage() {
             <View style={styles.heroIcon}><Ionicons name="shield-checkmark-outline" size={27} color="#8423D9" /></View>
             <Text style={styles.heroTitle}>Privacy Policy</Text>
             <Text style={styles.heroText}>A clear explanation of how JapLearn handles account and learning information.</Text>
-            <View style={styles.effectivePill}><View style={styles.statusDot} /><Text style={styles.effectiveText}>Effective August 12, 2026</Text></View>
+            <View style={styles.effectivePill}><View style={styles.statusDot} /><Text style={styles.effectiveText}>Effective September 20, 2026</Text></View>
           </View>
 
           <View style={[styles.content, isWide && styles.contentWide]}>

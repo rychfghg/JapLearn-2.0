@@ -9,33 +9,53 @@ const uiFont = Platform.select({ android: 'sans-serif', ios: 'System', web: 'Int
 const sections = [
   {
     icon: 'person-circle-outline' as const,
-    title: 'Using your account',
-    body: 'Provide accurate account information, keep your password private, and use only the account assigned to you. You are responsible for activity performed through your account.',
+    title: 'Who can use JapLearn',
+    body: 'JapLearn is built for classroom language learning and is intended for learners aged 13 and above, or younger learners enrolled by their school with the consent of a parent, guardian or the school. JapLearn is free to use; there are no paid features, subscriptions or in-app purchases.',
+  },
+  {
+    icon: 'key-outline' as const,
+    title: 'Your account',
+    body: 'Give accurate account details, keep your password private, and use only the account assigned to you. You are responsible for what happens through your account. Student accounts are activated after email confirmation and teacher approval.',
   },
   {
     icon: 'school-outline' as const,
-    title: 'Learning and classroom features',
-    body: 'JapLearn provides lessons, exercises, communication activities, progress records, and classroom tools. Teachers may review relevant student activity when learners join their classes.',
+    title: 'Classes and what teachers see',
+    body: 'When you join a class with a class code, that teacher can see your name, email address and learning records for the class, including lesson progress, quiz and game scores, and speaking feedback. Join only classes you actually belong to.',
+  },
+  {
+    icon: 'mic-outline' as const,
+    title: 'Speaking activities',
+    body: 'Speaking activities record your voice while the activity is running and send it for automated pronunciation assessment and feedback, as described in our Privacy Policy. Use them for language practice only, and do not record other people or share private or sensitive information through them.',
   },
   {
     icon: 'shield-checkmark-outline' as const,
     title: 'Acceptable use',
-    body: 'Do not misuse JapLearn, interfere with the service, attempt unauthorized access, submit harmful content, impersonate another person, or use the platform in a way that harms other learners or teachers.',
+    body: 'Do not misuse JapLearn, interfere with the service, attempt unauthorized access, submit harmful or offensive content, impersonate another person, cheat in graded activities, or use the platform in a way that harms other learners or teachers.',
+  },
+  {
+    icon: 'sparkles-outline' as const,
+    title: 'Automated scores and feedback',
+    body: 'Scores, pronunciation assessments and generated feedback are produced automatically and are learning aids. They can be wrong or incomplete, are not a formal language certification, and should not be treated as professional or academic advice. Your teacher decides how they count in class.',
   },
   {
     icon: 'analytics-outline' as const,
     title: 'Progress and availability',
-    body: 'JapLearn works to save accurate learning progress, but uninterrupted access cannot be guaranteed. Maintenance, connectivity, device limitations, or technical issues may temporarily affect features.',
+    body: 'JapLearn works to save your progress accurately, including offline work that syncs when you reconnect. Uninterrupted access cannot be guaranteed: maintenance, connectivity, device limits or technical issues may temporarily affect features.',
   },
   {
     icon: 'create-outline' as const,
-    title: 'Content and updates',
-    body: 'Lessons, activities, interface features, and these terms may be updated as JapLearn improves. Continued use after an update means the current terms apply to future use of the service.',
+    title: 'Content ownership',
+    body: 'Lessons, activities, characters, artwork and other JapLearn material belong to JapLearn or its licensors, and may not be copied or redistributed without permission. Content you submit stays yours, and you allow JapLearn to process it to run the service and show it to your teacher.',
   },
   {
-    icon: 'close-circle-outline' as const,
-    title: 'Account restrictions',
-    body: 'Accounts may be restricted or removed when required for security, classroom administration, policy violations, or protection of JapLearn and its users.',
+    icon: 'trash-outline' as const,
+    title: 'Ending your account',
+    body: 'You may delete your account at any time from Profile, then Delete account, or at portal.japlearn.com/delete-account. Deletion is permanent. We may restrict or remove accounts when needed for security, classroom administration, policy violations, or to protect JapLearn and its users.',
+  },
+  {
+    icon: 'refresh-outline' as const,
+    title: 'Changes and contact',
+    body: 'Lessons, activities, features and these terms may change as JapLearn improves, and the current version is available in the app and at portal.japlearn.com/terms. Continued use after an update means the revised terms apply. Questions: japlearnofficial@gmail.com.',
   },
 ];
 
@@ -71,7 +91,7 @@ export default function TermsOfServicePage() {
             <View style={styles.heroIcon}><Ionicons name="reader-outline" size={27} color="#8423D9" /></View>
             <Text style={styles.heroTitle}>Terms of Service</Text>
             <Text style={styles.heroText}>The guidelines that help keep JapLearn safe, fair, and useful for every learner and teacher.</Text>
-            <View style={styles.effectivePill}><View style={styles.statusDot} /><Text style={styles.effectiveText}>Effective August 19, 2026</Text></View>
+            <View style={styles.effectivePill}><View style={styles.statusDot} /><Text style={styles.effectiveText}>Effective September 20, 2026</Text></View>
           </View>
 
           <View style={[styles.content, isWide && styles.contentWide]}>

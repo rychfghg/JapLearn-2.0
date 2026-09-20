@@ -49,62 +49,62 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
                         showsVerticalScrollIndicator={false}
                     >
                         <Text style={styles.paragraph}>
-                            Welcome to JapLearn. Your privacy is our priority, and we are committed
-                            to safeguarding your personal data. This Privacy Policy outlines the
-                            information we collect, how we use it, and the measures we take to
-                            protect it. By using our application, you consent to the practices
-                            described in this policy. If you have any concerns about how we handle
-                            your information, please contact us directly using the details provided
-                            below.
+                            This is a short summary of how JapLearn handles your information. The
+                            full policy is always available in the app under Profile, and at
+                            portal.japlearn.com/privacy. By creating an account you agree to it.
                         </Text>
 
-                        <Text style={styles.subtitle}>1. Information We Collect</Text>
-                        <Text style={styles.paragraph}>
-                            To enhance your experience and provide our services effectively, we
-                            collect and process the following types of information:
+                        <Text style={styles.subtitle}>1. What we collect</Text>
+                        <Text style={styles.listItem}>
+                            - <Text style={styles.bold}>Account details:</Text> your first and last
+                            name, email address, password (stored encrypted), and the class code you
+                            join.
                         </Text>
                         <Text style={styles.listItem}>
-                            - <Text style={styles.bold}>Personal Information:</Text> Your name,
-                            email address, and other contact details provided during account
-                            registration.
+                            - <Text style={styles.bold}>Learning records:</Text> lesson completion,
+                            quiz answers, game scores and attempts, badges, streaks, daily goal
+                            minutes, and speaking practice results.
                         </Text>
                         <Text style={styles.listItem}>
-                            - <Text style={styles.bold}>Usage Data:</Text> Information such as your
-                            app activity, learning scores, and progress logs. We use this data to
-                            analyze your learning journey and provide tailored recommendations.
+                            - <Text style={styles.bold}>Voice recordings:</Text> in speaking
+                            activities only, and only after you allow microphone access.
                         </Text>
                         <Text style={styles.listItem}>
-                            - <Text style={styles.bold}>Device Information:</Text> Details about your
-                            device, such as type, operating system, and app version, to ensure
-                            compatibility and optimize performance.
+                            - <Text style={styles.bold}>Basic technical data:</Text> app version and
+                            the date and time of activity, used to run and fix the service.
                         </Text>
 
-                        <Text style={styles.subtitle}>2. How We Use Your Information</Text>
+                        <Text style={styles.subtitle}>2. Microphone and speaking activities</Text>
                         <Text style={styles.paragraph}>
-                            The information we collect is used to:
-                        </Text>
-                        <Text style={styles.listItem}>
-                            - Create and maintain your account.
-                        </Text>
-                        <Text style={styles.listItem}>
-                            - Improve our app and provide personalized learning experiences.
-                        </Text>
-                        <Text style={styles.listItem}>
-                            - Communicate important updates and changes to our services.
-                        </Text>
-                        <Text style={styles.listItem}>
-                            - Ensure the security and functionality of the app.
+                            Speaking activities record your voice while the activity is running. Your
+                            speech is sent securely to Microsoft Azure Speech Services to score
+                            pronunciation, accuracy, fluency and completeness, and what you said is
+                            sent as text to Google Gemini to generate feedback. We keep the
+                            transcript, scores and feedback, not the raw recording. You can decline
+                            microphone access and still use every other part of JapLearn.
                         </Text>
 
-                        <Text style={styles.subtitle}>3. Data Security</Text>
+                        <Text style={styles.subtitle}>3. Who can see your information</Text>
                         <Text style={styles.paragraph}>
-                            We implement strict security measures to protect your data from
-                            unauthorized access, loss, or misuse. While no system is entirely secure,
-                            we follow industry best practices to safeguard your information.
+                            The teacher who owns the class you join can see your name, email address
+                            and learning records for that class. Other students cannot. We work with
+                            MongoDB Atlas (storage), Render (hosting), Microsoft Azure and Google
+                            Gemini (speech and feedback), Brevo (account emails) and Expo (app
+                            updates). We never sell your information and never use it for
+                            advertising.
+                        </Text>
+
+                        <Text style={styles.subtitle}>4. Security and your control</Text>
+                        <Text style={styles.paragraph}>
+                            Connections use encrypted HTTPS and passwords are hashed, so nobody at
+                            JapLearn can read them. You can delete your account and all of its
+                            learning data at any time from Profile, then Delete account, or at
+                            portal.japlearn.com/delete-account. Deletion is permanent.
                         </Text>
                         <Text style={styles.paragraph}>
-                            In the unlikely event of a data breach, we will promptly notify affected
-                            users and take immediate steps to minimize risks.
+                            JapLearn is intended for learners aged 13 and above, or younger learners
+                            enrolled by their school with consent. Questions or requests:
+                            japlearnofficial@gmail.com.
                         </Text>
                     </ScrollView>
                     <Pressable disabled={!canAgree} onPress={onAgree} style={[styles.agreeButton,!canAgree&&styles.agreeButtonDisabled]}>

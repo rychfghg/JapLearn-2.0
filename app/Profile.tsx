@@ -250,12 +250,16 @@ const Profile = () => {
       );
 
       if (!response.ok) {
-        const message = await response.text();
-        throw new Error(
-          response.status === 429
-            ? "Too many attempts. Please wait a minute and try again."
-            : message || "Your account could not be deleted. Please try again.",
-        );
+        // Never show a raw server error to a learner.
+        if (response.status === 429) {
+          throw new Error("Too many attempts. Please wait a minute and try again.");
+        }
+        if (response.status === 401 || response.status === 403) {
+          throw new Error(
+            "Account deletion is temporarily unavailable. Please email japlearnofficial@gmail.com and we will delete your account for you.",
+          );
+        }
+        throw new Error("Your account could not be deleted. Please try again, or email japlearnofficial@gmail.com.");
       }
 
       // The account no longer exists, so clear everything cached for it on this device.
