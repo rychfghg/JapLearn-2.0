@@ -8,6 +8,7 @@ import { styles } from "../styles/stylesProfile";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import StudentBottomNav from "../components/StudentBottomNav";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useClassCode } from "../context/ClassCodeContext";
 import { offlineProgressFetch, subscribeProgress } from "../services/offlineProgress";
 
@@ -32,6 +33,11 @@ const Profile = () => {
   const [currentClassCode, setCurrentClassCode] = useState("");
   const [editingClass, setEditingClass] = useState(true);
   const [joiningClass, setJoiningClass] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<"none" | "reason" | "confirm">("none");
+  const [deleteAcknowledged, setDeleteAcknowledged] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const { classCode: savedClassCode, setClassCode: storeClassCode } = useClassCode() as {
     classCode: string;
     setClassCode: (code: string) => Promise<void>;
@@ -190,6 +196,90 @@ const Profile = () => {
     router.push("/Login");
   };
 
+  // Account deletion runs in two steps: an offer to help first, then a typed
+  // confirmation, so the account is never removed by a single accidental tap.
+  const openDeleteFlow = () => {
+    setDeleteAcknowledged(false);
+    setDeleteConfirmation("");
+    setDeleteError("");
+    setDeleteStep("reason");
+  };
+
+  const closeDeleteFlow = () => {
+    if (deleting) return;
+    setDeleteStep("none");
+    setDeleteAcknowledged(false);
+    setDeleteConfirmation("");
+    setDeleteError("");
+  };
+
+  const emailSupport = async () => {
+    const mailUrl =
+      "mailto:japlearnofficial@gmail.com?subject=JapLearn%20Account%20Help&body=Please%20describe%20the%20problem%20you%20are%20having.";
+    try {
+      await Linking.openURL(mailUrl);
+    } catch {
+      setDeleteError("Please email japlearnofficial@gmail.com for help.");
+    }
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (deleting) return;
+    if (deleteConfirmation.trim().toUpperCase() !== "DELETE") {
+      setDeleteError('Type DELETE exactly to confirm.');
+      return;
+    }
+    if (!user?.email || !user?.portalSessionToken) {
+      setDeleteError("Please sign in again before deleting your account.");
+      return;
+    }
+
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const response = await fetch(
+        `${expoconfig.API_URL}/api/users/delete-account?email=${encodeURIComponent(user.email)}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Student-Token": user.portalSessionToken,
+          },
+          body: JSON.stringify({ confirmation: "DELETE" }),
+        },
+      );
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(
+          response.status === 429
+            ? "Too many attempts. Please wait a minute and try again."
+            : message || "Your account could not be deleted. Please try again.",
+        );
+      }
+
+      // The account no longer exists, so clear everything cached for it on this device.
+      try {
+        const owner = user.email.trim().toLowerCase();
+        const keys = await AsyncStorage.getAllKeys();
+        const mine = keys.filter((key) => key.includes(owner) || key === "japlearn:offline-submissions:v1");
+        if (mine.length) await AsyncStorage.multiRemove(mine);
+      } catch {
+        // Signing out below still removes the account details from this device.
+      }
+
+      setDeleteStep("none");
+      logout();
+      router.replace("/Login");
+    } catch (error) {
+      setDeleteError(
+        error instanceof Error ? error.message : "Your account could not be deleted. Please try again.",
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleForgetPassword = async (email: string) => {
     try {
       const response = await fetch(`${expoconfig.API_URL}/api/users/forgot-password`, {
@@ -334,6 +424,16 @@ const Profile = () => {
           <View style={styles.settingsCard}>
             <TouchableOpacity
               accessibilityRole="button"
+              accessibilityLabel="Delete my JapLearn account"
+              onPress={openDeleteFlow}
+              style={styles.settingRow}
+            >
+              <View style={[styles.settingIcon, styles.deleteIcon]}><Ionicons name="trash-outline" size={21} color="#C53D47" /></View>
+              <View style={styles.settingCopy}><Text style={styles.deleteLabel}>Delete account</Text><Text style={styles.settingDescription}>Permanently remove your account and learning data</Text></View>
+              <Ionicons name="chevron-forward" size={20} color="#A89EAD" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
               accessibilityLabel="Open JapLearn privacy policy"
               onPress={() => router.push({ pathname: '/PrivacyPolicyPage', params: { fromProfile: 'true' } })}
               style={styles.settingRow}
@@ -383,6 +483,121 @@ const Profile = () => {
         onClose={() => setForgetPasswordVisible(false)}
         onSubmit={handleForgetPassword}
       />
+
+      {/* Step 1: offer help before anything is deleted. */}
+      <Modal visible={deleteStep === "reason"} transparent animationType="fade" onRequestClose={closeDeleteFlow}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={[styles.modalIcon, styles.deleteModalIcon]}>
+              <Ionicons name="help-buoy-outline" size={28} color="#C53D47" />
+            </View>
+            <Text style={styles.modalTitle}>Is something wrong?</Text>
+            <Text style={styles.modalMessage}>
+              Before you delete your account, let us try to help. Most problems with sign-in, class codes,
+              lost progress, or scores can be fixed without deleting anything.
+            </Text>
+
+            <TouchableOpacity onPress={emailSupport} style={styles.deleteSupportButton} accessibilityRole="button">
+              <Ionicons name="mail-outline" size={17} color="#8423D9" />
+              <Text style={styles.deleteSupportText}>Contact japlearnofficial@gmail.com</Text>
+            </TouchableOpacity>
+
+            <View style={styles.deleteWarningBox}>
+              <Text style={styles.deleteWarningTitle}>Deleting is permanent</Text>
+              <Text style={styles.deleteWarningText}>
+                Your account, lesson progress, badges, game scores, and speaking feedback will be removed
+                and cannot be restored.
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => setDeleteAcknowledged((value) => !value)}
+              style={styles.deleteCheckRow}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: deleteAcknowledged }}
+            >
+              <View style={[styles.deleteCheckbox, deleteAcknowledged && styles.deleteCheckboxOn]}>
+                {deleteAcknowledged && <Ionicons name="checkmark" size={15} color="#FFFFFF" />}
+              </View>
+              <Text style={styles.deleteCheckText}>
+                I understand this permanently deletes my account and all of my learning data.
+              </Text>
+            </TouchableOpacity>
+
+            {!!deleteError && <Text style={styles.deleteErrorText}>{deleteError}</Text>}
+
+            <View style={styles.deleteActions}>
+              <TouchableOpacity onPress={closeDeleteFlow} style={styles.deleteCancelButton} accessibilityRole="button">
+                <Text style={styles.deleteCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => { setDeleteError(""); setDeleteStep("confirm"); }}
+                disabled={!deleteAcknowledged}
+                style={[styles.deleteContinueButton, !deleteAcknowledged && styles.deleteButtonDisabled]}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !deleteAcknowledged }}
+              >
+                <Text style={styles.deleteContinueText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Step 2: type DELETE to confirm. */}
+      <Modal visible={deleteStep === "confirm"} transparent animationType="fade" onRequestClose={closeDeleteFlow}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={[styles.modalIcon, styles.deleteModalIcon]}>
+              <Ionicons name="trash-outline" size={28} color="#C53D47" />
+            </View>
+            <Text style={styles.modalTitle}>Delete this account?</Text>
+            <Text style={styles.modalMessage}>
+              This removes {user?.email} and everything saved with it. To confirm, type
+              <Text style={styles.deleteWordHint}> DELETE </Text>
+              below.
+            </Text>
+
+            <TextInput
+              value={deleteConfirmation}
+              onChangeText={(value) => { setDeleteConfirmation(value); setDeleteError(""); }}
+              placeholder="DELETE"
+              placeholderTextColor="#B6ADBB"
+              autoCapitalize="characters"
+              autoCorrect={false}
+              editable={!deleting}
+              style={styles.deleteInput}
+              accessibilityLabel="Type DELETE to confirm"
+            />
+
+            {!!deleteError && <Text style={styles.deleteErrorText}>{deleteError}</Text>}
+
+            <View style={styles.deleteActions}>
+              <TouchableOpacity
+                onPress={closeDeleteFlow}
+                disabled={deleting}
+                style={styles.deleteCancelButton}
+                accessibilityRole="button"
+              >
+                <Text style={styles.deleteCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={confirmDeleteAccount}
+                disabled={deleting || deleteConfirmation.trim().toUpperCase() !== "DELETE"}
+                style={[
+                  styles.deleteConfirmButton,
+                  (deleting || deleteConfirmation.trim().toUpperCase() !== "DELETE") && styles.deleteButtonDisabled,
+                ]}
+                accessibilityRole="button"
+              >
+                {deleting
+                  ? <ActivityIndicator size="small" color="#FFFFFF" />
+                  : <Text style={styles.deleteConfirmText}>Delete account</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
