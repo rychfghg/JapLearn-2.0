@@ -22,7 +22,7 @@ import StudentBottomNav from '../components/StudentBottomNav';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loadOfflineContent } from '../services/offlineSync';
-import { offlineProgressFetch } from '../services/offlineProgress';
+import { offlineProgressFetch, subscribeProgress } from '../services/offlineProgress';
 
 const learnMascotGuides = [
   { image: require('../assets/idle.png'), label: 'Ready to learn?', text: 'Follow the learning map and build your Japanese one step at a time.' },
@@ -93,6 +93,14 @@ const LearnMenu = () => {
     }
   }, [fromContent3, sentenceCompleted]);  // Check changes in `fromContent3` or `sentenceCompleted`
   
+  const applyProgress = (data: any) => {
+    if (!data) return;
+    if (data.sentence && !data.badge3) setSentenceCompleted(true);
+    if (data.hiragana1 && data.hiragana2 && data.hiragana3) setHiraganaComplete(true);
+    if (data.katakana1 && data.katakana2 && data.katakana3) setKatakanaComplete(true);
+    if (data.vocab1 && data.vocab2 && data.vocab3) setIsGrammarUnlocked(true);
+  };
+
   const checkProgress = async () => {
     if (!user?.email) return;
     try {
@@ -100,31 +108,17 @@ const LearnMenu = () => {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
-      const data = await response.json();
-      console.log('User Progress Data:', data);
-
-      // Check if "sentence" is true and "badge3" is false, then trigger badge modal
-      if (data.sentence && !data.badge3) {
-        setSentenceCompleted(true); // Only mark as complete if the sentence is true and badge3 is false
-      }
-
-      // Check completion of hiragana and katakana levels
-      if (data.hiragana1 && data.hiragana2 && data.hiragana3) {
-        setHiraganaComplete(true);
-      }
-
-      if (data.katakana1 && data.katakana2 && data.katakana3) {
-        setKatakanaComplete(true);
-      }
-
-      // Unlock Grammar after all three Words collections are complete.
-      if (data.vocab1 && data.vocab2 && data.vocab3) {
-        setIsGrammarUnlocked(true);
-      }
+      applyProgress(await response.json());
     } catch (error) {
       console.log("Error checking progress: ", error);
     }
   };
+
+  // The saved snapshot paints first; this applies the server copy once it arrives.
+  useEffect(() => {
+    if (!user?.email) return;
+    return subscribeProgress(user.email, applyProgress);
+  }, [user?.email]);
 
   const triggerBadgeModal = () => {
     setBadgeVisible(true);

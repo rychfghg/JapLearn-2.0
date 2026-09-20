@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import StudentBottomNav from "../components/StudentBottomNav";
 import { useClassCode } from "../context/ClassCodeContext";
+import { offlineProgressFetch, subscribeProgress } from "../services/offlineProgress";
 
 type Badge = {
   title: string;
@@ -31,24 +32,23 @@ const Profile = () => {
   const [currentClassCode, setCurrentClassCode] = useState("");
   const [editingClass, setEditingClass] = useState(true);
   const [joiningClass, setJoiningClass] = useState(false);
-  const { setClassCode: storeClassCode } = useClassCode() as {
+  const { classCode: savedClassCode, setClassCode: storeClassCode } = useClassCode() as {
+    classCode: string;
     setClassCode: (code: string) => Promise<void>;
   };
+
+  // Show the class already saved on the device while the server copy is on its way.
+  useEffect(() => {
+    if (!savedClassCode || currentClassCode) return;
+    setCurrentClassCode(savedClassCode);
+    setClassCodeInput(savedClassCode);
+    setEditingClass(false);
+  }, [savedClassCode, currentClassCode]);
   
   const router = useRouter();
 
-  const fetchUserBadges = async () => {
-    if (!user?.email) return;
-    try {
-      // Fetch user progress from the backend using the user's email
-      const response = await fetch(`${expoconfig.API_URL}/api/progress/${user.email}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      
-      const progress = await response.json();
+  const buildBadges = (progress: any) => {
+    if (!progress) return;
 
       // Badge logic based on backend data
       const badgeData = [
@@ -79,6 +79,17 @@ const Profile = () => {
       ];
 
       setBadges(badgeData);
+  };
+
+  const fetchUserBadges = async () => {
+    if (!user?.email) return;
+    try {
+      // Answers from the saved snapshot first, then refreshes from the server.
+      const response = await offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${user.email}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      buildBadges(await response.json());
     } catch (error) {
       console.log("Error fetching user progress:", error);
     }
@@ -89,6 +100,12 @@ const Profile = () => {
       fetchUserBadges();  // Fetch user badges on component mount
     }
   }, [user]);
+
+  // Repaint the badges when the background progress refresh finishes.
+  useEffect(() => {
+    if (!user?.email) return;
+    return subscribeProgress(user.email, buildBadges);
+  }, [user?.email]);
 
   useEffect(() => {
     const loadStudentClass = async () => {

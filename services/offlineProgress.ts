@@ -5,6 +5,33 @@ import { getPendingSubmissions, queueOfflineSubmission, syncOfflineSubmissions }
 type Progress = Record<string, unknown>;
 const keyFor = (email: string) => `japlearn:lesson-progress:v1:${email.trim().toLowerCase()}`;
 
+type Listener = (progress: Progress) => void;
+const listeners = new Map<string, Set<Listener>>();
+const refreshing = new Set<string>();
+
+/** Re-render a screen that is already showing the saved snapshot once the server answers. */
+export function subscribeProgress(email: string, listener: Listener): () => void {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return () => {};
+  const group = listeners.get(normalized) ?? new Set<Listener>();
+  group.add(listener);
+  listeners.set(normalized, group);
+  return () => { group.delete(listener); };
+}
+
+function notify(email: string, progress: Progress) {
+  listeners.get(email)?.forEach((listener) => { try { listener(progress); } catch { /* A screen that unmounted mid-refresh is fine. */ } });
+}
+
+/** The saved snapshot only, with no network wait, so unlocked lessons paint immediately. */
+export async function readCachedProgress(email: string): Promise<Progress | null> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return null;
+  const raw = await AsyncStorage.getItem(keyFor(normalized));
+  if (!raw) return null;
+  try { return JSON.parse(raw) as Progress; } catch { return null; }
+}
+
 export async function loadOfflineProgress(email: string): Promise<Progress> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) return {};
@@ -58,6 +85,20 @@ export async function offlineProgressFetch(url: string, options?: RequestInit): 
   const email = decodeURIComponent(match[1]);
   const method = (options?.method || 'GET').toUpperCase();
   if (method === 'GET') {
+    // Answer from the saved snapshot straight away and let the server catch up in the
+    // background, so unlocked lessons and badges never wait on a slow classroom network.
+    const normalized = email.trim().toLowerCase();
+    const cached = await readCachedProgress(normalized);
+    if (cached) {
+      if (!refreshing.has(normalized)) {
+        refreshing.add(normalized);
+        void loadOfflineProgress(normalized)
+          .then((fresh) => { notify(normalized, fresh); })
+          .catch(() => { /* The snapshot stays valid until the next refresh. */ })
+          .finally(() => { refreshing.delete(normalized); });
+      }
+      return new Response(JSON.stringify(cached), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
     const progress = await loadOfflineProgress(email);
     return new Response(JSON.stringify(progress), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
