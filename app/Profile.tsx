@@ -33,6 +33,7 @@ const Profile = () => {
   const [currentClassCode, setCurrentClassCode] = useState("");
   const [editingClass, setEditingClass] = useState(true);
   const [joiningClass, setJoiningClass] = useState(false);
+  const [accountSheetVisible, setAccountSheetVisible] = useState(false);
   const [deleteStep, setDeleteStep] = useState<"none" | "reason" | "confirm">("none");
   const [deleteAcknowledged, setDeleteAcknowledged] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -428,12 +429,12 @@ const Profile = () => {
           <View style={styles.settingsCard}>
             <TouchableOpacity
               accessibilityRole="button"
-              accessibilityLabel="Delete my JapLearn account"
-              onPress={openDeleteFlow}
+              accessibilityLabel="Open account and data options"
+              onPress={() => setAccountSheetVisible(true)}
               style={styles.settingRow}
             >
-              <View style={[styles.settingIcon, styles.deleteIcon]}><Ionicons name="trash-outline" size={21} color="#C53D47" /></View>
-              <View style={styles.settingCopy}><Text style={styles.deleteLabel}>Delete account</Text><Text style={styles.settingDescription}>Permanently remove your account and learning data</Text></View>
+              <View style={styles.settingIcon}><Ionicons name="person-circle-outline" size={22} color="#8423D9" /></View>
+              <View style={styles.settingCopy}><Text style={styles.settingLabel}>Account & data</Text><Text style={styles.settingDescription}>Your account details and data controls</Text></View>
               <Ionicons name="chevron-forward" size={20} color="#A89EAD" />
             </TouchableOpacity>
             <TouchableOpacity
@@ -487,6 +488,82 @@ const Profile = () => {
         onClose={() => setForgetPasswordVisible(false)}
         onSubmit={handleForgetPassword}
       />
+
+      {/* Account & data: account details, with deletion tucked inside. */}
+      <Modal
+        visible={accountSheetVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setAccountSheetVisible(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.sheetBackdrop}
+          onPress={() => setAccountSheetVisible(false)}
+          accessibilityLabel="Close account and data"
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.sheetCard} onPress={() => undefined}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <View style={styles.sheetHeaderIcon}><Ionicons name="person-circle-outline" size={26} color="#8423D9" /></View>
+              <View style={styles.settingCopy}>
+                <Text style={styles.sheetTitle}>Account & data</Text>
+                <Text style={styles.settingDescription}>Manage what JapLearn keeps for your account</Text>
+              </View>
+            </View>
+
+            <View style={styles.sheetInfo}>
+              <View style={styles.sheetInfoRow}>
+                <Ionicons name="person-outline" size={17} color="#8423D9" />
+                <Text style={styles.sheetInfoLabel}>Name</Text>
+                <Text style={styles.sheetInfoValue} numberOfLines={1}>{user ? `${user.fname} ${user.lname}` : ""}</Text>
+              </View>
+              <View style={styles.sheetInfoRow}>
+                <Ionicons name="mail-outline" size={17} color="#8423D9" />
+                <Text style={styles.sheetInfoLabel}>Email</Text>
+                <Text style={styles.sheetInfoValue} numberOfLines={1}>{user?.email ?? ""}</Text>
+              </View>
+              <View style={[styles.sheetInfoRow, styles.sheetInfoRowLast]}>
+                <Ionicons name="school-outline" size={17} color="#8423D9" />
+                <Text style={styles.sheetInfoLabel}>Class</Text>
+                <Text style={styles.sheetInfoValue} numberOfLines={1}>{currentClassCode || "Not joined"}</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              accessibilityRole="button"
+              onPress={() => {
+                setAccountSheetVisible(false);
+                router.push({ pathname: "/PrivacyPolicyPage", params: { fromProfile: "true" } });
+              }}
+              style={styles.sheetOption}
+            >
+              <View style={styles.sheetOptionIcon}><Ionicons name="document-text-outline" size={19} color="#8423D9" /></View>
+              <View style={styles.settingCopy}><Text style={styles.settingLabel}>What we store</Text><Text style={styles.settingDescription}>See the data JapLearn keeps and why</Text></View>
+              <Ionicons name="chevron-forward" size={19} color="#A89EAD" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Delete my JapLearn account"
+              onPress={() => {
+                setAccountSheetVisible(false);
+                // Let the sheet finish closing before the next pop-up opens.
+                setTimeout(openDeleteFlow, 350);
+              }}
+              style={[styles.sheetOption, styles.sheetOptionDanger]}
+            >
+              <View style={[styles.sheetOptionIcon, styles.deleteIcon]}><Ionicons name="trash-outline" size={19} color="#C53D47" /></View>
+              <View style={styles.settingCopy}><Text style={styles.deleteLabel}>Delete account</Text><Text style={styles.settingDescription}>Permanently remove your account and learning data</Text></View>
+              <Ionicons name="chevron-forward" size={19} color="#A89EAD" />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setAccountSheetVisible(false)} style={styles.sheetClose} accessibilityRole="button">
+              <Text style={styles.sheetCloseText}>Close</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Step 1: offer help before anything is deleted. */}
       <Modal visible={deleteStep === "reason"} transparent animationType="fade" onRequestClose={closeDeleteFlow}>

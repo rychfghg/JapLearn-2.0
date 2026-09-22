@@ -156,6 +156,45 @@ export const styles = StyleSheet.create({
     },
     buttonText: { color: '#FFFFFF', fontFamily: 'Jua', fontSize: 16, textAlign: 'center' },
 
+    // Account & data sheet
+    sheetBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(38,22,50,0.5)' },
+    sheetCard: {
+        backgroundColor: '#FFFFFF', borderTopLeftRadius: 28, borderTopRightRadius: 28,
+        paddingHorizontal: 20, paddingTop: 10, paddingBottom: 28,
+    },
+    sheetHandle: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: '#E3DAE8', marginBottom: 16 },
+    sheetHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 },
+    sheetHeaderIcon: {
+        width: 48, height: 48, borderRadius: 16, backgroundColor: '#F0E4FA',
+        alignItems: 'center', justifyContent: 'center',
+    },
+    sheetTitle: { color: '#462A5E', fontFamily: 'Jua', fontSize: 20 },
+    sheetInfo: {
+        borderRadius: 18, borderWidth: 1, borderColor: '#EEE7F1', backgroundColor: '#FBF8FD',
+        paddingHorizontal: 14, marginBottom: 14,
+    },
+    sheetInfoRow: {
+        flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12,
+        borderBottomWidth: 1, borderBottomColor: '#F0EBF2',
+    },
+    sheetInfoRowLast: { borderBottomWidth: 0 },
+    sheetInfoLabel: { width: 50, color: '#978D9B', fontSize: 12, fontWeight: '700' },
+    sheetInfoValue: { flex: 1, color: '#4C3B55', fontSize: 13.5, fontWeight: '700', textAlign: 'right' },
+    sheetOption: {
+        flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 12,
+        borderRadius: 16, borderWidth: 1, borderColor: '#EEE7F1', marginBottom: 10,
+    },
+    sheetOptionDanger: { borderColor: '#F5DCE0', backgroundColor: '#FFFAFB' },
+    sheetOptionIcon: {
+        width: 40, height: 40, borderRadius: 13, backgroundColor: '#F0E4FA',
+        alignItems: 'center', justifyContent: 'center',
+    },
+    sheetClose: {
+        marginTop: 4, height: 50, borderRadius: 15, alignItems: 'center', justifyContent: 'center',
+        backgroundColor: '#F4EFF6',
+    },
+    sheetCloseText: { color: '#5F5166', fontSize: 14, fontWeight: '800' },
+
     // Delete account
     deleteIcon: { backgroundColor: '#FCEBED' },
     deleteLabel: { color: '#B73540', fontSize: 14, fontWeight: '700' },
