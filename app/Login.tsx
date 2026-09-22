@@ -25,6 +25,15 @@ import { Ionicons } from '@expo/vector-icons';
 
 //Checking  
 
+type LoginNotice = {
+    title: string;
+    message: string;
+    hint?: string;
+    tone?: 'info' | 'error' | 'warning' | 'success';
+    icon?: any;
+    action?: 'reset';
+};
+
 const Login = () => {
     const { width } = useWindowDimensions();
     const isWide = width >= 860;
@@ -35,7 +44,12 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
-    const [modalMessage, setModalMessage] = useState('');
+    const [notice, setNotice] = useState<LoginNotice>({ title: 'Account notice', message: '' });
+
+    const showNotice = (next: LoginNotice) => {
+        setNotice(next);
+        setModalVisible(true);
+    };
     const [showPassword, setShowPassword] = useState(false);
     const [activeField, setActiveField] = useState<'email' | 'password' | null>(null);
     const [forgotPasswordVisible, setForgotPasswordVisible] = useState(false);
@@ -53,26 +67,77 @@ const Login = () => {
         }
     };
 
-    const getErrorMessage = async (response) => {
+    // Turns a failed sign-in response into a clear, specific pop-up.
+    const describeLoginFailure = async (response: Response): Promise<LoginNotice> => {
+        let serverError = '';
         try {
             const data = await response.json();
-
-            if (data?.error === 'Email not confirmed') {
-                return 'Your email is not confirmed. Please check your inbox for the confirmation email.';
-            }
-
-            if (data?.error === 'User not approved') {
-                return 'Your account has not been approved yet. Please contact the administrator.';
-            }
-
-            if (data?.error === 'User not found') {
-                return 'User not found.';
-            }
-
-            return data?.message || data?.error || 'Invalid credentials';
+            serverError = String(data?.error || data?.message || '');
         } catch {
-            return 'Invalid credentials';
+            // Some failures carry no JSON body.
         }
+
+        if (response.status === 429) {
+            return {
+                title: 'Too many attempts',
+                message: 'You have tried to sign in too many times. Please wait a minute, then try again.',
+                tone: 'warning',
+                icon: 'timer-outline',
+            };
+        }
+
+        if (serverError === 'Email not confirmed') {
+            return {
+                title: 'Confirm your email first',
+                message: 'Your account is created, but your email address is not confirmed yet.',
+                hint: 'Open the confirmation email from JapLearn and tap the link. Check your Spam or Promotions folder too.',
+                tone: 'warning',
+                icon: 'mail-unread-outline',
+            };
+        }
+
+        if (serverError === 'User not approved') {
+            return {
+                title: 'Waiting for approval',
+                message: 'Your email is confirmed. Your teacher or the JapLearn admin still needs to approve your account.',
+                hint: 'You can sign in as soon as your account is approved. Ask your teacher if it is taking a while.',
+                tone: 'warning',
+                icon: 'hourglass-outline',
+            };
+        }
+
+        if (response.status === 401 || response.status === 404 || serverError === 'Invalid credentials' || serverError === 'User not found') {
+            return {
+                title: 'Incorrect email or password',
+                message: 'The email or password you entered is not correct. Please check both and try again.',
+                hint: 'Passwords are case-sensitive, so check that Caps Lock is off.',
+                tone: 'error',
+                icon: 'lock-closed-outline',
+                action: 'reset',
+            };
+        }
+
+        if (response.status >= 500) {
+            return {
+                title: 'JapLearn is having trouble',
+                message: 'Our server could not finish signing you in. This is on our side, not yours.',
+                hint: 'Wait a moment and try again.',
+                tone: 'error',
+                icon: 'cloud-offline-outline',
+            };
+        }
+
+        return {
+            title: 'Sign-in failed',
+            message: serverError || 'Something went wrong while signing you in. Please try again.',
+            tone: 'error',
+        };
+    };
+
+    // Forgot-password responses reuse the same wording.
+    const getErrorMessage = async (response: Response) => {
+        const failure = await describeLoginFailure(response);
+        return failure.message;
     };
 
     const getStudentClassCode = async (userEmail) => {
@@ -96,8 +161,29 @@ const Login = () => {
 
     const handleLogin = async () => {
         if (!email.trim() || !password.trim()) {
-            setModalMessage('Please fill in both email and password');
-            setModalVisible(true);
+            const missingEmail = !email.trim();
+            const missingPassword = !password.trim();
+            showNotice({
+                title: missingEmail && missingPassword ? 'Enter your details' : missingEmail ? 'Enter your email' : 'Enter your password',
+                message: missingEmail && missingPassword
+                    ? 'Type the email and password for your JapLearn account.'
+                    : missingEmail
+                        ? 'Type the email address you use for JapLearn.'
+                        : 'Type your password to continue.',
+                tone: 'info',
+                icon: 'create-outline',
+            });
+            return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(email.trim())) {
+            showNotice({
+                title: 'Check your email address',
+                message: 'That does not look like a complete email address.',
+                hint: 'Use the full address, such as name@gmail.com.',
+                tone: 'error',
+                icon: 'at-outline',
+            });
             return;
         }
 
@@ -118,9 +204,7 @@ const Login = () => {
             });
 
             if (!response.ok) {
-                const errorMessage = await getErrorMessage(response);
-                setModalMessage(errorMessage);
-                setModalVisible(true);
+                showNotice(await describeLoginFailure(response));
                 return;
             }
 
@@ -149,8 +233,13 @@ const Login = () => {
 
             navigateBasedOnRole(userData.role, userClassCode);
         } catch (error) {
-            setModalMessage(`Login failed: ${error.message}`);
-            setModalVisible(true);
+            showNotice({
+                title: "Can't connect to JapLearn",
+                message: 'We could not reach the JapLearn server. Check that you are connected to Wi-Fi or mobile data.',
+                hint: 'If your connection is fine, the server may be starting up. Wait a few seconds and try again.',
+                tone: 'error',
+                icon: 'wifi-outline',
+            });
         } finally {
             setLoading(false);
         }
@@ -160,8 +249,12 @@ const Login = () => {
         const normalizedEmail = forgotPasswordEmail.trim().toLowerCase();
         const validEmail = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(normalizedEmail);
         if (!validEmail) {
-            setModalMessage('Enter a valid email address, such as name@gmail.com.');
-            setModalVisible(true);
+            showNotice({
+                title: 'Check your email address',
+                message: 'Enter the full email address for your account, such as name@gmail.com.',
+                tone: 'error',
+                icon: 'at-outline',
+            });
             return;
         }
 
@@ -177,17 +270,32 @@ const Login = () => {
             });
 
             if (response.ok) {
-                setModalMessage('Password reset email sent. Please check your inbox.');
                 setForgotPasswordVisible(false);
+                showNotice({
+                    title: 'Check your inbox',
+                    message: 'If an account exists for that email, we have sent a link to reset your password.',
+                    hint: 'The link expires in one hour. Check your Spam folder if you do not see it.',
+                    tone: 'success',
+                    icon: 'mail-outline',
+                });
+            } else if (response.status === 429) {
+                showNotice({
+                    title: 'Too many requests',
+                    message: 'Please wait a minute before asking for another reset link.',
+                    tone: 'warning',
+                    icon: 'timer-outline',
+                });
             } else {
-                const errorMessage = await getErrorMessage(response);
-                setModalMessage(errorMessage);
+                showNotice({ title: 'Reset link not sent', message: await getErrorMessage(response), tone: 'error' });
             }
-        } catch (error) {
-            setModalMessage(`Error: ${error.message}`);
+        } catch {
+            showNotice({
+                title: "Can't connect to JapLearn",
+                message: 'We could not send the reset link. Check your internet connection and try again.',
+                tone: 'error',
+                icon: 'wifi-outline',
+            });
         }
-
-        setModalVisible(true);
     };
 
     return (
@@ -351,10 +459,21 @@ const Login = () => {
 
             <CustomModal
                 visible={modalVisible}
-                message={modalMessage}
+                message={notice.message}
                 onClose={() => setModalVisible(false)}
                 variant="auth"
-                title="Account notice"
+                title={notice.title}
+                tone={notice.tone}
+                icon={notice.icon}
+                hint={notice.hint}
+                actionLabel={notice.action === 'reset' ? 'Reset my password' : undefined}
+                onAction={notice.action === 'reset'
+                    ? () => {
+                        setModalVisible(false);
+                        setForgotPasswordEmail(email.trim().toLowerCase());
+                        setForgotPasswordVisible(true);
+                    }
+                    : undefined}
             />
         </View>
     );
