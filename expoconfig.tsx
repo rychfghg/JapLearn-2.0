@@ -53,6 +53,11 @@ const LOCAL_BACKEND_PORT = 8080;
 const LOCAL_WEB_URL = `http://localhost:${LOCAL_BACKEND_PORT}`;
 const RENDER_BACKEND_URL = 'https://japlearn2-0.onrender.com';
 
+// The installed app reaches the backend through the portal's /api relay on
+// Vercel, because some mobile carriers cannot connect to Render directly.
+// The relay forwards every request to RENDER_BACKEND_URL unchanged.
+const PROXY_BACKEND_URL = 'https://portal.japlearn.com';
+
 const ANDROID_EMULATOR_URL = `http://10.0.2.2:${LOCAL_BACKEND_PORT}`;
 
 const LAN_IP_URL = `http://192.168.1.9:${LOCAL_BACKEND_PORT}`;
@@ -82,7 +87,9 @@ const getApiUrl = () => {
     return LAN_IP_URL;
   }
 
-  return RENDER_BACKEND_URL;
+  // Release APK: go through Vercel so mobile data works on every carrier.
+  // To roll back to connecting directly, return RENDER_BACKEND_URL instead.
+  return PROXY_BACKEND_URL;
 
   // Previous production setting kept for quick rollback:
   // return LAN_IP_URL;
