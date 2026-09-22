@@ -28,9 +28,20 @@ The student experience includes:
 - **QuackResponse**, including Reply Coach, Response Rush, and Dialogue Relay
 - **QuackTalk**, including Guided Phrase Practice and Talk with Sumi
 - **QuackProgress** for scores, mastery, completion, focus areas, and communication feedback
+- Badges, a daily goal, and a day streak on the home screen
 - Per-account classroom enrollment and synchronized learning records across supported devices
+- Offline progress that syncs automatically when the connection returns
+- In-app account deletion, as required by Google Play
 
-This repository contains the **Expo/React Native student frontend**. Authentication, progress storage, classes, teacher synchronization, and email services are provided by the separate Spring Boot backend.
+This repository contains the **Expo/React Native student frontend**. Authentication, progress storage, classes, teacher synchronization, speech assessment, and email services are provided by the separate Spring Boot backend.
+
+### Related repositories
+
+| Repository | Contents |
+|---|---|
+| [JapLearn-2.0](https://github.com/rychfghg/JapLearn-2.0) | This student app (Android and web) |
+| [Japlearn-Website](https://github.com/rychfghg/Japlearn-Website) | Landing page, teacher portal, and admin portal at [portal.japlearn.com](https://portal.japlearn.com) |
+| [JapLearn2.0](https://github.com/rychfghg/JapLearn2.0) | Spring Boot backend API |
 
 ## Download JapLearn
 
@@ -54,11 +65,14 @@ Use JapLearn in a browser at **[japlearn.com](https://japlearn.com)**. The web v
 | Language | TypeScript |
 | Navigation | Expo Router |
 | Local device state | AsyncStorage |
-| Synced records | Spring Boot API + MongoDB |
+| Synced records | Spring Boot API + MongoDB Atlas |
+| Speech assessment | Microsoft Azure Speech (through the backend) |
+| Conversation feedback | Google Gemini (through the backend) |
 | Audio | Expo AV + React Native Audio API |
 | Icons | Expo Vector Icons |
 | Web | React Native Web |
 | Builds | EAS Build |
+| Over-the-air updates | EAS Update (`expo-updates`) |
 
 ## Requirements
 
@@ -147,6 +161,24 @@ The currently published APK is available from the [JapLearn Android build page](
 
 > Native iOS builds are not part of the current JapLearn release. Do not advertise App Store availability until an iOS build has been implemented, tested, and published.
 
+## Over-the-Air Updates
+
+JavaScript and asset changes can reach installed apps without a new APK. Publish to the branch that matches the build's channel:
+
+```bash
+npx eas-cli@latest update --branch apk --message "Describe the change"
+```
+
+| Build profile | Channel / branch |
+|---|---|
+| `apk` | `apk` |
+| `preview` | `preview` |
+| `production` | `production` |
+
+The app checks for updates when it launches, so users may need to **open the app twice**: once to download the update and once to run it.
+
+`runtimeVersion` follows the app version (`1.0.1`). An update only reaches builds with the same version, so changing `version` in `app.json` requires a new build. Changes to native code, permissions, or plugins also require a new build instead of an update.
+
 ## Web Build
 
 ```bash
@@ -157,6 +189,29 @@ The production student website is available at [japlearn.com](https://japlearn.c
 
 The teacher and admin website is available separately at [portal.japlearn.com](https://portal.japlearn.com).
 
+## Privacy, Permissions, and Account Deletion
+
+The app requests only what its features need:
+
+| Permission | Used for |
+|---|---|
+| Microphone (`RECORD_AUDIO`) | Speaking activities, only after the user allows it |
+| Internet | Signing in, saving progress, loading lessons |
+| Modify audio settings | Routing lesson and game audio |
+| Vibration | Haptic feedback in some games |
+
+Storage and overlay permissions are blocked in [`app.json`](./app.json). The app contains no advertising or analytics SDKs.
+
+Speaking activities send recorded speech to the backend, which uses Microsoft Azure Speech for pronunciation scores and Google Gemini for feedback. The transcript, scores, and feedback are saved; the raw audio is not.
+
+**Account deletion.** Users can delete their account in **Profile → Delete account**. The flow first offers help, requires a confirmation checkbox, and then asks the user to type `DELETE`. The same deletion is available without the app at [portal.japlearn.com/delete-account](https://portal.japlearn.com/delete-account). Both remove the account and every learning record.
+
+The full policies are shown in the app and at [portal.japlearn.com/privacy](https://portal.japlearn.com/privacy) and [portal.japlearn.com/terms](https://portal.japlearn.com/terms). Keep the in-app and website versions identical when either changes.
+
+## Offline Progress
+
+Lesson progress is saved on the device first and queued when the connection drops, then synced automatically when the app reconnects or returns to the foreground. Screens read the saved copy immediately and refresh from the server in the background, so unlocked lessons and badges appear without waiting on the network. See [`services/offlineProgress.ts`](./services/offlineProgress.ts) and [`services/offlineSync.ts`](./services/offlineSync.ts).
+
 ## Project Structure
 
 ```text
@@ -164,12 +219,15 @@ Japlearn-1/
 ├── app/            # Screens and Expo Router routes
 ├── assets/         # Fonts, images, sprites, audio, and game artwork
 ├── components/     # Reusable interface components
+├── config/         # Feature configuration, such as Sumi's voice profile
 ├── context/        # Authentication and shared application state
 ├── data/           # Local lesson and game content
+├── hooks/          # Shared React hooks
 ├── patches/        # Native dependency compatibility fixes applied during installation
+├── services/       # Offline progress storage and background sync
 ├── styles/         # Screen-specific styles
 ├── types/          # TypeScript definitions
-├── utils/          # API, asset, and application utilities
+├── utils/          # Asset preloading, audio, and platform utilities
 ├── app.json        # Expo application configuration
 ├── eas.json        # EAS build profiles
 ├── expoconfig.tsx  # Backend URL selection
@@ -183,7 +241,8 @@ Japlearn-1/
 3. Verify audio, fonts, icons, and local images.
 4. Confirm timers and audio stop when leaving game screens.
 5. Run Android and web export checks. Also test the responsive web layout in Safari-compatible mobile dimensions.
-6. Ensure credentials and generated builds are not staged.
+6. If a change touches collected data or permissions, update the privacy policy in the app and on the website.
+7. Ensure credentials and generated builds are not staged. The `dist/` and `dist-*/` folders are ignored.
 
 ## Troubleshooting
 
@@ -198,6 +257,16 @@ Japlearn-1/
 
 - Confirm the Render backend is reachable.
 - A sleeping free-tier service may need time to wake up.
+
+### Deleting an account shows "Your portal session is missing or expired"
+
+The backend is running an older build. Redeploy the latest backend; account deletion needs the updated authorization rules.
+
+### An update does not appear on a phone
+
+- Confirm the update was published to the branch that matches the build's channel.
+- Close the app fully and open it again, twice.
+- Check that the build's app version matches the version the update was published for.
 
 ### Accessing JapLearn on iPhone or iPad
 
