@@ -99,8 +99,8 @@ const Login = () => {
         if (serverError === 'User not approved') {
             return {
                 title: 'Waiting for approval',
-                message: 'Your email is confirmed. Your teacher or the JapLearn admin still needs to approve your account.',
-                hint: 'You can sign in as soon as your account is approved. Ask your teacher if it is taking a while.',
+                message: 'Your email is confirmed. The JapLearn admin still needs to approve your account.',
+                hint: 'You can sign in as soon as the JapLearn admin approves your account.',
                 tone: 'warning',
                 icon: 'hourglass-outline',
             };

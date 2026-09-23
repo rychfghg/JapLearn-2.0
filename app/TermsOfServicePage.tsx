@@ -11,7 +11,7 @@ const sections = [
   {
     icon: 'key-outline' as const,
     title: 'Your account',
-    body: 'Give accurate account details, keep your password private, and use only the account assigned to you. You are responsible for what happens through your account. Student accounts are activated after email confirmation and teacher approval.',
+    body: 'Give accurate account details, keep your password private, and use only the account assigned to you. You are responsible for what happens through your account. Student accounts are activated after email confirmation and JapLearn admin approval.',
   },
   {
     icon: 'school-outline' as const,
