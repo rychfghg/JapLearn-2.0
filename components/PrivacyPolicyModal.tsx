@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, Text, View, StyleSheet, Dimensions, Pressable, Platform } from 'react-native';
+import { Modal, ScrollView, Text, View, StyleSheet, Pressable, Platform, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const uiFont = Platform.select({ android: 'sans-serif', ios: 'System', web: 'Inter, system-ui, sans-serif' });
@@ -7,6 +7,8 @@ const uiFont = Platform.select({ android: 'sans-serif', ios: 'System', web: 'Int
 const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
     const [canAgree, setCanAgree] = useState(false);
     const [renderKey, setRenderKey] = useState(0); // Key for re-rendering
+    // Follows the real window size, so resizing or rotating keeps the sheet usable.
+    const { height: windowHeight } = useWindowDimensions();
 
     const scrollViewRef = useRef<ScrollView>(null);
 
@@ -17,10 +19,23 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
         }
     }, [visible]);
 
+    // Height of the scrolling area and of its content, so the button can also be
+    // enabled when everything already fits on screen and there is nothing to scroll.
+    const viewportHeight = useRef(0);
+    const contentHeight = useRef(0);
+
+    const enableIfNothingToScroll = () => {
+        if (viewportHeight.current > 0 && contentHeight.current > 0
+                && contentHeight.current <= viewportHeight.current + 24) {
+            setCanAgree(true);
+        }
+    };
+
     const handleScroll = (event) => {
         const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
-        const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
-        setCanAgree(isAtBottom);
+        const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 40;
+        // Once the end has been reached, scrolling back up must not disable the button.
+        if (isAtBottom) setCanAgree(true);
     };
 
     return (
@@ -32,7 +47,7 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
             key={renderKey} // Force re-render the modal when visible
         >
             <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
+                <View style={[styles.modalContent, { maxHeight: windowHeight * 0.8 }]}>
                     <View style={styles.headerRow}>
                         <View style={styles.headerIcon}><Ionicons name="shield-checkmark-outline" size={22} color="#7B2CBF" /></View>
                         <View style={styles.headerCopy}>
@@ -43,10 +58,20 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
                     </View>
                     <ScrollView
                         ref={scrollViewRef}
+                        style={styles.scrollArea}
                         contentContainerStyle={styles.scrollContainer}
                         onScroll={handleScroll}
                         scrollEventThrottle={16}
-                        showsVerticalScrollIndicator={false}
+                        showsVerticalScrollIndicator
+                        persistentScrollbar
+                        onLayout={(event) => {
+                            viewportHeight.current = event.nativeEvent.layout.height;
+                            enableIfNothingToScroll();
+                        }}
+                        onContentSizeChange={(_width, height) => {
+                            contentHeight.current = height;
+                            enableIfNothingToScroll();
+                        }}
                     >
                         <Text style={styles.paragraph}>
                             This is a short summary of how JapLearn handles your information. The
@@ -117,7 +142,6 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
     );
 };
 
-const { height } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
     modalOverlay: {
@@ -128,7 +152,7 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         width: '90%',
-        maxHeight: height * 0.8,
+        maxWidth: 560,
         backgroundColor: 'white',
         borderRadius: 22,
         padding: 22,
@@ -138,6 +162,7 @@ const styles = StyleSheet.create({
     headerCopy:{flex:1},
     closeButton:{width:36,height:36,borderRadius:18,backgroundColor:'#F5F2F6',alignItems:'center',justifyContent:'center'},
     headerHint:{fontFamily:uiFont,fontSize:12,color:'#847B88',marginTop:2},
+    scrollArea: { flexGrow: 0, flexShrink: 1 },
     scrollContainer: {
         paddingBottom: 20,
     },
