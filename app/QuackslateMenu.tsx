@@ -8,6 +8,15 @@ import { AuthContext } from '../context/AuthContext';
 const scene = require('../assets/quackslate-twilight-workshop-v4.png');
 const loadingMascotImage = require('../assets/hello.png');
 
+const getJoinErrorMessage = (status: number) => {
+  if (status === 401) return 'Your sign-in has expired. Please sign in again, then retry the code.';
+  if (status === 403 || status === 404) return 'That teacher code is incorrect or is not available to your account.';
+  if (status === 410) return 'This QuackSlate session has already ended.';
+  if (status === 429) return 'Too many attempts were made. Please wait a moment, then try again.';
+  if (status >= 500) return 'The classroom service is temporarily unavailable. Please try again shortly.';
+  return 'This classroom session is not available. Check the code and try again.';
+};
+
 export default function QuackslateMenu() {
   const router = useRouter();
   const { user } = useContext(AuthContext);
@@ -33,19 +42,23 @@ export default function QuackslateMenu() {
   const joinTeacher = async () => {
     const normalized = code.trim().toUpperCase();
     if (!normalized) return setMessage('Enter the session code shared by your teacher.');
+    if (normalized.length !== 6) return setMessage('Teacher codes contain exactly 6 letters or numbers.');
+    setMessage('');
     setJoining(true);
     try {
       if (!user?.email || !user.portalSessionToken) throw new Error('Sign in again to join this classroom session.');
       const response = await fetch(`${expoconfig.API_URL}/api/quackslate/session/${encodeURIComponent(normalized)}/join`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Student-Token': user.portalSessionToken }, body: JSON.stringify({ email: user.email }),
       });
-      if (!response.ok) throw new Error(await response.text() || 'This classroom session is not available.');
+      if (!response.ok) throw new Error(getJoinErrorMessage(response.status));
       const session = await response.json();
       if (session.status === 'ENDED' || session.status === 'DRAFT') throw new Error('This session is not open for students.');
       setJoinOpen(false);
       router.push({ pathname: '/QuackslateWait', params: { gameCode: normalized } });
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'The session could not be reached.');
+      setMessage(error instanceof Error
+        ? error.message
+        : 'The session could not be reached. Check your connection and try again.');
     } finally {
       setJoining(false);
     }

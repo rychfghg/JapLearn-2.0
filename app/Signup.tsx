@@ -159,7 +159,7 @@ const Signup = () => {
                     <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
                         {!isWide && <View style={styles.mobileBrandAccent}>
                             <View style={styles.mobileAccentLine} />
-                            <Ionicons name="sparkles" size={15} color="#72B544" />
+                            <Ionicons name="language-outline" size={16} color="#72B544" />
                             <View style={styles.mobileAccentLine} />
                         </View>}
                         <View style={styles.brandRow}>
