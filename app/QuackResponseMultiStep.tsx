@@ -9,6 +9,7 @@ import expoconfig from '../expoconfig';
 import { queueOfflineSubmission, syncOfflineSubmissions } from '../services/offlineSync';
 import styles from '../styles/stylesQuackResponseGuided';
 import dialogueRelayAudio from './dialogueRelayAudio';
+import dialogueRelayLines from './dialogueRelayLines.json';
 import { RELAY_SCENES, RELAY_TOTAL_RESPONSES, RELAY_TRIVIA, RelayChoice } from './dialogueRelayContent';
 
 const sprites = {
@@ -72,6 +73,7 @@ export default function DialogueRelay(){
   const effectsStarting=useRef<Promise<void>|null>(null),loadedReactionKey=useRef('');
   const bonusFlashTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const scene=RELAY_SCENES[sceneIndex],current=scene.questions[questionIndex];
+  const dialogue=(dialogueRelayLines as Record<string, Array<{sumi:string;sumiRomaji:string;haru:string;haruRomaji:string}>>)[scene.id]?.[questionIndex];
   const correct=answers.filter(a=>a.correct).length,score=answers.reduce((sum,a)=>sum+a.points,0)+bonusCorrectCount;
   const saveKey=`dialogue_relay_v4:${user?.email||'guest'}`;
 
@@ -86,7 +88,7 @@ export default function DialogueRelay(){
   useEffect(()=>{if(phase!=='userReply'||!selected)return;let live=true;void playVoice(`choice-${selected.id}`,()=>{if(live)setPhase('resultFlash');});return()=>{live=false;};},[phase,selected?.id]);
   useEffect(()=>{if(phase!=='resultFlash'||!selected)return;let live=true;setFlash(selected.correct?'good':'bad');flashOpacity.setValue(0);flashScale.setValue(.4);Animated.sequence([Animated.timing(flashOpacity,{toValue:1,duration:170,useNativeDriver:true}),Animated.delay(2050),Animated.timing(flashOpacity,{toValue:0,duration:300,useNativeDriver:true})]).start();Animated.spring(flashScale,{toValue:1,friction:5,tension:120,useNativeDriver:true}).start();void playSfx(selected.correct?'correct':'wrong');const timer=setTimeout(()=>{if(!live)return;live=false;void stopFeedbackSfx();setFlash(null);setPhase('reaction');},2600);return()=>{live=false;clearTimeout(timer);};},[phase,selected?.id]);
   useEffect(()=>{if(phase!=='reaction'||!selected)return;let live=true;let timer:ReturnType<typeof setTimeout>|undefined;const started=Date.now();const finish=()=>{const remaining=Math.max(0,2100-(Date.now()-started));timer=setTimeout(()=>{if(live)setPhase('feedback');},remaining);};void playReaction(SUMI_REACTION_AUDIO[selected.evaluation],finish);return()=>{live=false;if(timer)clearTimeout(timer);};},[phase,selected?.id]);
-  useEffect(()=>{if(phase==='narration')void playVoice(`scene-${scene.id}-narration`);else if(phase==='sumi')void playVoice(`scene-${scene.id}-sumi`);else if(phase==='haru')void playVoice(`scene-${scene.id}-haru`);else if(phase==='choice')void playVoice(`prompt-${scene.id}-${questionIndex}`);else if(phase==='bonusNarration')void playVoice(`bonus-${bonusIndex+1}-narration`);else if(phase==='bonusSumi')void playVoice(`bonus-${bonusIndex+1}-sumi`);else if(phase==='bonus')void playVoice(`bonus-${bonusIndex+1}-prompt`);},[phase,scene.id,questionIndex,bonusIndex]);
+  useEffect(()=>{if(phase==='narration')void playVoice(`scene-${scene.id}-narration`);else if(phase==='sumi')void playVoice(`dialogue-${scene.id}-${questionIndex}-sumi`);else if(phase==='haru')void playVoice(`dialogue-${scene.id}-${questionIndex}-haru`);else if(phase==='choice')void playVoice(`prompt-${scene.id}-${questionIndex}`);else if(phase==='bonusNarration')void playVoice(`bonus-${bonusIndex+1}-narration`);else if(phase==='bonusSumi')void playVoice(`bonus-${bonusIndex+1}-sumi`);else if(phase==='bonus')void playVoice(`bonus-${bonusIndex+1}-prompt`);},[phase,scene.id,questionIndex,bonusIndex]);
   useEffect(()=>{if(!phase.startsWith('bonus'))return;void (async()=>{const pending=musicStarting.current;if(pending)await pending.catch(()=>{});if(music.current){await music.current.stopAsync().catch(()=>{});await music.current.unloadAsync().catch(()=>{});music.current=null;}musicStarting.current=null;})();},[phase]);
 
   const persist=(over:Partial<Save>={})=>AsyncStorage.setItem(saveKey,JSON.stringify({version:4,sceneIndex,questionIndex,answers,bonusPromptSeen,bonusEarned,bonusIndex,bonusCorrectCount,...over}));
@@ -153,7 +155,7 @@ export default function DialogueRelay(){
         </View>}
         {phase==='tutorial'&&<Tutorial start={()=>{void ensureMusic();setPhase('narration');}}/>}
         {isNarration&&<Narration title={`${sceneIndex+1}/10 · ${scene.place}`} text={typed} done={narrationDone} tap={narrationTap}/>} 
-        {isDialogue&&<Speech who={phase==='sumi'?'SUMI':'HARU'} text={phase==='sumi'?scene.sumi:scene.haru} romaji={phase==='sumi'?scene.sumiRomaji:scene.haruRomaji} next={()=>setPhase(phase==='sumi'?'haru':'choice')}/>} 
+        {isDialogue&&<Speech who={phase==='sumi'?'SUMI':'HARU'} text={phase==='sumi'?(dialogue?.sumi||scene.sumi):(dialogue?.haru||scene.haru)} romaji={phase==='sumi'?(dialogue?.sumiRomaji||scene.sumiRomaji):(dialogue?.haruRomaji||scene.haruRomaji)} next={()=>setPhase(phase==='sumi'?'haru':'choice')}/>}
         {(phase==='userReply'||phase==='resultFlash')&&<UserReplyBubble choice={selected}/>} 
         {isReaction&&<ReactionBubble text={selected?.reaction} romaji={reactionRomaji(selected?.reaction)}/>} 
         {isChoice&&<ChoicePanel current={current} number={answers.length+1} choose={choose} hint={()=>setChoiceHintVisible(true)} preview={(id:string)=>{void ensureMusic();void playVoice(`choice-${id}`);}} activeAudioKey={activeAudioKey}/>}

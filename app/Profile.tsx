@@ -7,7 +7,6 @@ import studentProfile from "../assets/img/studentProfile.png";
 import { styles } from "../styles/stylesProfile";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import StudentBottomNav from "../components/StudentBottomNav";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useClassCode } from "../context/ClassCodeContext";
 import { offlineProgressFetch, subscribeProgress } from "../services/offlineProgress";
@@ -465,7 +464,6 @@ const Profile = () => {
           </View>
         </View>
       </ScrollView>
-      <StudentBottomNav active="profile" />
 
       {/* Badge Info Modal */}
       {badgeModalVisible && (

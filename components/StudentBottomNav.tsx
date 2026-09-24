@@ -42,7 +42,7 @@ export default function StudentBottomNav({ active }: { active?: Tab }) {
         const selected = item.key === active;
         const isTalk = item.key === 'talk';
         return (
-          <Pressable key={item.key} style={({ pressed }) => [styles.item, isTalk && styles.talkItem, pressed && styles.pressed]} onPress={() => router.replace(item.route)}>
+          <Pressable key={item.key} accessibilityRole="tab" accessibilityState={{ selected }} style={({ pressed }) => [styles.item, isTalk && styles.talkItem, pressed && styles.pressed]} onPress={() => { if (!selected) router.replace(item.route); }}>
             <View style={[styles.iconWrap, selected && styles.activeIconWrap, isTalk && styles.talkIconWrap, isTalk && selected && styles.talkIconActive]}>
               <Ionicons name={selected ? item.activeIcon : item.icon} size={isTalk ? 27 : 22} color={selected ? '#FFFFFF' : '#918797'} />
             </View>

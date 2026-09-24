@@ -18,7 +18,6 @@ import ImageButton from '../components/ImageButton';
 import { Easing } from 'react-native-reanimated';
 import expoconfig from '../expoconfig'; // Assuming you have this config for API URLs
 import { AuthContext } from '../context/AuthContext';
-import StudentBottomNav from '../components/StudentBottomNav';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loadOfflineContent } from '../services/offlineSync';
@@ -419,7 +418,6 @@ const LearnMenu = () => {
             </TouchableWithoutFeedback>
           </Modal>
         )}
-        <StudentBottomNav active="learn" />
       </View>
     </SafeAreaView>
   );

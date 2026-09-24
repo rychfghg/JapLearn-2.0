@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Animated,
   Image,
+  ImageSourcePropType,
   Modal,
   PanResponder,
   Pressable,
@@ -53,6 +54,34 @@ const mediaUrl = (url?: string) => {
   if (!url) return '';
   return url.startsWith('http') ? url : `${expoconfig.API_URL}${url}`;
 };
+
+// Published starter moments use these asset paths, not backend media URLs.
+// Resolve them from the app bundle so both choices work in APK and offline.
+const waveImage = require('../assets/quacksituate/gestures/gesture-wave.png');
+const bowImage = require('../assets/quacksituate/gestures/gesture-bow.png');
+const bundledGestureImage = (url?: string) => {
+  if (!url) return null;
+  let path = url;
+  try { path = decodeURIComponent(url); } catch { /* Keep the original URL. */ }
+  const fileName = path.split(/[?#]/)[0].replace(/\\/g, '/').split('/').pop()?.toLowerCase();
+  if (fileName === 'gesture-wave.png') return waveImage;
+  if (fileName === 'gesture-bow.png') return bowImage;
+  return null;
+};
+
+function TargetPicture({ source, fallback }: { source: ImageSourcePropType; fallback: ImageSourcePropType }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <View style={styles.targetArtwork}>
+      <Image
+        source={failed ? fallback : source}
+        style={styles.targetImage}
+        resizeMode="contain"
+        onError={() => setFailed(true)}
+      />
+    </View>
+  );
+}
 
 const getAnswer = (moment: Moment): Choice => {
   return moment.choices?.find(choice => choice.japanese === moment.correctAnswer) || {
@@ -166,8 +195,10 @@ export default function QuackSituateMatching() {
   const current = moments.length > 0
     ? moments[Math.min(momentIndex, moments.length - 1)]
     : undefined;
-  const correctImageUri = useOfflineMediaUri(current?.imageUrl);
-  const alternativeImageUri = useOfflineMediaUri(current?.secondaryImageUrl);
+  const correctBundledImage = bundledGestureImage(current?.imageUrl);
+  const alternativeBundledImage = bundledGestureImage(current?.secondaryImageUrl);
+  const correctImageUri = useOfflineMediaUri(correctBundledImage ? undefined : current?.imageUrl);
+  const alternativeImageUri = useOfflineMediaUri(alternativeBundledImage ? undefined : current?.secondaryImageUrl);
   const currentAnswer = current ? getAnswer(current) : null;
   const answeredCount = correctCount + mistakes;
   const accuracy = answeredCount > 0 ? correctCount / answeredCount : 0;
@@ -522,14 +553,14 @@ export default function QuackSituateMatching() {
     );
   }
 
-  const correctImage = { uri: correctImageUri };
-  const alternativeImage = { uri: alternativeImageUri };
+  const correctImage = correctBundledImage ?? (correctImageUri ? { uri: correctImageUri } : waveImage);
+  const alternativeImage = alternativeBundledImage ?? (alternativeImageUri ? { uri: alternativeImageUri } : bowImage);
   const topTarget = correctPosition === 'top'
-    ? { image: correctImage, scenario: current.scenario }
-    : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
+    ? { image: correctImage, fallback: waveImage, scenario: current.scenario }
+    : { image: alternativeImage, fallback: bowImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
   const bottomTarget = correctPosition === 'bottom'
-    ? { image: correctImage, scenario: current.scenario }
-    : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
+    ? { image: correctImage, fallback: waveImage, scenario: current.scenario }
+    : { image: alternativeImage, fallback: bowImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
   const feedbackReason = current.explanation?.trim()
     || `This expression naturally matches “${current.scenario}” because its tone and meaning fit that social moment.`;
   const feedbackExample = `In this situation—${current.scenario}—say 「${current.correctAnswer}」 (${currentAnswer.romaji}).`;
@@ -580,7 +611,7 @@ export default function QuackSituateMatching() {
         </View>
 
         <View style={styles.targetCard}>
-          <Image source={topTarget.image} style={styles.targetImage} resizeMode="contain" />
+          <TargetPicture key={`${current.id}-top-${correctPosition}`} source={topTarget.image} fallback={topTarget.fallback} />
           <View style={styles.targetLabel}>
             <Text style={styles.targetScenario}>{topTarget.scenario}</Text>
           </View>
@@ -611,7 +642,7 @@ export default function QuackSituateMatching() {
         </View>
 
         <View style={styles.targetCard}>
-          <Image source={bottomTarget.image} style={styles.targetImage} resizeMode="contain" />
+          <TargetPicture key={`${current.id}-bottom-${correctPosition}`} source={bottomTarget.image} fallback={bottomTarget.fallback} />
           <View style={styles.targetLabel}>
             <Text style={styles.targetScenario}>{bottomTarget.scenario}</Text>
           </View>
@@ -821,7 +852,8 @@ const styles = StyleSheet.create({
   kicker: { fontSize: 9, fontWeight: '900', letterSpacing: 1.2, color: '#D9CFFF' },
   instruction: { fontFamily: 'Jua', fontSize: 18, color: '#FFFFFF', textAlign: 'center', marginTop: 2 },
   targetCard: { flex: 1, minHeight: 155, maxHeight: 245, padding: 8, borderRadius: 26, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.38)', backgroundColor: 'rgba(255,255,255,.10)', shadowColor: '#170B41', shadowOpacity: 0.28, shadowRadius: 13, elevation: 6 },
-  targetImage: { flex: 1, width: '100%', minHeight: 0 },
+  targetArtwork: { flex: 1, minHeight: 0, width: '100%' },
+  targetImage: { width: '100%', height: '100%' },
   targetLabel: { alignSelf: 'stretch', minHeight: 36, marginTop: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 13, justifyContent: 'center', backgroundColor: 'rgba(56,29,124,.82)', borderWidth: 1, borderColor: 'rgba(255,255,255,.22)' },
   targetScenario: { fontSize: 11, lineHeight: 14, color: '#FFFFFF', textAlign: 'center' },
   dragZone: { minHeight: 74, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 13, zIndex: 10 },

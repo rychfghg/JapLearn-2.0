@@ -4,7 +4,6 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import styles from '../styles/stylesExercises';
 import BackIcon from '../assets/svg/back-icon.svg';
 import { AuthContext } from '../context/AuthContext';
-import StudentBottomNav from '../components/StudentBottomNav';
 import { Ionicons } from '@expo/vector-icons';
 import { preloadExerciseCovers } from '../utils/gameAssetPreloader';
 
@@ -176,7 +175,6 @@ const Exercises = () => {
             </Pressable>
           </Pressable>
         </Modal>
-        <StudentBottomNav active="play" />
       </View>
     </SafeAreaView>
   );

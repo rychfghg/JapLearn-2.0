@@ -11,6 +11,7 @@ import { LessonProgressProvider, useLessonProgress } from '../context/LessonProg
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { syncOfflineSubmissions } from '../services/offlineSync';
 import { primeOfflineContent } from '../services/offlineContent';
+import StudentBottomNav from '../components/StudentBottomNav';
 // import { createDrawerNavigator, DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
 
 
@@ -248,6 +249,16 @@ const RootLayout = () => {
     return null;
   }
 
+  const studentTabByRoute = {
+    Menu: 'home',
+    LearnMenu: 'learn',
+    QuackTalk: 'talk',
+    Exercises: 'play',
+    Profile: 'profile',
+  } as const;
+  const currentTab = studentTabByRoute[segments[0] as keyof typeof studentTabByRoute];
+  const showStudentNav = user?.role?.toLowerCase() === 'student' && !!currentTab;
+
   return (
     <GestureHandlerRootView style={styles.root}>
 
@@ -256,8 +267,8 @@ const RootLayout = () => {
         <Stack.Screen name="Signup" />
         <Stack.Screen name="ResetPassword" />
         <Stack.Screen name="ConfirmEmail" />
-        <Stack.Screen name="Menu" />
-        <Stack.Screen name="Profile" />
+        <Stack.Screen name="Menu" options={{ animation: 'fade', animationDuration: 180 }} />
+        <Stack.Screen name="Profile" options={{ animation: 'fade', animationDuration: 180 }} />
         <Stack.Screen name="TeacherDashboard" />
         <Stack.Screen name="ProfileTeacher" />
         <Stack.Screen name="QuackamoleEdit" />
@@ -269,8 +280,8 @@ const RootLayout = () => {
         <Stack.Screen name="ClassDashboard" />
         <Stack.Screen name="PrivacyPolicyPage" />
         <Stack.Screen name="TermsOfServicePage" />
-        <Stack.Screen name="LearnMenu" />
-        <Stack.Screen name="Exercises" />
+        <Stack.Screen name="LearnMenu" options={{ animation: 'fade', animationDuration: 180 }} />
+        <Stack.Screen name="Exercises" options={{ animation: 'fade', animationDuration: 180 }} />
         <Stack.Screen name="Lessons" />
         <Stack.Screen name="TeacherLesson" />
         <Stack.Screen name="LessonKanaGame" />
@@ -299,7 +310,7 @@ const RootLayout = () => {
         <Stack.Screen name="QuackSituateFormal" />
         <Stack.Screen name="QuackSituateFormalLevels" />
         <Stack.Screen name="QuackSituateFeedback" />
-        <Stack.Screen name="QuackTalk" />
+        <Stack.Screen name="QuackTalk" options={{ animation: 'fade', animationDuration: 180 }} />
         <Stack.Screen name="QuackTalkConversation" /> 
         <Stack.Screen name="QuackTalkSpeech" /> 
         <Stack.Screen name="QuackTalkFeedback" />
@@ -310,6 +321,7 @@ const RootLayout = () => {
         <Stack.Screen name="TeacherAssignCommunication" />
         <Stack.Screen name="TeacherCommunicationReports" />
       </Stack>
+      {showStudentNav && <StudentBottomNav active={currentTab} />}
     </GestureHandlerRootView>
   );
 };

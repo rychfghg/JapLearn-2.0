@@ -1,0 +1,47 @@
+{
+  "waste": [
+    {"sumi":"今日は燃えるごみの日ですね。","sumiRomaji":"Kyou wa moeru gomi no hi desu ne.","haru":"あ、このびんも出していいのかな？","haruRomaji":"A, kono bin mo dashite ii no kana?"},
+    {"sumi":"お隣の方が、指定の袋を見せてくれました。","sumiRomaji":"Otonari no kata ga, shitei no fukuro o misete kuremashita.","haru":"親切ですね。何と言って返しましょうか？","haruRomaji":"Shinsetsu desu ne. Nan to itte kaeshimashou ka?"},
+    {"sumi":"ごみの日が書かれた看板があります。","sumiRomaji":"Gomi no hi ga kakareta kanban ga arimasu.","haru":"この漢字が読めなくて、困りました。","haruRomaji":"Kono kanji ga yomenakute, komarimashita."}
+  ],
+  "parcel": [
+    {"sumi":"ポストに不在票が入っています。","sumiRomaji":"Posuto ni fuzaihyou ga haitte imasu.","haru":"配達員さんに電話をかけます。最初に何と言えばいいですか？","haruRomaji":"Haitatsuin-san ni denwa o kakemasu. Saisho ni nan to ieba ii desu ka?"},
+    {"sumi":"配達員さんは、夜七時を提案しています。","sumiRomaji":"Haitatsuin-san wa, yoru shichiji o teian shite imasu.","haru":"その時間なら家にいます。どう返事しましょうか？","haruRomaji":"Sono jikan nara ie ni imasu. Dou henji shimashou ka?"}
+  ],
+  "clinic": [
+    {"sumi":"受付の方が、症状を聞いています。","sumiRomaji":"Uketsuke no kata ga, shoujou o kiite imasu.","haru":"昨日から具合が悪いです。いつからかも伝えたいですね。","haruRomaji":"Kinou kara guai ga warui desu. Itsu kara ka mo tsutaetai desu ne."},
+    {"sumi":"次は、この問診票を書きます。","sumiRomaji":"Tsugi wa, kono monshinhyou o kakimasu.","haru":"この欄の意味が分かりません。どうしましょう？","haruRomaji":"Kono ran no imi ga wakarimasen. Dou shimashou?"},
+    {"sumi":"待合室で電話が鳴っています。","sumiRomaji":"Machiaishitsu de denwa ga natte imasu.","haru":"ほかの患者さんもいますね。静かにしたいです。","haruRomaji":"Hoka no kanja-san mo imasu ne. Shizuka ni shitai desu."}
+  ],
+  "pharmacy": [
+    {"sumi":"薬剤師さんが、薬の飲み方を説明しています。","sumiRomaji":"Yakuzaishi-san ga, kusuri no nomikata o setsumei shite imasu.","haru":"大切なところを聞き逃しました。確認したいです。","haruRomaji":"Taisetsu na tokoro o kikinogashimashita. Kakunin shitai desu."},
+    {"sumi":"薬剤師さんが、アレルギーについて聞きました。","sumiRomaji":"Yakuzaishi-san ga, arerugii ni tsuite kikimashita.","haru":"ペニシリンのアレルギーがあります。正確に伝えましょう。","haruRomaji":"Penishirin no arerugii ga arimasu. Seikaku ni tsutaemashou."}
+  ],
+  "onsen": [
+    {"sumi":"温泉に着きました。みんなで使うお風呂です。","sumiRomaji":"Onsen ni tsukimashita. Minna de tsukau ofuro desu.","haru":"湯船に入る前に、何をしますか？","haruRomaji":"Yubune ni hairu mae ni, nani o shimasu ka?"},
+    {"sumi":"小さなタオルを持っていますね。","sumiRomaji":"Chiisana taoru o motte imasu ne.","haru":"湯船に入れると、お湯が汚れてしまいますね。","haruRomaji":"Yubune ni ireru to, oyu ga yogorete shimaimasu ne."}
+  ],
+  "ryokan": [
+    {"sumi":"旅館の玄関は、ここから床が高くなります。","sumiRomaji":"Ryokan no genkan wa, koko kara yuka ga takaku narimasu.","haru":"外の靴を履いています。どうしますか？","haruRomaji":"Soto no kutsu o haite imasu. Dou shimasu ka?"},
+    {"sumi":"廊下を歩いて、畳の部屋に着きました。","sumiRomaji":"Rouka o aruite, tatami no heya ni tsukimashita.","haru":"今はスリッパを履いています。畳ではどうしましょう？","haruRomaji":"Ima wa surippa o haite imasu. Tatami de wa dou shimashou?"}
+  ],
+  "photo": [
+    {"sumi":"職人さんとお店の写真を撮りたいですね。","sumiRomaji":"Shokunin-san to omise no shashin o toritai desu ne.","haru":"カメラを出す前に、ひと言聞きたいです。","haruRomaji":"Kamera o dasu mae ni, hitokoto kikitai desu."},
+    {"sumi":"お店の方は、撮影を断りました。","sumiRomaji":"Omise no kata wa, satsuei o kotowarimashita.","haru":"残念ですが、お店の決まりを大切にしましょう。","haruRomaji":"Zannen desu ga, omise no kimari o taisetsu ni shimashou."}
+  ],
+  "allergy": [
+    {"sumi":"注文の前に、食べられないものを伝えましょう。","sumiRomaji":"Chuumon no mae ni, taberarenai mono o tsutaemashou.","haru":"えびを食べると、体調が悪くなります。","haruRomaji":"Ebi o taberu to, taichou ga waruku narimasu."},
+    {"sumi":"店員さんは、ソースの材料を確認できないそうです。","sumiRomaji":"Ten'in-san wa, soosu no zairyou o kakunin dekinai sou desu.","haru":"えびが入っているか分かりません。安全を優先したいです。","haruRomaji":"Ebi ga haitte iru ka wakarimasen. Anzen o yuusen shitai desu."},
+    {"sumi":"料理長が、別の料理の材料を確認してくれました。","sumiRomaji":"Ryouri-chou ga, betsu no ryouri no zairyou o kakunin shite kuremashita.","haru":"手間をかけてくれましたね。何と言いましょう？","haruRomaji":"Tema o kakete kuremashita ne. Nan to iimashou?"}
+  ],
+  "koban": [
+    {"sumi":"交番に着きました。おまわりさんが話を聞いてくれます。","sumiRomaji":"Kouban ni tsukimashita. Omawari-san ga hanashi o kiite kuremasu.","haru":"財布が見つかりません。まず何を伝えましょう？","haruRomaji":"Saifu ga mitsukarimasen. Mazu nani o tsutaemashou?"},
+    {"sumi":"おまわりさんが、最後に見た場所を聞いています。","sumiRomaji":"Omawari-san ga, saigo ni mita basho o kiite imasu.","haru":"駅で使ったことを覚えています。時間も伝えましょう。","haruRomaji":"Eki de tsukatta koto o oboete imasu. Jikan mo tsutaemashou."},
+    {"sumi":"今度は、財布の特徴を聞かれました。","sumiRomaji":"Kondo wa, saifu no tokuchou o kikaremashita.","haru":"色と中に入っているものを思い出しましょう。","haruRomaji":"Iro to naka ni haitte iru mono o omoidashimashou."}
+  ],
+  "quake": [
+    {"sumi":"揺れています。上から物が落ちるかもしれません。","sumiRomaji":"Yurete imasu. Ue kara mono ga ochiru kamoshiremasen.","haru":"まず、自分の身をどう守りましょう？","haruRomaji":"Mazu, jibun no mi o dou mamorimashou?"},
+    {"sumi":"揺れが収まりました。避難口の表示があります。","sumiRomaji":"Yure ga osamarimashita. Hinanguchi no hyouji ga arimasu.","haru":"エレベーターも開いていますが、どちらが安全ですか？","haruRomaji":"Erebeetaa mo aite imasu ga, dochira ga anzen desu ka?"},
+    {"sumi":"係員の方が、避難先を案内しています。","sumiRomaji":"Kakariin no kata ga, hinansaki o annai shite imasu.","haru":"声が聞き取れませんでした。どう確認しましょう？","haruRomaji":"Koe ga kikitoremasen deshita. Dou kakunin shimashou?"}
+  ]
+}

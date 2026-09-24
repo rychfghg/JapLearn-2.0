@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackTalk';
-import StudentBottomNav from '../components/StudentBottomNav';
 import { AuthContext } from '../context/AuthContext';
 import { loadBundledSound } from '../utils/nativeAudio';
 
@@ -306,6 +305,5 @@ export default function QuackTalk(){
         </View>
       </View>
     </Modal>
-    <StudentBottomNav active="talk" />
   </ImageBackground></SafeAreaView>;
 }

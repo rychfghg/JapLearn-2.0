@@ -5,7 +5,6 @@ import styles from '../styles/stylesMenu';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import { Ionicons } from '@expo/vector-icons';
-import StudentBottomNav from '../components/StudentBottomNav';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useClassCode } from '../context/ClassCodeContext';
 
@@ -252,7 +251,6 @@ const Menu = () => {
                             </View>}
                         </View>
                     </ScrollView>
-                    <StudentBottomNav active="home" />
                 </View>
             <Modal visible={classPromptVisible} transparent animationType="fade" statusBarTranslucent onRequestClose={()=>void dismissClassPrompt()}>
                 <View style={styles.classPromptBackdrop}>

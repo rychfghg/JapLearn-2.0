@@ -125,6 +125,11 @@ const sprites: Record<string, Record<string, any>> = {
   SUMI: {
     NEUTRAL: require('../assets/img/Sumi_PoseB_WinterUni_Smile.png'),
     SPEAKING: require('../assets/img/Sumi_PoseB_WinterUni_Open.png'),
+    SPEAKING_BLUSH: require('../assets/img/Sumi_PoseB_WinterUni_Open_Blush.png'),
+    BLINK: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png'),
+    BLINK_BLUSH: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile_Blush.png'),
+    SPEAKING_BLINK: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Open.png'),
+    SPEAKING_BLINK_BLUSH: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Open_Blush.png'),
     SMILE: require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png'),
     CORRECT: require('../assets/img/Sumi_PoseB_WinterUni_EyesClosed_Smile.png'),
     WRONG: require('../assets/img/Sumi_PoseB_WinterUni_Frown.png'),
@@ -141,6 +146,8 @@ const sprites: Record<string, Record<string, any>> = {
   HARU: {
     NEUTRAL: require('../assets/img/Sprite Male Dark Hair Neu01.png'),
     SPEAKING: require('../assets/img/Sprite Male Dark Hair Smi02.png'),
+    EYE_SQUINT: require('../assets/img/Sprite Male Dark Hair Sly01.png'),
+    SPEAKING_EYE_SQUINT: require('../assets/img/Sprite Male Dark Hair Sly02.png'),
     SMILE: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
     CORRECT: require('../assets/img/Sprite Male Dark Hair Smi01.png'),
     WRONG: require('../assets/img/Sprite Male Dark Hair Sad01.png'),
@@ -214,39 +221,42 @@ function SpriteActor({
   positionStyle,
   speaking,
 }: SpriteActorProps) {
-  const expressionOpacity = useRef(new Animated.Value(0)).current;
+  const mouthOpacity = useRef(new Animated.Value(0)).current;
+  const blinkOpacity = useRef(new Animated.Value(0)).current;
   const bodyScale = useRef(new Animated.Value(1)).current;
   const neutralSource = sprites[characterKey]?.NEUTRAL;
   const expressionSource = sprites[characterKey]?.[expressionKey] ?? neutralSource;
-  const motionSource = characterKey === 'SUMI'
-    ? sprites.SUMI.SPEAKING
+  const sumiBlush = characterKey === 'SUMI' && ['SMILE', 'HAPPY', 'EMBARRASSED', 'SURPRISED'].includes(expressionKey);
+  const sumiSmile = characterKey === 'SUMI' && ['NEUTRAL', 'SMILE', 'HAPPY', 'CORRECT', 'EMBARRASSED', 'SURPRISED'].includes(expressionKey);
+  const mouthSource = characterKey === 'SUMI'
+    ? sprites.SUMI[sumiBlush ? 'SPEAKING_BLUSH' : 'SPEAKING']
     : sprites.HARU.SPEAKING;
-  const restingMotionSource = characterKey === 'SUMI'
-    ? sprites.SUMI.CORRECT
-    : sprites.HARU.SMILE;
-  const canUseRestingMotion = ['NEUTRAL', 'SMILE', 'HAPPY', 'CORRECT'].includes(expressionKey);
+  const blinkSource = characterKey === 'HARU'
+    ? sprites.HARU.EYE_SQUINT
+    : sumiSmile ? sprites.SUMI[sumiBlush ? 'BLINK_BLUSH' : 'BLINK'] : null;
+  const speakingBlinkSource = characterKey === 'HARU'
+    ? sprites.HARU.SPEAKING_EYE_SQUINT
+    : sumiSmile ? sprites.SUMI[sumiBlush ? 'SPEAKING_BLINK_BLUSH' : 'SPEAKING_BLINK'] : null;
 
   useEffect(() => {
-    expressionOpacity.stopAnimation();
-    expressionOpacity.setValue(0);
-
-    const expressionLoop = Animated.loop(
+    mouthOpacity.setValue(0);
+    blinkOpacity.setValue(0);
+    const mouthLoop = speaking ? Animated.loop(
       Animated.sequence([
-        Animated.delay(speaking ? 280 : 2500),
-        Animated.timing(expressionOpacity, {
-          toValue: 1,
-          duration: speaking ? 90 : 70,
-          useNativeDriver: true,
-        }),
-        Animated.delay(speaking ? 150 : 100),
-        Animated.timing(expressionOpacity, {
-          toValue: 0,
-          duration: speaking ? 110 : 90,
-          useNativeDriver: true,
-        }),
-        Animated.delay(speaking ? 180 : 800),
+        Animated.timing(mouthOpacity, { toValue: 1, duration: 85, useNativeDriver: true }),
+        Animated.delay(150),
+        Animated.timing(mouthOpacity, { toValue: 0, duration: 85, useNativeDriver: true }),
+        Animated.delay(180),
       ]),
-    );
+    ) : null;
+    const blinkLoop = blinkSource ? Animated.loop(
+      Animated.sequence([
+        Animated.delay(2100),
+        Animated.timing(blinkOpacity, { toValue: 1, duration: 70, useNativeDriver: true }),
+        Animated.delay(90),
+        Animated.timing(blinkOpacity, { toValue: 0, duration: 90, useNativeDriver: true }),
+      ]),
+    ) : null;
 
     const breathingLoop = Animated.loop(
       Animated.sequence([
@@ -263,11 +273,13 @@ function SpriteActor({
       ]),
     );
 
-    expressionLoop.start();
+    mouthLoop?.start();
+    blinkLoop?.start();
     breathingLoop.start();
 
     return () => {
-      expressionLoop.stop();
+      mouthLoop?.stop();
+      blinkLoop?.stop();
       breathingLoop.stop();
     };
   }, [characterKey, expressionKey, speaking]);
@@ -287,15 +299,19 @@ function SpriteActor({
         fadeDuration={0}
       />
       <Animated.Image
-        source={speaking
-          ? motionSource
-          : canUseRestingMotion
-            ? restingMotionSource ?? neutralSource
-            : expressionSource}
-        style={[styles.spriteLayer, { opacity: expressionOpacity }]}
+        source={mouthSource}
+        style={[styles.spriteLayer, { opacity: mouthOpacity }]}
         resizeMode="contain"
         fadeDuration={0}
       />
+      {blinkSource && (
+        <Animated.Image
+          source={speaking ? speakingBlinkSource : blinkSource}
+          style={[styles.spriteLayer, { opacity: blinkOpacity }]}
+          resizeMode="contain"
+          fadeDuration={0}
+        />
+      )}
     </Animated.View>
   );
 }
@@ -320,6 +336,7 @@ export default function ReplyCoachStory() {
   const [hintUsed, setHintUsed] = useState(false);
   const [previewChoiceId, setPreviewChoiceId] = useState('');
   const [activeChoiceId, setActiveChoiceId] = useState('');
+  const [activeVoiceId, setActiveVoiceId] = useState('');
   const fade = useRef(new Animated.Value(0)).current;
   const backgroundMusic = useRef<Audio.Sound | null>(null);
   const backgroundMusicKey = useRef('');
@@ -367,6 +384,7 @@ export default function ReplyCoachStory() {
 
   const playVoice = async (assetId: string, remoteUrl?: string) => {
     const generation = ++voiceGeneration.current;
+    setActiveVoiceId('');
     const previous = voiceSound.current;
     voiceSound.current = null;
     if (previous) {
@@ -384,19 +402,21 @@ export default function ReplyCoachStory() {
       return;
     }
     voiceSound.current = sound;
+    setActiveVoiceId(assetId);
     await new Promise<void>((resolve) => {
       sound.setOnPlaybackStatusUpdate((status) => {
         if (status.isLoaded && status.didJustFinish) resolve();
       });
     });
     if (voiceSound.current === sound) voiceSound.current = null;
+    if (generation === voiceGeneration.current) setActiveVoiceId('');
     await sound.unloadAsync().catch(() => undefined);
   };
 
   useEffect(() => {
     if (!currentNode || currentNode.type === 'CHOICE' || !currentNode.japanese) return;
     void playVoice(currentNode.id, currentNode.audioUrl);
-    return () => { voiceGeneration.current += 1; };
+    return () => { voiceGeneration.current += 1; setActiveVoiceId(''); };
   }, [currentNode?.id]);
 
   useEffect(() => {
@@ -744,7 +764,7 @@ export default function ReplyCoachStory() {
                     currentNode.characterPosition,
                     displayedCharacter === 'HARU' ? styles.soloSpriteLeft : styles.soloSpriteRight,
                   )}
-                  speaking
+                  speaking={activeVoiceId === currentNode.id}
                 />
               ) : null}
             </View>
