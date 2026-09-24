@@ -5,7 +5,7 @@
 
   **Interactive Japanese learning through lessons, speaking practice, and games.**
 
-  [![Android APK](https://img.shields.io/badge/Android%20APK-Available-3DDC84?logo=android&logoColor=white)](https://expo.dev/accounts/reybacolod/projects/japlearn/builds/1a3d3435-7a43-4340-8e21-997d69f5f0b6)
+  [![Android APK v1.0.1](https://img.shields.io/badge/Android%20APK-v1.0.1%20pre--release-3DDC84?logo=android&logoColor=white)](https://github.com/rychfghg/JapLearn-2.0/releases/tag/v1.0.1)
   [![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB?logo=react&logoColor=111827)](https://reactnative.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
@@ -45,11 +45,11 @@ This repository contains the **Expo/React Native student frontend**. Authenticat
 
 ## Download JapLearn
 
-Download the current standalone Android APK:
+Download the current standalone Android APK from the GitHub release:
 
-**[Download JapLearn for Android](https://expo.dev/accounts/reybacolod/projects/japlearn/builds/1a3d3435-7a43-4340-8e21-997d69f5f0b6)**
+**[Download JapLearn for Android (v1.0.1 pre-release)](https://github.com/rychfghg/JapLearn-2.0/releases/tag/v1.0.1)**
 
-Open the download page on an Android device, download the `.apk`, and approve installation from the browser when Android requests permission. Expo Go is not required to install or run this release.
+Open the release page on an Android device, download the `.apk` asset, and approve installation from the browser when Android requests permission. Expo Go is not required to install or run this release.
 
 ## Tech Stack
 
@@ -149,7 +149,7 @@ npx eas-cli build -p android --profile production
 
 The `apk` profile produces the standalone Android package used for direct installation and testing. The `production` profile produces an Android App Bundle intended for a future Google Play release.
 
-The currently published APK is available from the [JapLearn Android build page](https://expo.dev/accounts/reybacolod/projects/japlearn/builds/1a3d3435-7a43-4340-8e21-997d69f5f0b6). EAS is the build service used to compile the APK; the resulting application runs independently and does not require Expo Go.
+The published APK is attached to the [v1.0.1 pre-release](https://github.com/rychfghg/JapLearn-2.0/releases/tag/v1.0.1) on GitHub. EAS is the build service used to compile the APK; the resulting application runs independently and does not require Expo Go.
 
 > Native iOS builds are not part of the current JapLearn release. Do not advertise App Store availability until an iOS build has been implemented, tested, and published.
 
