@@ -203,16 +203,19 @@ Japlearn-1/
 ├── components/     # Reusable interface components
 ├── config/         # Feature configuration, such as Sumi's voice profile
 ├── context/        # Authentication and shared application state
-├── data/           # Local lesson and game content
+├── data/           # Bundled scenario content (politeness scenarios)
 ├── hooks/          # Shared React hooks
 ├── patches/        # Native dependency compatibility fixes applied during installation
 ├── services/       # Offline progress storage and background sync
 ├── styles/         # Screen-specific styles
-├── types/          # TypeScript definitions
+├── types/          # Extra TypeScript declarations
 ├── utils/          # Asset preloading, audio, and platform utilities
-├── app.json        # Expo application configuration
-├── eas.json        # EAS build profiles
+├── app.json        # Expo application configuration (name, icons, permissions, updates)
+├── eas.json        # EAS build profiles (apk, preview, production)
 ├── expoconfig.tsx  # Backend URL selection
+├── babel.config.js # Babel preset and plugins
+├── metro.config.js # Metro bundler configuration
+├── tsconfig.json   # TypeScript configuration
 └── package.json    # Dependencies and scripts
 ```
 
