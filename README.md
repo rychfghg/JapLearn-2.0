@@ -9,14 +9,14 @@
   [![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB?logo=react&logoColor=111827)](https://reactnative.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-  Android APK · Desktop Web · Mobile Web
+  Android application · Teacher dashboard
 </div>
 
 ---
 
 ## Overview
 
-JapLearn is a connected Japanese-learning platform for students and teachers. The current release is available as a standalone, installable **Android APK** and a responsive **web application**. The Android APK does not require Expo Go. iPhone and iPad users can use the web version in Safari or another modern browser; a native iOS application is not currently released.
+JapLearn is a Japanese-learning **mobile application** for students, paired with a **teacher dashboard** for their teachers. The release is a standalone, installable **Android APK**; Expo Go is not required to install or run it. A native iOS application is not part of this release.
 
 The student experience includes:
 
@@ -39,23 +39,17 @@ This repository contains the **Expo/React Native student frontend**. Authenticat
 
 | Repository | Contents |
 |---|---|
-| [JapLearn-2.0](https://github.com/rychfghg/JapLearn-2.0) | This student app (Android and web) |
-| [Japlearn-Website](https://github.com/rychfghg/Japlearn-Website) | Landing page, teacher portal, and admin portal at [portal.japlearn.com](https://portal.japlearn.com) |
+| [JapLearn-2.0](https://github.com/rychfghg/JapLearn-2.0) | This student mobile application (Android) |
+| [Japlearn-Website](https://github.com/rychfghg/Japlearn-Website) | Teacher dashboard and admin portal at [portal.japlearn.com](https://portal.japlearn.com) |
 | [JapLearn2.0](https://github.com/rychfghg/JapLearn2.0) | Spring Boot backend API |
 
 ## Download JapLearn
-
-### Android
 
 Download the current standalone Android APK:
 
 **[Download JapLearn for Android](https://expo.dev/accounts/reybacolod/projects/japlearn/builds/1a3d3435-7a43-4340-8e21-997d69f5f0b6)**
 
 Open the download page on an Android device, download the `.apk`, and approve installation from the browser when Android requests permission. Expo Go is not required to install or run this release.
-
-### Web
-
-Use JapLearn in a browser at **[japlearn.com](https://japlearn.com)**. The web version supports desktop browsers, Android browsers, and Safari on iPhone and iPad.
 
 ## Tech Stack
 
@@ -70,7 +64,6 @@ Use JapLearn in a browser at **[japlearn.com](https://japlearn.com)**. The web v
 | Conversation feedback | Google Gemini (through the backend) |
 | Audio | Expo AV + React Native Audio API |
 | Icons | Expo Vector Icons |
-| Web | React Native Web |
 | Builds | EAS Build |
 | Over-the-air updates | EAS Update (`expo-updates`) |
 
@@ -97,7 +90,7 @@ Start the application:
 npx expo start
 ```
 
-For local development, scan the QR code with Expo Go on Android or press `w` to open the web version. Regular users should install the standalone APK from the download section above and do not need Expo Go. On iPhone or iPad, use the deployed web application in the browser for the currently supported experience.
+For local development, scan the QR code with Expo Go on an Android device. Students install the standalone APK from the download section above and do not need Expo Go. A browser preview (`w`) is available during development only and is not a released platform.
 
 If cached files cause unexpected behavior:
 
@@ -111,10 +104,10 @@ Backend selection is managed in [`expoconfig.tsx`](./expoconfig.tsx).
 
 | Environment | Backend |
 |---|---|
-| Local web | `http://localhost:8080` |
+| Local development preview | `http://localhost:8080` |
 | Android emulator | `http://10.0.2.2:8080` |
 | Expo Go on a physical device | Development computer's LAN address |
-| Deployed web and APK builds | `https://japlearn2-0.onrender.com` |
+| APK builds | `https://portal.japlearn.com` (relayed to the backend) |
 
 For Expo Go testing, set `LAN_IP_URL` to the active IPv4 address of the computer running Spring Boot. The phone and computer must use the same network.
 
@@ -129,10 +122,9 @@ Never store database passwords, SMTP credentials, JWT secrets, or private keys i
 | Command | Purpose |
 |---|---|
 | `npx expo start` | Start the Expo development server |
-| `npm run web` | Run the web app |
+| `npm run web` | Browser preview for development only |
 | `npx expo start -c` | Start Expo with a cleared cache |
 | `npx expo export --platform android` | Verify the Android production bundle |
-| `npx expo export --platform web` | Create the web production export |
 | `npx expo-doctor` | Check Expo package compatibility |
 
 ## EAS Builds
@@ -179,16 +171,6 @@ The app checks for updates when it launches, so users may need to **open the app
 
 `runtimeVersion` follows the app version (`1.0.1`). An update only reaches builds with the same version, so changing `version` in `app.json` requires a new build. Changes to native code, permissions, or plugins also require a new build instead of an update.
 
-## Web Build
-
-```bash
-npx expo export --platform web
-```
-
-The production student website is available at [japlearn.com](https://japlearn.com) and is generated in `dist/`. It supports desktop browsers, Android browsers, and iPhone/iPad browsers. The included `vercel.json` supports direct Expo Router links such as `/ResetPassword`.
-
-The teacher and admin website is available separately at [portal.japlearn.com](https://portal.japlearn.com).
-
 ## Privacy, Permissions, and Account Deletion
 
 The app requests only what its features need:
@@ -206,7 +188,7 @@ Speaking activities send recorded speech to the backend, which uses Microsoft Az
 
 **Account deletion.** Users can delete their account in **Profile → Delete account**. The flow first offers help, requires a confirmation checkbox, and then asks the user to type `DELETE`. The same deletion is available without the app at [portal.japlearn.com/delete-account](https://portal.japlearn.com/delete-account). Both remove the account and every learning record.
 
-The full policies are shown in the app and at [portal.japlearn.com/privacy](https://portal.japlearn.com/privacy) and [portal.japlearn.com/terms](https://portal.japlearn.com/terms). Keep the in-app and website versions identical when either changes.
+The full policies are shown in the app and published at [portal.japlearn.com/privacy](https://portal.japlearn.com/privacy) and [portal.japlearn.com/terms](https://portal.japlearn.com/terms), as Google Play requires a reachable policy URL. Keep both versions identical when either changes.
 
 ## Offline Progress
 
@@ -240,8 +222,8 @@ Japlearn-1/
 2. Test the changed screen on a narrow phone layout.
 3. Verify audio, fonts, icons, and local images.
 4. Confirm timers and audio stop when leaving game screens.
-5. Run Android and web export checks. Also test the responsive web layout in Safari-compatible mobile dimensions.
-6. If a change touches collected data or permissions, update the privacy policy in the app and on the website.
+5. Run the Android export check (`npx expo export --platform android`).
+6. If a change touches collected data or permissions, update the privacy policy in the app and in the teacher dashboard.
 7. Ensure credentials and generated builds are not staged. The `dist/` and `dist-*/` folders are ignored.
 
 ## Troubleshooting
@@ -268,12 +250,6 @@ The backend is running an older build. Redeploy the latest backend; account dele
 - Close the app fully and open it again, twice.
 - Check that the build's app version matches the version the update was published for.
 
-### Accessing JapLearn on iPhone or iPad
-
-- Open [japlearn.com](https://japlearn.com) in Safari or another modern browser.
-- Allow microphone access when using supported speaking activities.
-- There is currently no native iOS/App Store version.
-
 ### Fonts, icons, or images look stale
 
 ```bash
@@ -281,10 +257,6 @@ npx expo start -c
 ```
 
 Reopen the app after the cache is cleared.
-
-### A deployed web route returns 404
-
-Confirm `vercel.json` is deployed from the project root and that Vercel uses `dist` as the output directory.
 
 ---
 

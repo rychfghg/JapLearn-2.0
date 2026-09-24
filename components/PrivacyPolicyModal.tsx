@@ -15,6 +15,8 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
     useEffect(() => {
         if (visible) {
             setCanAgree(false); // Reset the button state
+            viewportHeight.current = 0;
+            contentHeight.current = 0;
             setRenderKey((prevKey) => prevKey + 1); // Force re-render
         }
     }, [visible]);
@@ -26,7 +28,7 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
 
     const enableIfNothingToScroll = () => {
         if (viewportHeight.current > 0 && contentHeight.current > 0
-                && contentHeight.current <= viewportHeight.current + 24) {
+                && contentHeight.current <= viewportHeight.current + 40) {
             setCanAgree(true);
         }
     };
@@ -47,7 +49,7 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
             key={renderKey} // Force re-render the modal when visible
         >
             <View style={styles.modalOverlay}>
-                <View style={[styles.modalContent, { maxHeight: windowHeight * 0.8 }]}>
+                <View style={[styles.modalContent, { height: Math.min(windowHeight - 32, 780) }]}>
                     <View style={styles.headerRow}>
                         <View style={styles.headerIcon}><Ionicons name="shield-checkmark-outline" size={22} color="#7B2CBF" /></View>
                         <View style={styles.headerCopy}>
@@ -149,9 +151,10 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(31, 23, 36, 0.55)',
         justifyContent: 'center',
         alignItems: 'center',
+        paddingHorizontal: 16,
     },
     modalContent: {
-        width: '90%',
+        width: '100%',
         maxWidth: 560,
         backgroundColor: 'white',
         borderRadius: 22,
@@ -162,7 +165,7 @@ const styles = StyleSheet.create({
     headerCopy:{flex:1},
     closeButton:{width:36,height:36,borderRadius:18,backgroundColor:'#F5F2F6',alignItems:'center',justifyContent:'center'},
     headerHint:{fontFamily:uiFont,fontSize:12,color:'#847B88',marginTop:2},
-    scrollArea: { flexGrow: 0, flexShrink: 1 },
+    scrollArea: { flex: 1, minHeight: 0 },
     scrollContainer: {
         paddingBottom: 20,
     },
