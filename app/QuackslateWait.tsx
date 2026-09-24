@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, ImageBackground, Pressable, SafeAreaView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import expoconfig from '../expoconfig';
@@ -77,12 +77,12 @@ export default function QuackslateWait() {
           <Text style={s.headerTitle}>QUACKSLATE</Text>
           <View style={s.headerSpacer} />
         </View>
+        <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator>
         <View style={[s.main, compact && s.mainCompact]}>
-          <View style={s.waitBadge}><Ionicons name="cloud-done-outline" size={15} color="#FFFFFF" /><Text style={s.waitBadgeText}>CONNECTED TO CLASS</Text></View>
           <View style={[s.mascotStage, compact && s.mascotStageCompact]}><View style={[s.mascotHalo, compact && s.mascotHaloCompact]} /><View style={[s.mascotCircle, compact && s.mascotCircleCompact]}><Image source={mascot} resizeMode="contain" style={[s.mascot, compact && s.mascotCompact]} /></View></View>
           <View style={[s.card, compact && s.cardCompact, veryCompact && s.cardVeryCompact]}>
             <View style={s.statePill}><Ionicons name={closed ? 'close-circle-outline' : 'time-outline'} size={17} color={closed ? '#BD5463' : '#6AAB3D'} /><Text style={[s.stateText, closed && s.closedText]}>{closed ? 'SESSION UNAVAILABLE' : 'YOUR CLASS IS ALMOST READY'}</Text></View>
-            <Text style={s.title}>{closed ? 'This class code has closed' : 'Ready when your teacher starts'}</Text>
+            {closed && <Text style={s.title}>This class code has closed</Text>}
             <Text style={s.description}>{closed ? 'Return to QuackSlate and ask your teacher for another code.' : 'You are checked in. Your sentence round opens automatically when the scheduled time begins.'}</Text>
             <View style={s.codeRow}><View style={s.codeIcon}><Ionicons name="key-outline" size={21} color="#7B2FC0" /></View><View><Text style={s.codeLabel}>CLASS CODE</Text><Text style={s.code}>{code || '—'}</Text></View><Ionicons name="checkmark-circle" size={22} color="#6AAB3D" style={s.codeCheck} /></View>
             {!closed && <View style={s.countdownCard}><View style={s.countdownHeading}><Ionicons name="alarm-outline" size={18} color="#7B2FC0" /><Text style={s.countdownLabel}>STARTS IN</Text></View><Text style={s.countdown}>{countdown}</Text><Text style={s.countdownNote}>{remaining == null ? 'Checking your teacher’s schedule…' : remaining === 0 ? 'Opening your round…' : 'No need to refresh. We’ll take you in automatically.'}</Text></View>}
@@ -91,6 +91,7 @@ export default function QuackslateWait() {
           </View>
           {!closed && !veryCompact && <View style={[s.tipCard, compact && s.tipCardCompact]}><View style={s.tipHeader}><Ionicons name="bulb-outline" size={19} color="#739D2B" /><Text style={s.tipTitle}>WHILE YOU WAIT</Text></View><Text style={s.tipText}>{tips[tipIndex]}</Text>{!compact && <View style={s.tipDots}>{tips.map((_, index) => <View key={index} style={[s.tipDot, index === tipIndex && s.tipDotActive]} />)}</View>}</View>}
         </View>
+        </ScrollView>
       </View>
     </ImageBackground>
   </SafeAreaView>;
@@ -105,8 +106,8 @@ const s = StyleSheet.create({
   back:{width:44,height:44,borderRadius:15,backgroundColor:'#fff',alignItems:'center',justifyContent:'center'},
   headerTitle:{color:'#fff',fontSize:14,fontWeight:'900',letterSpacing:2},
   headerSpacer:{width:44},
-  main:{flex:1,justifyContent:'center',alignItems:'center',paddingTop:22},
-  waitBadge:{flexDirection:'row',alignItems:'center',gap:7,marginBottom:13,paddingHorizontal:13,paddingVertical:8,borderRadius:99,backgroundColor:'rgba(118,176,70,.92)',borderWidth:1,borderColor:'rgba(255,255,255,.35)'},waitBadgeText:{color:'#fff',fontSize:8,fontWeight:'900',letterSpacing:1.2},
+  scroll:{flex:1},scrollContent:{flexGrow:1,paddingBottom:18},
+  main:{flexGrow:1,justifyContent:'center',alignItems:'center',paddingTop:22},
   mascotStage:{width:142,height:118,alignItems:'center',justifyContent:'center',zIndex:2},mascotHalo:{position:'absolute',width:142,height:142,borderRadius:71,backgroundColor:'rgba(255,255,255,.15)',borderWidth:1,borderColor:'rgba(255,255,255,.35)'},
   mascotCircle:{width:112,height:112,borderRadius:56,backgroundColor:'#F3E8FC',borderWidth:5,borderColor:'#fff',alignItems:'center',justifyContent:'center',marginBottom:-18,zIndex:1,shadowColor:'#1F0C2A',shadowOpacity:.25,shadowRadius:17,shadowOffset:{width:0,height:9},elevation:8},
   mascot:{width:105,height:105},
