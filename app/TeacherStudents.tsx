@@ -16,7 +16,13 @@ import { useFocusEffect } from 'expo-router';
 import { AuthContext } from '../context/AuthContext';
 import TeacherBottomNav from '../components/TeacherBottomNav';
 import { teacherStyles as s, teacherTheme as t } from '../styles/stylesTeacherApp';
-import { teacherApi, type TeacherClass, type TeacherStudent } from '../services/teacherApi';
+import {
+  completionPercent,
+  teacherApi,
+  type LessonProgress,
+  type TeacherClass,
+  type TeacherStudent,
+} from '../services/teacherApi';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
 
@@ -25,6 +31,8 @@ export default function TeacherStudents() {
 
   const [classes, setClasses] = useState<TeacherClass[]>([]);
   const [students, setStudents] = useState<TeacherStudent[]>([]);
+  const [progress, setProgress] = useState<LessonProgress[]>([]);
+  const [removing, setRemoving] = useState<TeacherStudent | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
@@ -41,9 +49,14 @@ export default function TeacherStudents() {
   const load = useCallback(async () => {
     setError('');
     try {
-      const [classList, studentList] = await Promise.all([teacherApi.classes(user), teacherApi.students(user)]);
+      const [classList, studentList, progressList] = await Promise.all([
+        teacherApi.classes(user),
+        teacherApi.students(user),
+        teacherApi.lessonProgress(user).catch(() => [] as LessonProgress[]),
+      ]);
       setClasses(Array.isArray(classList) ? classList : []);
       setStudents(Array.isArray(studentList) ? studentList : []);
+      setProgress(Array.isArray(progressList) ? progressList : []);
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : 'Could not load your learners.');
     } finally {
@@ -179,25 +192,81 @@ export default function TeacherStudents() {
               </Text>
             </View>
           ) : (
-            visible.map((student) => (
-              <View key={student.email} style={s.row}>
-                <View style={s.rowAvatar}>
-                  <Text style={s.rowAvatarText}>{`${student.fname?.[0] ?? ''}${student.lname?.[0] ?? ''}`.toUpperCase()}</Text>
+            visible.map((student) => {
+              const percent = completionPercent(
+                progress.find((item) => item.email?.toLowerCase() === student.email.toLowerCase()),
+              );
+              return (
+                <View key={student.email} style={s.row}>
+                  <View style={s.rowAvatar}>
+                    <Text style={s.rowAvatarText}>{`${student.fname?.[0] ?? ''}${student.lname?.[0] ?? ''}`.toUpperCase()}</Text>
+                  </View>
+                  <View style={s.rowBody}>
+                    <Text style={s.rowTitle} numberOfLines={1}>{student.fname} {student.lname}</Text>
+                    <Text style={s.rowSub} numberOfLines={1}>{student.email}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                      <View style={{ flex: 1, height: 6, borderRadius: 4, backgroundColor: '#F0EAF4', overflow: 'hidden' }}>
+                        <View style={{ width: `${percent}%`, height: '100%', borderRadius: 4, backgroundColor: percent >= 60 ? t.green : t.brand }} />
+                      </View>
+                      <Text style={s.rowSub}>{percent}%</Text>
+                      <View style={[s.chip, !student.classCode && s.chipMuted]}>
+                        <Text style={[s.chipText, !student.classCode && s.chipMutedText]}>{student.classCode || 'No class'}</Text>
+                      </View>
+                    </View>
+                  </View>
+                  {!!student.classCode && (
+                    <Pressable
+                      onPress={() => setRemoving(student)}
+                      hitSlop={8}
+                      accessibilityLabel={`Remove ${student.fname} from ${student.classCode}`}
+                    >
+                      <Ionicons name="person-remove-outline" size={19} color={t.danger} />
+                    </Pressable>
+                  )}
                 </View>
-                <View style={s.rowBody}>
-                  <Text style={s.rowTitle} numberOfLines={1}>{student.fname} {student.lname}</Text>
-                  <Text style={s.rowSub} numberOfLines={1}>{student.email}</Text>
-                </View>
-                <View style={[s.chip, !student.classCode && s.chipMuted]}>
-                  <Text style={[s.chipText, !student.classCode && s.chipMutedText]}>{student.classCode || 'No class'}</Text>
-                </View>
-              </View>
-            ))
+              );
+            })
           )}
         </View>
       </ScrollView>
 
       <TeacherBottomNav active="students" />
+
+      {/* Remove a learner from their class */}
+      <Modal visible={!!removing} transparent animationType="fade" onRequestClose={() => setRemoving(null)}>
+        <Pressable style={s.sheetBackdrop} onPress={() => !saving && setRemoving(null)} accessibilityLabel="Close">
+          <Pressable style={s.sheet} onPress={() => undefined}>
+            <View style={s.sheetHandle} />
+            <Text style={s.sheetTitle}>Remove {removing?.fname} from {removing?.classCode}?</Text>
+            <Text style={s.sheetText}>
+              The learner is removed from this class. Their account and learning progress are kept, and they can join again with the class code.
+            </Text>
+            <Pressable
+              onPress={async () => {
+                if (!removing?.classCode) return;
+                setSaving(true);
+                try {
+                  await teacherApi.removeStudent(user, removing.classCode, removing);
+                  setRemoving(null);
+                  await load();
+                } catch (failure) {
+                  setError(failure instanceof Error ? failure.message : 'The learner could not be removed.');
+                  setRemoving(null);
+                } finally {
+                  setSaving(false);
+                }
+              }}
+              disabled={saving}
+              style={({ pressed }) => [s.primaryButton, { backgroundColor: t.danger }, (pressed || saving) && s.pressed]}
+            >
+              {saving ? <ActivityIndicator color="#FFFFFF" /> : <Text style={s.primaryText}>Remove from class</Text>}
+            </Pressable>
+            <Pressable onPress={() => setRemoving(null)} disabled={saving} style={({ pressed }) => [s.ghostButton, { marginTop: 10 }, pressed && s.pressed]}>
+              <Text style={s.ghostText}>Cancel</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
 
       {/* Add a student to a class */}
       <Modal visible={addOpen} transparent animationType="slide" onRequestClose={closeSheet}>

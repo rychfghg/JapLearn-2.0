@@ -51,6 +51,23 @@ async function request<T>(session: TeacherSession | null | undefined, path: stri
   }
 }
 
+/** Lesson milestones the web portal counts for class progress. */
+export const LESSON_FIELDS = [
+  'hiragana1', 'hiragana2', 'hiragana3',
+  'katakana1', 'katakana2', 'katakana3',
+  'vocab1', 'vocab2', 'vocab3',
+  'sentence',
+] as const;
+
+export type LessonProgress = { email: string } & Partial<Record<(typeof LESSON_FIELDS)[number], boolean>>;
+
+/** Share of the ten lesson milestones a learner has completed, 0–100. */
+export function completionPercent(progress: LessonProgress | undefined): number {
+  if (!progress) return 0;
+  const done = LESSON_FIELDS.filter((field) => progress[field] === true).length;
+  return Math.round((done / LESSON_FIELDS.length) * 100);
+}
+
 export const teacherApi = {
   classes: (session: TeacherSession | null | undefined) => {
     const { email } = requireSession(session);
@@ -69,6 +86,41 @@ export const teacherApi = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ classTitle }),
+    });
+  },
+
+  /** Deletes one of this teacher's classes. */
+  removeClass: (session: TeacherSession | null | undefined, classCode: string) => {
+    const { email } = requireSession(session);
+    return request<string>(
+      session,
+      `/api/classes/removeClass?classCode=${encodeURIComponent(classCode)}&teacherEmail=${encodeURIComponent(email)}`,
+      { method: 'DELETE' },
+    );
+  },
+
+  /** The roster of one class. */
+  studentsByClass: (session: TeacherSession | null | undefined, classCode: string) => {
+    const { email } = requireSession(session);
+    return request<TeacherStudent[]>(
+      session,
+      `/api/students/getByClassCode?classCode=${encodeURIComponent(classCode)}&teacherEmail=${encodeURIComponent(email)}`,
+    );
+  },
+
+  /** Lesson milestones for every learner in this teacher's classes. */
+  lessonProgress: (session: TeacherSession | null | undefined) => {
+    const { email } = requireSession(session);
+    return request<LessonProgress[]>(session, `/api/progress/teacher?teacherEmail=${encodeURIComponent(email)}`);
+  },
+
+  /** Removes a learner from one of this teacher's classes. */
+  removeStudent: (session: TeacherSession | null | undefined, classCode: string, student: TeacherStudent) => {
+    const { email } = requireSession(session);
+    return request<string>(session, '/api/students/removeStudent', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ classCode, name: `${student.fname} ${student.lname}`.trim(), teacherEmail: email }),
     });
   },
 

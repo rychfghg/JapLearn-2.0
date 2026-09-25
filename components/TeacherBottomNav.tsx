@@ -4,10 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { teacherTheme } from '../styles/stylesTeacherApp';
 
-type TabKey = 'home' | 'students' | 'profile';
+type TabKey = 'home' | 'classes' | 'students' | 'profile';
 
 const TABS: { key: TabKey; label: string; route: string; icon: React.ComponentProps<typeof Ionicons>['name'] }[] = [
-  { key: 'home', label: 'Dashboard', route: '/TeacherHome', icon: 'grid-outline' },
+  { key: 'home', label: 'Home', route: '/TeacherHome', icon: 'grid-outline' },
+  { key: 'classes', label: 'Classes', route: '/TeacherClasses', icon: 'school-outline' },
   { key: 'students', label: 'Students', route: '/TeacherStudents', icon: 'people-outline' },
   { key: 'profile', label: 'Profile', route: '/TeacherProfile', icon: 'person-circle-outline' },
 ];
