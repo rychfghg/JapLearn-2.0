@@ -59,7 +59,7 @@ const Login = () => {
         const cleanRole = role?.toLowerCase();
 
         if (cleanRole === 'teacher') {
-            router.replace('/TeacherDashboard');
+            router.replace('/TeacherHome');
         } else if (cleanRole === 'student') {
             router.replace('/Menu');
         } else {
