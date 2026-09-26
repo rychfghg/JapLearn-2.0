@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useClassCode } from '../context/ClassCodeContext';
 import SurveyPromptModal from '../components/SurveyPromptModal';
-import { claimSurveyPrompt } from '../services/surveyPrompt';
+import { claimSurveyPrompt, onSurveyPending } from '../services/surveyPrompt';
 
 const Menu = () => {
     const { user } = useContext(AuthContext);
@@ -33,8 +33,10 @@ const Menu = () => {
     // Survey pop-up: once after sign-in or after a long break, never on plain returns to Home.
     useEffect(() => {
         let active = true;
-        claimSurveyPrompt().then(show => { if (active && show) setSurveyDue(true); });
-        return () => { active = false; };
+        const check = () => { claimSurveyPrompt().then(show => { if (active && show) setSurveyDue(true); }); };
+        check();
+        const unsubscribe = onSurveyPending(check);
+        return () => { active = false; unsubscribe(); };
     }, []);
     const playFlip = React.useRef(new Animated.Value(0)).current;
     const progressFlip = React.useRef(new Animated.Value(0)).current;

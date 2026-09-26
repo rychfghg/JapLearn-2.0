@@ -31,13 +31,25 @@ function trackActivity() {
 }
 trackActivity();
 
+// In-memory flag + listeners so a Home screen that is already mounted still reacts.
+let pendingInMemory = false;
+const listeners = new Set<() => void>();
+
+/** Lets the home screen hear about a sign-in that happens while it is mounted. */
+export function onSurveyPending(listener: () => void) {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
+
 /** Called after a successful student sign-in. */
 export async function markSurveyAfterLogin() {
+  pendingInMemory = true;
   try {
     await AsyncStorage.setItem(PENDING_KEY, '1');
   } catch {
-    // Not critical: the pop-up simply waits for the next visit.
+    // The in-memory flag still covers this session.
   }
+  listeners.forEach((listener) => listener());
 }
 
 /**
@@ -45,6 +57,12 @@ export async function markSurveyAfterLogin() {
  * returning to Home later in the same visit does not show it again.
  */
 export async function claimSurveyPrompt(): Promise<boolean> {
+  if (pendingInMemory) {
+    pendingInMemory = false;
+    await AsyncStorage.multiSet([[LAST_ACTIVE_KEY, String(Date.now())]]).catch(() => undefined);
+    await AsyncStorage.removeItem(PENDING_KEY).catch(() => undefined);
+    return true;
+  }
   try {
     const [pending, lastActiveRaw] = await Promise.all([
       AsyncStorage.getItem(PENDING_KEY),
@@ -52,7 +70,8 @@ export async function claimSurveyPrompt(): Promise<boolean> {
     ]);
     const now = Date.now();
     const lastActive = Number(lastActiveRaw);
-    const returnedAfterBreak = Number.isFinite(lastActive) && lastActive > 0 && now - lastActive >= SESSION_GAP_MS;
+    // No record yet = first visit since this feature shipped (already signed-in users): show once.
+    const returnedAfterBreak = !lastActiveRaw || !Number.isFinite(lastActive) || now - lastActive >= SESSION_GAP_MS;
     const show = pending === '1' || returnedAfterBreak;
 
     // This visit is now "active", whether or not the pop-up shows.

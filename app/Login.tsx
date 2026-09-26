@@ -230,8 +230,9 @@ const Login = () => {
             await AsyncStorage.setItem('classCode', userClassCode);
 
             await setClassCode(userClassCode);
+            // Flag the survey before login(): the auth change can open Home right away.
+            if (userData.role === 'student') await markSurveyAfterLogin();
             await login(userData);
-            if (String(userData.role || '').toLowerCase() === 'student') await markSurveyAfterLogin();
 
             navigateBasedOnRole(userData.role, userClassCode);
         } catch (error) {
