@@ -8,6 +8,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -28,6 +29,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
 
 export default function TeacherClasses() {
   const { user } = useContext(AuthContext);
+  // A pixel cap keeps the sheet on screen; a percentage is not honoured on web.
+  const { height: windowHeight } = useWindowDimensions();
 
   const [classes, setClasses] = useState<TeacherClass[]>([]);
   const [students, setStudents] = useState<TeacherStudent[]>([]);
@@ -303,7 +306,7 @@ export default function TeacherClasses() {
       {/* Class roster: add and remove learners */}
       <Modal visible={!!openClass} transparent animationType="slide" onRequestClose={() => setOpenClass(null)}>
         <Pressable style={s.sheetBackdrop} onPress={() => !busy && setOpenClass(null)} accessibilityLabel="Close">
-          <Pressable style={[s.sheet, { maxHeight: '86%' }]} onPress={() => undefined}>
+          <Pressable style={[s.sheet, { maxHeight: Math.round(windowHeight * 0.82) }]} onPress={() => undefined}>
             <View style={s.sheetHandle} />
             <Text style={s.sheetTitle} numberOfLines={1}>{openClass?.classTitle || openClass?.classCodes}</Text>
             <Text style={s.sheetText}>Class code {openClass?.classCodes} · {roster.length} {roster.length === 1 ? 'learner' : 'learners'}</Text>

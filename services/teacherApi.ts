@@ -51,6 +51,35 @@ async function request<T>(session: TeacherSession | null | undefined, path: stri
   }
 }
 
+export type GameSummary = {
+  label: string;
+  attempts: number;
+  scoredAttempts: number;
+  latest: number | null;
+  average: number | null;
+  highest: number | null;
+  latestAt: string | null;
+};
+
+export type GameAttempt = {
+  id: string;
+  game: string;
+  activity: string;
+  score: number | null;
+  maxScore: number | null;
+  percentage: number | null;
+  playedAt: string | null;
+  status: string;
+  feedbackSummary?: string | null;
+};
+
+export type GamePerformance = {
+  studentEmail: string;
+  totalAttempts: number;
+  games: Array<{ name: string; summary: GameSummary; activities: GameSummary[] }>;
+  attempts: GameAttempt[];
+};
+
 /** Lesson milestones the web portal counts for class progress. */
 export const LESSON_FIELDS = [
   'hiragana1', 'hiragana2', 'hiragana3',
@@ -87,6 +116,15 @@ export const teacherApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ classTitle }),
     });
+  },
+
+  /** Every saved game attempt for one learner, grouped by game. */
+  gamePerformance: (session: TeacherSession | null | undefined, studentEmail: string) => {
+    const { email } = requireSession(session);
+    return request<GamePerformance>(
+      session,
+      `/api/teacher/game-performance?studentEmail=${encodeURIComponent(studentEmail)}&teacherEmail=${encodeURIComponent(email)}`,
+    );
   },
 
   /** Deletes one of this teacher's classes. */

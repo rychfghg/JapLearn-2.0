@@ -42,11 +42,17 @@ export default function StudentBottomNav({ active }: { active?: Tab }) {
         const selected = item.key === active;
         const isTalk = item.key === 'talk';
         return (
-          <Pressable key={item.key} accessibilityRole="tab" accessibilityState={{ selected }} style={({ pressed }) => [styles.item, isTalk && styles.talkItem, pressed && styles.pressed]} onPress={() => { if (!selected) router.replace(item.route); }}>
-            <View style={[styles.iconWrap, selected && styles.activeIconWrap, isTalk && styles.talkIconWrap, isTalk && selected && styles.talkIconActive]}>
-              <Ionicons name={selected ? item.activeIcon : item.icon} size={isTalk ? 27 : 22} color={selected ? '#FFFFFF' : '#918797'} />
-            </View>
-            <Text style={[styles.label, selected && styles.activeLabel, isTalk && styles.talkLabel]}>{item.label}</Text>
+          <Pressable key={item.key} accessibilityRole="tab" accessibilityState={{ selected }} style={[styles.item, isTalk && styles.talkItem]} onPress={() => { if (!selected) router.replace(item.route); }}>
+            {({ pressed }) => (
+              <>
+                {/* Press feedback sits on the pill itself: fading the whole tab makes
+                    Android draw it as a separate layer, which loses the rounded corners. */}
+                <View style={[styles.iconWrap, selected && styles.activeIconWrap, isTalk && styles.talkIconWrap, isTalk && selected && styles.talkIconActive, pressed && styles.pressed]}>
+                  <Ionicons name={selected ? item.activeIcon : item.icon} size={isTalk ? 27 : 22} color={selected ? '#FFFFFF' : '#918797'} />
+                </View>
+                <Text style={[styles.label, selected && styles.activeLabel, isTalk && styles.talkLabel, pressed && styles.pressed]}>{item.label}</Text>
+              </>
+            )}
           </Pressable>
         );
       })}
@@ -66,9 +72,10 @@ const styles = StyleSheet.create({
   item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3 },
   talkItem: { transform: [{ translateY: -13 }] },
   pressed: { opacity: 0.72 },
-  iconWrap: { width: 38, height: 32, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  // overflow: 'hidden' makes Android clip the violet fill to the rounded corners.
+  iconWrap: { width: 38, height: 32, borderRadius: 13, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   activeIconWrap: { backgroundColor: '#8423D9' },
-  talkIconWrap: { width: 58, height: 58, borderRadius: 29, backgroundColor: '#F3EFF5', borderWidth: 5, borderColor: '#FFFFFF', shadowColor: '#2E193B', shadowOpacity: .16, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 12 },
+  talkIconWrap: { width: 58, height: 58, borderRadius: 29, overflow: 'visible', backgroundColor: '#F3EFF5', borderWidth: 5, borderColor: '#FFFFFF', shadowColor: '#2E193B', shadowOpacity: .16, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 12 },
   talkIconActive: { backgroundColor: '#8423D9' },
   label: { color: '#918797', fontFamily: 'Jua', fontSize: 11 },
   activeLabel: { color: '#8423D9' },

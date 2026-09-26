@@ -62,7 +62,7 @@ const routeAccessConfig: Record<string, string[]> = {
 
   ],
   teacher: [
-    'TeacherHome', 'TeacherClasses', 'TeacherStudents', 'TeacherProfile', 'PrivacyPolicyPage', 'TermsOfServicePage',
+    'TeacherHome', 'TeacherClasses', 'TeacherStudents', 'TeacherReports', 'TeacherProfile', 'PrivacyPolicyPage', 'TermsOfServicePage',
     'TeacherDashboard', 'QuackmanContent', 'ProfileTeacher', 'ClassDashboard', 'QuackmanLevels', 'QuackmanEdit', 'QuackslateHost', 'QuackslateLevels',
     'QuackslateEdit', 'PendingApproval', 'QuackamoleLevels', 'QuackamoleEdit', 'QuackamoleContent', 'LessonPageEdit', 'LessonContentEdit',
     'TeacherCommunicationPerformance', 'TeacherAssignCommunication', 'TeacherCommunicationReports',
@@ -273,6 +273,7 @@ const RootLayout = () => {
         <Stack.Screen name="TeacherHome" options={{ animation: 'fade', animationDuration: 180 }} />
         <Stack.Screen name="TeacherClasses" options={{ animation: 'fade', animationDuration: 180 }} />
         <Stack.Screen name="TeacherStudents" options={{ animation: 'fade', animationDuration: 180 }} />
+        <Stack.Screen name="TeacherReports" options={{ animation: 'fade', animationDuration: 180 }} />
         <Stack.Screen name="TeacherProfile" options={{ animation: 'fade', animationDuration: 180 }} />
         <Stack.Screen name="TeacherDashboard" />
         <Stack.Screen name="ProfileTeacher" />
