@@ -21,6 +21,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useClassCode } from '../context/ClassCodeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { markSurveyAfterLogin } from '../services/surveyPrompt';
 
 
 //Checking  
@@ -230,6 +231,7 @@ const Login = () => {
 
             await setClassCode(userClassCode);
             await login(userData);
+            if (String(userData.role || '').toLowerCase() === 'student') await markSurveyAfterLogin();
 
             navigateBasedOnRole(userData.role, userClassCode);
         } catch (error) {

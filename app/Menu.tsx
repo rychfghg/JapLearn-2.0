@@ -7,6 +7,8 @@ import expoconfig from '../expoconfig';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useClassCode } from '../context/ClassCodeContext';
+import SurveyPromptModal from '../components/SurveyPromptModal';
+import { claimSurveyPrompt } from '../services/surveyPrompt';
 
 const Menu = () => {
     const { user } = useContext(AuthContext);
@@ -25,7 +27,15 @@ const Menu = () => {
     const [goalStreak, setGoalStreak] = useState(0);
     const [tipVisible, setTipVisible] = useState(true);
     const [flippedCard, setFlippedCard] = useState<'play' | 'progress' | null>(null);
+    const [surveyDue, setSurveyDue] = useState(false);
     const darkMode = false;
+
+    // Survey pop-up: once after sign-in or after a long break, never on plain returns to Home.
+    useEffect(() => {
+        let active = true;
+        claimSurveyPrompt().then(show => { if (active && show) setSurveyDue(true); });
+        return () => { active = false; };
+    }, []);
     const playFlip = React.useRef(new Animated.Value(0)).current;
     const progressFlip = React.useRef(new Animated.Value(0)).current;
 
@@ -269,6 +279,7 @@ const Menu = () => {
                     </View>
                 </View>
             </Modal>
+            <SurveyPromptModal visible={surveyDue && !classPromptVisible} onClose={()=>setSurveyDue(false)}/>
         </SafeAreaView>
     );
 };
