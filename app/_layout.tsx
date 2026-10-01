@@ -12,6 +12,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { syncOfflineSubmissions } from '../services/offlineSync';
 import { primeOfflineContent } from '../services/offlineContent';
 import StudentBottomNav from '../components/StudentBottomNav';
+import { installStudentAuthFetch } from '../services/studentAuthFetch';
+
+// Must run before any screen or the offline sync queue calls fetch.
+installStudentAuthFetch();
 // import { createDrawerNavigator, DrawerContentScrollView, DrawerItem, DrawerItemList } from '@react-navigation/drawer';
 
 
