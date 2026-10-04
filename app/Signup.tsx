@@ -57,7 +57,7 @@ const Signup = () => {
         if (!email.trim()) {
             validationErrors.email = 'Please enter your email';
         } else if (!isAllowedEmail(email)) {
-            validationErrors.email = 'Email must be a valid Gmail or CIT email';
+            validationErrors.email = 'Please use a valid Gmail address';
         }
         if (!password) {
             validationErrors.password = 'Please enter your password';
