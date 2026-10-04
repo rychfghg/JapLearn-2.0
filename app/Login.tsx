@@ -141,10 +141,12 @@ const Login = () => {
         return failure.message;
     };
 
-    const getStudentClassCode = async (userEmail) => {
+    // The new session is not saved yet at this point, so pass the fresh token explicitly.
+    const getStudentClassCode = async (userEmail, token = "") => {
         try {
             const response = await fetch(
-                `${expoconfig.API_URL}/api/students/getStudentByEmail?email=${encodeURIComponent(userEmail)}`
+                `${expoconfig.API_URL}/api/students/getStudentByEmail?email=${encodeURIComponent(userEmail)}`,
+                token ? { headers: { "X-Student-Token": token } } : undefined
             );
 
             const text = await response.text();
@@ -223,7 +225,7 @@ const Login = () => {
             let userClassCode = '';
 
             if (userData.role === 'student') {
-                userClassCode = await getStudentClassCode(userData.email);
+                userClassCode = await getStudentClassCode(userData.email, userData.portalSessionToken);
             }
 
             await AsyncStorage.setItem('user', JSON.stringify(userData));
