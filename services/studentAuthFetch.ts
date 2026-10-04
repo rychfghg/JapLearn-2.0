@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import expoconfig from '../expoconfig';
 
 /**
  * Attaches the signed-in student's session token (X-Student-Token) to the routes that
@@ -6,12 +7,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  * from that student. Installed once at startup; every screen and the offline sync queue
  * go through global fetch, so none of them need their own change.
  */
-const PROTECTED_ROUTES = [
-  /\/api\/progress\/[^/?]+\/updateField/,
-  /\/api\/students\/joinClass/,
-  /\/api\/response-rush\/progress/,
-  /\/api\/situational\/runs\/current/,
-];
+// Every request to the JapLearn backend carries the student's own token, so the
+// server can confirm a student only reads/writes their own learning data.
+// It is never sent to any other site.
+const isJapLearnApi = (url: string) =>
+  url.startsWith(String(expoconfig.API_URL).replace(/\/+$/, '') + '/api/');
 
 async function storedStudentToken(): Promise<string | null> {
   try {
@@ -35,7 +35,7 @@ export function installStudentAuthFetch() {
 
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    if (!PROTECTED_ROUTES.some((route) => route.test(url))) return baseFetch(input, init);
+    if (!isJapLearnApi(url)) return baseFetch(input, init);
 
     const headers = new Headers(init?.headers || (typeof input === 'object' && 'headers' in input ? input.headers : undefined));
     if (!headers.has('X-Student-Token')) {
