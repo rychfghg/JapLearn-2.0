@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, Image, Modal, ScrollView, SafeAreaView, StatusBar, Linking, TextInput, ActivityIndicator } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import ForgetPasswordModal from "../components/ForgetPasswordModalProps";
+import EditNameModal from "../components/EditNameModal";
 import expoconfig from "../expoconfig";
 import studentProfile from "../assets/img/studentProfile.png";
 import { styles } from "../styles/stylesProfile";
@@ -33,6 +34,8 @@ const Profile = () => {
   const [editingClass, setEditingClass] = useState(true);
   const [joiningClass, setJoiningClass] = useState(false);
   const [accountSheetVisible, setAccountSheetVisible] = useState(false);
+  const [editNameVisible, setEditNameVisible] = useState(false);
+  const isStudent = String(user?.role ?? "").toLowerCase() === "student";
   const [deleteStep, setDeleteStep] = useState<"none" | "reason" | "confirm">("none");
   const [deleteAcknowledged, setDeleteAcknowledged] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -353,6 +356,10 @@ const Profile = () => {
             <View style={styles.infoRow}>
               <View style={styles.infoIcon}><Ionicons name="person-outline" size={21} color="#8423D9" /></View>
               <View style={styles.infoCopy}><Text style={styles.infoLabel}>Full name</Text><Text style={styles.infoValue}>{user ? `${user.fname} ${user.lname}` : ""}</Text></View>
+              {isStudent && <TouchableOpacity onPress={() => setEditNameVisible(true)} accessibilityRole="button" accessibilityLabel="Edit your name" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, backgroundColor: "#F3EAFD" }}>
+                <Ionicons name="create-outline" size={16} color="#8423D9" />
+                <Text style={{ fontSize: 12, fontWeight: "600", color: "#8423D9" }}>Edit</Text>
+              </TouchableOpacity>}
             </View>
             <View style={styles.infoRow}>
               <View style={styles.infoIcon}><Ionicons name="mail-outline" size={21} color="#8423D9" /></View>
@@ -692,6 +699,7 @@ const Profile = () => {
           </View>
         </View>
       </Modal>
+    <EditNameModal visible={editNameVisible} onClose={() => setEditNameVisible(false)} onSaved={(message) => { setModalMessage(message); setModalVisible(true); }} />
     </SafeAreaView>
   );
 };
