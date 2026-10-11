@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
     Modal,
     Text,
@@ -24,6 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { markSurveyAfterLogin } from '../services/surveyPrompt';
 import { cleanEmailInput, cleanPasswordInput, isStrictEmail } from '../utils/inputRules';
 import GoogleAuthButton from '../components/GoogleAuthButton';
+import { takePendingGoogleToken } from '../services/googleAuth';
 
 
 //Checking  
@@ -164,6 +165,70 @@ const Login = () => {
         }
     };
 
+    // Shared by email and Google sign-in: store the session and open the right home screen.
+    const completeLogin = async (data: any) => {
+        const userData = {
+            userId: data.id || data.userId,
+            email: data.email,
+            fname: data.fname,
+            lname: data.lname,
+            role: data.role?.toLowerCase(),
+            portalSessionToken: data.portalSessionToken,
+        };
+
+        let userClassCode = '';
+
+        if (userData.role === 'student') {
+            userClassCode = await getStudentClassCode(userData.email, userData.portalSessionToken);
+        }
+
+        await AsyncStorage.setItem('user', JSON.stringify(userData));
+        await AsyncStorage.setItem('classCode', userClassCode);
+
+        await setClassCode(userClassCode);
+        // Flag the survey before login(): the auth change can open Home right away.
+        if (userData.role === 'student') await markSurveyAfterLogin();
+        await login(userData);
+
+        navigateBasedOnRole(userData.role, userClassCode);
+    };
+
+    const handleGoogleLogin = async (idToken: string) => {
+        if (loading) return;
+        setLoading(true);
+        try {
+            const response = await fetch(`${expoconfig.API_URL}/api/users/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken }),
+            });
+            if (!response.ok) {
+                const body = await response.clone().json().catch(() => null);
+                const googleMessage = typeof body?.error === 'string' && body.error !== 'User not approved' && response.status !== 429 && (response.status < 500 || response.status === 503);
+                if (googleMessage) showNotice({ title: 'Google sign-in did not finish', message: body.error, tone: 'error', icon: 'logo-google' });
+                else showNotice(await describeLoginFailure(response));
+                return;
+            }
+            await completeLogin(await response.json());
+        } catch {
+            showNotice({
+                title: 'Google sign-in did not finish',
+                message: 'We could not reach JapLearn. Check your connection and try again.',
+                tone: 'error',
+                icon: 'cloud-offline-outline',
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Finishes a Google sign-in that was started on the sign-up screen.
+    useEffect(() => {
+        const pending = takePendingGoogleToken();
+        if (pending) void handleGoogleLogin(pending);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const handleLogin = async () => {
         if (!email.trim() || !password.trim()) {
             const missingEmail = !email.trim();
@@ -213,32 +278,7 @@ const Login = () => {
                 return;
             }
 
-            const data = await response.json();
-
-            const userData = {
-                userId: data.id || data.userId,
-                email: data.email,
-                fname: data.fname,
-                lname: data.lname,
-                role: data.role?.toLowerCase(),
-                portalSessionToken: data.portalSessionToken,
-            };
-
-            let userClassCode = '';
-
-            if (userData.role === 'student') {
-                userClassCode = await getStudentClassCode(userData.email, userData.portalSessionToken);
-            }
-
-            await AsyncStorage.setItem('user', JSON.stringify(userData));
-            await AsyncStorage.setItem('classCode', userClassCode);
-
-            await setClassCode(userClassCode);
-            // Flag the survey before login(): the auth change can open Home right away.
-            if (userData.role === 'student') await markSurveyAfterLogin();
-            await login(userData);
-
-            navigateBasedOnRole(userData.role, userClassCode);
+            await completeLogin(await response.json());
         } catch (error) {
             showNotice({
                 title: "Can't connect to JapLearn",
@@ -407,12 +447,10 @@ const Login = () => {
                     )}
                     <GoogleAuthButton
                         label="Sign in with Google"
-                        onPress={() => showNotice({
-                            title: 'Google sign-in is coming soon',
-                            message: 'For now, please sign in with your email and password.',
-                            tone: 'info',
-                            icon: 'logo-google',
-                        })}
+                        mode="signin"
+                        busy={loading}
+                        onToken={handleGoogleLogin}
+                        onError={(message) => showNotice({ title: 'Google sign-in did not finish', message, tone: 'error', icon: 'logo-google' })}
                     />
                 </View>
                 <View style={styles.linkContainer}>

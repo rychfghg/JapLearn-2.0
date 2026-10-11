@@ -9,6 +9,7 @@ import PrivacyPolicyModal from '../components/PrivacyPolicyModal';
 import Logo from '../assets/svg/jpLogo.svg';
 import { EMAIL_RULE, NAME_RULE, PASSWORD_RULE, cleanEmailInput, cleanNameInput, cleanPasswordInput, isStrictEmail, isValidName, isValidPasswordChars } from '../utils/inputRules';
 import GoogleAuthButton from '../components/GoogleAuthButton';
+import { setPendingGoogleToken } from '../services/googleAuth';
 
 const Signup = () => {
     const { width } = useWindowDimensions();
@@ -358,10 +359,9 @@ const Signup = () => {
                         )}
                         <GoogleAuthButton
                             label="Sign up with Google"
-                            onPress={() => {
-                                setModalMessage('Google sign-up is coming soon. For now, please create your account with your email.');
-                                setModalVisible(true);
-                            }}
+                            mode="signup"
+                            onToken={(idToken) => { setPendingGoogleToken(idToken); router.replace('/Login'); }}
+                            onError={(message) => { setModalMessage(message); setModalVisible(true); }}
                         />
                     </View>
 
