@@ -5,6 +5,7 @@ import Logo from '../assets/svg/jpLogo.svg';
 import { useLocalSearchParams, useRouter } from 'expo-router'; // Updated to useLocalSearchParams
 import stylesReset from '../styles/stylesResetPassword'; // New styles for Reset Password
 import expoconfig from '../expoconfig';
+import { cleanPasswordInput } from '../utils/inputRules';
 
 const ResetPassword = () => {
     const params = useLocalSearchParams<{ token?: string | string[] }>();
@@ -25,7 +26,7 @@ const ResetPassword = () => {
         { label: 'At least 8 characters', met: newPassword.length >= 8 },
         { label: 'One uppercase letter', met: /[A-Z]/.test(newPassword) },
         { label: 'One number', met: /[0-9]/.test(newPassword) },
-        { label: 'One special character', met: /[!@#$%^&*(),.?":{}|<>]/.test(newPassword) },
+        { label: 'One symbol (e.g. ! @ # _ - .)', met: /[^A-Za-z0-9\s]/.test(newPassword) },
     ];
 
     const validatePassword = () => {
@@ -43,8 +44,8 @@ const ResetPassword = () => {
             if (!/[0-9]/.test(newPassword)) {
                 validationErrors.newPassword += 'Include at least one number.\n';
             }
-            if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
-                validationErrors.newPassword += 'Include at least one special character.\n';
+            if (!/[^A-Za-z0-9\s]/.test(newPassword)) {
+                validationErrors.newPassword += 'Include at least one symbol, such as ! @ # _ - or .\n';
             }
         }
 
@@ -140,7 +141,7 @@ const ResetPassword = () => {
                                     accessibilityLabel="New password"
                                     onFocus={() => setActiveField('new')}
                                     onBlur={() => setActiveField(null)}
-                                    onChangeText={(text) => setNewPassword(text)}
+                                    onChangeText={(text) => setNewPassword(cleanPasswordInput(text).value)}
                                 />
                                 <Pressable style={stylesReset.eyeButton} onPress={() => setShowPassword((visible) => !visible)} accessibilityLabel={showPassword ? 'Hide password' : 'Show password'} hitSlop={6}>
                                     <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#8A7F8F" />
@@ -170,7 +171,7 @@ const ResetPassword = () => {
                                     accessibilityLabel="Confirm new password"
                                     onFocus={() => setActiveField('confirm')}
                                     onBlur={() => setActiveField(null)}
-                                    onChangeText={(text) => setConfirmPassword(text)}
+                                    onChangeText={(text) => setConfirmPassword(cleanPasswordInput(text).value)}
                                 />
                             </View>
                             {errors.confirmPassword ? <Text style={stylesReset.errorText}>{errors.confirmPassword}</Text> : <View style={stylesReset.fieldGap} />}

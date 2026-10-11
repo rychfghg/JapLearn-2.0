@@ -22,6 +22,8 @@ import { useClassCode } from '../context/ClassCodeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { markSurveyAfterLogin } from '../services/surveyPrompt';
+import { cleanEmailInput, cleanPasswordInput, isStrictEmail } from '../utils/inputRules';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 
 
 //Checking  
@@ -179,7 +181,7 @@ const Login = () => {
             return;
         }
 
-        if (!/^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(email.trim())) {
+        if (!isStrictEmail(email.trim())) {
             showNotice({
                 title: 'Check your email address',
                 message: 'That does not look like a complete email address.',
@@ -252,7 +254,7 @@ const Login = () => {
 
     const handleForgotPassword = async () => {
         const normalizedEmail = forgotPasswordEmail.trim().toLowerCase();
-        const validEmail = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(normalizedEmail);
+        const validEmail = isStrictEmail(normalizedEmail);
         if (!validEmail) {
             showNotice({
                 title: 'Check your email address',
@@ -318,16 +320,11 @@ const Login = () => {
                 >
                 <View style={[styles.authShell, isWide && styles.authShellWide]}>
                 <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
-                    {!isWide && <View style={styles.mobileBrandAccent}>
-                        <View style={styles.mobileAccentLine} />
-                        <Ionicons name="language-outline" size={16} color="#72B544" />
-                        <View style={styles.mobileAccentLine} />
-                    </View>}
                     <View style={styles.brandRow}>
                         <View style={styles.logoShell}><Logo width={50} height={50} /></View>
                         <View>
                         <Text style={styles.titleText}>JapLearn 2.0</Text>
-                        <Text style={styles.brandCaption}>{isWide ? 'Student access' : '日本語を楽しく学ぼう'}</Text>
+                        {isWide && <Text style={styles.brandCaption}>Student access</Text>}
                         </View>
                     </View>
                     {isWide && <View style={styles.desktopVisual}>
@@ -358,7 +355,7 @@ const Login = () => {
                     accessibilityLabel="Email address"
                     onFocus={() => setActiveField('email')}
                     onBlur={() => setActiveField(null)}
-                    onChangeText={(text) => setEmail(text.replace(/\s/g, '').toLowerCase())}
+                    onChangeText={(text) => setEmail(cleanEmailInput(text).value)}
                 />
                 </View>
 
@@ -376,7 +373,7 @@ const Login = () => {
                         accessibilityLabel="Password"
                         onFocus={() => setActiveField('password')}
                         onBlur={() => setActiveField(null)}
-                        onChangeText={(text) => setPassword(text.replace(/\s/g, ''))}
+                        onChangeText={(text) => setPassword(cleanPasswordInput(text).value)}
                     />
 
                     {password.length > 0 && (
@@ -408,6 +405,15 @@ const Login = () => {
                             <View style={styles.buttonIcon}><Ionicons name="arrow-forward" size={17} color="#7B2CBF" /></View>
                         </Pressable>
                     )}
+                    <GoogleAuthButton
+                        label="Sign in with Google"
+                        onPress={() => showNotice({
+                            title: 'Google sign-in is coming soon',
+                            message: 'For now, please sign in with your email and password.',
+                            tone: 'info',
+                            icon: 'logo-google',
+                        })}
+                    />
                 </View>
                 <View style={styles.linkContainer}>
                     <Pressable onPress={() => router.push('/Signup')} hitSlop={8}>
@@ -450,7 +456,7 @@ const Login = () => {
                                 autoCapitalize="none"
                                 inputMode="email"
                                 onChangeText={(text) =>
-                                    setForgotPasswordEmail(text.replace(/\s/g, '').toLowerCase())
+                                    setForgotPasswordEmail(cleanEmailInput(text).value)
                                 }
                             />
                         </View>

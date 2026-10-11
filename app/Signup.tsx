@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import expoconfig from '../expoconfig';
 import PrivacyPolicyModal from '../components/PrivacyPolicyModal';
 import Logo from '../assets/svg/jpLogo.svg';
+import { EMAIL_RULE, NAME_RULE, PASSWORD_RULE, cleanEmailInput, cleanNameInput, cleanPasswordInput, isStrictEmail, isValidName, isValidPasswordChars } from '../utils/inputRules';
+import GoogleAuthButton from '../components/GoogleAuthButton';
 
 const Signup = () => {
     const { width } = useWindowDimensions();
@@ -36,7 +38,8 @@ const Signup = () => {
     });
 
     const isAllowedEmail = (value) => {
-        return /^[^\s@]+@(gmail\.com|cit\.edu)$/.test(value.toLowerCase());
+        const lower = value.toLowerCase();
+        return isStrictEmail(lower) && /@(gmail\.com|cit\.edu)$/.test(lower);
     };
 
     const validateForm = () => {
@@ -50,9 +53,13 @@ const Signup = () => {
 
         if (!fname.trim()) {
             validationErrors.fname = 'Please enter your first name';
+        } else if (!isValidName(fname)) {
+            validationErrors.fname = NAME_RULE;
         }
         if (!lname.trim()) {
             validationErrors.lname = 'Please enter your last name';
+        } else if (!isValidName(lname)) {
+            validationErrors.lname = NAME_RULE;
         }
         if (!email.trim()) {
             validationErrors.email = 'Please enter your email';
@@ -61,6 +68,8 @@ const Signup = () => {
         }
         if (!password) {
             validationErrors.password = 'Please enter your password';
+        } else if (!isValidPasswordChars(password)) {
+            validationErrors.password = PASSWORD_RULE;
         } else {
             if (password.length < 8) {
                 validationErrors.password = 'Password must be at least 8 characters long';
@@ -71,8 +80,8 @@ const Signup = () => {
             if (!/[0-9]/.test(password)) {
                 validationErrors.password = validationErrors.password + ' Include at least one number';
             }
-            if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-                validationErrors.password = validationErrors.password + ' Include at least one special character';
+            if (!/[^A-Za-z0-9\s]/.test(password)) {
+                validationErrors.password = validationErrors.password + ' Include at least one symbol, such as ! @ # _ - or .';
             }
         }
         if (!cpassword) {
@@ -139,7 +148,7 @@ const Signup = () => {
                 const errorResponse = await response.json();
                 const errorMessage = errorResponse.error === 'User already exists'
                     ? 'User already exists. Please try logging in.'
-                    : 'Signup failed. Please try again.';
+                    : (typeof errorResponse.error === 'string' && errorResponse.error !== 'Registration failed' ? errorResponse.error : 'Signup failed. Please try again.');
                 throw new Error(errorMessage);
             }
         } catch (error) {
@@ -157,22 +166,16 @@ const Signup = () => {
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                 <View style={[styles.contentWrapper, isWide && styles.contentWrapperWide]}>
                     <View style={[styles.imageContainer, isWide && styles.imageContainerWide]}>
-                        {!isWide && <View style={styles.mobileBrandAccent}>
-                            <View style={styles.mobileAccentLine} />
-                            <Ionicons name="language-outline" size={16} color="#72B544" />
-                            <View style={styles.mobileAccentLine} />
-                        </View>}
                         <View style={styles.brandRow}>
                             <View style={styles.logoShell}><Logo width={50} height={50} /></View>
                             <View>
                                 <Text style={styles.brandText}>JapLearn 2.0</Text>
-                                <Text style={styles.brandCaption}>{isWide ? 'Student registration' : '日本語を楽しく学ぼう'}</Text>
+                                {isWide && <Text style={styles.brandCaption}>Student registration</Text>}
                             </View>
                         </View>
                         {isWide && <View style={styles.desktopVisual}>
                             <View style={styles.desktopHalo} />
                             <Image source={require('../assets/hello.png')} style={styles.desktopMascot} resizeMode="contain" />
-                            <Text style={styles.desktopJapanese}>はじめよう</Text>
                             <Text style={styles.desktopTitle}>Begin your Japanese journey.</Text>
                         </View>}
                     </View>
@@ -197,12 +200,12 @@ const Signup = () => {
                             maxLength={30}
                             onFocus={() => setActiveField('fname')}
                             onChangeText={(text) => {
-                                const formattedText = text
-                                    .trimStart()
-                                    .replace(/\s+/g, ' ')
-                                    .replace(/\b\w/g, c => c.toUpperCase());
+                                const { value: lettersOnly, removed } = cleanNameInput(text);
+                                const formattedText = lettersOnly.replace(/\b\w/g, c => c.toUpperCase());
                                 setFname(formattedText);
-                                if (formattedText) {
+                                if (removed) {
+                                    setErrors((prevErrors) => ({ ...prevErrors, fname: NAME_RULE }));
+                                } else if (formattedText) {
                                     setErrors((prevErrors) => ({ ...prevErrors, fname: '' }));
                                 }
                             }}
@@ -221,12 +224,12 @@ const Signup = () => {
                             maxLength={30}
                             onFocus={() => setActiveField('lname')}
                             onChangeText={(text) => {
-                                const formattedText = text
-                                    .trimStart()
-                                    .replace(/\s+/g, ' ')
-                                    .replace(/\b\w/g, c => c.toUpperCase());
+                                const { value: lettersOnly, removed } = cleanNameInput(text);
+                                const formattedText = lettersOnly.replace(/\b\w/g, c => c.toUpperCase());
                                 setLname(formattedText);
-                                if (formattedText) {
+                                if (removed) {
+                                    setErrors((prevErrors) => ({ ...prevErrors, lname: NAME_RULE }));
+                                } else if (formattedText) {
                                     setErrors((prevErrors) => ({ ...prevErrors, lname: '' }));
                                 }
                             }}
@@ -252,10 +255,12 @@ const Signup = () => {
                         onFocus={() => setActiveField('email')}
                         onBlur={() => setActiveField(null)}
                         onChangeText={(text) => {
-                            const formattedText = text.replace(/\s/g, '').toLowerCase();
+                            const { value: formattedText, removed } = cleanEmailInput(text);
                             setEmail(formattedText);
 
-                            if (isAllowedEmail(formattedText)) {
+                            if (removed) {
+                                setErrors((prevErrors) => ({ ...prevErrors, email: EMAIL_RULE }));
+                            } else if (isAllowedEmail(formattedText)) {
                                 setErrors((prevErrors) => ({ ...prevErrors, email: '' }));
                             }
                         }}
@@ -279,10 +284,12 @@ const Signup = () => {
                             onFocus={() => setActiveField('password')}
                             onBlur={() => setActiveField(null)}
                             onChangeText={(text) => {
-                                const formattedText = text.replace(/\s/g, '');
+                                const { value: formattedText, removed } = cleanPasswordInput(text);
                                 setPassword(formattedText);
 
-                                if (formattedText.length >= 8 && /[A-Z]/.test(formattedText) && /[0-9]/.test(formattedText) && /[!@#$%^&*(),.?":{}|<>]/.test(formattedText)) {
+                                if (removed) {
+                                    setErrors((prevErrors) => ({ ...prevErrors, password: PASSWORD_RULE }));
+                                } else if (formattedText.length >= 8 && /[A-Z]/.test(formattedText) && /[0-9]/.test(formattedText) && /[^A-Za-z0-9\s]/.test(formattedText)) {
                                     setErrors((prevErrors) => ({ ...prevErrors, password: '' }));
                                 }
                             }}
@@ -317,7 +324,7 @@ const Signup = () => {
                             onFocus={() => setActiveField('cpassword')}
                             onBlur={() => setActiveField(null)}
                             onChangeText={(text) => {
-                                const formattedText = text.replace(/\s/g, '');
+                                const formattedText = cleanPasswordInput(text).value;
                                 setCPassword(formattedText);
 
                                 if (formattedText === password) {
@@ -349,6 +356,13 @@ const Signup = () => {
                                 <View style={styles.buttonIcon}><Ionicons name="arrow-forward" size={17} color="#7B2CBF" /></View>
                             </Pressable>
                         )}
+                        <GoogleAuthButton
+                            label="Sign up with Google"
+                            onPress={() => {
+                                setModalMessage('Google sign-up is coming soon. For now, please create your account with your email.');
+                                setModalVisible(true);
+                            }}
+                        />
                     </View>
 
                     <View style={styles.linkContainer}>
