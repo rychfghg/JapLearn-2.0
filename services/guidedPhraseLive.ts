@@ -3,7 +3,7 @@ import { AudioContext } from 'react-native-audio-api';
 export type GuidedPhraseTurn={targetJapanese:string;targetRomaji:string;englishMeaning:string;learnerInstruction:string};
 export type MeaningEvaluation={contextScore:number;appropriate:boolean;explanation:string;betterResponse:string};
 export type ConversationEvaluation={contextScore:number;japaneseAttempted:boolean;assessment:string;improvementArea:string};
-export type GuidedLiveCallbacks={onConnected:()=>void;onSpeaking:(value:boolean)=>void;onInputTranscript:(text:string)=>void;onOutputTranscript:(text:string)=>void;onTurn:(turn:GuidedPhraseTurn)=>void;onEvaluation:(value:MeaningEvaluation)=>void;onConversationEvaluation?:(value:ConversationEvaluation)=>void;onError:(message:string)=>void;onComplete:()=>void};
+export type GuidedLiveCallbacks={onConnected:()=>void;onSpeaking:(value:boolean)=>void;onInputTranscript:(text:string)=>void;onOutputTranscript:(text:string)=>void;onTurn:(turn:GuidedPhraseTurn)=>void;onEvaluation:(value:MeaningEvaluation)=>void;onConversationEvaluation?:(value:ConversationEvaluation)=>void;onError:(message:string)=>void;onComplete:()=>void;onModelTurnDone?:()=>void};
 export type GuidedLiveAccess={token:string;model:string;websocketUrl:string;voice:string;systemInstruction:string;practicesRemaining:number;sessionId?:string;responsesCompleted?:number};
 
 const base64Alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
@@ -62,6 +62,8 @@ export class GeminiGuidedPhraseLive {
   private playbackHeld=false;
   private heldAudio:string[]=[];
   private begun=false;
+  private turnDonePending=false;
+  private awaitingEvaluation=false;
   private autoBegin=true;
   constructor(private callbacks:GuidedLiveCallbacks,private mode:'guided'|'conversation'='guided'){}
 
@@ -98,19 +100,25 @@ export class GeminiGuidedPhraseLive {
     });
   }
 
-  begin(){if(this.begun)return;this.begun=true;if(this.mode==='conversation'){this.sendTextTurn('Open Talk with Sumi now. Give the brief Japanese greeting and English introduction, then begin the natural Japanese conversation with one simple question.');return;}this.awaitingPracticeTool=true;this.sendTextTurn('Begin Guided Phrase Practice now. Greet me briefly in Japanese, explain the activity in English, then call prepare_practice_turn exactly once. After the tool succeeds, clearly speak a short situation transition and the complete Japanese practice phrase aloud before waiting for my microphone response. Do not prepare another phrase until the application explicitly requests it.');}
-  requestPracticeTurn(){if(this.modelTurnActive||this.activePlaybackCount>0||this.browserSources.size>0||this.browserPendingPcm.length>0){this.practiceRequestPending=true;return;}this.awaitingPracticeTool=true;this.sendTextTurn('Move to exactly one new practice phrase. It must use a different communicative purpose, situation, wording, and target expression from every earlier phrase in this session. Say one short, friendly transition that introduces the new everyday situation. Then call prepare_practice_turn exactly once with accurate romaji. After the tool succeeds, clearly speak the complete Japanese target phrase aloud and invite the learner to respond. Do not prepare a later phrase until the application requests it.');}
+  begin(){if(this.begun)return;this.begun=true;if(this.mode==='conversation'){this.sendTextTurn('Open Talk with Sumi now. Give the brief Japanese greeting and English introduction, then begin the natural Japanese conversation with one simple question.');return;}this.awaitingPracticeTool=true;this.sendTextTurn('Begin Guided Phrase Practice now. First greet me warmly in Japanese, then say the same greeting in English. In English, briefly explain the activity: you will say one phrase at a time, I repeat it into the microphone, my pronunciation is rated, then you give feedback. Then call prepare_practice_turn exactly once. After the tool succeeds, say a short situation line and the complete Japanese phrase aloud once, invite me to try, and then stop and wait silently. Do not prepare, say, or hint at any other phrase until the application asks.');}
+  requestPracticeTurn(){if(this.modelTurnActive||this.activePlaybackCount>0||this.browserSources.size>0||this.browserPendingPcm.length>0){this.practiceRequestPending=true;return;}this.awaitingPracticeTool=true;this.turnDonePending=false;this.sendTextTurn('Move to exactly one new practice phrase. It must use a different communicative purpose, situation, wording, and target expression from every earlier phrase in this session. Say one short, friendly transition that introduces the new everyday situation. Then call prepare_practice_turn exactly once with accurate romaji. After the tool succeeds, clearly speak the complete Japanese target phrase aloud once, invite the learner to try, then stop and wait silently. Do not prepare, say, or hint at a later phrase until the application requests it.');}
+  /** Guided mode: the learner's answer reaches Sumi only as text, after the pronunciation service confirmed real speech. */
+  sendLearnerAnswer(turn:GuidedPhraseTurn,heard:string){this.awaitingEvaluation=true;this.turnDonePending=false;this.sendTextTurn(`LEARNER_ANSWER for the practice phrase ${JSON.stringify(turn.targetJapanese)} (meaning: ${JSON.stringify(turn.englishMeaning)}). Speech recognition heard: ${JSON.stringify(heard||'(unclear)')}. Call evaluate_learner_meaning exactly once for this answer. Then speak your feedback only: warm Japanese praise if it is understandable, or a gentle Japanese correction, then one short helpful tip in English. Do not introduce, say, or prepare any new practice phrase.`);}
+  /** Guided mode: Sumi finished speaking without preparing the phrase; ask again for the tool call. */
+  nudgePracticeTool(){this.awaitingPracticeTool=true;this.turnDonePending=false;this.sendTextTurn('You have not called prepare_practice_turn yet. Call it now exactly once for one new practice phrase, then say that phrase aloud once and wait silently.');}
   sendPcm16(samples:Float32Array){const pcm=new Int16Array(samples.length);for(let i=0;i<samples.length;i++){const n=Math.max(-1,Math.min(1,samples[i]));pcm[i]=n<0?n*0x8000:n*0x7fff;}this.send({realtimeInput:{audio:{data:bytesToBase64(new Uint8Array(pcm.buffer)),mimeType:'audio/pcm;rate=16000'}}});}
   beginUserAudio(){this.modelTurnActive=false;this.send({realtimeInput:{activityStart:{}}});}
   endUserAudio(){this.modelTurnActive=true;this.send({realtimeInput:{activityEnd:{}}});}
   holdPlayback(){this.playbackHeld=true;}
   releasePlayback(){this.playbackHeld=false;const queued=this.heldAudio.splice(0);for(const encoded of queued)this.playPcm24(encoded);if(!queued.length&&!this.modelTurnActive){this.callbacks.onSpeaking(false);this.drainPracticeRequest();}}
-  interrupt(){this.nextPlaybackAt=this.audioContext?.currentTime||0;this.pendingAudio=[];this.heldAudio=[];this.playbackHeld=false;if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=null;if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;for(const source of this.browserSources){try{source.stop();}catch{}}this.browserSources.clear();this.browserNextPlaybackAt=this.browserNativeContext?.currentTime||0;for(const source of this.nativeSources){try{source.stop();}catch{}}this.nativeSources.clear();this.browserPendingPcm=[];this.activePlaybackCount=0;this.callbacks.onSpeaking(false);}
+  interrupt(){this.nextPlaybackAt=this.audioContext?.currentTime||0;this.pendingAudio=[];this.heldAudio=[];this.playbackHeld=false;if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=null;if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;for(const source of this.browserSources){try{source.stop();}catch{}}this.browserSources.clear();this.browserNextPlaybackAt=this.browserNativeContext?.currentTime||0;for(const source of this.nativeSources){try{source.stop();}catch{}}this.nativeSources.clear();this.browserPendingPcm=[];this.activePlaybackCount=0;this.callbacks.onSpeaking(false);this.tryFinishTurn();}
   close(){this.intentionallyClosed=true;this.interrupt();void this.browserNativeContext?.close?.();this.browserNativeContext=null;this.socket?.close();this.socket=null;void this.audioContext?.close().catch(()=>undefined);this.audioContext=null;}
 
   private send(value:unknown){if(this.socket?.readyState===WebSocket.OPEN)this.socket.send(JSON.stringify(value));}
   private sendTextTurn(text:string){this.modelTurnActive=true;this.send({clientContent:{turns:[{role:'user',parts:[{text}]}],turnComplete:true}});}
-  private drainPracticeRequest(){if(!this.practiceRequestPending||this.modelTurnActive||this.activePlaybackCount>0||this.browserSources.size>0||this.browserPendingPcm.length>0)return;this.practiceRequestPending=false;this.requestPracticeTurn();}
+  private playbackIdle(){return this.activePlaybackCount===0&&this.pendingAudio.length===0&&this.heldAudio.length===0&&!this.playbackHeld&&this.browserSources.size===0&&this.browserPendingPcm.length===0;}
+  private tryFinishTurn(){if(!this.turnDonePending||this.modelTurnActive||!this.playbackIdle())return;this.turnDonePending=false;this.callbacks.onModelTurnDone?.();}
+  private drainPracticeRequest(){this.tryFinishTurn();if(!this.practiceRequestPending||this.modelTurnActive||this.activePlaybackCount>0||this.browserSources.size>0||this.browserPendingPcm.length>0)return;this.practiceRequestPending=false;this.requestPracticeTurn();}
   private async handleSocketData(data:unknown){
     try{
       if(typeof data==='string'){this.handleMessage(data);return;}
@@ -150,16 +158,19 @@ export class GeminiGuidedPhraseLive {
           }
           if(args.targetJapanese&&args.englishMeaning&&args.learnerInstruction){this.awaitingPracticeTool=false;this.preparedTargets.add(key);this.callbacks.onTurn({targetJapanese:args.targetJapanese,targetRomaji:args.targetRomaji||'',englishMeaning:args.englishMeaning,learnerInstruction:args.learnerInstruction});}
         }
-        if(call.name==='evaluate_learner_meaning')this.callbacks.onEvaluation(call.args as MeaningEvaluation);
+        if(call.name==='evaluate_learner_meaning'){
+          if(!this.awaitingEvaluation){this.send({toolResponse:{functionResponses:[{id:call.id,name:call.name,response:{result:'Not accepted. No learner answer is waiting. Stay silent and wait for the application.'}}]}});continue;}
+          this.awaitingEvaluation=false;this.callbacks.onEvaluation(call.args as MeaningEvaluation);
+        }
         if(call.name==='evaluate_conversation_turn')this.callbacks.onConversationEvaluation?.(call.args as ConversationEvaluation);
-        const toolResult=call.name==='evaluate_learner_meaning'?'Recorded. Now speak directly to the learner: first give warm Japanese praise when understandable, or a gentle Japanese correction when adjustment is needed; then give one short actionable suggestion in English when useful. Do not prepare the next practice until the application requests it.':call.name==='evaluate_conversation_turn'?'Recorded privately. Continue the natural spoken conversation now. React briefly to what the learner communicated and ask one related beginner-friendly question in Japanese.':'Recorded. Clearly speak the situation prompt and the complete Japanese target phrase aloud, then wait for the learner microphone response.';
+        const toolResult=call.name==='evaluate_learner_meaning'?'Recorded. Now speak directly to the learner: first give warm Japanese praise when understandable, or a gentle Japanese correction when adjustment is needed; then give one short actionable suggestion in English when useful. Do not introduce, say, or prepare the next phrase; the application will ask when it is time.':call.name==='evaluate_conversation_turn'?'Recorded privately. Continue the natural spoken conversation now. React briefly to what the learner communicated and ask one related beginner-friendly question in Japanese.':'Recorded. Now say the situation line and the complete Japanese phrase aloud once, slowly and clearly, invite the learner to try it, then stop and wait silently. Do not evaluate, continue, or introduce another phrase.';
         this.send({toolResponse:{functionResponses:[{id:call.id,name:call.name,response:{result:toolResult}}]}});
       }
       // A tool call is an intermediate model step. Gemini can include
       // turnComplete in the same server message, but its spoken follow-up is
       // still coming after our tool response. Ending the turn here unlocks the
       // microphone too early and can strand Guided Phrase between phases.
-      if(content?.turnComplete&&functionCalls.length===0){this.modelTurnActive=false;if(isBrowser)this.finishBrowserTurn();else if(this.activePlaybackCount===0&&this.pendingAudio.length===0){this.callbacks.onSpeaking(false);this.drainPracticeRequest();}}
+      if(content?.turnComplete&&functionCalls.length===0){this.modelTurnActive=false;this.turnDonePending=true;if(isBrowser)this.finishBrowserTurn();else if(this.activePlaybackCount===0&&this.pendingAudio.length===0){this.callbacks.onSpeaking(false);this.drainPracticeRequest();}}
       if(message.goAway)this.callbacks.onComplete();
     }catch(error){this.callbacks.onError(error instanceof Error?error.message:'The conversation could not continue. Please try again.');}
   }
