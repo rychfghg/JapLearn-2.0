@@ -22,6 +22,15 @@ const allRomaji = [
 
 type QuackmanQuestion = { hint: string; word: string[] };
 
+const shuffled = <T,>(items: T[]) => {
+    const copy = [...items];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+};
+
 const Quackman = () => {
     const { user } = useContext(AuthContext);
     const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
@@ -163,8 +172,7 @@ const Quackman = () => {
                         hint: item.description,
                         word: syllabifyWord(item.romajiWord),
                     }));
-                    setData(transformedData);
-                    loadWord(0);
+                    setData(shuffled(transformedData));
                 } else {
                     console.error("No content received from the backend.");
                 }
@@ -391,6 +399,7 @@ const Quackman = () => {
         savedResult.current = false;
         setGameOver(false);
         setCorrectAnswersCount(0);
+        setData((current) => shuffled(current));
         setCurrentWordIndex(0);
         setAttempts([null, null, null]);
         setInputRomaji([]);
