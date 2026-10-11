@@ -336,6 +336,7 @@ export default function QuackSituateFormal() {
           completed,
           level,
           setNumber: resumeIndex,
+          answeredCount: completed ? questions.length : resumeIndex + (phase === 'reaction' ? 1 : 0),
           topic: questions[0]?.location || 'Politeness and social tone',
         };
       if (completed) {

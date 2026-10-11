@@ -781,6 +781,7 @@ export default function QuackSituateRecognition() {
           maxScore: maximumScore,
           totalQuestions: questions.length,
           correctAnswers: correctCount,
+          hintsUsed,
           completed: true,
         });
       void syncOfflineSubmissions(user.email);

@@ -1,6 +1,6 @@
-import { SafeAreaView, Text, View, Pressable, Image, Platform, StatusBar, ScrollView, useWindowDimensions, Animated, AppState, Modal, TextInput, ActivityIndicator } from 'react-native';
+import { SafeAreaView, Text, View, Pressable, Image, Platform, StatusBar, ScrollView, useWindowDimensions, Animated, Modal, TextInput, ActivityIndicator } from 'react-native';
 import React, { useContext, useEffect, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import styles from '../styles/stylesMenu';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
@@ -9,6 +9,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useClassCode } from '../context/ClassCodeContext';
 import SurveyPromptModal from '../components/SurveyPromptModal';
 import { claimSurveyPrompt, onSurveyPending } from '../services/surveyPrompt';
+import { offlineProgressFetch, readCachedProgress, subscribeProgress } from '../services/offlineProgress';
+import { getHomeContinuation } from '../services/homeContinuation';
 
 const Menu = () => {
     const { user } = useContext(AuthContext);
@@ -23,8 +25,8 @@ const Menu = () => {
     const [joiningClass, setJoiningClass] = useState(false);
     const [mascotFrame, setMascotFrame] = useState(0);
     const mascotFrames = [require('../assets/idle.png'), require('../assets/hello.png'), require('../assets/talk.png')];
-    const [dailyMinutes, setDailyMinutes] = useState(0);
-    const [goalStreak, setGoalStreak] = useState(0);
+    const [lessonProgress, setLessonProgress] = useState<Record<string, unknown> | null>(null);
+    const continuation = getHomeContinuation(lessonProgress);
     const [tipVisible, setTipVisible] = useState(true);
     const [flippedCard, setFlippedCard] = useState<'play' | 'progress' | null>(null);
     const [surveyDue, setSurveyDue] = useState(false);
@@ -97,55 +99,22 @@ const Menu = () => {
         return () => clearInterval(waveTimer);
     }, []);
 
-    useEffect(() => {
-        if (!user?.email) {
-            setDailyMinutes(0);
-            setGoalStreak(0);
-            return;
-        }
-
+    useFocusEffect(React.useCallback(() => {
         let active = true;
-        let requestInFlight = false;
-        const email = user.email;
-
-        const syncGoal = async (recordMinute: boolean) => {
-            if (requestInFlight) return;
-            requestInFlight = true;
-            try {
-                const response = recordMinute
-                    ? await fetch(`${expoconfig.API_URL}/api/users/daily-goal/minute`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email }),
-                    })
-                    : await fetch(`${expoconfig.API_URL}/api/users/daily-goal/streak?email=${encodeURIComponent(email)}`);
-                if (!response.ok) return;
-                const data = await response.json();
-                if (active) {
-                    setDailyMinutes(Math.min(Math.max(Number(data?.minutes) || 0, 0), 20));
-                    setGoalStreak(Number(data?.streak) || 0);
-                }
-            } catch (error) {
-                console.warn('Unable to sync daily goal.', error);
-            } finally {
-                requestInFlight = false;
-            }
-        };
-
-        setDailyMinutes(0);
-        setGoalStreak(0);
-        syncGoal(false);
-        const goalTimer = setInterval(() => {
-            if (AppState.currentState !== 'active') return;
-            if (Platform.OS === 'web' && typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
-            syncGoal(true);
-        }, 60000);
-
-        return () => {
-            active = false;
-            clearInterval(goalTimer);
-        };
-    }, [user?.email]);
+        setLessonProgress(null);
+        if (!user?.email) return;
+        const unsubscribe = subscribeProgress(user.email, progress => {
+            if (active) setLessonProgress(progress);
+        });
+        readCachedProgress(user.email).then(progress => {
+            if (active && progress) setLessonProgress(progress);
+        }).catch(() => {});
+        offlineProgressFetch(`${expoconfig.API_URL}/api/progress/${encodeURIComponent(user.email)}`)
+            .then(response => response.ok ? response.json() : null)
+            .then(progress => { if (active && progress) setLessonProgress(progress); })
+            .catch(() => {});
+        return () => { active = false; unsubscribe(); };
+    }, [user?.email]));
 
     const flipCard = (card: 'play' | 'progress') => {
         const value = card === 'play' ? playFlip : progressFlip;
@@ -186,14 +155,14 @@ const Menu = () => {
                             <View style={[styles.heroBody, isCompact && styles.heroBodyCompact]}>
                                 <View style={[styles.headerCopy, isCompact && styles.headerCopyCompact]}>
                                     <Text style={styles.headerSubtitle}>Ready for today’s Japanese adventure?</Text>
-                                    <View style={[styles.goalCard, isCompact && styles.goalCardCompact]}>
-                                        <View style={styles.goalIcon}><Ionicons name="flame" size={28} color="#F29123" /></View>
-                                        <View style={styles.goalCopy}>
-                                            <Text style={styles.goalLabel}>Daily Goal</Text>
-                                            <Text style={styles.goalValue}>{dailyMinutes} <Text style={styles.goalUnit}>/ 20 min</Text></Text>
-                                            <View style={styles.goalTrack}><View style={[styles.goalFill, { width: `${Math.min((dailyMinutes / 20) * 100, 100)}%` }]} /></View>
+                                    <Pressable accessibilityRole="button" accessibilityLabel={`${continuation.label}: ${continuation.title}`} onPress={() => router.push(continuation.route as any)} style={({ pressed }) => [styles.continueCard, isCompact && styles.continueCardCompact, pressed && styles.pressed]}>
+                                        <View style={styles.continueIcon}><Ionicons name={continuation.icon} size={26} color="#8423D9" /></View>
+                                        <View style={styles.continueCopy}>
+                                            <Text style={styles.continueLabel}>{continuation.label}</Text>
+                                            <Text style={styles.continueTitle}>{continuation.title}</Text>
                                         </View>
-                                    </View>
+                                        <View style={styles.continueAction}><Text style={styles.continueActionText}>{continuation.action}</Text><Ionicons name="arrow-forward" size={17} color="#8423D9" /></View>
+                                    </Pressable>
                                 </View>
                                 <View style={[styles.mascotStage, isCompact && styles.mascotStageCompact]}>
                                     <View style={styles.mascotSun} /><View style={styles.mascotGround} />
@@ -216,7 +185,6 @@ const Menu = () => {
                             </View>
                             <View style={styles.sectionHeading}>
                                 <View><Text style={[styles.sectionTitle, darkMode && styles.darkTitle]}>Choose your path</Text><Text style={[styles.sectionSubtitle, darkMode && styles.darkMuted]}>Small steps make big progress.</Text></View>
-                                <View style={styles.streakPill}><Ionicons name="flame" size={17} color="#F7AE23" /><Text style={styles.streakText}>{goalStreak > 0 ? `${goalStreak} day streak` : 'Reach today’s goal'}</Text></View>
                             </View>
                             <Pressable onPress={() => router.push('/LearnMenu')} style={({ pressed }) => [styles.primaryCard, pressed && styles.cardPressed]}>
                                 <View style={styles.primaryGlow} />

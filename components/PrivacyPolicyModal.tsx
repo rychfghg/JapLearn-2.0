@@ -89,8 +89,8 @@ const PrivacyPolicyModal = ({ visible, onAgree, onClose }) => {
                         </Text>
                         <Text style={styles.listItem}>
                             - <Text style={styles.bold}>Learning records:</Text> lesson completion,
-                            quiz answers, game scores and attempts, badges, streaks, daily goal
-                            minutes, and speaking practice results.
+                            quiz answers, game scores and attempts, badges, streaks,
+                            and speaking practice results.
                         </Text>
                         <Text style={styles.listItem}>
                             - <Text style={styles.bold}>Voice recordings:</Text> in speaking

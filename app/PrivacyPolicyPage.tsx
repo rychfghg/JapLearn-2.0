@@ -6,7 +6,7 @@ const sections = [
   {
     icon: 'person-outline' as const,
     title: 'Information we collect',
-    body: 'Account details you give us: your first and last name, email address, password (stored encrypted, never in readable form), your role as a student, and the class code you join. Learning records we create as you use JapLearn: lesson completion, quiz answers, game scores and attempts, badges, streaks, daily goal minutes, and speaking practice results. Basic technical information needed to run and troubleshoot the service, such as your app version and the date and time of activity.',
+    body: 'Account details you give us: your first and last name, email address, password (stored encrypted, never in readable form), your role as a student, and the class code you join. Learning records we create as you use JapLearn: lesson completion, quiz answers, game scores and attempts, badges, streaks, and speaking practice results. Basic technical information needed to run and troubleshoot the service, such as your app version and the date and time of activity.',
   },
   {
     icon: 'mic-outline' as const,
