@@ -156,12 +156,12 @@ const Menu = () => {
                                 <View style={[styles.headerCopy, isCompact && styles.headerCopyCompact]}>
                                     <Text style={styles.headerSubtitle}>Ready for today’s Japanese adventure?</Text>
                                     <Pressable accessibilityRole="button" accessibilityLabel={`${continuation.label}: ${continuation.title}`} onPress={() => router.push(continuation.route as any)} style={({ pressed }) => [styles.continueCard, isCompact && styles.continueCardCompact, pressed && styles.pressed]}>
-                                        <View style={styles.continueIcon}><Ionicons name={continuation.icon} size={26} color="#8423D9" /></View>
+                                        <View style={styles.continueIcon}><Ionicons name={continuation.icon} size={25} color="#8423D9" /></View>
                                         <View style={styles.continueCopy}>
                                             <Text style={styles.continueLabel}>{continuation.label}</Text>
-                                            <Text style={styles.continueTitle}>{continuation.title}</Text>
+                                            <Text style={styles.continueTitle} numberOfLines={2}>{continuation.title}</Text>
+                                            <View style={styles.continueAction}><Text style={styles.continueActionText}>{continuation.action}</Text><Ionicons name="arrow-forward" size={14} color="#8423D9" /></View>
                                         </View>
-                                        <View style={styles.continueAction}><Text style={styles.continueActionText}>{continuation.action}</Text><Ionicons name="arrow-forward" size={17} color="#8423D9" /></View>
                                     </Pressable>
                                 </View>
                                 <View style={[styles.mascotStage, isCompact && styles.mascotStageCompact]}>
@@ -185,6 +185,7 @@ const Menu = () => {
                             </View>
                             <View style={styles.sectionHeading}>
                                 <View><Text style={[styles.sectionTitle, darkMode && styles.darkTitle]}>Choose your path</Text><Text style={[styles.sectionSubtitle, darkMode && styles.darkMuted]}>Small steps make big progress.</Text></View>
+                                <View style={styles.pathIcon} accessible accessibilityLabel="Explore your learning path"><Ionicons name="compass-outline" size={22} color="#8423D9" /></View>
                             </View>
                             <Pressable onPress={() => router.push('/LearnMenu')} style={({ pressed }) => [styles.primaryCard, pressed && styles.cardPressed]}>
                                 <View style={styles.primaryGlow} />
