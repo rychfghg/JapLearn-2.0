@@ -1013,7 +1013,6 @@ export default function ReplyCoachStory() {
                 <View style={styles.speakerRow}>
                   <View style={styles.speakerDot} />
                   <Text style={styles.speakerName}>{currentNode.speaker || currentNode.title}</Text>
-                  <Text style={styles.nodeType}>{currentNode.type}</Text>
                 </View>
                 {Boolean(currentNode.japanese) && (
                   <Text
@@ -1101,7 +1100,7 @@ export default function ReplyCoachStory() {
               <Ionicons name="bulb-outline" size={30} color="#D58A1E" />
             </View>
             <Text style={styles.hintEyebrow}>CONVERSATION CLUE</Text>
-            <Text style={styles.hintTitle}>Notice the relationship</Text>
+            <Text style={styles.hintTitle}>A clue for this reply</Text>
             <Text style={styles.hintText}>
               {currentNode.hint || 'Think about who is speaking, where the conversation happens, and how polite the reply should be.'}
             </Text>
@@ -1170,7 +1169,7 @@ export default function ReplyCoachStory() {
               {reactionEvaluation === 'BEST'
                 ? 'That response fits this moment naturally.'
                 : reactionEvaluation === 'ACCEPTABLE'
-                  ? 'Your reply works, but it can sound more natural.'
+                  ? 'Your reply also works in this situation.'
                   : reactionEvaluation === 'AWKWARD'
                     ? 'Let’s adjust this reply so it fits the situation.'
                     : 'Let’s review how this reply may be understood.'}
