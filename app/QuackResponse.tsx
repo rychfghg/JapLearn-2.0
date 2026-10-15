@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Image, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Path } from 'react-native-svg';
 import BackIcon from '../assets/svg/back-icon.svg';
@@ -15,11 +15,7 @@ const games = [
   { title:'Multi-Step', displayTitle:'Dialogue Relay', subtitle:'Keep the conversation moving', description:'Choose connected responses across a complete conversation sequence.', route:'/QuackResponseMultiStep', icon:'git-branch-outline', label:'CHAIN MODE', color:'#D84F83', tint:'#FCE7EF', mascot:require('../assets/thinking.png'), locked:true },
 ] as const;
 
-// Unlock rule for every chapter after the first: finish the previous one,
-// OR reach at least 60% in any single attempt at it — whichever comes
-// first. Reply Coach reports this through the backend; Response Rush has
-// server-side account progress saved by each game.
-const UNLOCK_THRESHOLD = 60;
+// New access comes from the server's Reply Coach readiness result, not practice points or speed.
 
 // Layout constants for the winding "level map" trail. Purely visual — none
 // of this affects unlock rules, routes, or backend calls below.
@@ -68,39 +64,30 @@ export default function QuackResponse() {
     return()=>clearInterval(timer);
   },[skipLoading]);
 
-  useEffect(() => {
+  useFocusEffect(React.useCallback(() => {
     if (!user?.email) return;
     let active = true;
+    setUnlockedStages(1);
 
     fetch(`${expoconfig.API_URL}/api/reply-coach/progress?email=${encodeURIComponent(user.email)}`)
       .then((response) => response.ok ? response.json() : Promise.reject())
       .then((summary) => {
-        if (active && Number(summary?.bestScore ?? 0) >= UNLOCK_THRESHOLD) {
-          setUnlockedStages((current) => Math.max(current, 2));
+        if (active && summary?.readinessReady === true) {
+          setUnlockedStages(3);
         }
       })
       .catch(() => undefined);
 
-    // Check the completed score and current server-side run for this account.
-    Promise.all([
-      fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(user.email)}&game=QUACKRESPONSE_RUSH`)
-        .then(async (response) => response.status === 204 ? null : response.json())
-        .then((record) => record
-          ? (record.maxScore > 0 ? Math.round(((record.score || 0) / record.maxScore) * 100) : Number(record.score) || 0)
-          : 0)
-        .catch(() => 0),
-      fetch(`${expoconfig.API_URL}/api/response-rush/progress?email=${encodeURIComponent(user.email)}`)
-        .then(async (response) => response.status === 204 ? null : response.json())
-        .then((record) => Number(record?.bestPercentage) || 0)
-        .catch(() => 0),
-    ]).then((scores) => {
-      if (active && Math.max(...scores) >= UNLOCK_THRESHOLD) {
-        setUnlockedStages((current) => Math.max(current, 3));
-      }
+    // Preserve replay of activities already completed, without labeling legacy practice as readiness.
+    (['QUACKRESPONSE_RUSH', 'QUACKRESPONSE_RELAY'] as const).forEach((game, index) => {
+      fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(user.email)}&game=${game}`)
+        .then(response => response.ok && response.status !== 204 ? response.json() : null)
+        .then(record => { if (active && record?.completed === true) setUnlockedStages(current => Math.max(current, index + 2)); })
+        .catch(() => undefined);
     });
 
     return () => { active = false; };
-  }, [user?.email]);
+  }, [user?.email]));
 
   const launch=(game:(typeof games)[number], locked = game.locked)=>{
     if(launching||locked)return;
@@ -230,7 +217,7 @@ export default function QuackResponse() {
                     </Text>
                     <Text style={[styles.mapNodeLabelTitle,locked&&styles.responseMuted]}>{game.displayTitle}</Text>
                     <Text style={styles.mapNodeLabelSubtitle}>
-                      {locked?'Earn at least 60% in the previous chapter to unlock.':game.subtitle}
+                      {locked?'Complete Reply Coach and pass its readiness check to unlock.':game.subtitle}
                     </Text>
                   </View>
                 </View>
@@ -267,7 +254,7 @@ export default function QuackResponse() {
             <Text style={styles.guideKicker}>QUACKRESPONSE GUIDE</Text>
             <Text style={styles.guideTitle}>Build natural Japanese replies</Text>
             <Text style={styles.guideText}>
-              Follow the mission map in order. Each activity develops a different response skill.
+              Begin with Reply Coach, then pass its readiness check to open both conversation and speed practice.
             </Text>
 
             <View style={styles.guideSteps}>
@@ -286,7 +273,7 @@ export default function QuackResponse() {
                 </View>
                 <View style={styles.guideStepCopy}>
                   <Text style={styles.guideStepTitle}>Locked missions</Text>
-                  <Text style={styles.guideStepText}>Timed and multi-step challenges will open through progression later.</Text>
+                  <Text style={styles.guideStepText}>Pass Reply Coach readiness to open both challenges. Completed activities stay available for replay.</Text>
                 </View>
               </View>
             </View>

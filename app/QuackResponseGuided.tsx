@@ -14,12 +14,15 @@ import {
   ScrollView,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackResponseGuided';
 import QuackSituateExit from '../components/QuackSituateExit';
 import replyCoachAudio from './replyCoachAudio';
+import { getCoachContext, getCoachExample, getCoachPartner, getCoachExplanation } from '../services/replyCoachPractice';
+import ReplyCoachReadiness from '../components/ReplyCoachReadiness';
 
 type Evaluation = 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'IMPOLITE' | 'RUDE';
 type ChoiceOption = {
@@ -81,6 +84,8 @@ type Chapter = {
 };
 type CharacterPosition = 'LEFT' | 'CENTER_LEFT' | 'CENTER' | 'CENTER_RIGHT' | 'RIGHT';
 type AnswerRecord = {
+  helpTypes?: string[];
+  supported?: boolean;
   nodeId: string;
   prompt: string;
   selectedText: string;
@@ -92,6 +97,7 @@ type AnswerRecord = {
   culturalNote: string;
 };
 type Attempt = {
+  supportUsage?: Record<string, string[]>;
   id: string;
   chapterId: string;
   chapterTitle: string;
@@ -337,6 +343,18 @@ export default function ReplyCoachStory() {
   const [previewChoiceId, setPreviewChoiceId] = useState('');
   const [activeChoiceId, setActiveChoiceId] = useState('');
   const [activeVoiceId, setActiveVoiceId] = useState('');
+  const [showRomaji, setShowRomaji] = useState(false);
+  const [showMeaning, setShowMeaning] = useState(false);
+  const [listenVisible, setListenVisible] = useState(false);
+  const [audioError, setAudioError] = useState('');
+  const [exampleVisible, setExampleVisible] = useState(false);
+  const [readinessVisible, setReadinessVisible] = useState(false);
+  const [exampleAnswer, setExampleAnswer] = useState<number | null>(null);
+  const [exampleCorrectIndex, setExampleCorrectIndex] = useState(0);
+  const exampleHelp = useRef(new Set<string>());
+  const supportUsage = useRef<Record<string, string[]>>({});
+  const voiceFinish = useRef<(() => void) | null>(null);
+  const { height: windowHeight } = useWindowDimensions();
   const fade = useRef(new Animated.Value(0)).current;
   const backgroundMusic = useRef<Audio.Sound | null>(null);
   const backgroundMusicKey = useRef('');
@@ -359,6 +377,38 @@ export default function ReplyCoachStory() {
     : 0;
   const studentName = user?.fname?.trim() || 'friend';
   const latestAnswer = attempt?.answers?.[attempt.answers.length - 1];
+  const decisionId = currentNode?.type === 'CHOICE' ? currentNode.id
+    : currentNode?.type === 'REACTION' ? latestAnswer?.nodeId ?? ''
+    : (chapter?.nodes ?? []).find(node => node.type === 'CHOICE'
+      && getCoachContext(chapter?.nodes ?? [], node.id).dialogue.some(line => line.id === currentNode?.id))?.id ?? '';
+  const context = useMemo(() => getCoachContext(chapter?.nodes ?? [], decisionId), [chapter, decisionId]);
+  const example = getCoachExample(chapter?.title ?? '', latestAnswer?.nodeId ?? '');
+
+  const markSupport = (helpType: string) => {
+    if (!attempt || !decisionId || attempt.answers.some(answer => answer.nodeId === decisionId)) return;
+    const existing = supportUsage.current[decisionId] ?? [];
+    if (existing.includes(helpType)) return;
+    supportUsage.current[decisionId] = [...existing, helpType];
+    void AsyncStorage.setItem(`replyCoachSupport:${user?.email}:${attempt.id}`, JSON.stringify(supportUsage.current)).catch(() => undefined);
+    // Save on use so closing/reopening a chapter cannot turn a supported answer into an independent one.
+    void requestJson(`/api/reply-coach/attempts/${attempt.id}/progress`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ supportNodeId: decisionId, helpType }),
+    }).catch(() => undefined); // The answer request also carries the union as a fallback.
+  };
+
+  const stopVoice = async () => {
+    voiceGeneration.current += 1;
+    voiceFinish.current?.();
+    voiceFinish.current = null;
+    const sound = voiceSound.current;
+    voiceSound.current = null;
+    setActiveVoiceId('');
+    if (sound) {
+      await sound.stopAsync().catch(() => undefined);
+      await sound.unloadAsync().catch(() => undefined);
+    }
+  };
 
   const leaveStory = () => {
     if (exiting) return;
@@ -371,6 +421,7 @@ export default function ReplyCoachStory() {
   }, [user?.email]);
 
   useEffect(() => () => {
+    voiceFinish.current?.();
     musicGeneration.current += 1;
     const sound = backgroundMusic.current;
     backgroundMusic.current = null;
@@ -383,6 +434,8 @@ export default function ReplyCoachStory() {
   }, []);
 
   const playVoice = async (assetId: string, remoteUrl?: string) => {
+    voiceFinish.current?.();
+    voiceFinish.current = null;
     const generation = ++voiceGeneration.current;
     setActiveVoiceId('');
     const previous = voiceSound.current;
@@ -395,7 +448,8 @@ export default function ReplyCoachStory() {
     const source = bundled ?? (remoteUrl
       ? { uri: remoteUrl.startsWith('/api/') ? `${expoconfig.API_URL}${remoteUrl}` : remoteUrl }
       : null);
-    if (!source || generation !== voiceGeneration.current) return;
+    if (generation !== voiceGeneration.current) return;
+    if (!source) throw new Error('Audio is unavailable for this line. You can still read it.');
     const { sound } = await Audio.Sound.createAsync(source, { shouldPlay: true, volume: 1 });
     if (generation !== voiceGeneration.current) {
       await sound.unloadAsync();
@@ -404,19 +458,27 @@ export default function ReplyCoachStory() {
     voiceSound.current = sound;
     setActiveVoiceId(assetId);
     await new Promise<void>((resolve) => {
+      voiceFinish.current = resolve;
       sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) resolve();
+        if (!status.isLoaded || status.didJustFinish) resolve();
       });
     });
+    if (generation === voiceGeneration.current) voiceFinish.current = null;
     if (voiceSound.current === sound) voiceSound.current = null;
     if (generation === voiceGeneration.current) setActiveVoiceId('');
     await sound.unloadAsync().catch(() => undefined);
   };
 
+  const replayLine = (line: StoryNode) => {
+    markSupport('replay');
+    setAudioError('');
+    void playVoice(line.id, line.audioUrl).catch(() => setAudioError('Audio could not play. Try again or read the line.'));
+  };
+
   useEffect(() => {
     if (!currentNode || currentNode.type === 'CHOICE' || !currentNode.japanese) return;
-    void playVoice(currentNode.id, currentNode.audioUrl);
-    return () => { voiceGeneration.current += 1; setActiveVoiceId(''); };
+    void playVoice(currentNode.id, currentNode.audioUrl).catch(() => setAudioError('Audio could not play. Try replay or read the line.'));
+    return () => { void stopVoice(); };
   }, [currentNode?.id]);
 
   useEffect(() => {
@@ -524,6 +586,10 @@ export default function ReplyCoachStory() {
   useEffect(() => {
     setHintVisible(false);
     setHintUsed(false);
+    setShowRomaji(false);
+    setShowMeaning(false);
+    setListenVisible(false);
+    setAudioError('');
   }, [currentNode?.id]);
 
   const requestJson = async (path: string, options?: RequestInit) => {
@@ -532,14 +598,17 @@ export default function ReplyCoachStory() {
     return response.json();
   };
 
-  const loadStory = async () => {
+  const loadStory = async (forceNew = false) => {
     setLoading(true);
     setError('');
     try {
       const chapters = (await requestJson('/api/reply-coach/chapters')) as Chapter[];
       if (!chapters.length) throw new Error('No published Reply Coach chapter is available yet.');
       const selectedChapter = chapters[0];
-      const newAttempt = (await requestJson('/api/reply-coach/attempts/start', {
+      const history = forceNew ? [] : await requestJson(`/api/reply-coach/attempts?email=${encodeURIComponent(user?.email ?? '')}`) as Attempt[];
+      const existing = history.find(item => item.chapterId === selectedChapter.id && item.status === 'IN_PROGRESS')
+        ?? history.find(item => item.chapterId === selectedChapter.id && item.status === 'COMPLETED');
+      const newAttempt = existing ?? (await requestJson('/api/reply-coach/attempts/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -550,7 +619,17 @@ export default function ReplyCoachStory() {
       })) as Attempt;
       setChapter(selectedChapter);
       setAttempt(newAttempt);
+      let localSupport: Record<string, string[]> = {};
+      try {
+        localSupport = JSON.parse(await AsyncStorage.getItem(`replyCoachSupport:${user?.email}:${newAttempt.id}`) || '{}');
+      } catch { /* The server remains authoritative when the local cache is unavailable. */ }
+      const combined = { ...(newAttempt.supportUsage ?? {}) };
+      for (const [id, help] of Object.entries(localSupport || {})) {
+        if (Array.isArray(help)) combined[id] = [...new Set([...(combined[id] ?? []), ...help])];
+      }
+      supportUsage.current = combined;
       setNodeId(newAttempt.currentNodeId || selectedChapter.startNodeId);
+      setResultsVisible(newAttempt.status === 'COMPLETED');
       await AsyncStorage.setItem('replyCoachLastAttempt', newAttempt.id);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Reply Coach could not load.');
@@ -561,6 +640,7 @@ export default function ReplyCoachStory() {
 
   const moveTo = async (next?: string) => {
     if (!next || !attempt) return;
+    await stopVoice();
     if (backgroundMusic.current) void backgroundMusic.current.playAsync().catch(() => undefined);
     setSelectedChoice(null);
     setNodeId(next);
@@ -578,6 +658,7 @@ export default function ReplyCoachStory() {
 
   const choose = async (choice: ChoiceOption) => {
     if (!attempt || !currentNode || saving || choiceLock.current) return;
+    setError('');
     choiceLock.current = true;
     if (backgroundMusic.current) void backgroundMusic.current.playAsync().catch(() => undefined);
     setActiveChoiceId(choice.id);
@@ -593,11 +674,14 @@ export default function ReplyCoachStory() {
           nodeId: currentNode.id,
           choiceId: choice.id,
           hintUsed: String(hintUsed),
+          helpTypes: (supportUsage.current[currentNode.id] ?? []).join(','),
+          supportTrackingVersion: '1',
         }),
       });
       setAttempt(response.attempt);
       setSelectedChoice(response.choice);
       setNodeId(response.choice.nextNodeId);
+      setCorrectionVisible(true);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Your response could not be saved.');
     } finally {
@@ -631,10 +715,35 @@ export default function ReplyCoachStory() {
     setChapter(null);
     setAttempt(null);
     setNodeId('');
-    await loadStory();
+    await loadStory(true);
+  };
+
+  const saveExample = async (index: number) => {
+    if (!attempt || !example || saving || exampleAnswer !== null) return;
+    setSaving(true); setError('');
+    try {
+      const saved = await requestJson('/api/reply-coach/readiness', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'practice', attemptId: attempt.id, email: user?.email,
+          questionId: `practice-${Number(latestAnswer?.nodeId.replace('decision-', ''))}`,
+          selectedJapanese: example[index === exampleCorrectIndex ? 1 : 4],
+          helpTypes: [...exampleHelp.current].join(',') }),
+      });
+      setExampleAnswer(saved.correct ? exampleCorrectIndex : 1 - exampleCorrectIndex);
+    } catch { setError('Practice could not be saved. Please try your answer again.'); }
+    finally { setSaving(false); }
   };
 
   const continueAfterCorrection = async () => {
+    await stopVoice();
+    if (example && !exampleVisible) {
+      exampleHelp.current = new Set([showRomaji ? 'romaji' : '', showMeaning ? 'meaning' : ''].filter(Boolean));
+      setExampleCorrectIndex(Math.random() < 0.5 ? 0 : 1);
+      setExampleAnswer(null);
+      setExampleVisible(true);
+      return;
+    }
+    setExampleVisible(false);
     setCorrectionVisible(false);
     await moveTo(currentNode?.nextNodeId);
   };
@@ -662,7 +771,7 @@ export default function ReplyCoachStory() {
   const isNarration = currentNode?.type === 'NARRATION' || currentNode?.type === 'CULTURAL_NOTE';
   const isReaction = currentNode?.type === 'REACTION';
   const reactionEvaluation = selectedChoice?.evaluation ?? latestAnswer?.evaluation;
-  const reactionExplanation = selectedChoice?.explanation ?? latestAnswer?.explanation;
+  const reactionExplanation = getCoachExplanation(latestAnswer);
   const reactionCulture = selectedChoice?.culturalNote ?? latestAnswer?.culturalNote;
 
   if (loading) {
@@ -692,7 +801,7 @@ export default function ReplyCoachStory() {
         <Ionicons name="cloud-offline-outline" size={44} color="#8423D9" />
         <Text style={styles.loadingTitle}>Reply Coach is resting</Text>
         <Text style={styles.loadingText}>{error || 'The story could not be opened.'}</Text>
-        <Pressable style={styles.primaryButton} onPress={loadStory}>
+        <Pressable style={styles.primaryButton} onPress={() => loadStory()}>
           <Text style={styles.primaryButtonText}>Try again</Text>
         </Pressable>
         <Pressable onPress={() => router.back()}>
@@ -797,7 +906,7 @@ export default function ReplyCoachStory() {
               </View>
             </Pressable>
           ) : currentNode.type === 'CHOICE' ? (
-            <View style={styles.decisionPanel}>
+            <ScrollView style={[styles.decisionPanel, { maxHeight: windowHeight * 0.76 }]} contentContainerStyle={{ paddingBottom: 18 }} keyboardShouldPersistTaps="handled">
               <View style={styles.drawerHandle} />
               <View style={styles.decisionHeading}>
                 <View style={styles.decisionIcon}>
@@ -810,6 +919,7 @@ export default function ReplyCoachStory() {
                 <Pressable
                   style={styles.hintButton}
                   onPress={() => {
+                    markSupport('hint');
                     setHintUsed(true);
                     setHintVisible(true);
                   }}
@@ -818,7 +928,33 @@ export default function ReplyCoachStory() {
                   <Text style={styles.hintButtonText}>Hint</Text>
                 </Pressable>
               </View>
-              <Text style={styles.decisionPrompt}>{currentNode.text}</Text>
+              <View style={styles.coachContext}>
+                <Text style={styles.coachContextLabel}>SETTING · {context.scene?.title || currentNode.backgroundKey || chapter.title}</Text>
+                <Text style={styles.coachContextText}>Partner: {getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker || currentNode.characterKey || 'Your conversation partner'}</Text>
+                {Boolean(context.scene?.text) && <Text style={styles.coachContextText}>{context.scene?.text}</Text>}
+                <Text style={styles.coachContextText}>Goal: {currentNode.text || currentNode.title}</Text>
+              </View>
+              {context.dialogue.map(line => (
+                <View key={line.id} style={styles.coachLine}>
+                  <View style={styles.coachLineHeading}>
+                    <Text style={styles.coachContextLabel}>{line.speaker || line.title}</Text>
+                    <Pressable accessibilityRole="button" accessibilityLabel={`Replay ${line.speaker || 'character'} line`} disabled={saving} style={styles.coachTool} onPress={() => replayLine(line)}>
+                      <Ionicons name="volume-medium-outline" size={17} color="#8423D9" /><Text style={styles.coachToolText}>Replay</Text>
+                    </Pressable>
+                  </View>
+                  <Text style={styles.dialogueJapanese}>{line.japanese || line.text}</Text>
+                  {showRomaji && <Text style={styles.dialogueRomaji}>{line.romaji}</Text>}
+                  {showMeaning && <Text style={styles.dialogueText}>{line.text}</Text>}
+                </View>
+              ))}
+              <View style={styles.coachTools}>
+                <Pressable accessibilityRole="button" disabled={saving} style={styles.coachTool} onPress={() => { markSupport('dialogueReview'); setListenVisible(true); }}><Ionicons name="return-up-back-outline" size={17} color="#8423D9" /><Text style={styles.coachToolText}>Back to listen</Text></Pressable>
+                <Pressable accessibilityRole="button" accessibilityState={{ selected: showRomaji }} disabled={saving} style={styles.coachTool} onPress={() => { if (!showRomaji) markSupport('romaji'); setShowRomaji(value => !value); }}><Text style={styles.coachToolText}>{showRomaji ? 'Hide Romaji' : 'Romaji'}</Text></Pressable>
+                <Pressable accessibilityRole="button" accessibilityState={{ selected: showMeaning }} disabled={saving} style={styles.coachTool} onPress={() => { if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
+              </View>
+              {Boolean(audioError) && <Text accessibilityRole="alert" style={styles.coachNotice}>{audioError}</Text>}
+              <Text style={styles.decisionPrompt}>Choose your reply · no timer</Text>
+              {Boolean(error) && <Text accessibilityRole="alert" style={styles.coachNotice}>{error} Please try your reply again.</Text>}
               <View style={styles.choiceList}>
                 {choiceOrder.map((choice, index) => (
                   <Pressable
@@ -838,7 +974,8 @@ export default function ReplyCoachStory() {
                     </View>
                     <View style={styles.choiceCopy}>
                       <Text style={styles.choiceJapanese}>{choice.japanese}</Text>
-                      <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
+                      {showRomaji && <Text style={styles.choiceRomaji}>{choice.romaji}</Text>}
+                      {showMeaning && <Text style={styles.dialogueText}>{choice.text}</Text>}
                     </View>
                     <Pressable
                       accessibilityRole="button"
@@ -847,8 +984,10 @@ export default function ReplyCoachStory() {
                       style={[styles.choiceAudioButton, previewChoiceId === choice.id && styles.choiceAudioButtonActive]}
                       onPress={(event) => {
                         event.stopPropagation();
+                        markSupport('choiceAudio');
                         setPreviewChoiceId(choice.id);
                         void playVoice(`choice-${choice.id}`, choice.audioUrl)
+                          .catch(() => setAudioError('Audio could not play. Try again or read the choice.'))
                           .finally(() => setPreviewChoiceId(''));
                       }}
                     >
@@ -862,7 +1001,7 @@ export default function ReplyCoachStory() {
                   </Pressable>
                 ))}
               </View>
-            </View>
+            </ScrollView>
           ) : currentNode.type === 'ENDING' ? (
             <View style={styles.endingCard}>
               <Ionicons name="ribbon-outline" size={48} color="#8423D9" />
@@ -878,10 +1017,11 @@ export default function ReplyCoachStory() {
               style={[
                 styles.speechBubbleArea,
                 styles.speechBubbleCentered,
+                { maxHeight: windowHeight * 0.54 },
               ]}
               onPress={() => isReaction ? setCorrectionVisible(true) : moveTo(currentNode.nextNodeId)}
             >
-              <View style={styles.speechBubble}>
+              <ScrollView style={[styles.speechBubble, { maxHeight: windowHeight * 0.5 }]}>
                 <View
                   style={[
                     styles.speechTail,
@@ -904,21 +1044,49 @@ export default function ReplyCoachStory() {
                     {currentNode.japanese}
                   </Text>
                 )}
-                {Boolean(currentNode.romaji) && (
+                {showRomaji && Boolean(currentNode.romaji) && (
                   <Text style={styles.dialogueRomaji} numberOfLines={2} maxFontSizeMultiplier={1.05}>
                     {currentNode.romaji}
                   </Text>
                 )}
+                {showMeaning && <Text style={styles.dialogueText}>{currentNode.text}</Text>}
+                <View style={styles.coachTools}>
+                  <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); replayLine(currentNode); }}><Ionicons name="volume-medium-outline" size={17} color="#8423D9" /><Text style={styles.coachToolText}>Replay</Text></Pressable>
+                  <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); if (!showRomaji) markSupport('romaji'); setShowRomaji(value => !value); }}><Text style={styles.coachToolText}>{showRomaji ? 'Hide Romaji' : 'Romaji'}</Text></Pressable>
+                  <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
+                </View>
+                {Boolean(audioError) && <Text style={styles.coachNotice}>{audioError}</Text>}
                 {isReaction && <Text style={styles.reactionAddress}>{studentName}</Text>}
                 <View style={styles.continueRowDark}>
                   <Text style={styles.continueTextDark}>Tap to continue</Text>
                   <Ionicons name="chevron-forward" size={18} color="#8423D9" />
                 </View>
-              </View>
+              </ScrollView>
             </Pressable>
           )}
         </Animated.View>
       </SafeAreaView>
+
+      <Modal visible={listenVisible} transparent animationType="fade" onRequestClose={() => { void stopVoice(); setListenVisible(false); }}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.feedbackCard}>
+            <ScrollView style={{ alignSelf: 'stretch' }}>
+              <Text style={styles.hintTitle}>Listen again</Text>
+              <Text style={styles.hintText}>{context.scene?.title} · Your answer is not submitted.</Text>
+              {context.dialogue.map(line => <View key={line.id} style={styles.coachLine}>
+                <Text style={styles.coachContextLabel}>{line.speaker || line.title}</Text>
+                <Text style={styles.dialogueJapanese}>{line.japanese || line.text}</Text>
+                {showRomaji && <Text style={styles.dialogueRomaji}>{line.romaji}</Text>}
+                {showMeaning && <Text style={styles.dialogueText}>{line.text}</Text>}
+                <Pressable accessibilityRole="button" style={styles.coachTool} onPress={() => replayLine(line)}><Ionicons name="volume-medium-outline" size={18} color="#8423D9" /><Text style={styles.coachToolText}>Replay line</Text></Pressable>
+              </View>)}
+              {!context.dialogue.length && <Text style={styles.hintText}>No earlier spoken line is available for this decision. Review the setting and goal instead.</Text>}
+              {Boolean(audioError) && <Text style={styles.coachNotice}>{audioError}</Text>}
+            </ScrollView>
+            <Pressable style={styles.primaryButton} onPress={() => { void stopVoice(); setListenVisible(false); }}><Text style={styles.primaryButtonText}>Return to my reply</Text></Pressable>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={exitVisible} transparent animationType="fade" onRequestClose={() => setExitVisible(false)}>
         <View style={styles.modalBackdrop}>
@@ -970,6 +1138,26 @@ export default function ReplyCoachStory() {
       >
         <View style={styles.modalBackdrop}>
           <View style={styles.feedbackCard}>
+            <ScrollView style={{ alignSelf: 'stretch' }} contentContainerStyle={{ alignItems: 'center' }}>
+            {exampleVisible && example ? <>
+              <Text style={styles.hintTitle}>Try a new situation</Text>
+              <Text style={styles.coachNotice}>Saved practice · does not change your first answer or readiness result</Text>
+              {Boolean(error) && <Text accessibilityRole="alert" style={styles.coachNotice}>{error}</Text>}
+              <Text style={styles.hintText}>{example[0]}</Text>
+              <View style={styles.coachTools}>
+                <Pressable disabled={saving || exampleAnswer !== null} style={styles.coachTool} onPress={() => { if (!showRomaji) exampleHelp.current.add('romaji'); setShowRomaji(value => !value); }}><Text style={styles.coachToolText}>{showRomaji ? 'Hide Romaji' : 'Romaji'}</Text></Pressable>
+                <Pressable disabled={saving || exampleAnswer !== null} style={styles.coachTool} onPress={() => { if (!showMeaning) exampleHelp.current.add('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
+              </View>
+              {[0, 1].map(index => {
+                const correct = index === exampleCorrectIndex;
+                return <Pressable key={index} disabled={saving || exampleAnswer !== null} style={[styles.coachExample, exampleAnswer === index && styles.choiceSelected]} onPress={() => saveExample(index)}>
+                  <Text style={styles.choiceJapanese}>{example[correct ? 1 : 4]}</Text>
+                  {showRomaji && <Text style={styles.choiceRomaji}>{example[correct ? 2 : 5]}</Text>}
+                  {showMeaning && <Text style={styles.dialogueText}>{example[correct ? 3 : 6]}</Text>}
+                </Pressable>;
+              })}
+              {exampleAnswer !== null && <View style={styles.explanationBox}><Text style={styles.explanationLabel}>{exampleAnswer === exampleCorrectIndex ? 'THAT FITS' : 'COMPARE THE CONTEXT'}</Text><Text style={styles.explanationText}>{example[7]}</Text><Text style={styles.explanationText}>A fitting reply: {example[1]}</Text></View>}
+            </> : <>
             {reactionEvaluation && (
               <>
                 <View
@@ -1023,14 +1211,16 @@ export default function ReplyCoachStory() {
               </Text>
               <Text style={styles.explanationText}>{reactionExplanation}</Text>
             </View>
-            {Boolean(reactionCulture) && (
+            {Boolean(reactionCulture) && !reactionExplanation.includes(reactionCulture || '') && (
               <View style={styles.cultureBox}>
                 <Ionicons name="leaf-outline" size={19} color="#5CAA38" />
                 <Text style={styles.cultureText}>{reactionCulture}</Text>
               </View>
             )}
-            <Pressable style={styles.primaryButton} onPress={continueAfterCorrection}>
-              <Text style={styles.primaryButtonText}>Continue the story</Text>
+            </>}
+            </ScrollView>
+            <Pressable style={[styles.primaryButton, exampleVisible && exampleAnswer === null && { opacity: 0.5 }]} disabled={saving || (exampleVisible && exampleAnswer === null)} onPress={continueAfterCorrection}>
+              <Text style={styles.primaryButtonText}>{example && !exampleVisible ? 'Try a different example' : 'Continue the story'}</Text>
               <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
             </Pressable>
           </View>
@@ -1047,6 +1237,8 @@ export default function ReplyCoachStory() {
               <Text style={styles.resultsEyebrow}>REPLY COACH COMPLETE</Text>
               <Text style={styles.resultsTitle}>{chapter.title}</Text>
               <Text style={styles.resultsScore}>{attempt.finalPercentage}%</Text>
+              <Text style={styles.coachNotice}>Practice score · not an independent mastery score</Text>
+              <Text style={styles.coachNotice}>{attempt.answers.filter(answer => answer.supported === false).length} independent · {attempt.answers.filter(answer => answer.supported === true).length} supported · {attempt.answers.filter(answer => answer.supported == null).length} not fully tracked</Text>
               <Text style={styles.resultsRating}>
                 {attempt.finalPercentage >= 90 ? 'Excellent cultural awareness' : attempt.finalPercentage >= 75 ? 'Good — keep refining your replies' : 'Review recommended'}
               </Text>
@@ -1068,6 +1260,7 @@ export default function ReplyCoachStory() {
                 <Ionicons name="reader-outline" size={19} color="#FFFFFF" />
                 <Text style={styles.primaryButtonText}>Review my decisions</Text>
               </Pressable>
+              {chapter.title === 'A Day of First Impressions' && <Pressable style={styles.primaryButton} onPress={() => { setResultsVisible(false); setReadinessVisible(true); }}><Ionicons name="checkmark-done-outline" size={20} color="#FFFFFF" /><Text style={styles.primaryButtonText}>Check my readiness</Text></Pressable>}
               <Pressable style={styles.secondaryButton} onPress={replay}>
                 <Text style={styles.secondaryButtonText}>Replay chapter</Text>
               </Pressable>
@@ -1106,6 +1299,7 @@ export default function ReplyCoachStory() {
                     <Text style={[styles.reviewEvaluation, { color: theme.color }]}>{theme.label}</Text>
                   </View>
                   <Text style={styles.reviewPrompt}>{answer.prompt}</Text>
+                  <Text style={styles.coachNotice}>{answer.supported === true ? `Supported practice · ${(answer.helpTypes ?? []).join(', ')}` : answer.supported === false ? 'Independent first answer' : 'Earlier answer · support usage not fully tracked'}</Text>
                   <Text style={styles.reviewSelected}>{answer.selectedJapanese}</Text>
                   {answer.evaluation !== 'BEST' && (
                     <View style={styles.bestAnswerBox}>
@@ -1113,7 +1307,7 @@ export default function ReplyCoachStory() {
                       <Text style={styles.bestAnswerText}>{answer.bestResponse}</Text>
                     </View>
                   )}
-                  <Text style={styles.reviewExplanation}>{answer.explanation}</Text>
+                  <Text style={styles.reviewExplanation}>{getCoachExplanation(answer)}</Text>
                   {Boolean(answer.culturalNote) && <Text style={styles.reviewCulture}>文化 · {answer.culturalNote}</Text>}
                 </View>
               );
@@ -1121,6 +1315,8 @@ export default function ReplyCoachStory() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {readinessVisible && user?.email && <ReplyCoachReadiness attemptId={attempt.id} email={user.email} onClose={() => { setReadinessVisible(false); setResultsVisible(true); }} />}
     </ImageBackground>
   );
 }

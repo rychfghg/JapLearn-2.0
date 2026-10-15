@@ -4,6 +4,16 @@ const { width, height } = Dimensions.get('window');
 const compact = height < 720;
 
 export default StyleSheet.create({
+  coachContext: { borderRadius: 14, padding: 12, backgroundColor: '#F0E8F8', marginTop: 10 },
+  coachContextLabel: { fontSize: 11, color: '#71449A', lineHeight: 17 },
+  coachContextText: { fontSize: 13, lineHeight: 19, color: '#493254', marginTop: 3 },
+  coachLine: { backgroundColor: '#FFFFFF', borderRadius: 14, padding: 12, marginTop: 8, borderWidth: 1, borderColor: '#E9DDF0' },
+  coachLineHeading: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' },
+  coachTools: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginVertical: 7 },
+  coachTool: { minHeight: 44, paddingHorizontal: 10, paddingVertical: 8, borderRadius: 12, backgroundColor: '#F1E8FA', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
+  coachToolText: { color: '#71449A', fontSize: 12 },
+  coachNotice: { color: '#766381', fontSize: 12, lineHeight: 18, marginVertical: 8 },
+  coachExample: { width: '100%', borderWidth: 1, borderColor: '#E6D9EB', padding: 14, borderRadius: 16, marginTop: 10 },
   background: { flex: 1, width: '100%', height: '100%' },
   backgroundImage: { width: '100%', height: '100%' },
   backgroundShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(35,15,49,0.22)' },
