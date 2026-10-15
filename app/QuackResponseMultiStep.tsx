@@ -187,16 +187,37 @@ export default function DialogueRelay(){
 }
 
 function RelayChoices({current,scene,questionIndex,dialogue,choose,hint,history,replay,preview,activeAudioKey}:any){
-  return <View style={[styles.decisionPanel,r.choicePanel,{maxHeight:'78%'}]}>
-    <View style={styles.decisionHeading}><View style={{flex:1}}><Text style={styles.decisionEyebrow}>UNTIMED CONVERSATION</Text><Text style={styles.decisionTitle}>{scene.place} · {questionIndex+1}/{scene.questions.length}</Text></View><Pressable style={styles.hintButton} onPress={history}><Ionicons name="chatbubbles-outline" size={18} color="#8423D9"/><Text style={styles.hintButtonText}>History</Text></Pressable><Pressable style={styles.hintButton} onPress={hint}><Ionicons name="bulb-outline" size={18} color="#8423D9"/></Pressable></View>
-    <ScrollView style={{flexShrink:1}} contentContainerStyle={{paddingBottom:8}}>
-      <Pressable style={r.answer} onPress={()=>replay('sumi')} accessibilityLabel="Replay Sumi's question"><Text style={r.answerLabel}>SUMI · ↻ REPLAY</Text><Text style={r.answerJp}>{dialogue.sumi}</Text><Text style={r.answerRomaji}>{dialogue.sumiRomaji}</Text></Pressable>
-      <Pressable onPress={()=>replay('haru')} accessibilityLabel="Replay Haru's clue"><Text style={r.body}>HARU · ↻ {dialogue.haru}</Text><Text style={r.answerRomaji}>{dialogue.haruRomaji}</Text></Pressable>
-      <Text style={styles.decisionPrompt}>{current.prompt}</Text>
-      {current.choices.map((c:RelayChoice,i:number)=><Pressable key={c.id} style={styles.choiceButton} onPress={()=>choose(c)}><View style={styles.choiceLetter}><Text style={styles.choiceLetterText}>{String.fromCharCode(65+i)}</Text></View><View style={styles.choiceCopy}><Text style={styles.choiceJapanese}>{c.japanese}</Text><Text style={styles.choiceRomaji}>{c.romaji}</Text></View><Pressable accessibilityLabel="Listen to this response" onPress={e=>{e.stopPropagation();preview(c.id);}}><Ionicons name={activeAudioKey===`choice-${c.id}`?'volume-high':'volume-medium-outline'} size={22} color="#8423D9"/></Pressable></Pressable>)}
-    </ScrollView>
+  const [size,setSize]=useState({width:360,height:600});
+  const compact=size.width<480||size.height<500;
+  const panelWidth=Math.max(0,Math.min(680,size.width-32));
+  const centered={width:panelWidth,left:(size.width-panelWidth)/2,right:undefined};
+  return <View pointerEvents="box-none" style={StyleSheet.absoluteFillObject} onLayout={e=>setSize(e.nativeEvent.layout)}>
+    <View style={[relayUi.dialogue,centered,{maxHeight:size.height*.32}]}>
+      <View style={relayUi.toolbar}><View style={relayUi.speakerDot}/><Text style={relayUi.speaker}>Sumi</Text><Text style={relayUi.caption}>Her last line</Text><View style={{flex:1}}/>
+        <Pressable accessibilityRole="button" accessibilityLabel="Replay Sumi's line" onPress={()=>replay('sumi')} style={relayUi.icon}><Ionicons name={activeAudioKey.endsWith('-sumi')?'volume-high':'volume-medium-outline'} size={19} color="#8423D9"/></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Open conversation history and Haru's clue" onPress={history} style={relayUi.icon}><Ionicons name="chatbubbles-outline" size={19} color="#8423D9"/></Pressable>
+      </View>
+      <ScrollView style={{flexShrink:1}}><Text style={[relayUi.japanese,{fontSize:compact?16:19,lineHeight:compact?23:28}]}>{dialogue.sumi}</Text><Text style={relayUi.romaji}>{dialogue.sumiRomaji}</Text></ScrollView>
+    </View>
+    <View style={[relayUi.choices,centered,{maxHeight:size.height*.49}]}>
+      <View style={relayUi.toolbar}><Text style={relayUi.eyebrow}>YOUR REPLY</Text><Text style={relayUi.caption}>{questionIndex+1} of {scene.questions.length}</Text><View style={{flex:1}}/><Pressable accessibilityRole="button" accessibilityLabel="Show a hint for this reply" onPress={hint} style={relayUi.hint}><Ionicons name="bulb-outline" size={16} color="#8423D9"/><Text style={relayUi.hintText}>Hint</Text></Pressable></View>
+      <ScrollView style={{flexShrink:1}} contentContainerStyle={{paddingBottom:2}}>
+        <Text style={relayUi.task}>{current.prompt}</Text>
+        {current.choices.map((c:RelayChoice,i:number)=><Pressable key={c.id} style={({pressed})=>[relayUi.choice,pressed&&relayUi.choicePressed]} onPress={()=>choose(c)}><View style={relayUi.letter}><Text style={relayUi.letterText}>{String.fromCharCode(65+i)}</Text></View><View style={{flex:1,minWidth:0}}><Text style={[relayUi.japanese,{fontSize:compact?15:17,lineHeight:compact?22:25}]}>{c.japanese}</Text><Text style={relayUi.romaji}>{c.romaji}</Text></View><Pressable accessibilityRole="button" accessibilityLabel={`Listen to response ${String.fromCharCode(65+i)}`} style={relayUi.icon} onPress={e=>{e.stopPropagation();preview(c.id);}}><Ionicons name={activeAudioKey===`choice-${c.id}`?'volume-high':'volume-medium-outline'} size={19} color="#8423D9"/></Pressable></Pressable>)}
+      </ScrollView>
+    </View>
   </View>;
 }
+
+// Local styles only: no changes to Reply Coach, sprites, audio, or turn logic.
+const relayUi=StyleSheet.create({
+  dialogue:{position:'absolute',top:12,left:16,right:16,width:'auto',maxWidth:680,alignSelf:'center',marginHorizontal:'auto',borderRadius:22,backgroundColor:'rgba(255,255,255,.97)',padding:16,borderWidth:1,borderColor:'#EADFF1',shadowColor:'#30133D',shadowOpacity:.12,shadowRadius:14,shadowOffset:{width:0,height:4},elevation:5},
+  choices:{position:'absolute',bottom:12,left:16,right:16,maxWidth:680,alignSelf:'center',marginHorizontal:'auto',borderRadius:22,backgroundColor:'rgba(255,255,255,.98)',padding:14,borderWidth:1,borderColor:'#EADFF1',shadowColor:'#30133D',shadowOpacity:.14,shadowRadius:16,shadowOffset:{width:0,height:5},elevation:6},
+  toolbar:{flexDirection:'row',alignItems:'center',gap:8,marginBottom:7},speakerDot:{width:7,height:7,borderRadius:4,backgroundColor:'#76B545'},speaker:{fontSize:13,color:'#4A285B',fontWeight:'500'},caption:{fontSize:11,color:'#95849E'},eyebrow:{fontSize:10,letterSpacing:1.2,color:'#79538F',fontWeight:'500'},
+  japanese:{color:'#392448',fontWeight:'400'},romaji:{fontSize:11,lineHeight:16,color:'#9275A2',marginTop:3,fontWeight:'400'},task:{fontSize:13,lineHeight:19,color:'#76637E',marginBottom:10},
+  icon:{width:36,height:36,alignItems:'center',justifyContent:'center',borderRadius:12},hint:{flexDirection:'row',alignItems:'center',gap:4,paddingHorizontal:9,minHeight:34,borderRadius:11,backgroundColor:'#F6F0FA'},hintText:{fontSize:12,color:'#79538F'},
+  choice:{flexDirection:'row',alignItems:'center',gap:10,padding:10,marginBottom:7,borderRadius:15,borderWidth:1,borderColor:'#E9DFF0',backgroundColor:'#fff'},choicePressed:{backgroundColor:'#F7F0FC',borderColor:'#A868DF'},letter:{width:30,height:30,borderRadius:10,backgroundColor:'#F3EAFB',alignItems:'center',justifyContent:'center'},letterText:{fontSize:13,color:'#8423D9',fontWeight:'500'},
+});
 
 function ConversationHistory({visible,scene,questionIndex,close,replay}:any){
   return <Modal visible={visible} transparent animationType="fade" onRequestClose={close}><View style={styles.modalBackdrop}><View style={[r.feedback,{maxHeight:'90%'}]}><Text style={r.big}>The conversation so far</Text><Text style={r.body}>{scene.narration}</Text><ScrollView style={{flexShrink:1,width:'100%'}}>{scene.questions.slice(0,questionIndex+1).map((q:any,i:number)=>{const d=relayExchange(scene.id,i);return <View key={i} style={r.answer}>{(['sumi','haru'] as const).map(speaker=><Pressable key={speaker} onPress={()=>replay(i,speaker)}><Text style={r.answerLabel}>{speaker.toUpperCase()} · ↻ REPLAY</Text><Text style={r.answerJp}>{d[speaker]}</Text><Text style={r.answerRomaji}>{d[`${speaker}Romaji`]}</Text></Pressable>)}{i<questionIndex&&<><Text style={r.answerLabel}>YOUR REPAIRED / ACCEPTED REPLY</Text><Text style={r.answerJp}>{q.choices.find((c:RelayChoice)=>c.correct)?.japanese}</Text><Text style={r.answerRomaji}>{q.choices.find((c:RelayChoice)=>c.correct)?.romaji}</Text><Pressable onPress={()=>replay(i,'followup')}><Text style={r.answerLabel}>SUMI · ↻ REPLAY</Text><Text style={r.answerJp}>{d.followup}</Text><Text style={r.answerRomaji}>{d.followupRomaji}</Text></Pressable></>}</View>;})}</ScrollView><Pressable style={styles.primaryButton} onPress={close}><Text style={styles.primaryButtonText}>Back to my reply</Text></Pressable></View></View></Modal>;
