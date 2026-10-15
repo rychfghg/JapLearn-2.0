@@ -64,6 +64,10 @@ export class GeminiGuidedPhraseLive {
   private begun=false;
   private turnDonePending=false;
   private awaitingEvaluation=false;
+  private awaitingConversationEvaluation=false;
+  private collectingTurnAudio=false;
+  private lastTurnAudio:string[]=[];
+  private lastTurnBytes=0;
   private autoBegin=true;
   constructor(private callbacks:GuidedLiveCallbacks,private mode:'guided'|'conversation'='guided'){}
 
@@ -108,7 +112,10 @@ export class GeminiGuidedPhraseLive {
   nudgePracticeTool(){this.awaitingPracticeTool=true;this.turnDonePending=false;this.sendTextTurn('You have not called prepare_practice_turn yet. Call it now exactly once for one new practice phrase, then say that phrase aloud once and wait silently.');}
   sendPcm16(samples:Float32Array){const pcm=new Int16Array(samples.length);for(let i=0;i<samples.length;i++){const n=Math.max(-1,Math.min(1,samples[i]));pcm[i]=n<0?n*0x8000:n*0x7fff;}this.send({realtimeInput:{audio:{data:bytesToBase64(new Uint8Array(pcm.buffer)),mimeType:'audio/pcm;rate=16000'}}});}
   beginUserAudio(){this.modelTurnActive=false;this.send({realtimeInput:{activityStart:{}}});}
-  endUserAudio(){this.modelTurnActive=true;this.send({realtimeInput:{activityEnd:{}}});}
+  endUserAudio(){this.modelTurnActive=true;this.turnDonePending=false;if(this.mode==='conversation')this.awaitingConversationEvaluation=true;this.send({realtimeInput:{activityEnd:{}}});}
+  /** Plays Sumi's most recent turn again (Talk with Sumi). Returns false when nothing can be replayed right now. */
+  replayLastTurn(){if(this.modelTurnActive||!this.lastTurnAudio.length||!this.playbackIdle())return false;for(const encoded of this.lastTurnAudio)this.playPcm24(encoded,false);return true;}
+  hasReplay(){return this.lastTurnAudio.length>0;}
   holdPlayback(){this.playbackHeld=true;}
   releasePlayback(){this.playbackHeld=false;const queued=this.heldAudio.splice(0);for(const encoded of queued)this.playPcm24(encoded);if(!queued.length&&!this.modelTurnActive){this.callbacks.onSpeaking(false);this.drainPracticeRequest();}}
   interrupt(){this.nextPlaybackAt=this.audioContext?.currentTime||0;this.pendingAudio=[];this.heldAudio=[];this.playbackHeld=false;if(this.nativeEndTimer)clearTimeout(this.nativeEndTimer);this.nativeEndTimer=null;if(this.browserEndTimer)clearTimeout(this.browserEndTimer);this.browserEndTimer=null;for(const source of this.browserSources){try{source.stop();}catch{}}this.browserSources.clear();this.browserNextPlaybackAt=this.browserNativeContext?.currentTime||0;for(const source of this.nativeSources){try{source.stop();}catch{}}this.nativeSources.clear();this.browserPendingPcm=[];this.activePlaybackCount=0;this.callbacks.onSpeaking(false);this.tryFinishTurn();}
@@ -137,7 +144,7 @@ export class GeminiGuidedPhraseLive {
       if(content?.interrupted){this.interrupt();}
       if(content?.inputTranscription?.text)this.callbacks.onInputTranscript(content.inputTranscription.text);
       if(content?.outputTranscription?.text)this.callbacks.onOutputTranscript(content.outputTranscription.text);
-      for(const part of content?.modelTurn?.parts??[]){if(part.inlineData?.data)this.playPcm24(part.inlineData.data);}
+      for(const part of content?.modelTurn?.parts??[]){if(part.inlineData?.data){if(!this.collectingTurnAudio){this.collectingTurnAudio=true;this.lastTurnAudio=[];this.lastTurnBytes=0;}if(this.lastTurnBytes<6_000_000){this.lastTurnAudio.push(part.inlineData.data);this.lastTurnBytes+=part.inlineData.data.length;}this.playPcm24(part.inlineData.data);}}
       const functionCalls=message.toolCall?.functionCalls??[];
       if(functionCalls.length)this.modelTurnActive=true;
       for(const call of functionCalls){
@@ -162,7 +169,7 @@ export class GeminiGuidedPhraseLive {
           if(!this.awaitingEvaluation){this.send({toolResponse:{functionResponses:[{id:call.id,name:call.name,response:{result:'Not accepted. No learner answer is waiting. Stay silent and wait for the application.'}}]}});continue;}
           this.awaitingEvaluation=false;this.callbacks.onEvaluation(call.args as MeaningEvaluation);
         }
-        if(call.name==='evaluate_conversation_turn')this.callbacks.onConversationEvaluation?.(call.args as ConversationEvaluation);
+        if(call.name==='evaluate_conversation_turn'){if(this.awaitingConversationEvaluation){this.awaitingConversationEvaluation=false;this.callbacks.onConversationEvaluation?.(call.args as ConversationEvaluation);}}
         const toolResult=call.name==='evaluate_learner_meaning'?'Recorded. Now speak directly to the learner: first give warm Japanese praise when understandable, or a gentle Japanese correction when adjustment is needed; then give one short actionable suggestion in English when useful. Do not introduce, say, or prepare the next phrase; the application will ask when it is time.':call.name==='evaluate_conversation_turn'?'Recorded privately. Continue the natural spoken conversation now. React briefly to what the learner communicated and ask one related beginner-friendly question in Japanese.':'Recorded. Now say the situation line and the complete Japanese phrase aloud once, slowly and clearly, invite the learner to try it, then stop and wait silently. Do not evaluate, continue, or introduce another phrase.';
         this.send({toolResponse:{functionResponses:[{id:call.id,name:call.name,response:{result:toolResult}}]}});
       }
@@ -170,11 +177,11 @@ export class GeminiGuidedPhraseLive {
       // turnComplete in the same server message, but its spoken follow-up is
       // still coming after our tool response. Ending the turn here unlocks the
       // microphone too early and can strand Guided Phrase between phases.
-      if(content?.turnComplete&&functionCalls.length===0){this.modelTurnActive=false;this.turnDonePending=true;if(isBrowser)this.finishBrowserTurn();else if(this.activePlaybackCount===0&&this.pendingAudio.length===0){this.callbacks.onSpeaking(false);this.drainPracticeRequest();}}
+      if(content?.turnComplete&&functionCalls.length===0){this.modelTurnActive=false;this.turnDonePending=true;this.collectingTurnAudio=false;if(isBrowser)this.finishBrowserTurn();else if(this.activePlaybackCount===0&&this.pendingAudio.length===0){this.callbacks.onSpeaking(false);this.drainPracticeRequest();}}
       if(message.goAway)this.callbacks.onComplete();
     }catch(error){this.callbacks.onError(error instanceof Error?error.message:'The conversation could not continue. Please try again.');}
   }
-  private playPcm24(encoded:string){
+  private playPcm24(encoded:string,_live=true){
     if(this.playbackHeld){this.heldAudio.push(encoded);return;}
     if(isBrowser){const pcm=base64ToBytes(encoded);if(this.browserAudioUnlocked)this.scheduleBrowserPcm(pcm);else this.browserPendingPcm.push(pcm);return;}
     // When native activation is deferred, keep audio queued without creating

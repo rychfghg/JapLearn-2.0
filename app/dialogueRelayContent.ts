@@ -1,10 +1,13 @@
+import exchanges from './dialogueRelayExchanges.json';
+import choiceRevisions from './dialogueRelayChoiceRevisions.json';
+
 export type RelayChoice = {
   id: string;
   label: string;
   japanese: string;
   romaji: string;
   correct: boolean;
-  evaluation: 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'RUDE';
+  evaluation: 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'RUDE' | 'UNSUITABLE';
   points: number;
   explanation: string;
   example: string;
@@ -66,7 +69,7 @@ const neighborhood = require('../assets/img/background/dialogue-relay-neighborho
 const clinic = require('../assets/img/background/dialogue-relay-clinic.png');
 const ryokan = require('../assets/img/background/dialogue-relay-ryokan.png');
 
-export const RELAY_SCENES: RelayScene[] = [
+const ORIGINAL_RELAY_SCENES: RelayScene[] = [
   {
     id: 'waste', title: 'Sort It Right', place: 'Neighborhood collection point', background: neighborhood,
     narration: 'It is collection morning. Sumi and Haru help a new neighbor read the signs before the truck arrives.',
@@ -174,6 +177,39 @@ export const RELAY_SCENES: RelayScene[] = [
   },
 ];
 
+// Keep stable scene/choice IDs and the 25-turn score contract. Broad distractors
+// are not carried into this conversation revision: politeness alone cannot make
+// a reply to a different question a valid continuation.
+const settings: Record<string, string> = {
+  waste: 'You and Haru meet your neighbor Sumi at the collection point. Confirm the collection day, thank her for showing the bag, then ask her to read the sign.',
+  parcel: 'You call delivery worker Sumi about your missed parcel. Haru helps you prepare. Request redelivery, then confirm a time when you will be home.',
+  clinic: 'You visit a clinic with Haru. Sumi is the receptionist. Describe your sore throat, ask about the form, then respond to the waiting-room phone rule.',
+  pharmacy: 'You visit pharmacist Sumi with Haru. Ask her to repeat the medicine instructions, then tell her about your penicillin allergy before she continues.',
+  onsen: 'You, Sumi, and Haru visit an onsen as friends. Discuss washing first, then keeping your towel outside the shared bath.',
+  ryokan: 'You, Sumi, and Haru enter a ryokan as friends. Discuss removing outdoor shoes, then removing slippers before entering the tatami room.',
+  photo: 'You visit shopkeeper Sumi with Haru. Ask permission to photograph the shop, then respond respectfully when she declines.',
+  allergy: 'You visit a restaurant with Haru. Sumi is your server. State your shrimp allergy, decline a dish whose ingredients are uncertain, then thank her for checking an alternative.',
+  koban: 'You and Haru visit police officer Sumi at a koban. Report your missing wallet, then give its last known location and identifying details.',
+  quake: 'This is an evacuation practice with Haru. Sumi plays the safety staff member throughout. Respond about protection, the marked stairs, then ask her to repeat the route. In a real emergency, follow local official instructions.',
+};
+export type RelayExchange = {sumi:string;sumiRomaji:string;haru:string;haruRomaji:string;followup:string;followupRomaji:string};
+export function relayExchange(sceneId:string, index:number):RelayExchange {
+  const rows = exchanges as Record<string, string[][]>;
+  const row = rows[sceneId]?.[index];
+  if (!row || row.length !== 6) throw new Error(`Missing conversation turn: ${sceneId}/${index}`);
+  const [sumi,sumiRomaji,haru,haruRomaji,followup,followupRomaji] = row;
+  return {sumi,sumiRomaji,haru,haruRomaji,followup,followupRomaji};
+}
+// Shorter conversations first, then three-turn exchanges. IDs remain stable.
+export const RELAY_SCENES: RelayScene[] = [...ORIGINAL_RELAY_SCENES]
+  .sort((a,b)=>a.questions.length-b.questions.length)
+  .map(scene=>({...scene,narration:settings[scene.id],questions:scene.questions.map(q=>({...q,
+    prompt:q.prompt.replace('How should Haru begin the call?', 'Tell Sumi you found a missed-delivery notice and ask for redelivery.').replace('How should Haru open the report?', 'Tell Officer Sumi that you lost your wallet.'),
+    choices:q.choices.filter(c=>c.evaluation==='BEST'||c.evaluation==='RUDE').map(c=>({...c,
+      ...(choiceRevisions as Record<string,Partial<RelayChoice>>)[c.id],
+      evaluation:c.correct?'BEST' as const:'UNSUITABLE' as const,
+    })),
+  }))}));
 export const RELAY_TOTAL_RESPONSES = RELAY_SCENES.reduce((sum, scene) => sum + scene.questions.length, 0);
 
 export const RELAY_TRIVIA: Record<string, string[]> = {

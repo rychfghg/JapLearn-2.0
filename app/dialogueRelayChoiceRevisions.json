@@ -1,0 +1,8 @@
+{
+  "p1b": {"japanese":"荷物を持ってきて。","romaji":"Nimotsu o motte kite.","explanation":"This gives an abrupt instruction without explaining the missed delivery or asking for redelivery."},
+  "c2b": {"japanese":"分からないので、空欄で出します。","romaji":"Wakaranai node, kuuran de dashimasu.","explanation":"This decides to leave the field blank instead of asking the receptionist what belongs there."},
+  "c3b": {"japanese":"音はそのままにしておきます。","romaji":"Oto wa sono mama ni shite okimasu.","explanation":"Sumi asked you to silence the phone. This says you will leave the sound on, so it does not accept her request."},
+  "f1b": {"japanese":"すみません、写真を撮ります。","romaji":"Sumimasen, shashin o torimasu.","explanation":"Saying you will take a photo is an announcement, not a request for permission. The shopkeeper has not agreed yet."},
+  "r1b": {"japanese":"靴のまま上がります。","romaji":"Kutsu no mama agarimasu.","explanation":"This says you will step into the indoor area with outdoor shoes, rather than removing them at the entrance."},
+  "m2b": {"explanation":"This declines to provide the allergy information requested in this practice task. The task is to tell Sumi about your known penicillin allergy; declining is not inherently rude."}
+}

@@ -1,0 +1,562 @@
+[
+  {
+    "id": "connected-waste-0-sumi",
+    "text": "今日は燃えるごみの日です。そのびんはどうしますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-56318e632501ed6ec617.mp3",
+    "sha256": "d841edbeabb614039f89cf766c8820f517b1b7d58b1e23b768dcb2c1449856b7"
+  },
+  {
+    "id": "connected-waste-0-haru",
+    "text": "ここに収集日が書いてあります。一緒に見ましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-682cb1dd7c50fda6f282.mp3",
+    "sha256": "edc8b61d2d5e82aba6cf4ce93e92c3650b5a74cfc068dab54c3deb781212898c"
+  },
+  {
+    "id": "connected-waste-0-followup",
+    "text": "そうですね。びんの収集日を確認しましょう。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-5bbddf7ca40657d0e1b7.mp3",
+    "sha256": "988a2edb494111ac98f8b630c75eac5935e19db8451023f342971c5705d96e05"
+  },
+  {
+    "id": "connected-waste-1-sumi",
+    "text": "燃えるごみには、この指定の袋を使ってください。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-8c5e34691afc38a9c816.mp3",
+    "sha256": "e8f0c0c030fff76dc22cda68034b01df141d6e101ad76be2e7120491df8d2107"
+  },
+  {
+    "id": "connected-waste-1-haru",
+    "text": "近所のすみさんが、袋を見せてくれましたね。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-01554e3af15a887749b1.mp3",
+    "sha256": "40c67cc7556627076861f59eb49180c16c0efa5e012525a6d066f5971c62962d"
+  },
+  {
+    "id": "connected-waste-1-followup",
+    "text": "はい、その袋でお願いします。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-9b86691199d49205aa07.mp3",
+    "sha256": "9898e3faf3974b14685c7e9d32193d98c947c23dd263acb9981a22c6569bd3e1"
+  },
+  {
+    "id": "connected-waste-2-sumi",
+    "text": "次は、びんの収集日を確認しましょう。この漢字は読めますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-4268282340fd8eeb14bc.mp3",
+    "sha256": "9305bbc417314689ee0cea48a749ea4091a7dd635a02ca037051ec8703dde8ff"
+  },
+  {
+    "id": "connected-waste-2-haru",
+    "text": "この漢字が読めないので、すみさんに聞きましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-7e860c472cd535f551cd.mp3",
+    "sha256": "1abe628ca250021f104da5b674046343f86098e883dc7f4982003da2a3c6dab0"
+  },
+  {
+    "id": "connected-waste-2-followup",
+    "text": "もちろんです。これは水曜日と読みます。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-ed7d960cc862c6cdbb50.mp3",
+    "sha256": "642a5fea6c9b082df7d50a80a4c9557675f59138b0442f052ada656687c79016"
+  },
+  {
+    "id": "connected-parcel-0-sumi",
+    "text": "お電話ありがとうございます。配達担当のすみです。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-370a6221c6021cd29339.mp3",
+    "sha256": "d21970c9a2c60545ec9ecea327f75953bc52de335297a5f7c571212a10791123"
+  },
+  {
+    "id": "connected-parcel-0-haru",
+    "text": "不在票を見ながら、電話の目的を伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-32a20e93926c40eb6151.mp3",
+    "sha256": "a7be5b4cc2a4a274fa85c15edba4782c1188d40714761b9c803b3a9b52ea8904"
+  },
+  {
+    "id": "connected-parcel-0-followup",
+    "text": "再配達ですね。お届けの時間を確認します。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-c8e365cee0f88432476f.mp3",
+    "sha256": "2ec22b79a4bf60b54190aa95478ec658890574bcf38f18f8143eba79b157e294"
+  },
+  {
+    "id": "connected-parcel-1-sumi",
+    "text": "今夜七時の再配達はいかがですか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-fa3a1c9f31b87289d0a9.mp3",
+    "sha256": "6835d479c1543c28e444375a6cd1bffb3ea061f9b526afe29498f77e6e4cfd99"
+  },
+  {
+    "id": "connected-parcel-1-haru",
+    "text": "七時なら家にいますね。受け取れると伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-418d6dfde8e634bd4e9c.mp3",
+    "sha256": "f60058af8ddf521bfb81b3c5b9a6b7b367016fcd49954677f2b5575a24975c11"
+  },
+  {
+    "id": "connected-parcel-1-followup",
+    "text": "では、今夜七時に伺います。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-269c6359b39426a26811.mp3",
+    "sha256": "0a6649743ffbc7f0344776081c653a1999e9753d3aa8d70872ba68885f18c107"
+  },
+  {
+    "id": "connected-clinic-0-sumi",
+    "text": "受付のすみです。今日はどうされましたか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-b96923dd238cffef64e5.mp3",
+    "sha256": "4d46f59381170168104c6b2badabe4e0b0a7dbf5ca53fd787214e2385d5bc84a"
+  },
+  {
+    "id": "connected-clinic-0-haru",
+    "text": "昨日からのどが痛いことを伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-15a2285e9ed54b48d837.mp3",
+    "sha256": "baae3c462817b50a602d43dd8c3537d38cf1236704594177a8b7f7784f666d9d"
+  },
+  {
+    "id": "connected-clinic-0-followup",
+    "text": "昨日からですね。では、この問診票をご記入ください。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-64acea2915a4c0be0a5e.mp3",
+    "sha256": "8c23eabc1537df4cebe82cfc45becc216ab31bff6eb9dfbd4b149fd4c750ca53"
+  },
+  {
+    "id": "connected-clinic-1-sumi",
+    "text": "こちらが問診票です。分からないところはありますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-8d9e08ac2591f2d8ece3.mp3",
+    "sha256": "ad6a7c524704eab157ac1a6dcea2587ba9860d475e44d03e0860569edaf68c9c"
+  },
+  {
+    "id": "connected-clinic-1-haru",
+    "text": "この欄に何を書くか、受付のすみさんに聞きましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-4c40a776fae8acf3e94d.mp3",
+    "sha256": "32b18ff6a562e5b44db1d0841708607e93067d03a3a0af502328a4822410a086"
+  },
+  {
+    "id": "connected-clinic-1-followup",
+    "text": "そこには、お名前を書いてください。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-bfa23d95c3353a4e794d.mp3",
+    "sha256": "65e8084fb7126ce7c21c4f002a3de871ff27ff404b7bfbedd3976877fb9e1615"
+  },
+  {
+    "id": "connected-clinic-2-sumi",
+    "text": "ご記入ありがとうございます。待合室では、携帯電話の音を消していただけますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-ffb3a7386c1ceba11258.mp3",
+    "sha256": "894abe50af37762f29a64df642de6eec4a4cad0319d2d42b0b50c18c5904392b"
+  },
+  {
+    "id": "connected-clinic-2-haru",
+    "text": "電話が鳴っていますね。音を消すと伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-01d37429f44b6046825b.mp3",
+    "sha256": "da5b5e24a3403fd3806f39a31d648ecb9182ede45c6f20754e5d1ffab19f7acd"
+  },
+  {
+    "id": "connected-clinic-2-followup",
+    "text": "ありがとうございます。お名前を呼ぶまで、お待ちください。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-189c01e43265f2e6b6f5.mp3",
+    "sha256": "b2843cc3578c64ab30b94a70c2ac650d05c4e7f52038afedafb49e4c42e6250f"
+  },
+  {
+    "id": "connected-pharmacy-0-sumi",
+    "text": "薬剤師のすみです。薬の説明で、もう一度聞きたいところはありますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-cb517dfe92c2dfe65c2e.mp3",
+    "sha256": "5c850e923336deb858b9505bf84074962285c6eb680b261d5119144bd594a33d"
+  },
+  {
+    "id": "connected-pharmacy-0-haru",
+    "text": "飲み方を聞き逃したので、ゆっくり説明してもらいましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-f1a7c5c946bd710ed3f2.mp3",
+    "sha256": "b0c2228bd42b882f3e70644686644eeeecf629d2fb995c06801a331539cf9572"
+  },
+  {
+    "id": "connected-pharmacy-0-followup",
+    "text": "はい。飲み方を、もう一度ゆっくり説明しますね。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-e41c135c9e9275cb2bd5.mp3",
+    "sha256": "c5d8baf355d7ec472b2b9177e8e1831017b61600861787e93304435c20cead7b"
+  },
+  {
+    "id": "connected-pharmacy-1-sumi",
+    "text": "その前に確認します。薬のアレルギーはありますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-c75acee87c960aae029d.mp3",
+    "sha256": "2579c26e7ac57258de1916edd2a392cdb282ec7e049311bec759c5e399432599"
+  },
+  {
+    "id": "connected-pharmacy-1-haru",
+    "text": "ペニシリンのアレルギーがあると、はっきり伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-f45e49447f474590c4fc.mp3",
+    "sha256": "56bdd7bf7a4e1d4c9175cabf20481c1a08f7616f6984700aa6736cba7d33a719"
+  },
+  {
+    "id": "connected-pharmacy-1-followup",
+    "text": "ペニシリンですね。安全のため、処方を確認します。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-decb93f884c0b243499d.mp3",
+    "sha256": "4962e2e397fecc388af61d25e08e83975a2939e078913c2c50894169a2a81145"
+  },
+  {
+    "id": "connected-onsen-0-sumi",
+    "text": "温泉に着きましたね。湯船に入る前に、どうしますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-673ff5600c8d2ed65094.mp3",
+    "sha256": "7ebb62bbe19e7b8c90ff00a7619c630f83d4026dff0ba693c62d78dc6c202fd3"
+  },
+  {
+    "id": "connected-onsen-0-haru",
+    "text": "先に体を洗うと、すみに伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-ff2cc56f8d9a34be58d0.mp3",
+    "sha256": "b6266e6301876a7870a46ff687b0d1f3bf992e5c3cf268b279a9c8d9fa87e838"
+  },
+  {
+    "id": "connected-onsen-0-followup",
+    "text": "そうですね。一緒に洗い場へ行きましょう。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-7737efba51eaa715ea96.mp3",
+    "sha256": "e10af2e96570182cf843c508db1cbfb7a785cb9a00500cdcb02793f41fcb0c99"
+  },
+  {
+    "id": "connected-onsen-1-sumi",
+    "text": "体を洗いましたね。その小さなタオルは、どこに置きますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-5edf4e8835540eef45bc.mp3",
+    "sha256": "1b4e824041744800787aa66693ea2711b9640aa188e5894629c0275fc2a2557a"
+  },
+  {
+    "id": "connected-onsen-1-haru",
+    "text": "タオルを湯船の外に置くと伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-324d9cc007d64304c0e5.mp3",
+    "sha256": "c2a8dd79d5f67e11065c1b7bc819a616dab4a215c24367c9a4643c01f6f89a94"
+  },
+  {
+    "id": "connected-onsen-1-followup",
+    "text": "はい。タオルを外に置いてから、入りましょう。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-1b28f4d13a7e0213c695.mp3",
+    "sha256": "fb7f9e249f04a1d5eabde7fe677ad0994334c5a01e500edf3896a17989b79387"
+  },
+  {
+    "id": "connected-ryokan-0-sumi",
+    "text": "旅館の玄関に着きましたね。靴はどうしますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-2c14bb0fcc9f59199dba.mp3",
+    "sha256": "3c6e9ba7be745a97a77b7f975e701a817e394a3020babebccbc629018d09fe95"
+  },
+  {
+    "id": "connected-ryokan-0-haru",
+    "text": "ここで靴を脱ぐと、すみに伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-1443af206a7143b30662.mp3",
+    "sha256": "e2a4c815dcd0e9a6e8dd521543426255dc82cd3e16aa29b9661de9818b9145fc"
+  },
+  {
+    "id": "connected-ryokan-0-followup",
+    "text": "そうですね。靴をそろえて、スリッパを履きましょう。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-53a22af17d75b84c8981.mp3",
+    "sha256": "27a9dd5af64c57dfa9580f8ba35f84e44e3065353037b6afeac4070f285a6571"
+  },
+  {
+    "id": "connected-ryokan-1-sumi",
+    "text": "スリッパで廊下を歩いてきましたね。この先の畳では、どうしますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-68ff3e336e5d925cff7c.mp3",
+    "sha256": "c904eeb49bf093f341407d4a96b7c8ec439c2618e2a25bdc82d5d505f519e44a"
+  },
+  {
+    "id": "connected-ryokan-1-haru",
+    "text": "畳の前でスリッパを脱ぐと伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-7eaca5accf81743d3b73.mp3",
+    "sha256": "289f152d3007c21b128e9e53d912c6c87c6491d6cbe0de9d087b73398d9311e5"
+  },
+  {
+    "id": "connected-ryokan-1-followup",
+    "text": "では、ここにスリッパをそろえて、部屋に入りましょう。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-3501dbd2316e6c85e6bd.mp3",
+    "sha256": "7951ad426d01325e8cb05e7ff190d9db3877abf1650120f11872f733a0cfee76"
+  },
+  {
+    "id": "connected-photo-0-sumi",
+    "text": "いらっしゃいませ。店主のすみです。何かご質問はありますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-5280fa9ffcee7c68fb40.mp3",
+    "sha256": "e23cbc94e85cc1f91d8d0c5ab3c0f6f60b4b7e00aa535ee0c1ae051108126175"
+  },
+  {
+    "id": "connected-photo-0-haru",
+    "text": "お店の写真を撮ってもいいか、先に聞きましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-2a0be723ad8534785f74.mp3",
+    "sha256": "d1fa76f3f637a1e1b9b2a0e3de8ecd165baec7a96abb302cd66f6ea8ad4df3bf"
+  },
+  {
+    "id": "connected-photo-0-followup",
+    "text": "写真についてですね。お店の決まりをお伝えします。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-ee5d8a37e37bc7decf9f.mp3",
+    "sha256": "ee2d9dc536fbbedf783e1e92d889bec84abd8600e49d36efcd87a151b194d8a1"
+  },
+  {
+    "id": "connected-photo-1-sumi",
+    "text": "申し訳ありませんが、店内の撮影はご遠慮ください。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-a76f650ef262418e6125.mp3",
+    "sha256": "3a9f5eebf9dbb2d743b2ffd824e0816c631bae72bec32e4b7d8ed1ab425f43a0"
+  },
+  {
+    "id": "connected-photo-1-haru",
+    "text": "撮影はできませんね。分かったと伝えて、お礼を言いましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-1e7983a3529acaa97afa.mp3",
+    "sha256": "fee6695b72f07227e77ed975dc72458221b2fa3381c236230fccc09fdc44a070"
+  },
+  {
+    "id": "connected-photo-1-followup",
+    "text": "ご理解ありがとうございます。どうぞ、ごゆっくりご覧ください。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-74a51c7018add7476866.mp3",
+    "sha256": "52ed617bbbcd14083338428258c417295a6da3269f826a16ef58fef9e7b66b66"
+  },
+  {
+    "id": "connected-allergy-0-sumi",
+    "text": "ご注文を伺う前に、食物アレルギーはありますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-47c7bab4f3e67b578e5d.mp3",
+    "sha256": "3bf01a6799b33ed8599447b273a639d50d0044ad0aeaaa0b1a028f17a123bbdf"
+  },
+  {
+    "id": "connected-allergy-0-haru",
+    "text": "えびのアレルギーがあると、店員のすみさんに伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-678e4f9056e74c52f2d3.mp3",
+    "sha256": "fd77937d197579a9a2b7962c4d304ad93a2c75119178213a27bbe338819beeb8"
+  },
+  {
+    "id": "connected-allergy-0-followup",
+    "text": "えびですね。ソースの材料も確認してきます。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-e86fa5a0fc02cf0c8db3.mp3",
+    "sha256": "7c389f9c58d1b8c68094b69c225004ee505636ceab7dce42bc48b39ae773d274"
+  },
+  {
+    "id": "connected-allergy-1-sumi",
+    "text": "申し訳ありません。このソースにえびが入っているか、確認できません。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-c93e26d83b267e9aa1cd.mp3",
+    "sha256": "184bc51cd4e2b7f06e688de094d37174374bdc9dac4148a74804db629d9d41a4"
+  },
+  {
+    "id": "connected-allergy-1-haru",
+    "text": "その料理はやめて、別の料理にすると伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-30ce1cdca13fdfd7517d.mp3",
+    "sha256": "cbf001f2380877bd07abc75ab2db6e9d9435e8129005513c34702501976409cc"
+  },
+  {
+    "id": "connected-allergy-1-followup",
+    "text": "承知しました。別の料理について、料理長に確認します。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-3d0ae93fcc304da56a4b.mp3",
+    "sha256": "f9d074c9d5a490888386f12a89b761369496c2f3f463e30e40b4538f0f2f6b6f"
+  },
+  {
+    "id": "connected-allergy-2-sumi",
+    "text": "料理長が、こちらの料理ならご用意できると確認しました。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-2e8f93defaf0150131d4.mp3",
+    "sha256": "6c2086bea4df58b4534c09d0aa9b70e1c812d48124a09accc7acfa1db874e8c9"
+  },
+  {
+    "id": "connected-allergy-2-haru",
+    "text": "材料を確認してくれたことに、お礼を言いましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-54d7f74c5807070d21d6.mp3",
+    "sha256": "eb4236e3322c5ea15d9b7379cac1354b2255224d39773348e5b81a465c06a7a3"
+  },
+  {
+    "id": "connected-allergy-2-followup",
+    "text": "どういたしまして。ご注文が決まりましたら、お知らせください。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-f840da783b6b71fcab9f.mp3",
+    "sha256": "e57c3c7a9e530e2149c2c5fb1670c0974c96aa84d9f28f4066dc7a7c4fbea20e"
+  },
+  {
+    "id": "connected-koban-0-sumi",
+    "text": "交番のすみです。どうしましたか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-264640a2e81db6399303.mp3",
+    "sha256": "0e63056123f36307dacb29e16dcc0b3d923fd1711cf2a8f7f888c4a1c9de26ae"
+  },
+  {
+    "id": "connected-koban-0-haru",
+    "text": "財布をなくしたことから、伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-6dc3eafcfa15bd025d01.mp3",
+    "sha256": "0af0eb79d9078ada9b0186964adba1e0f3c9ef7892699f66730a1afa7213ce3e"
+  },
+  {
+    "id": "connected-koban-0-followup",
+    "text": "財布をなくされたのですね。詳しく伺います。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-8457194a44eb019aacd2.mp3",
+    "sha256": "eb2b22a2c4a8c24fba16b09ab47c5069d28b97ed446289319c454d34f8cfc8ef"
+  },
+  {
+    "id": "connected-koban-1-sumi",
+    "text": "その財布は、最後にいつ、どこで使いましたか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-465e6d771754d2f980ce.mp3",
+    "sha256": "9d09eb29d8d8d42dc2ee3e3778d0914c67c0e5b7f3735e80c72cd71b29855308"
+  },
+  {
+    "id": "connected-koban-1-haru",
+    "text": "午後三時ごろ、駅で使ったことを覚えていますね。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-219a91222af1205a8928.mp3",
+    "sha256": "8dca213c5fd97aa83b70a7f3580ad87a4f1cec50d225836f787503cd14f83a91"
+  },
+  {
+    "id": "connected-koban-1-followup",
+    "text": "午後三時ごろ、駅で使ったのですね。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-13ba445c54ed06a442bb.mp3",
+    "sha256": "ab074dff99455ddecc63663ed1ec8e9ba8525f705f886f43617d4d6e95be6b05"
+  },
+  {
+    "id": "connected-koban-2-sumi",
+    "text": "どんな財布ですか？色と、中に入っているものを教えてください。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-336fe7c963402c6e5767.mp3",
+    "sha256": "69440e124c3e06bd07102b967e3bd649954466a830175d910ac10df15a354fc9"
+  },
+  {
+    "id": "connected-koban-2-haru",
+    "text": "黒い財布で、中に学生証がありますね。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-a823ced2623ad5d2ddd5.mp3",
+    "sha256": "7ba4c49ad6eae74042a7cd5d85564551b39fc7b5a47f00f9e98a6d8581e3905b"
+  },
+  {
+    "id": "connected-koban-2-followup",
+    "text": "黒くて、学生証が入っているのですね。届け出を確認します。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-770cf6b4105b4cb23140.mp3",
+    "sha256": "2cc6bcaafa910076d6fe588234287d86ea98efc1b36180a4bb1854f693ec2884"
+  },
+  {
+    "id": "connected-quake-0-sumi",
+    "text": "揺れています。頭を守るために、どうしますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-d732172cf2eb56ac690e.mp3",
+    "sha256": "a917d3e7be9c8e5df04f3fca0459fbb256158c84c30f6579272fc1d299435083"
+  },
+  {
+    "id": "connected-quake-0-haru",
+    "text": "頭を守って、姿勢を低くすると伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-4cf0550d986eb2383ee9.mp3",
+    "sha256": "1db663179c53e7664a60967381c38f47df264f4ec83d6126c62c0565dcaccbea"
+  },
+  {
+    "id": "connected-quake-0-followup",
+    "text": "そのまま、揺れが収まるまで待ちましょう。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-fd9ab441138d75295a79.mp3",
+    "sha256": "7522d5679dcca77e96020487117328ef0bf6e73645f2ae59c078996fc89f594f"
+  },
+  {
+    "id": "connected-quake-1-sumi",
+    "text": "揺れが収まりました。係員は階段を使うように言っています。どちらへ行きますか？",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-a475217ee86cc3c8b3bf.mp3",
+    "sha256": "df9fd1f1b596aa4a6a33cde2b2ee918d0a28f26184cee038b12c3f49a78671eb"
+  },
+  {
+    "id": "connected-quake-1-haru",
+    "text": "エレベーターではなく、階段を使うと伝えましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-7a2081ed683a84da516c.mp3",
+    "sha256": "ab876afb967c9230cefc26f6cb84933a4f3a7b5ffb996af6a3c23f8edbc07d81"
+  },
+  {
+    "id": "connected-quake-1-followup",
+    "text": "はい。一緒に、表示のある階段へ行きましょう。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-2b09aacd45f78ba9e67c.mp3",
+    "sha256": "a01bcd699fbcaab2f3181d625182c42fff835b076a202693d57ea0a6e84a8712"
+  },
+  {
+    "id": "connected-quake-2-sumi",
+    "text": "この階段の先の、避難場所へ進んでください。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-93953016c579e3409157.mp3",
+    "sha256": "36e5bf94978b4107e2988ed7ce9d5f5af259ce823b1183021666dd2933a2cd7a"
+  },
+  {
+    "id": "connected-quake-2-haru",
+    "text": "係員のすみさんの声が聞き取れませんでした。もう一度お願いしましょう。",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "conversation-4a567c461fb0024701ed.mp3",
+    "sha256": "fb8889b6d49562cbb03aba1114d88c9bac9dd2277852c894fa95cc33cd9b813c"
+  },
+  {
+    "id": "connected-quake-2-followup",
+    "text": "はい、ゆっくり言います。この階段の先の避難場所です。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-86012b6e19d9f84f71cc.mp3",
+    "sha256": "23041d263c0d4686a57fb4344f4a903ee9ca29aa0d7f8215a2de36414f4f1de6"
+  },
+  {
+    "id": "choice-p1b",
+    "text": "荷物を持ってきて。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-acbb81f1dffb14457621.mp3",
+    "sha256": "c05c98886d9a34c597565d1e021fd976e4266fd360cc95d8e99145ffaf237fc2"
+  },
+  {
+    "id": "choice-c2b",
+    "text": "分からないので、空欄で出します。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-aca357cf4eb80440e824.mp3",
+    "sha256": "d4e9a20ed1920913b165ff440df7f50a35554bdb339e1ba093a320c8c288f4f9"
+  },
+  {
+    "id": "choice-c3b",
+    "text": "音はそのままにしておきます。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-aaa7a05f3d06c77cf193.mp3",
+    "sha256": "73e994435c1a68df0623a0edccc7d536935a6afacd36369707a0e2d2a2e88e22"
+  },
+  {
+    "id": "choice-f1b",
+    "text": "すみません、写真を撮ります。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-8abbe2f9184b2a7b61e8.mp3",
+    "sha256": "f988f6a2e07b30e28020f38cea00a5cbf6e87c450f4d863dda53447b21fa5db3"
+  },
+  {
+    "id": "choice-r1b",
+    "text": "靴のまま上がります。",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "conversation-e632736269a9acbe5a00.mp3",
+    "sha256": "b3ba43b176d64506b47c99499820fc9490a40d704f068443df50082f77c2f5ff"
+  }
+]

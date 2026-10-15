@@ -1,0 +1,47 @@
+{
+  "waste": [
+    ["今日は燃えるごみの日です。そのびんはどうしますか？", "Kyou wa moeru gomi no hi desu. Sono bin wa dou shimasu ka?", "ここに収集日が書いてあります。一緒に見ましょう。", "Koko ni shuushuubi ga kaite arimasu. Issho ni mimashou.", "そうですね。びんの収集日を確認しましょう。", "Sou desu ne. Bin no shuushuubi o kakunin shimashou."],
+    ["燃えるごみには、この指定の袋を使ってください。", "Moeru gomi ni wa, kono shitei no fukuro o tsukatte kudasai.", "近所のすみさんが、袋を見せてくれましたね。", "Kinjo no Sumi-san ga, fukuro o misete kuremashita ne.", "はい、その袋でお願いします。", "Hai, sono fukuro de onegaishimasu."],
+    ["次は、びんの収集日を確認しましょう。この漢字は読めますか？", "Tsugi wa, bin no shuushuubi o kakunin shimashou. Kono kanji wa yomemasu ka?", "この漢字が読めないので、すみさんに聞きましょう。", "Kono kanji ga yomenai node, Sumi-san ni kikimashou.", "もちろんです。これは水曜日と読みます。", "Mochiron desu. Kore wa suiyoubi to yomimasu."]
+  ],
+  "parcel": [
+    ["お電話ありがとうございます。配達担当のすみです。", "Odenwa arigatou gozaimasu. Haitatsu tantou no Sumi desu.", "不在票を見ながら、電話の目的を伝えましょう。", "Fuzaihyou o minagara, denwa no mokuteki o tsutaemashou.", "再配達ですね。お届けの時間を確認します。", "Saihaitatsu desu ne. Otodoke no jikan o kakunin shimasu."],
+    ["今夜七時の再配達はいかがですか？", "Kon'ya shichiji no saihaitatsu wa ikaga desu ka?", "七時なら家にいますね。受け取れると伝えましょう。", "Shichiji nara ie ni imasu ne. Uketoreru to tsutaemashou.", "では、今夜七時に伺います。", "Dewa, kon'ya shichiji ni ukagaimasu."]
+  ],
+  "clinic": [
+    ["受付のすみです。今日はどうされましたか？", "Uketsuke no Sumi desu. Kyou wa dou saremashita ka?", "昨日からのどが痛いことを伝えましょう。", "Kinou kara nodo ga itai koto o tsutaemashou.", "昨日からですね。では、この問診票をご記入ください。", "Kinou kara desu ne. Dewa, kono monshinhyou o gokinyuu kudasai."],
+    ["こちらが問診票です。分からないところはありますか？", "Kochira ga monshinhyou desu. Wakaranai tokoro wa arimasu ka?", "この欄に何を書くか、受付のすみさんに聞きましょう。", "Kono ran ni nani o kaku ka, uketsuke no Sumi-san ni kikimashou.", "そこには、お名前を書いてください。", "Soko ni wa, onamae o kaite kudasai."],
+    ["ご記入ありがとうございます。待合室では、携帯電話の音を消していただけますか？", "Gokinyuu arigatou gozaimasu. Machiaishitsu de wa, keitai denwa no oto o keshite itadakemasu ka?", "電話が鳴っていますね。音を消すと伝えましょう。", "Denwa ga natte imasu ne. Oto o kesu to tsutaemashou.", "ありがとうございます。お名前を呼ぶまで、お待ちください。", "Arigatou gozaimasu. Onamae o yobu made, omachi kudasai."]
+  ],
+  "pharmacy": [
+    ["薬剤師のすみです。薬の説明で、もう一度聞きたいところはありますか？", "Yakuzaishi no Sumi desu. Kusuri no setsumei de, mou ichido kikitai tokoro wa arimasu ka?", "飲み方を聞き逃したので、ゆっくり説明してもらいましょう。", "Nomikata o kikinogashita node, yukkuri setsumei shite moraimashou.", "はい。飲み方を、もう一度ゆっくり説明しますね。", "Hai. Nomikata o, mou ichido yukkuri setsumei shimasu ne."],
+    ["その前に確認します。薬のアレルギーはありますか？", "Sono mae ni kakunin shimasu. Kusuri no arerugii wa arimasu ka?", "ペニシリンのアレルギーがあると、はっきり伝えましょう。", "Penishirin no arerugii ga aru to, hakkiri tsutaemashou.", "ペニシリンですね。安全のため、処方を確認します。", "Penishirin desu ne. Anzen no tame, shohou o kakunin shimasu."]
+  ],
+  "onsen": [
+    ["温泉に着きましたね。湯船に入る前に、どうしますか？", "Onsen ni tsukimashita ne. Yubune ni hairu mae ni, dou shimasu ka?", "先に体を洗うと、すみに伝えましょう。", "Saki ni karada o arau to, Sumi ni tsutaemashou.", "そうですね。一緒に洗い場へ行きましょう。", "Sou desu ne. Issho ni araiba e ikimashou."],
+    ["体を洗いましたね。その小さなタオルは、どこに置きますか？", "Karada o araimashita ne. Sono chiisana taoru wa, doko ni okimasu ka?", "タオルを湯船の外に置くと伝えましょう。", "Taoru o yubune no soto ni oku to tsutaemashou.", "はい。タオルを外に置いてから、入りましょう。", "Hai. Taoru o soto ni oite kara, hairimashou."]
+  ],
+  "ryokan": [
+    ["旅館の玄関に着きましたね。靴はどうしますか？", "Ryokan no genkan ni tsukimashita ne. Kutsu wa dou shimasu ka?", "ここで靴を脱ぐと、すみに伝えましょう。", "Koko de kutsu o nugu to, Sumi ni tsutaemashou.", "そうですね。靴をそろえて、スリッパを履きましょう。", "Sou desu ne. Kutsu o soroete, surippa o hakimashou."],
+    ["スリッパで廊下を歩いてきましたね。この先の畳では、どうしますか？", "Surippa de rouka o aruite kimashita ne. Kono saki no tatami de wa, dou shimasu ka?", "畳の前でスリッパを脱ぐと伝えましょう。", "Tatami no mae de surippa o nugu to tsutaemashou.", "では、ここにスリッパをそろえて、部屋に入りましょう。", "Dewa, koko ni surippa o soroete, heya ni hairimashou."]
+  ],
+  "photo": [
+    ["いらっしゃいませ。店主のすみです。何かご質問はありますか？", "Irasshaimase. Tenshu no Sumi desu. Nanika goshitsumon wa arimasu ka?", "お店の写真を撮ってもいいか、先に聞きましょう。", "Omise no shashin o totte mo ii ka, saki ni kikimashou.", "写真についてですね。お店の決まりをお伝えします。", "Shashin ni tsuite desu ne. Omise no kimari o otsutae shimasu."],
+    ["申し訳ありませんが、店内の撮影はご遠慮ください。", "Moushiwake arimasen ga, tennai no satsuei wa goenryo kudasai.", "撮影はできませんね。分かったと伝えて、お礼を言いましょう。", "Satsuei wa dekimasen ne. Wakatta to tsutaete, orei o iimashou.", "ご理解ありがとうございます。どうぞ、ごゆっくりご覧ください。", "Gorikai arigatou gozaimasu. Douzo, goyukkuri goran kudasai."]
+  ],
+  "allergy": [
+    ["ご注文を伺う前に、食物アレルギーはありますか？", "Gochuumon o ukagau mae ni, shokumotsu arerugii wa arimasu ka?", "えびのアレルギーがあると、店員のすみさんに伝えましょう。", "Ebi no arerugii ga aru to, ten'in no Sumi-san ni tsutaemashou.", "えびですね。ソースの材料も確認してきます。", "Ebi desu ne. Soosu no zairyou mo kakunin shite kimasu."],
+    ["申し訳ありません。このソースにえびが入っているか、確認できません。", "Moushiwake arimasen. Kono soosu ni ebi ga haitte iru ka, kakunin dekimasen.", "その料理はやめて、別の料理にすると伝えましょう。", "Sono ryouri wa yamete, betsu no ryouri ni suru to tsutaemashou.", "承知しました。別の料理について、料理長に確認します。", "Shouchi shimashita. Betsu no ryouri ni tsuite, ryourichou ni kakunin shimasu."],
+    ["料理長が、こちらの料理ならご用意できると確認しました。", "Ryourichou ga, kochira no ryouri nara goyoui dekiru to kakunin shimashita.", "材料を確認してくれたことに、お礼を言いましょう。", "Zairyou o kakunin shite kureta koto ni, orei o iimashou.", "どういたしまして。ご注文が決まりましたら、お知らせください。", "Dou itashimashite. Gochuumon ga kimarimashitara, oshirase kudasai."]
+  ],
+  "koban": [
+    ["交番のすみです。どうしましたか？", "Kouban no Sumi desu. Dou shimashita ka?", "財布をなくしたことから、伝えましょう。", "Saifu o nakushita koto kara, tsutaemashou.", "財布をなくされたのですね。詳しく伺います。", "Saifu o nakusareta no desu ne. Kuwashiku ukagaimasu."],
+    ["その財布は、最後にいつ、どこで使いましたか？", "Sono saifu wa, saigo ni itsu, doko de tsukaimashita ka?", "午後三時ごろ、駅で使ったことを覚えていますね。", "Gogo sanji goro, eki de tsukatta koto o oboete imasu ne.", "午後三時ごろ、駅で使ったのですね。", "Gogo sanji goro, eki de tsukatta no desu ne."],
+    ["どんな財布ですか？色と、中に入っているものを教えてください。", "Donna saifu desu ka? Iro to, naka ni haitte iru mono o oshiete kudasai.", "黒い財布で、中に学生証がありますね。", "Kuroi saifu de, naka ni gakuseishou ga arimasu ne.", "黒くて、学生証が入っているのですね。届け出を確認します。", "Kurokute, gakuseishou ga haitte iru no desu ne. Todokede o kakunin shimasu."]
+  ],
+  "quake": [
+    ["揺れています。頭を守るために、どうしますか？", "Yurete imasu. Atama o mamoru tame ni, dou shimasu ka?", "頭を守って、姿勢を低くすると伝えましょう。", "Atama o mamotte, shisei o hikuku suru to tsutaemashou.", "そのまま、揺れが収まるまで待ちましょう。", "Sono mama, yure ga osamaru made machimashou."],
+    ["揺れが収まりました。係員は階段を使うように言っています。どちらへ行きますか？", "Yure ga osamarimashita. Kakariin wa kaidan o tsukau you ni itte imasu. Dochira e ikimasu ka?", "エレベーターではなく、階段を使うと伝えましょう。", "Erebeetaa dewa naku, kaidan o tsukau to tsutaemashou.", "はい。一緒に、表示のある階段へ行きましょう。", "Hai. Issho ni, hyouji no aru kaidan e ikimashou."],
+    ["この階段の先の、避難場所へ進んでください。", "Kono kaidan no saki no, hinan basho e susunde kudasai.", "係員のすみさんの声が聞き取れませんでした。もう一度お願いしましょう。", "Kakariin no Sumi-san no koe ga kikitoremasen deshita. Mou ichido onegai shimashou.", "はい、ゆっくり言います。この階段の先の避難場所です。", "Hai, yukkuri iimasu. Kono kaidan no saki no hinan basho desu."]
+  ]
+}
