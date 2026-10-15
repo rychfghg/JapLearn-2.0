@@ -1,3 +1,4 @@
+import ResponseGameInstructions from '../components/ResponseGameInstructions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -12,6 +13,7 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
+  StyleSheet,
   Text,
   View,
   useWindowDimensions,
@@ -27,6 +29,20 @@ import voiceVariants from './replyCoachVoiceVariants';
 import { matchingRecordedLine } from '../services/replyCoachAudioMatch';
 import { replyCoachLayout } from '../services/replyCoachLayout';
 import { getCoachContext, getCoachExample, getCoachPartner, getCoachExplanation } from '../services/replyCoachPractice';
+
+// Reply Coach-only treatment: shared game styles and story behavior stay unchanged.
+const coachUI=StyleSheet.create({
+  bubble:{position:'absolute',top:10,borderRadius:22,backgroundColor:'rgba(255,255,255,.98)',padding:14,borderWidth:1,borderColor:'#EADFF1',shadowColor:'#30133D',shadowOpacity:.12,shadowRadius:14,shadowOffset:{width:0,height:4},elevation:5},
+  lineHeader:{flexDirection:'row',alignItems:'center',gap:7,marginBottom:6},
+  speakerDot:{width:8,height:8,borderRadius:4,backgroundColor:'#65B83A'},
+  speaker:{flex:1,fontFamily:'Jua',fontSize:14,color:'#512B65'},
+  replay:{minHeight:36,paddingHorizontal:10,borderRadius:12,backgroundColor:'#F2E9FA',flexDirection:'row',alignItems:'center',gap:5},
+  replayText:{fontSize:12,color:'#8423D9'},japanese:{color:'#351A4A'},
+  romaji:{fontSize:12,lineHeight:18,color:'#8423D9',marginTop:4},
+  panel:{bottom:10,borderRadius:22,borderWidth:1,borderColor:'#EADFF1',shadowOpacity:.14},
+  task:{color:'#584260',fontSize:12,lineHeight:17,marginVertical:6},
+  choice:{borderWidth:1,borderColor:'#E6D9EB',borderRadius:16,shadowOpacity:.04}
+});
 import ReplyCoachReadiness from '../components/ReplyCoachReadiness';
 
 type Evaluation = 'BEST' | 'ACCEPTABLE' | 'AWKWARD' | 'IMPOLITE' | 'RUDE';
@@ -324,6 +340,7 @@ export default function ReplyCoachStory() {
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [nodeId, setNodeId] = useState('');
   const [loading, setLoading] = useState(true);
+  const [instructionsVisible,setInstructionsVisible]=useState(true);
   const [error, setError] = useState('');
   const [selectedChoice, setSelectedChoice] = useState<ChoiceOption | null>(null);
   const [correctionVisible, setCorrectionVisible] = useState(false);
@@ -370,7 +387,7 @@ export default function ReplyCoachStory() {
     const choices = currentNode?.choices ?? [];
     return shuffle(choices);
   }, [attempt?.id,currentNode?.id,currentNode?.choices]);
-  const fitted = replyCoachLayout(stageSize.width, stageSize.height, choiceOrder);
+  const fitted = replyCoachLayout(Math.min(680,stageSize.width-24), stageSize.height, choiceOrder);
   const panelHeight = fitted.panelHeight;
   const activePage = Math.min(choicePage, fitted.pages - 1);
   const visibleChoices = choiceOrder.slice(activePage * fitted.perPage, (activePage + 1) * fitted.perPage);
@@ -482,13 +499,13 @@ export default function ReplyCoachStory() {
   };
 
   useEffect(() => {
-    if (!currentNode || currentNode.type === 'CHOICE' || !currentNode.japanese) return;
+    if (instructionsVisible || !currentNode || currentNode.type === 'CHOICE' || !currentNode.japanese) return;
     void playVoice(currentNode.id, currentNode.japanese, currentNode.characterKey ?? 'SUMI', currentNode.audioUrl).catch(() => setAudioError('Matching audio is unavailable. The displayed line remains available to read.'));
     return () => { void stopVoice(); };
-  }, [currentNode?.id]);
+  }, [currentNode?.id,instructionsVisible]);
 
   useEffect(() => {
-    if (!chapter || !currentNode) return;
+    if (instructionsVisible || !chapter || !currentNode) return;
     const enabled = currentNode.bgmEnabled ?? chapter.bgmEnabled ?? true;
     const configuredUrl = currentNode.bgmUrl || chapter.bgmUrl || 'bundled:calm';
     const targetVolume = Math.max(0, Math.min(0.35, currentNode.bgmVolume ?? chapter.bgmVolume ?? 0.1));
@@ -555,7 +572,7 @@ export default function ReplyCoachStory() {
     };
 
     void syncMusic();
-  }, [chapter?.id, currentNode?.id, currentNode?.bgmUrl, currentNode?.bgmEnabled]);
+  }, [chapter?.id, currentNode?.id, currentNode?.bgmUrl, currentNode?.bgmEnabled,instructionsVisible]);
 
   useEffect(() => {
     fade.setValue(0);
@@ -567,7 +584,7 @@ export default function ReplyCoachStory() {
   }, [nodeId]);
 
   useEffect(() => {
-    if (!currentNode || (currentNode.type !== 'NARRATION' && currentNode.type !== 'CULTURAL_NOTE')) {
+    if (instructionsVisible || !currentNode || (currentNode.type !== 'NARRATION' && currentNode.type !== 'CULTURAL_NOTE')) {
       setTypedNarration('');
       setNarrationFinished(false);
       return;
@@ -587,7 +604,7 @@ export default function ReplyCoachStory() {
     }, 24);
 
     return () => clearInterval(timer);
-  }, [currentNode?.id]);
+  }, [currentNode?.id,instructionsVisible]);
 
   useEffect(() => {
     setHintVisible(false);
@@ -637,6 +654,7 @@ export default function ReplyCoachStory() {
       }
       supportUsage.current = combined;
       setNodeId(newAttempt.currentNodeId || selectedChapter.startNodeId);
+      setInstructionsVisible(newAttempt.status !== 'COMPLETED');
       setResultsVisible(newAttempt.status === 'COMPLETED');
       await AsyncStorage.setItem('replyCoachLastAttempt', newAttempt.id);
     } catch (reason) {
@@ -899,15 +917,17 @@ export default function ReplyCoachStory() {
             </Pressable>
           ) : currentNode.type === 'CHOICE' ? (
             <>
-            {context.dialogue[0] && <View style={styles.coachSceneBubble}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.coachContextLabel}>{context.dialogue[0].speaker}</Text>
-                <Text style={styles.coachPreviewJapanese}>{context.dialogue[0].japanese || context.dialogue[0].text}</Text>
-                <Text style={styles.dialogueRomaji}>{context.dialogue[0].romaji}</Text>
+            {context.dialogue[0] && <View style={[coachUI.bubble,{width:Math.min(680,stageSize.width-24),left:Math.max(12,(stageSize.width-680)/2),maxHeight:Math.max(76,stageSize.height-panelHeight-24)}]}>
+              <View style={coachUI.lineHeader}>
+                <View style={coachUI.speakerDot}/><Text style={coachUI.speaker}>{context.dialogue[0].speaker || 'Conversation'}</Text>
+                <Pressable disabled={saving} accessibilityLabel="Replay character dialogue" style={coachUI.replay} onPress={() => replayLine(context.dialogue[0])}><Ionicons name={activeVoiceId===context.dialogue[0].id?'volume-high':'volume-medium-outline'} size={17} color="#8423D9"/><Text style={coachUI.replayText}>Replay</Text></Pressable>
               </View>
-              <Pressable disabled={saving} accessibilityLabel="Replay character dialogue" style={styles.choiceAudioButton} onPress={() => replayLine(context.dialogue[0])}><Ionicons name="volume-medium-outline" size={20} color="#8423D9" /></Pressable>
+              <ScrollView style={{flexShrink:1}}>
+                <Text style={[coachUI.japanese,{fontSize:fitted.short?17:20,lineHeight:fitted.short?23:28}]}>{context.dialogue[0].japanese || context.dialogue[0].text}</Text>
+                <Text style={coachUI.romaji}>{context.dialogue[0].romaji}</Text>
+              </ScrollView>
             </View>}
-            <View style={[styles.decisionPanel, { height: panelHeight }]}>
+            <View style={[styles.decisionPanel,coachUI.panel, { height: panelHeight,width:Math.min(680,stageSize.width-24),left:Math.max(12,(stageSize.width-680)/2),right:undefined }]}>
               <View style={styles.drawerHandle} />
               <View style={styles.decisionHeading}>
                 <View style={styles.decisionIcon}>
@@ -931,7 +951,7 @@ export default function ReplyCoachStory() {
                 </Pressable>
               </View>
               {!fitted.short && <Text style={styles.coachSceneSummary} numberOfLines={1}>{context.scene?.title || currentNode.backgroundKey} · {getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker}</Text>}
-              <Text style={styles.decisionPrompt} numberOfLines={2}>{currentNode.text}</Text>
+              <Text style={[styles.decisionPrompt,coachUI.task]} numberOfLines={2}>{currentNode.text}</Text>
               {Boolean(audioError) && <Text accessibilityRole="alert" style={styles.coachNotice}>{audioError}</Text>}
               {Boolean(error) && <Text accessibilityRole="alert" style={styles.coachNotice}>{error} Please try your reply again.</Text>}
               <View style={[styles.choiceList, { flexDirection: 'row', flexWrap: 'wrap', gap: fitted.columns === 2 ? 8 : 0 }]}>
@@ -941,6 +961,7 @@ export default function ReplyCoachStory() {
                     disabled={saving}
                     style={({ pressed }) => [
                       styles.choiceButton,
+                      coachUI.choice,
                       { width: fitted.columns === 2 ? '48.5%' : '100%' },
                       activeChoiceId === choice.id && styles.choiceSelected,
                       pressed && styles.choicePressed,
@@ -1046,6 +1067,12 @@ export default function ReplyCoachStory() {
         </Animated.View>
       </SafeAreaView>
 
+      <ResponseGameInstructions visible={instructionsVisible} title="Reply Coach" steps={[
+        'Read the setting and goal, then listen to Sumi and Haru. There is no timer.',
+        'Choose a reply and read why it fits or needs improvement. Japanese and Romaji stay visible.',
+        'Use Replay to hear a line again, or Hint and meaning support when you need help. Support use is recorded separately from independent readiness.',
+        'Practice the same skill with a different example. Your saved conversation is kept; starting does not restart it.'
+      ]} onStart={()=>setInstructionsVisible(false)} onLeave={()=>router.replace({pathname:'/QuackResponse',params:{skipLoading:'1'}})}/>
       <Modal visible={listenVisible} transparent animationType="fade" onRequestClose={() => { void stopVoice(); setListenVisible(false); }}>
         <View style={styles.modalBackdrop}>
           <View style={styles.feedbackCard}>

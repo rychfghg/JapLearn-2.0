@@ -16,6 +16,9 @@ audio using the same Sumi/Haru voice presets. Both keep the visual-novel format.
 - A timed question requires both rendered choices and actual completion of
   its required audio. A missing/stalled clip does not satisfy that audio gate.
 - Choices are shuffled once per question and remain stable while it is active.
+- Replay repeats the current question's required speaker line without changing
+  the choice node or timer deadline. The countdown continues during replay;
+  answering or timing out stops the replay. Replay failures are technical events.
 - Backgrounding, suspended event loops, audio failures and interrupted resume
   are technical events. The affected question continues untimed, with no speed
   sample. Intentional exit-confirmation pauses also invalidate that sample.

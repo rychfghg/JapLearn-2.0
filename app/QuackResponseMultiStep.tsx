@@ -1,3 +1,4 @@
+import ResponseGameInstructions from '../components/ResponseGameInstructions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -128,7 +129,12 @@ export default function DialogueRelay(){
         {(isDialogue||isChoice||isReaction)&&<View style={styles.spriteStage} pointerEvents="none">
           {isChoice?<><SpriteActor who="SUMI" speaking={activeAudioKey.endsWith('-sumi')||activeAudioKey.endsWith('-followup')} position={styles.choiceSpriteLeft}/><SpriteActor who="HARU" speaking={activeAudioKey.endsWith('-haru')} position={styles.choiceSpriteRight}/></>:isReaction?<SpriteActor who="SUMI" speaking={activeAudioKey.endsWith('-followup')} mood="happy" reacting position={r.reactionSpritePosition}/>:<SpriteActor who={phase==='sumi'?'SUMI':'HARU'} speaking={activeAudioKey===`connected-${scene.id}-${questionIndex}-${phase}`} position={phase==='sumi'?styles.soloSpriteRight:styles.soloSpriteLeft}/>}
         </View>}
-        {phase==='tutorial'&&<Tutorial start={()=>{void ensureMusic();setPhase('narration');}}/>}
+        <ResponseGameInstructions visible={phase==='tutorial'} title="Dialogue Relay" steps={[
+          'Read the scene, then listen to Sumi and Haru. Each reply continues the same conversation. There is no timer.',
+          'Choose the reply that matches your task. Japanese and Romaji stay visible.',
+          'Use Replay to watch the current exchange again, History to revisit earlier lines, or Hint for help.',
+          'If your answer does not fit, read the explanation and repair it before continuing.'
+        ]} onStart={()=>{void ensureMusic();setPhase('narration');}} onLeave={()=>router.replace({pathname:'/QuackResponse',params:{skipLoading:'1'}})}/>
         {isNarration&&<Narration title={`${sceneIndex+1}/10 · ${scene.place}`} text={typed} done={narrationDone} tap={narrationTap}/>} 
         {isDialogue&&<Speech who={phase==='sumi'?'SUMI':'HARU'} text={phase==='sumi'?dialogue.sumi:dialogue.haru} romaji={phase==='sumi'?dialogue.sumiRomaji:dialogue.haruRomaji} replay={replayConversation} next={nextDialogue}/>}
         {(phase==='userReply'||phase==='resultFlash')&&<UserReplyBubble choice={selected}/>} 

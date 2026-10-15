@@ -590,7 +590,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'greeting',
         prompt: 'Your number is called. You step up to the counter — how do you greet the clerk?',
-        hint: 'This is a first meeting in an official, formal setting — greet the way you would greet a stranger, not a classmate.',
+        hint: "At the counter, choose a complete, polite greeting. Avoid rushing the clerk or using a very casual thanks.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '次の方、どうぞ。', romaji: 'Tsugi no kata, douzo.', speakerLabel: 'Ward Clerk' },
@@ -605,7 +605,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'purpose',
         prompt: '"So, what brings you in today?" the clerk asks, pen ready.',
-        hint: 'Name the exact document you need — "zairyuu kaado" (residence card) — rather than describing it vaguely.',
+        hint: "State the registration service you came for. Name the residence card or address registration instead of saying only card.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '本日はどのようなご用件でしょうか？', romaji: 'Honjitsu wa dono you na goyouken deshou ka?', speakerLabel: 'Ward Clerk' },
@@ -620,7 +620,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'understanding',
         prompt: '"Do you have your passport and Certificate of Eligibility?" You don\'t recognize that second document name — what do you do?',
-        hint: 'When a word is unfamiliar, ask the person to repeat it rather than guessing or nodding along.',
+        hint: "You missed a document name. Ask politely for repetition or say you did not understand; do not pretend you understood.",
         playerCharacter: 'HARU',
         playerExpression: 'CONFUSED',
         companionExpression: 'NEUTRAL',
@@ -650,7 +650,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'plan',
         prompt: 'A staff member greets you at the counter. What do you say you need?',
-        hint: 'Be specific about the product — a prepaid SIM plan — rather than a vague "phone thing."',
+        hint: "Tell the clerk which phone service you want: a prepaid SIM. Look for a request, not a demand for the cheapest item.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'いらっしゃいませ。本日はどのようなご用件でしょうか？', romaji: "Irasshaimase. Honjitsu wa dono you na goyouken deshou ka?", speakerLabel: 'Shop Staff' },
@@ -665,7 +665,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'id',
         prompt: '"Could I see your Residence Card and student ID?" the staff asks.',
-        hint: 'Hand items over with a short polite phrase, not silently.',
+        hint: "The clerk asked for your documents. Acknowledge the request and say a short polite phrase as you hand them over.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '在留カードと学生証を見せていただけますか？', romaji: 'Zairyuu kaado to gakuseishou wo misete itadakemasu ka?', speakerLabel: 'Shop Staff' },
@@ -680,7 +680,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'fee',
         prompt: '"There\'s a small cancellation fee if you end the plan early — is that alright?" You didn\'t quite catch the amount.',
-        hint: 'Ask specifically about the number you missed, not the whole sentence again.',
+        hint: "You missed the fee. Ask about the price or request repetition before agreeing to pay.",
         playerCharacter: 'HARU',
         playerExpression: 'CONFUSED',
         companionExpression: 'NEUTRAL',
@@ -710,7 +710,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'purpose',
         prompt: 'A bank clerk calls you over. How do you state why you\'re here?',
-        hint: '"Kouza wo hirakitai" (I\'d like to open an account) is the standard, direct phrase for this errand.',
+        hint: "Your goal is to open a bank account. Look for a polite sentence naming that action, not a command to make one.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '次にお待ちのお客様、どうぞ。', romaji: 'Tsugi ni omachi no okyakusama, douzo.', speakerLabel: 'Bank Clerk' },
@@ -725,7 +725,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'documents',
         prompt: '"We\'ll need your Residence Card, My Number card, and a personal seal or signature — do you have all three?" You only brought two.',
-        hint: 'Say plainly which one you\'re missing rather than a vague "I don\'t have it."',
+        hint: "You are missing the My Number Card. State which document is missing and ask whether that is acceptable.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '在留カード、マイナンバーカード、それとご印鑑かご署名、三点ともお持ちでしょうか？', romaji: 'Zairyuu kaado, Mai Nanbaa Kaado, sore to goinkan ka gosho mei, santen tomo omochi deshou ka?', speakerLabel: 'Bank Clerk' },
@@ -740,7 +740,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'callback',
         prompt: '"We\'ll mail your cash card in about a week — is this address correct?" the clerk asks, showing you the form.',
-        hint: 'Check it carefully before answering — confirming a wrong address politely is better than agreeing too fast.',
+        hint: "The clerk is checking your address. Check it first, then clearly confirm it is correct; avoid a hesitant guess.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         companionExpression: 'ENCOURAGING',
@@ -770,7 +770,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'bag',
         prompt: '"Would you like a bag?" the cashier asks. You brought your own.',
-        hint: 'A short, polite refusal — "daijoubu desu" — is all you need here.',
+        hint: "You brought your own bag. Politely decline the offered bag; mentioning your own bag makes the reason clear.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '袋、お付けしますか？', romaji: 'Fukuro, otsuke shimasu ka?', speakerLabel: 'Cashier' },
@@ -785,7 +785,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'payment',
         prompt: 'At the register you want to ask if they accept IC card payment before you tap.',
-        hint: 'Ask before tapping, not after — "tsukaemasu ka" (can I use...) is the standard way to check.',
+        hint: "You want to pay with an IC card. Ask whether you can use it before tapping; showing it alone does not ask the question.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'お会計、こちらでよろしいでしょうか？', romaji: 'Okaikei, kochira de yoroshii deshou ka?', speakerLabel: 'Cashier' },
@@ -800,7 +800,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'receipt',
         prompt: '"Would you like the receipt?" the cashier asks as they finish bagging your items.',
-        hint: 'Either answer is fine here — this is about picking a natural, complete phrase, not a right-or-wrong fact.',
+        hint: "You need the receipt. Choose a clear request for it, not hesitation or a reply saying you do not care.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'レシートは、ご利用になりますか？', romaji: 'Reshiito wa, goriyou ni narimasu ka?', speakerLabel: 'Cashier' },
@@ -815,7 +815,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'directions',
         prompt: 'Bags in hand, you ask a passerby near the store for directions to the nearest station.',
-        hint: 'Open with "sumimasen" — it means both "excuse me" and "sorry" and is how every stranger interaction starts in Japan.',
+        hint: "You need directions to the station. Name the station and ask where it is, preferably with an excuse-me opening.",
         playerCharacter: 'SUMI',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'あ、はい、なんでしょう？', romaji: 'A, hai, nandeshou?', speakerLabel: 'Passerby' },
@@ -844,7 +844,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'pass',
         prompt: 'At the ticket counter, how do you ask for a commuter pass to your job\'s station?',
-        hint: '"Teikiken" is the word for commuter pass — name your destination station too.',
+        hint: "You need a commuter pass to Shibuya. Name both the pass and destination; a single ticket is a different product.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '次のお客様、どうぞ。', romaji: 'Tsugi no okyakusama, douzo.', speakerLabel: 'Station Clerk' },
@@ -859,7 +859,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'studentId',
         prompt: '"Do you have a student ID for the discount?" the clerk asks.',
-        hint: 'If you don\'t have it on you, say so plainly and ask what happens next — don\'t just apologize and stop talking.',
+        hint: "You forgot your student ID. Say you did not bring it and clarify that the regular fare is acceptable.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         companionExpression: 'WORRIED',
@@ -875,7 +875,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'wrongPlatform',
         prompt: 'Pass in hand, you board and realize — one stop later — you\'re going the wrong direction. You ask a station staff member for help.',
-        hint: 'A short apology plus a clear explanation of the mistake works better than just looking confused.',
+        hint: "You took the train in the wrong direction. Explain the mistake and ask how to return to Shibuya.",
         playerCharacter: 'HARU',
         playerExpression: 'CONFUSED',
         companionExpression: 'WORRIED',
@@ -905,7 +905,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'introduce',
         prompt: '"Please introduce yourself," the manager says.',
-        hint: 'The humble self-introduction pattern is "〜と申します" — more formal than "desu" for this kind of setting.',
+        hint: "This is a job interview. Give your name and a polite introduction, rather than only your name.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'では、自己紹介をお願いします。', romaji: 'Dewa, jikoshoukai wo onegaishimasu.', speakerLabel: 'Manager Haru' },
@@ -920,7 +920,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'availability',
         prompt: '"What days and hours can you work?" the manager asks.',
-        hint: 'Give specific days and times — a vague "whenever" is harder for a manager to schedule around.',
+        hint: "The manager needs your availability. Give specific days and times that can be used to make a schedule.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '何曜日の何時ごろ働けますか？', romaji: 'Nan youbi no nanji goro hatarakemasu ka?', speakerLabel: 'Manager Haru' },
@@ -935,7 +935,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'whyHere',
         prompt: '"Why do you want to work here specifically?" the manager asks.',
-        hint: 'A specific, honest reason lands better than a generic one — mention something real about the shop or the practice you want.',
+        hint: "Explain why this particular cafe interests you. Connect your reason to the cafe or customer-service work.",
         playerCharacter: 'HARU',
         playerExpression: 'NEUTRAL',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: '当店で働きたいと思った理由を教えてください。', romaji: 'Touten de hatarakitai to omotta riyuu wo oshiete kudasai.', speakerLabel: 'Manager Haru' },
@@ -950,7 +950,7 @@ const SCENES: SceneSpec[] = [
       {
         id: 'clarify',
         prompt: '"We rotate closing shifts on a biweekly basis" — you didn\'t catch that last word.',
-        hint: 'Ask specifically about the word you missed, the same way you did at the ward office earlier today.',
+        hint: "You did not understand biweekly. Ask what that expression means or request repetition instead of agreeing blindly.",
         playerCharacter: 'HARU',
         playerExpression: 'CONFUSED',
         setup: { character: 'HARU', expression: 'NEUTRAL', japanese: 'クローズのシフトは、隔週で交代していただきます。', romaji: 'Kuroozu no shifuto wa, kakushuu de koutai shite itadakimasu.', speakerLabel: 'Manager Haru' },
@@ -1278,6 +1278,8 @@ export default function QuackResponseTimed() {
   const [answers, setAnswers] = useState<AnswerRecord[]>([]);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [hintVisible, setHintVisible] = useState(false);
+  const [questionReplay,setQuestionReplay]=useState<{nodeId:string;run:number}|null>(null);
+  const [replaySpeaker,setReplaySpeaker]=useState<CharacterKey|null>(null);
   const [timeLeft, setTimeLeft] = useState(CHOICE_SECONDS);
   const [exitVisible, setExitVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
@@ -1560,12 +1562,38 @@ export default function QuackResponseTimed() {
     return()=>clearInterval(timer);
   },[nodeId,mode,choiceReady,viewReady,audioReady,exitVisible,exiting,reviewVisible,hintVisible,technicalIssue,resumeReady]);
   useEffect(()=>{
-    const pause=()=>{if(mode&&!exitVisible&&!exiting&&currentNode&&(currentNode.type==='CHOICE'||currentNode.type==='DIALOGUE'))interrupt('The app or browser left the foreground. No wrong answer was recorded.');};
+    const pause=()=>{if(mode&&!exitVisible&&!exiting&&currentNode&&(currentNode.type==='CHOICE'||currentNode.type==='DIALOGUE'))interrupt('The app left the foreground. No wrong answer was recorded.');};
     const subscription=AppState.addEventListener('change',state=>{if(state!=='active')pause();});
     const visibility=()=>{if(typeof document!=='undefined'&&document.hidden)pause();};
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',visibility);
     return()=>{subscription.remove();if(typeof document!=='undefined')document.removeEventListener('visibilitychange',visibility);};
   },[nodeId,mode,technicalIssue,exitVisible,exiting]);
+
+  // Replay stays on the choice node: it never resets readiness or the deadline.
+  useEffect(()=>{
+    if(!questionReplay||questionReplay.nodeId!==nodeId||currentNode?.type!=='CHOICE'||exitVisible||exiting||technicalIssue)return;
+    const lineId=choicePromptReplayMap.get(nodeId),line=lineId?nodeMap.get(lineId):undefined;
+    let live=true,sound:Audio.Sound|null=null;
+    const fail=()=>{if(live)interrupt('The replay recording could not play. Retry or continue untimed.');};
+    const play=async()=>{
+      try{
+        const source=lineId?resolveAudio(lineId):null;
+        if(!source){fail();return;}
+        const loaded=await loadBundledSound(source,{shouldPlay:false,volume:1},status=>{
+          if(!live)return;
+          if(!status.isLoaded&&status.error){fail();return;}
+          if(status.isLoaded&&status.didJustFinish)setReplaySpeaker(null);
+        });
+        sound=loaded.sound;
+        if(!live){void stopAndUnloadSound(sound);return;}
+        setReplaySpeaker(line?.characterKey??null);
+        await sound.playAsync();
+      }catch{fail();}
+    };
+    void play();
+    const watchdog=setTimeout(()=>{if(live&&sound)void sound.getStatusAsync().then(status=>{if(live&&status.isLoaded&&status.isPlaying)fail();}).catch(fail);},30000);
+    return()=>{live=false;clearTimeout(watchdog);setReplaySpeaker(null);void stopAndUnloadSound(sound);};
+  },[questionReplay,nodeId,exitVisible,exiting,technicalIssue]);
 
   // Correct/incorrect flash + stinger the instant a REACTION lands.
   useEffect(() => {
@@ -1852,7 +1880,7 @@ export default function QuackResponseTimed() {
                       characterKey={currentNode.secondaryCharacterKey}
                       expressionKey={currentNode.secondaryExpressionKey}
                       positionStyle={choicePositionStyleFor(currentNode.secondaryCharacterPosition, styles.choiceSpriteLeft)}
-                      speaking={false}
+                      speaking={replaySpeaker===currentNode.secondaryCharacterKey}
                       reacting={false}
                     />
                   )}
@@ -1861,7 +1889,7 @@ export default function QuackResponseTimed() {
                       characterKey={currentNode.characterKey}
                       expressionKey={currentNode.expressionKey}
                       positionStyle={choicePositionStyleFor(currentNode.characterPosition, styles.choiceSpriteRight)}
-                      speaking={false}
+                      speaking={replaySpeaker===currentNode.characterKey}
                       reacting={false}
                     />
                   )}
@@ -1915,6 +1943,10 @@ export default function QuackResponseTimed() {
                 </Pressable>
               </View>
               <Text style={styles.decisionPrompt}>{currentNode.prompt}</Text>
+              <Pressable accessibilityLabel="Replay the speaker's question. The timer keeps running." style={[styles.hintButton,{alignSelf:'flex-start',marginBottom:8}]} disabled={!choicePromptReplayMap.has(nodeId)||!!technicalIssue} onPress={()=>setQuestionReplay(previous=>({nodeId,run:(previous?.run??0)+1}))}>
+                <Ionicons name="volume-high-outline" size={18} color="#8423D9"/>
+                <Text style={styles.hintButtonText}>Replay{mode==='TIMED'&&!exemptNodes.current.has(nodeId)?' · timer continues':''}</Text>
+              </Pressable>
               <ScrollView style={{flexShrink:1}} onLayout={()=>requestAnimationFrame(()=>setChoiceReady(currentNode.id))}>
                 {orderedChoices.map((choice, index) => (
                   <Pressable
@@ -2022,10 +2054,11 @@ export default function QuackResponseTimed() {
               <Ionicons name="bulb-outline" size={30} color="#D58A1E" />
             </View>
             <Text style={styles.hintEyebrow}>QUICK CLUE</Text>
-            <Text style={styles.hintTitle}>Think about the setting</Text>
-            <Text style={styles.hintText}>{currentNode.hint || 'Think about who is speaking, where this is happening, and how formal the reply should be.'}</Text>
+            <Text style={styles.hintTitle}>A clue for your reply</Text>
+            {!!currentNode.prompt && <Text style={styles.hintText}>{currentNode.prompt}</Text>}
+            <Text style={styles.hintText}>{currentNode.hint || 'Read your task again and choose a reply that directly answers what the speaker asked.'}</Text>
             <Pressable style={styles.primaryButton} onPress={() => setHintVisible(false)}>
-              <Text style={styles.primaryButtonText}>Back to the counter</Text>
+              <Text style={styles.primaryButtonText}>Back to my reply</Text>
             </Pressable>
           </View>
         </ScrollView></View>
