@@ -4,6 +4,7 @@ const { width, height } = Dimensions.get('window');
 const compact = height < 720;
 
 export default StyleSheet.create({
+  coachChoicePager: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 34, paddingHorizontal: 12 },
   coachChoiceScroll: { flex: 1, minHeight: 0 },
   coachCompactTools: { flexDirection: 'row', gap: 6, marginBottom: 5 },
   coachSceneSummary: { fontSize: 10, lineHeight: 14, color: '#7A6389', marginTop: 3 },

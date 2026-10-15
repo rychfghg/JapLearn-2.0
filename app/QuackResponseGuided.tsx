@@ -21,6 +21,10 @@ import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackResponseGuided';
 import QuackSituateExit from '../components/QuackSituateExit';
 import replyCoachAudio from './replyCoachAudio';
+import voiceManifest from '../assets/audio/reply-coach/manifest.json';
+import voiceVariants from './replyCoachVoiceVariants';
+import { matchingRecordedLine } from '../services/replyCoachAudioMatch';
+import { replyCoachLayout } from '../services/replyCoachLayout';
 import { getCoachContext, getCoachExample, getCoachPartner, getCoachExplanation } from '../services/replyCoachPractice';
 import ReplyCoachReadiness from '../components/ReplyCoachReadiness';
 
@@ -345,6 +349,8 @@ export default function ReplyCoachStory() {
   const [activeVoiceId, setActiveVoiceId] = useState('');
   const [showMeaning, setShowMeaning] = useState(false);
   const [listenVisible, setListenVisible] = useState(false);
+  const [listenLine, setListenLine] = useState<StoryNode | null>(null);
+  const [choicePage, setChoicePage] = useState(0);
   const [audioError, setAudioError] = useState('');
   const [exampleVisible, setExampleVisible] = useState(false);
   const [readinessVisible, setReadinessVisible] = useState(false);
@@ -355,7 +361,6 @@ export default function ReplyCoachStory() {
   const voiceFinish = useRef<(() => void) | null>(null);
   const { height: windowHeight } = useWindowDimensions();
   const [stageSize, setStageSize] = useState({ width: 360, height: 560 });
-  const panelHeight = stageSize.height * 0.48;
   const fade = useRef(new Animated.Value(0)).current;
   const backgroundMusic = useRef<Audio.Sound | null>(null);
   const backgroundMusicKey = useRef('');
@@ -373,6 +378,10 @@ export default function ReplyCoachStory() {
     const choices = currentNode?.choices ?? [];
     return currentNode?.shuffleChoices ? shuffle(choices) : choices;
   }, [currentNode?.id]);
+  const fitted = replyCoachLayout(stageSize.width, stageSize.height, choiceOrder);
+  const panelHeight = fitted.panelHeight;
+  const activePage = Math.min(choicePage, fitted.pages - 1);
+  const visibleChoices = choiceOrder.slice(activePage * fitted.perPage, (activePage + 1) * fitted.perPage);
   const progress = chapter
     ? Math.min(1, (attempt?.answers.length ?? 0) / Math.max(1, chapter.nodes.filter((node) => node.type === 'CHOICE').length))
     : 0;
@@ -436,7 +445,7 @@ export default function ReplyCoachStory() {
     if (voice) void voice.stopAsync().finally(() => voice.unloadAsync());
   }, []);
 
-  const playVoice = async (assetId: string, remoteUrl?: string) => {
+  const playVoice = async (assetId: string, japanese: string, character: string, remoteUrl?: string) => {
     voiceFinish.current?.();
     voiceFinish.current = null;
     const generation = ++voiceGeneration.current;
@@ -447,7 +456,9 @@ export default function ReplyCoachStory() {
       await previous.stopAsync().catch(() => undefined);
       await previous.unloadAsync().catch(() => undefined);
     }
-    const bundled = replyCoachAudio[assetId];
+    const matched = matchingRecordedLine(voiceManifest, assetId, japanese, character);
+    const variant = voiceVariants.find(line => line.text.trim() === japanese.trim() && line.character === character.toUpperCase());
+    const bundled = variant?.asset ?? (matched ? replyCoachAudio[matched.id] : null);
     const source = bundled ?? (remoteUrl
       ? { uri: remoteUrl.startsWith('/api/') ? `${expoconfig.API_URL}${remoteUrl}` : remoteUrl }
       : null);
@@ -475,12 +486,12 @@ export default function ReplyCoachStory() {
   const replayLine = (line: StoryNode) => {
     markSupport('replay');
     setAudioError('');
-    void playVoice(line.id, line.audioUrl).catch(() => setAudioError('Audio could not play. Try again or read the line.'));
+    void playVoice(line.id, line.japanese ?? '', line.characterKey ?? 'SUMI', line.audioUrl).catch(() => setAudioError('Matching audio is unavailable. The displayed line remains available to read.'));
   };
 
   useEffect(() => {
     if (!currentNode || currentNode.type === 'CHOICE' || !currentNode.japanese) return;
-    void playVoice(currentNode.id, currentNode.audioUrl).catch(() => setAudioError('Audio could not play. Try replay or read the line.'));
+    void playVoice(currentNode.id, currentNode.japanese, currentNode.characterKey ?? 'SUMI', currentNode.audioUrl).catch(() => setAudioError('Matching audio is unavailable. The displayed line remains available to read.'));
     return () => { void stopVoice(); };
   }, [currentNode?.id]);
 
@@ -591,6 +602,8 @@ export default function ReplyCoachStory() {
     setHintUsed(false);
     setShowMeaning(false);
     setListenVisible(false);
+    setListenLine(null);
+    setChoicePage(0);
     setAudioError('');
   }, [currentNode?.id]);
 
@@ -667,7 +680,7 @@ export default function ReplyCoachStory() {
     setSaving(true);
     try {
       setPreviewChoiceId(choice.id);
-      await playVoice(`choice-${choice.id}`, choice.audioUrl).catch(() => undefined);
+      await playVoice(`choice-${choice.id}`, choice.japanese, 'SUMI', choice.audioUrl).catch(() => undefined);
       setPreviewChoiceId('');
       const response = await requestJson(`/api/reply-coach/attempts/${attempt.id}/answer`, {
         method: 'POST',
@@ -903,11 +916,11 @@ export default function ReplyCoachStory() {
           ) : currentNode.type === 'CHOICE' ? (
             <>
             {context.dialogue[0] && <View style={styles.coachSceneBubble}>
-              <ScrollView style={{ maxHeight: stageSize.height * 0.18 }}>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.coachContextLabel}>{context.dialogue[0].speaker}</Text>
                 <Text style={styles.coachPreviewJapanese}>{context.dialogue[0].japanese || context.dialogue[0].text}</Text>
                 <Text style={styles.dialogueRomaji}>{context.dialogue[0].romaji}</Text>
-              </ScrollView>
+              </View>
               <Pressable disabled={saving} accessibilityLabel="Replay character dialogue" style={styles.choiceAudioButton} onPress={() => replayLine(context.dialogue[0])}><Ionicons name="volume-medium-outline" size={20} color="#8423D9" /></Pressable>
             </View>}
             <View style={[styles.decisionPanel, { height: panelHeight }]}>
@@ -920,7 +933,7 @@ export default function ReplyCoachStory() {
                   <Text style={styles.decisionEyebrow}>YOUR TURN</Text>
                   <Text style={styles.decisionTitle}>{currentNode.title || 'What would you say?'}</Text>
                 </View>
-                <Pressable accessibilityRole="button" accessibilityLabel="Back to listen again" disabled={saving} style={styles.coachTool} onPress={() => { markSupport('dialogueReview'); setListenVisible(true); }}><Ionicons name="volume-medium-outline" size={20} color="#8423D9" /></Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel="Back to listen again" disabled={saving} style={styles.coachTool} onPress={() => { markSupport('dialogueReview'); setListenLine(null); setListenVisible(true); }}><Ionicons name="volume-medium-outline" size={20} color="#8423D9" /></Pressable>
                 <Pressable
                   style={styles.hintButton}
                   onPress={() => {
@@ -933,17 +946,18 @@ export default function ReplyCoachStory() {
                   <Text style={styles.hintButtonText}>Hint</Text>
                 </Pressable>
               </View>
-              <Text style={styles.coachSceneSummary} numberOfLines={1}>{context.scene?.title || currentNode.backgroundKey} · {getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker}</Text>
+              {!fitted.short && <Text style={styles.coachSceneSummary} numberOfLines={1}>{context.scene?.title || currentNode.backgroundKey} · {getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker}</Text>}
               <Text style={styles.decisionPrompt} numberOfLines={2}>{currentNode.text}</Text>
               {Boolean(audioError) && <Text accessibilityRole="alert" style={styles.coachNotice}>{audioError}</Text>}
               {Boolean(error) && <Text accessibilityRole="alert" style={styles.coachNotice}>{error} Please try your reply again.</Text>}
-              <ScrollView style={styles.coachChoiceScroll} contentContainerStyle={styles.choiceList} showsVerticalScrollIndicator keyboardShouldPersistTaps="handled">
-                {choiceOrder.map((choice, index) => (
+              <View style={[styles.choiceList, { flexDirection: 'row', flexWrap: 'wrap', gap: fitted.columns === 2 ? 8 : 0 }]}>
+                {visibleChoices.map((choice, index) => (
                   <Pressable
                     key={choice.id}
                     disabled={saving}
                     style={({ pressed }) => [
                       styles.choiceButton,
+                      { width: fitted.columns === 2 ? '48.5%' : '100%' },
                       activeChoiceId === choice.id && styles.choiceSelected,
                       pressed && styles.choicePressed,
                     ]}
@@ -951,13 +965,12 @@ export default function ReplyCoachStory() {
                   >
                     <View style={[styles.choiceLetter, activeChoiceId === choice.id && styles.choiceLetterSelected]}>
                       <Text style={[styles.choiceLetterText, activeChoiceId === choice.id && styles.choiceLetterTextSelected]}>
-                        {activeChoiceId === choice.id ? '✓' : String.fromCharCode(65 + index)}
+                        {activeChoiceId === choice.id ? '✓' : String.fromCharCode(65 + activePage * fitted.perPage + index)}
                       </Text>
                     </View>
                     <View style={styles.choiceCopy}>
-                      <Text style={styles.choiceJapanese}>{choice.japanese}</Text>
-                      <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
-                      {showMeaning && <Text style={styles.dialogueText}>{choice.text}</Text>}
+                      <Text style={[styles.choiceJapanese, { fontSize: fitted.japaneseSize, lineHeight: fitted.japaneseSize + 4 }]}>{choice.japanese}</Text>
+                      <Text style={[styles.choiceRomaji, { fontSize: fitted.romajiSize, lineHeight: fitted.romajiSize + 4 }]}>{choice.romaji}</Text>
                     </View>
                     <Pressable
                       accessibilityRole="button"
@@ -968,7 +981,7 @@ export default function ReplyCoachStory() {
                         event.stopPropagation();
                         markSupport('choiceAudio');
                         setPreviewChoiceId(choice.id);
-                        void playVoice(`choice-${choice.id}`, choice.audioUrl)
+                        void playVoice(`choice-${choice.id}`, choice.japanese, 'SUMI', choice.audioUrl)
                           .catch(() => setAudioError('Audio could not play. Try again or read the choice.'))
                           .finally(() => setPreviewChoiceId(''));
                       }}
@@ -982,7 +995,12 @@ export default function ReplyCoachStory() {
                     <Ionicons name="chevron-forward" size={19} color="#A58CAF" />
                   </Pressable>
                 ))}
-              </ScrollView>
+              </View>
+              {fitted.pages > 1 && <View style={styles.coachChoicePager}>
+                <Pressable disabled={saving || activePage === 0} accessibilityLabel="Previous choices" onPress={() => setChoicePage(page => Math.max(0, page - 1))}><Ionicons name="chevron-back" size={24} color={activePage === 0 ? '#C8BBD1' : '#8423D9'} /></Pressable>
+                <Text style={styles.coachToolText}>Choices {activePage + 1}/{fitted.pages}</Text>
+                <Pressable disabled={saving || activePage === fitted.pages - 1} accessibilityLabel="Next choices" onPress={() => setChoicePage(page => Math.min(fitted.pages - 1, page + 1))}><Ionicons name="chevron-forward" size={24} color={activePage === fitted.pages - 1 ? '#C8BBD1' : '#8423D9'} /></Pressable>
+              </View>}
             </View>
             </>
           ) : currentNode.type === 'ENDING' ? (
@@ -1000,10 +1018,11 @@ export default function ReplyCoachStory() {
               style={[
                 styles.speechBubbleArea,
                 styles.speechBubbleCentered,
+                { maxHeight: undefined },
               ]}
               onPress={() => isReaction ? setCorrectionVisible(true) : moveTo(currentNode.nextNodeId)}
             >
-              <ScrollView style={[styles.speechBubble, { maxHeight: windowHeight * 0.24 }]}>
+              <View style={styles.speechBubble}>
                 <View
                   style={[
                     styles.speechTail,
@@ -1016,24 +1035,20 @@ export default function ReplyCoachStory() {
                 </View>
                 {Boolean(currentNode.japanese) && (
                   <Text
-                    style={styles.dialogueJapanese}
-                    numberOfLines={3}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.72}
+                    style={[styles.dialogueJapanese, { fontSize: fitted.short ? 15 : 18, lineHeight: fitted.short ? 20 : 24 }]}
                     maxFontSizeMultiplier={1.1}
                   >
                     {currentNode.japanese}
                   </Text>
                 )}
                 {Boolean(currentNode.romaji) && (
-                  <Text style={styles.dialogueRomaji} numberOfLines={2} maxFontSizeMultiplier={1.05}>
+                  <Text style={styles.dialogueRomaji} maxFontSizeMultiplier={1.05}>
                     {currentNode.romaji}
                   </Text>
                 )}
-                {showMeaning && <Text style={styles.dialogueText}>{currentNode.text}</Text>}
                 <View style={styles.coachTools}>
                   <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); replayLine(currentNode); }}><Ionicons name="volume-medium-outline" size={17} color="#8423D9" /><Text style={styles.coachToolText}>Replay</Text></Pressable>
-                  <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
+                  <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); markSupport('meaning'); setShowMeaning(true); setListenLine(currentNode); setListenVisible(true); }}><Text style={styles.coachToolText}>Meaning</Text></Pressable>
                 </View>
                 {Boolean(audioError) && <Text style={styles.coachNotice}>{audioError}</Text>}
                 {isReaction && <Text style={styles.reactionAddress}>{studentName}</Text>}
@@ -1041,7 +1056,7 @@ export default function ReplyCoachStory() {
                   <Text style={styles.continueTextDark}>Tap to continue</Text>
                   <Ionicons name="chevron-forward" size={18} color="#8423D9" />
                 </View>
-              </ScrollView>
+              </View>
             </Pressable>
           )}
         </Animated.View>
@@ -1052,19 +1067,19 @@ export default function ReplyCoachStory() {
           <View style={styles.feedbackCard}>
             <ScrollView style={{ alignSelf: 'stretch' }}>
               <Text style={styles.hintTitle}>Listen again</Text>
-              <Text style={styles.hintText}>{context.scene?.title} · Your answer is not submitted.</Text>
+              {!listenLine && <><Text style={styles.hintText}>{context.scene?.title} · Your answer is not submitted.</Text>
               <Text style={styles.coachContextText}>Partner: {getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker}</Text>
               <Text style={styles.coachContextText}>Goal: {currentNode.text}</Text>
-              <Text style={styles.coachContextText}>{context.scene?.text}</Text>
+              <Text style={styles.coachContextText}>{context.scene?.text}</Text></>}
               <Pressable style={styles.coachTool} onPress={() => { if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Show meaning'}</Text></Pressable>
-              {context.dialogue.map(line => <View key={line.id} style={styles.coachLine}>
+              {(listenLine ? [listenLine] : context.dialogue).map(line => <View key={line.id} style={styles.coachLine}>
                 <Text style={styles.coachContextLabel}>{line.speaker || line.title}</Text>
                 <Text style={styles.dialogueJapanese}>{line.japanese || line.text}</Text>
                 <Text style={styles.dialogueRomaji}>{line.romaji}</Text>
                 {showMeaning && <Text style={styles.dialogueText}>{line.text}</Text>}
                 <Pressable accessibilityRole="button" style={styles.coachTool} onPress={() => replayLine(line)}><Ionicons name="volume-medium-outline" size={18} color="#8423D9" /><Text style={styles.coachToolText}>Replay line</Text></Pressable>
               </View>)}
-              {!context.dialogue.length && <Text style={styles.hintText}>No earlier spoken line is available for this decision. Review the setting and goal instead.</Text>}
+              {!listenLine && !context.dialogue.length && <Text style={styles.hintText}>No earlier spoken line is available for this decision. Review the setting and goal instead.</Text>}
               {Boolean(audioError) && <Text style={styles.coachNotice}>{audioError}</Text>}
             </ScrollView>
             <Pressable style={styles.primaryButton} onPress={() => { void stopVoice(); setListenVisible(false); }}><Text style={styles.primaryButtonText}>Return to my reply</Text></Pressable>

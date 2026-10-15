@@ -1,0 +1,30 @@
+[
+  {
+    "text": "うん、とても自然でいい答えだね！",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "verified-c8dc4f2f1aba965b.mp3",
+    "sha256": "d62447dcdc83d5fcf49ff2478379822e54f8295f10cda3821a203d2b5509c426"
+  },
+  {
+    "text": "その言い方は失礼に聞こえるよ。気をつけよう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "verified-931259acd150f226.mp3",
+    "sha256": "ebe95d76070c859f6ad9d13cb1025b9f0e1c70a24b4e4b442c47a75e0b65abfa"
+  },
+  {
+    "text": "ちょっと不自然に聞こえるかもしれないね。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "verified-dfeb7abd8cbff362.mp3",
+    "sha256": "fca9a4e6ec0f92684176989963ec7db457e97a6d36e14a662db237b077152e07"
+  },
+  {
+    "text": "通じるけど、もう少し自然に言えるよ。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "verified-f670ef754e099dfe.mp3",
+    "sha256": "cc0875914c91a7fc7f1f5909ce27c8f3081072071c4b1b573d40dbae227a602f"
+  }
+]
