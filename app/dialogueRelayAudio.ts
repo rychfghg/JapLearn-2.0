@@ -189,21 +189,6 @@ const audio: Record<string, any> = {
   'choice-e3a-b': require('../assets/audio/dialogue-relay/choice-e3a-b.mp3'),
   'choice-e3a-c': require('../assets/audio/dialogue-relay/choice-e3a-c.mp3'),
   'choice-e3b': require('../assets/audio/dialogue-relay/choice-e3b.mp3'),
-  'bonus-1-narration': require('../assets/audio/dialogue-relay/bonus-1-narration.mp3'),
-  'bonus-1-sumi': require('../assets/audio/dialogue-relay/bonus-1-sumi.mp3'),
-  'bonus-1-prompt': require('../assets/audio/dialogue-relay/bonus-1-prompt.mp3'),
-  'bonus-2-narration': require('../assets/audio/dialogue-relay/bonus-2-narration.mp3'),
-  'bonus-2-sumi': require('../assets/audio/dialogue-relay/bonus-2-sumi.mp3'),
-  'bonus-2-prompt': require('../assets/audio/dialogue-relay/bonus-2-prompt.mp3'),
-  'bonus-3-narration': require('../assets/audio/dialogue-relay/bonus-3-narration.mp3'),
-  'bonus-3-sumi': require('../assets/audio/dialogue-relay/bonus-3-sumi.mp3'),
-  'bonus-3-prompt': require('../assets/audio/dialogue-relay/bonus-3-prompt.mp3'),
-  'bonus-4-narration': require('../assets/audio/dialogue-relay/bonus-4-narration.mp3'),
-  'bonus-4-sumi': require('../assets/audio/dialogue-relay/bonus-4-sumi.mp3'),
-  'bonus-4-prompt': require('../assets/audio/dialogue-relay/bonus-4-prompt.mp3'),
-  'bonus-5-narration': require('../assets/audio/dialogue-relay/bonus-5-narration.mp3'),
-  'bonus-5-sumi': require('../assets/audio/dialogue-relay/bonus-5-sumi.mp3'),
-  'bonus-5-prompt': require('../assets/audio/dialogue-relay/bonus-5-prompt.mp3'),
 };
 
 export default audio;

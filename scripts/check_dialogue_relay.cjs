@@ -3,7 +3,7 @@ const root=path.resolve(__dirname,'..');
 require.extensions['.ts']=(mod,file)=>mod._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText,file);
 require.extensions['.png']=(mod,file)=>{mod.exports=file;};
 const {RELAY_SCENES,RELAY_TOTAL_RESPONSES,relayExchange}=require('../app/dialogueRelayContent.ts');
-const {recordRelayFirstAttempt,relayCanContinue}=require('../services/dialogueRelayProgress.ts');
+const {recordRelayFirstAttempt,relayCanContinue,relayRunComplete}=require('../services/dialogueRelayProgress.ts');
 assert.equal(RELAY_TOTAL_RESPONSES,25);
 assert.equal(RELAY_SCENES.length,10);
 assert.equal(RELAY_SCENES[0].questions.length,2);
@@ -44,5 +44,18 @@ for(const scene of RELAY_SCENES){
   }
 }
 assert.equal(manifest.length,80);
+assert(relayRunComplete({completed:true}));
+assert(relayRunComplete({bonusPromptSeen:true}));
+assert(relayRunComplete({bonusEarned:true}));
+assert(!relayRunComplete({}));
+const screen=fs.readFileSync(path.join(root,'app/QuackResponseMultiStep.tsx'),'utf8');
+assert(!screen.includes('/api/dialogue-relay/bonus/assess'));
+assert(!screen.includes('new FormData'));
+assert(!screen.includes('function Bonus'));
+assert(screen.includes("phase==='finished'&&!guideVisible"));
+assert(screen.includes('Review my responses'));
+assert(screen.includes('maxScore:RELAY_TOTAL_RESPONSES*3'));
+assert(screen.includes('totalQuestions:RELAY_TOTAL_RESPONSES'));
+assert.equal(RELAY_TOTAL_RESPONSES*3,75);
 if(process.argv.includes('--write-review'))fs.writeFileSync(path.join(root,'DIALOGUE_RELAY_INSTRUCTOR_REVIEW.md'),review.join('\n')+'\n');
 console.log('PASS: 10 scenes, 25 connected turns, 50 choices, 80 verified new audio entries; first-attempt and repair guards.');

@@ -10,3 +10,8 @@ export function recordRelayFirstAttempt<T extends TurnAnswer>(answers:T[], answe
 export function relayCanContinue(choice:{correct:boolean}|null):boolean {
   return choice?.correct===true;
 }
+
+/** Old bonus saves already passed all conversation turns; never reopen the bonus. */
+export function relayRunComplete(save:{completed?:boolean;bonusPromptSeen?:boolean;bonusEarned?:boolean}):boolean {
+  return save.completed===true||save.bonusPromptSeen===true||save.bonusEarned===true;
+}
