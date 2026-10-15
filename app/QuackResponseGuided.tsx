@@ -611,7 +611,8 @@ export default function ReplyCoachStory() {
     try {
       const chapters = (await requestJson('/api/reply-coach/chapters')) as Chapter[];
       if (!chapters.length) throw new Error('No published Reply Coach chapter is available yet.');
-      const selectedChapter = chapters[0];
+      // "A Day of First Impressions" holds the readiness check that unlocks Response Rush and Dialogue Relay.
+      const selectedChapter = chapters.find(item => item.title === 'A Day of First Impressions') ?? chapters[0];
       const history = forceNew ? [] : await requestJson(`/api/reply-coach/attempts?email=${encodeURIComponent(user?.email ?? '')}`) as Attempt[];
       const existing = history.find(item => item.chapterId === selectedChapter.id && item.status === 'IN_PROGRESS')
         ?? history.find(item => item.chapterId === selectedChapter.id && item.status === 'COMPLETED');

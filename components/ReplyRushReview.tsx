@@ -1,0 +1,21 @@
+import React,{useMemo,useState} from 'react';
+import {Modal,View,Text,Pressable,ScrollView} from 'react-native';
+import styles from '../styles/stylesQuackResponseGuided';
+import {rushFollowups,rushSkill} from '../services/replyRushFollowups';
+import {shuffleOptions} from '../services/shuffleOptions';
+export type RushReviewAnswer={nodeId:string;selectedJapanese:string};
+export default function ReplyRushReview({visible,nodeIds,onClose,onSave}:{visible:boolean;nodeIds:string[];onClose:()=>void;onSave:(answers:RushReviewAnswer[])=>Promise<void>}){
+  const [index,setIndex]=useState(0),[answers,setAnswers]=useState<RushReviewAnswer[]>([]),[selected,setSelected]=useState<boolean|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+  const id=nodeIds[index],question=rushFollowups[rushSkill(id??'')];
+  const order=useMemo(()=>shuffleOptions([true,false]),[id]);
+  const finish=async()=>{setBusy(true);setError('');try{await onSave(answers);onClose();}catch{setError('Review could not be saved. Your answers remain here; please try again.');}finally{setBusy(false);}};
+  return <Modal visible={visible} onRequestClose={onClose} animationType="slide"><View style={styles.resultsPage}><ScrollView contentContainerStyle={styles.resultsContent}>
+    <Text style={styles.resultsEyebrow}>UNTIMED SKILL REVIEW</Text><Text style={styles.hintTitle}>A new situation, the same skill</Text><Text style={styles.coachNotice}>This is text-only practice. Review results stay separate from the timed round. Timeouts do not prove a lack of understanding.</Text>
+    {question?<><Text style={styles.reviewPrompt}>{index+1}/{nodeIds.length} · {question[0]}</Text>{order.map((correct,i)=><Pressable key={String(correct)} disabled={selected!==null} style={styles.choiceButton} onPress={()=>{setSelected(correct);setAnswers(a=>[...a,{nodeId:id,selectedJapanese:question[correct?1:3]}]);}}><View style={{flex:1}}><Text style={styles.choiceJapanese}>{String.fromCharCode(65+i)} · {question[correct?1:3]}</Text><Text style={styles.choiceRomaji}>{question[correct?2:4]}</Text></View></Pressable>)}
+      {selected!==null&&<><Text style={styles.explanationText}>{selected?'That fits. ':'Compare the situation. '}{question[5]}</Text><Text style={styles.bestAnswerText}>{question[1]}</Text><Text style={styles.choiceRomaji}>{question[2]}</Text>{index<nodeIds.length-1&&<Pressable style={styles.primaryButton} onPress={()=>{setIndex(i=>i+1);setSelected(null);}}><Text style={styles.primaryButtonText}>Next skill</Text></Pressable>}</>}
+    </>:<Text style={styles.hintText}>No missed skills need review.</Text>}
+    {!!error&&<Text style={{color:'#B83B55'}}>{error}</Text>}
+    {(selected!==null&&index===nodeIds.length-1)&&<Pressable disabled={busy} style={styles.primaryButton} onPress={()=>void finish()}><Text style={styles.primaryButtonText}>{busy?'Saving…':'Save practice review'}</Text></Pressable>}
+    <Pressable style={styles.secondaryButton} onPress={onClose}><Text style={styles.secondaryButtonText}>Back to results</Text></Pressable>
+  </ScrollView></View></Modal>;
+}

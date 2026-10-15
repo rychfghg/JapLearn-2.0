@@ -68,7 +68,7 @@ export default function ReplyCoachReadiness({ attemptId, email, onClose }: { att
         {!check && !error && <ActivityIndicator color="#8423D9" />}
         {check && <>
           <Text style={styles.coachNotice}>{check.policy.label}</Text>
-          <Text style={styles.coachContextText}>{check.policy.questionCount} questions · no timer. Romaji is included below Japanese. Answer at least {check.policy.thresholdPercent}% correctly without optional meaning support to demonstrate readiness. Using meaning support is allowed, but that check becomes supported practice.</Text>
+          <Text style={styles.coachContextText}>{check.policy.questionCount} questions · no timer. Romaji is included below Japanese. Answer at least {check.policy.thresholdPercent}% of the questions correctly on your own to demonstrate readiness. You may show the meaning on any question, but that answer is saved as supported practice and does not count as correct.</Text>
           <Text style={styles.coachNotice}>Text-only scenarios · separate from your chapter practice score.</Text>
           {check.status === 'NOT_STARTED' && <Pressable disabled={busy} style={styles.primaryButton} onPress={() => act({ action: 'start' })}><Text style={styles.primaryButtonText}>Start readiness check</Text></Pressable>}
           {check.status === 'IN_PROGRESS' && question && <>
