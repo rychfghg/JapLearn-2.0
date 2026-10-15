@@ -1,0 +1,202 @@
+[
+  {
+    "id": "n_practice_library_opening",
+    "text": "図書館の利用登録をしに来ました。すみさんに聞いてみましょう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "practice-292d9308c39d1c348f28.mp3",
+    "sha256": "24a0314e11157db2d8d94111313972c9596d53ede55ea736c25704290a647b42"
+  },
+  {
+    "id": "n_practice_library_greet_setup",
+    "text": "こんにちは。図書館へようこそ。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-d4d9b84b68d0a1ba1a46.mp3",
+    "sha256": "d3674007ba6a11854a8675b1547427d7c68f8a156038f279ef3af421282f580f"
+  },
+  {
+    "id": "n_practice_library_greet_react_timeout",
+    "text": "練習なので、ゆっくり考えて大丈夫です。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "practice-da7c083524626b06d117.mp3",
+    "sha256": "1f33e97290df452b1b8b4838f3eb94b6a5b7cfa10280a283dcc24969de5a6173"
+  },
+  {
+    "id": "n_practice_library_greet_reply_a",
+    "text": "こんにちは。よろしくお願いします。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-05e0c12a986b64b1c5bf.mp3",
+    "sha256": "82389f88b1b1b3e6b2ce4bf9936b1c961573303f480329cc5271d038ee389171"
+  },
+  {
+    "id": "n_practice_library_greet_react_a",
+    "text": "こんにちは。どうぞ、ご用件をお聞かせください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-94bff9260e942bb35e77.mp3",
+    "sha256": "b7efb01eef4ead0795dd1bb1de93f60b56187873b40fa06ad374c74c728cef32"
+  },
+  {
+    "id": "n_practice_library_greet_reply_b",
+    "text": "早くして。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-5c4e18a284008a8f2885.mp3",
+    "sha256": "5f26b32565d9b523ec47e84a22f0aa9ce8b7d1b48970e2d075a82f0adb37a283"
+  },
+  {
+    "id": "n_practice_library_greet_react_b",
+    "text": "まず、ご挨拶をしてからお話ししましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-145aad8480b833fc506a.mp3",
+    "sha256": "c9451fa75034ba7ea23cc4c5debc6c675b628b34453fc9bf52120c0c4d088cea"
+  },
+  {
+    "id": "n_practice_library_purpose_setup",
+    "text": "本を借りたいですか。それとも、返したいですか。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-eb29c616c582cd537390.mp3",
+    "sha256": "86cfa6c93a04a19891f100eb63a0acf170a9bcc4a315b93cb240604e421b4085"
+  },
+  {
+    "id": "n_practice_library_purpose_react_timeout",
+    "text": "借りたいことを、短く伝えましょう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "practice-b85e03b35c784cc4c8c4.mp3",
+    "sha256": "c66c69ff4f2d972ae2fcc4029c4656f5b79a50d5d4b6d4c9a145b524ee5a8472"
+  },
+  {
+    "id": "n_practice_library_purpose_reply_a",
+    "text": "本を借りたいです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-a4c923c12be559b1060e.mp3",
+    "sha256": "1dc76ab05e7c2cd3d79a8ea962ed0b4c5694e442bac7117668ba0462ad778801"
+  },
+  {
+    "id": "n_practice_library_purpose_react_a",
+    "text": "貸出ですね。初めての方には、登録をご案内します。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-80600c1ff2ec4de9b93e.mp3",
+    "sha256": "ed28c307cf996644c5a5b6b53fc8ed7ab7e7b8309dd5f53c7e5a673c452ed065"
+  },
+  {
+    "id": "n_practice_library_purpose_reply_b",
+    "text": "何でもいいです。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-b229fe05a360bade6b58.mp3",
+    "sha256": "657b57dfe322f9bed5bc83a1a16f9cfb7495b26374c9fba5cc1c33464641d787"
+  },
+  {
+    "id": "n_practice_library_purpose_react_b",
+    "text": "借りたいのか、返したいのか教えてください。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-419271a69b4dd8ddac66.mp3",
+    "sha256": "50a10f0d35802a2d3a0c9a684b45a47a8336d6cd3841ffc6b155a534e8352797"
+  },
+  {
+    "id": "n_practice_library_clarify_setup",
+    "text": "初めて本を借りる方は、利用登録が必要です。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-61ee8270c42ab357c8cd.mp3",
+    "sha256": "4c5d275305ffe7c8bd0217b8b79a9aa3f24a6dd86a89c212f15e1be0259c4f40"
+  },
+  {
+    "id": "n_practice_library_clarify_react_timeout",
+    "text": "分からない言葉は、聞いても大丈夫です。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "practice-7941d2a01986d7f44252.mp3",
+    "sha256": "892cb96921b23806b12c0bccb0dbbb3320feb42275da895a781af727a6fb451d"
+  },
+  {
+    "id": "n_practice_library_clarify_reply_a",
+    "text": "すみません、利用登録とは何ですか。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-dcf8b9a52381609c0f00.mp3",
+    "sha256": "22747d07e1f2235b9c81e3379311ae1b2ef7aa426adcdd12324a2cf3bf33977b"
+  },
+  {
+    "id": "n_practice_library_clarify_react_a",
+    "text": "本を借りるための登録です。学生証があれば、ここで登録できます。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-87a29ee06e2823d9d49c.mp3",
+    "sha256": "c4f98a22160e334a1c27775f08e89b224ec674b1eddf8b03b4175e88f35ef42f"
+  },
+  {
+    "id": "n_practice_library_clarify_reply_b",
+    "text": "全部分かりました。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-15ca3fdd0206fea9798f.mp3",
+    "sha256": "f434ccee2390fe5b0ffd011e406023cfa959fed050365e67f19ebc8387a7cb11"
+  },
+  {
+    "id": "n_practice_library_clarify_react_b",
+    "text": "分からない言葉があれば、遠慮なく聞いてくださいね。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-f52c60a379890c3657ab.mp3",
+    "sha256": "efb7f164a8d3d4fc6a1040b6b773f669e6b45bc4c5e6dd36e8b55653b78a1c54"
+  },
+  {
+    "id": "n_practice_library_confirm_setup",
+    "text": "登録に使う学生証は、お持ちですか。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-3b3469d31da6ae723ec3.mp3",
+    "sha256": "08c14043b04e532882dc1c6da99c5f8d4cb94162b119da8b429b504401a7b20a"
+  },
+  {
+    "id": "n_practice_library_confirm_react_timeout",
+    "text": "学生証を確認して、見せましょう。",
+    "character": "HARU",
+    "voice": "ja-JP-KeitaNeural",
+    "file": "practice-125ec45c10bde70d4609.mp3",
+    "sha256": "6f80b9965f775f2f927c13874a3ae7cc40144d7ce813a27fed851ae9b58327b0"
+  },
+  {
+    "id": "n_practice_library_confirm_reply_a",
+    "text": "はい、こちらが学生証です。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-075c3031050d8f8ae20e.mp3",
+    "sha256": "54daa6178de9ebb2e7df5f479240b6214ed75cb1cf7fc8b5b8cf97ec0f7ecbf9"
+  },
+  {
+    "id": "n_practice_library_confirm_react_a",
+    "text": "ありがとうございます。では、こちらで登録しましょう。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-562045e27eb393147157.mp3",
+    "sha256": "fec43783010ba40dbcddc01ce2be142a65d6e6bdcaa3e295bed5fafe32106fb0"
+  },
+  {
+    "id": "n_practice_library_confirm_reply_b",
+    "text": "たぶんあります。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-5f5eb27d307a9230d325.mp3",
+    "sha256": "76b41ef0b3f570c75661323fcd13198d1bab3d604d2b4680339dc94e89e08262"
+  },
+  {
+    "id": "n_practice_library_confirm_react_b",
+    "text": "確認して、見せていただけますか。",
+    "character": "SUMI",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "practice-3726d51805636e6cf4c4.mp3",
+    "sha256": "1aa55637cd76eb94e10a01ecafdbc8c3fa07d10357324b3adc63f13fed527f55"
+  }
+]

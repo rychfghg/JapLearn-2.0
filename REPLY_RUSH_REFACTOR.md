@@ -1,12 +1,15 @@
 # Reply Rush v2
 
-The six scenes, twenty decisions, existing character art, voice clips, Romaji,
-story graph and reaction feedback are retained. The refactor changes assessment
-flow, not the visual-novel format.
+The timed challenge retains its six scenes, twenty decisions, existing character
+art, voice clips, Romaji and story graph. Introductory practice is now a separate
+one-scene library conversation with four replies and newly generated exact-script
+audio using the same Sumi/Haru voice presets. Both keep the visual-novel format.
 
 ## Modes and timer
 
-- Complete an untimed practice round before starting the timed challenge.
+- The four-reply untimed practice is optional; confident learners can choose timed immediately.
+- Mode selection opens instructions. Only Start game starts a new conversation;
+  restored conversations also wait for Resume game before audio begins.
 - Practice completion is not a mastery certification or accuracy threshold.
 - The existing twenty-second window remains a pilot timing choice, not a
   validated proficiency standard.
@@ -26,17 +29,21 @@ flow, not the visual-novel format.
   unassessed, not zero understanding. Speed uses eligible answered questions only.
 - Results expose both modes and all outcome counts. New timed rounds do not
   contribute to the backend understanding/mastery averages.
-- Twenty new text-only, untimed transfer examples cover the twenty skills.
+- Twenty-four text-only, untimed transfer examples cover the timed skills and
+  the four short-practice skills.
   Their first responses are saved separately and never change the round score.
 - Legacy records remain unchanged. V2 records carry mode, evidence, run ID and
   schema version. Offline score/review synchronization uses the existing queue.
+- The short practice uses `RUSH_PRACTICE_SHORT_V3`. Backend validation accepts
+  four replies for this mode and twenty for timed/legacy full practice; the
+  question sets cannot be mixed. Practice history remains available but is not required.
 - An unfinished legacy run is not relabeled as V2 evidence; the new flow begins
-  with untimed practice. Previously completed score history is retained.
+  with mode selection. Previously completed score history is retained.
 
 ## Release and verification
 
 Deploy the backend changes before publishing the frontend/OTA: the backend
-must understand the V2 fields, practice prerequisite and review endpoint.
+must understand the V2 fields, optional practice and review endpoint.
 No deployment, APK build request or OTA publication is performed by these edits.
 
 Automated checks cover timing gates, suspension vs timeout, separate metrics,

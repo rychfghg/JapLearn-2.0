@@ -1,6 +1,6 @@
 export type RushMode='PRACTICE'|'TIMED';
 export type RushOutcome={nodeId:string;outcome:'CORRECT'|'INCORRECT'|'TIMEOUT'|'TECHNICAL_INTERRUPTION';choiceId?:string;responseMs?:number|null;timingEligible?:boolean;reason?:string};
-export const rushModeCode=(mode:RushMode)=>mode==='TIMED'?'RUSH_TIMED_V2':'RUSH_PRACTICE_V2';
+export const rushModeCode=(mode:RushMode)=>mode==='TIMED'?'RUSH_TIMED_V2':'RUSH_PRACTICE_SHORT_V3';
 export function rushMetrics(events:readonly RushOutcome[]){
   const terminal=events.filter(e=>e.outcome!=='TECHNICAL_INTERRUPTION');
   const correct=terminal.filter(e=>e.outcome==='CORRECT').length;

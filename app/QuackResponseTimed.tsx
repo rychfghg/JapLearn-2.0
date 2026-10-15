@@ -23,6 +23,8 @@ import { AuthContext } from '../context/AuthContext';
 import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
 import expoconfig from '../expoconfig';
 import {shuffleOptions} from '../services/shuffleOptions';
+import practiceScene from '../services/replyRushPracticeScene.json';
+import practiceAudio from '../services/replyRushPracticeAudio';
 import {RushMode,RushOutcome,rushModeCode,rushMetrics,rushClock,rushCanTime} from '../services/replyRushSession';
 import {rushSkill} from '../services/replyRushFollowups';
 import ReplyRushReview from '../components/ReplyRushReview';
@@ -31,7 +33,7 @@ import { queueOfflineSubmission, syncOfflineSubmissions } from '../services/offl
 // This device entry is only an interrupted-round resume snapshot.
 // Completed scores and personal bests are stored against the signed-in
 // account by the backend and are never sourced from this cache.
-const RESPONSE_RUSH_RESUME_KEY = 'response_rush_resume_v2';
+const RESPONSE_RUSH_RESUME_KEY = 'response_rush_resume_v3';
 
 // ---------------------------------------------------------------------------
 // Response Rush — a six-scene, twenty-decision "first weeks in Japan"
@@ -968,7 +970,7 @@ const SCENES: SceneSpec[] = [
 // Builder: turns SCENES into the flat StoryNode graph the player renders.
 // ---------------------------------------------------------------------------
 
-function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string; totalChoices: number } {
+function buildStory(scenes: SceneSpec[], endingId = 'n_ending'): { nodes: StoryNode[]; startId: string; totalChoices: number } {
   const built: StoryNode[] = [];
   let totalChoices = 0;
 
@@ -987,7 +989,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
   scenes.forEach((scene, sceneIndex) => {
     const nextScene = scenes[sceneIndex + 1];
     const firstDecision = scene.decisions[0];
-    const afterOpeningId = firstDecision ? decisionEntryId(scene.id, firstDecision) : 'n_ending';
+    const afterOpeningId = firstDecision ? decisionEntryId(scene.id, firstDecision) : endingId;
 
     built.push({
       id: sceneNarrationId(scene.id),
@@ -1022,7 +1024,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
         ? decisionEntryId(scene.id, nextDecision)
         : nextScene
           ? sceneNarrationId(nextScene.id)
-          : 'n_ending';
+          : endingId;
 
       totalChoices += 1;
 
@@ -1119,7 +1121,7 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
   });
 
   built.push({
-    id: 'n_ending',
+    id: endingId,
     sceneId: scenes[scenes.length - 1]?.id ?? 'interview',
     type: 'ENDING',
     title: 'First Weeks, Handled',
@@ -1130,7 +1132,11 @@ function buildStory(scenes: SceneSpec[]): { nodes: StoryNode[]; startId: string;
   return { nodes: built, startId: sceneNarrationId(scenes[0].id), totalChoices };
 }
 
-const { nodes, startId: START_NODE_ID, totalChoices: TOTAL_CHOICES } = buildStory(SCENES);
+const PRACTICE_SCENES=practiceScene as unknown as SceneSpec[];
+const TIMED_STORY=buildStory(SCENES);
+const PRACTICE_STORY=buildStory(PRACTICE_SCENES,'n_practice_ending');
+const {startId:START_NODE_ID,totalChoices:TOTAL_CHOICES}=TIMED_STORY;
+const nodes=[...TIMED_STORY.nodes,...PRACTICE_STORY.nodes.map(node=>node.type==='ENDING'?{...node,title:'Quick practice complete',text:'You practiced greeting, stating your purpose, asking for clarification, and presenting a requested card. This short introduction is complete. You can now try the separate timed challenge.',backgroundKey:'wardOffice'}:node)];
 const nodeMap = new Map(nodes.map((node) => [node.id, node]));
 // A saved CHOICE has no voice line of its own. Reopening at that point first
 // replays the immediately preceding NPC prompt, then returns to the exact
@@ -1141,13 +1147,13 @@ nodes.forEach((node) => {
     choicePromptReplayMap.set(node.nextNodeId, node.id);
   }
 });
-const sceneMap = new Map(SCENES.map((scene) => [scene.id, scene]));
+const sceneMap = new Map([...SCENES,...PRACTICE_SCENES].map((scene) => [scene.id, scene]));
 const CHAPTER_TITLE = 'Response Rush · Your First Weeks in Japan';
 
 // Never substitute a line from another game. A missing clip becomes silence
 // plus timed progression, making content errors obvious without speaking the
 // wrong Japanese sentence.
-const resolveAudio = (nodeId: string) => audioOverrides[nodeId];
+const resolveAudio = (nodeId: string) => practiceAudio[nodeId]??audioOverrides[nodeId];
 
 type SpriteActorProps = {
   characterKey: CharacterKey;
@@ -1257,6 +1263,8 @@ export default function QuackResponseTimed() {
   const { user } = useContext(AuthContext);
   const [mode,setMode]=useState<RushMode|null>(null);
   const [practiceCompleted,setPracticeCompleted]=useState(false);
+  const [pendingMode,setPendingMode]=useState<RushMode|null>(null);
+  const [resumeInstructions,setResumeInstructions]=useState(false);
   const [choiceReady,setChoiceReady]=useState(''),[audioReady,setAudioReady]=useState('');
   const [viewReady,setViewReady]=useState('');
   const [technicalIssue,setTechnicalIssue]=useState(''),[audioRun,setAudioRun]=useState(0);
@@ -1318,9 +1326,10 @@ export default function QuackResponseTimed() {
     if(nodeMap.get(affected)?.type==='CHOICE'){exemptNodes.current.add(affected);addOutcome({nodeId:affected,outcome:'TECHNICAL_INTERRUPTION',reason,timingEligible:false,responseMs:null});}
     setHintVisible(false);setReviewVisible(false);setTechnicalIssue(reason);setIsSpriteSpeaking(false);voiceGeneration.current++;void stopAndUnloadSound(voiceSound.current);voiceSound.current=null;
   };
-  const progress = Math.min(1, answers.length / Math.max(1, TOTAL_CHOICES));
+  const roundTotal=mode==='PRACTICE'?PRACTICE_STORY.totalChoices:TOTAL_CHOICES;
+  const progress = Math.min(1, answers.length / Math.max(1, roundTotal));
   const totalPoints = answers.reduce((sum, answer) => sum + answer.points, 0);
-  const maxPoints = TOTAL_CHOICES * 3;
+  const maxPoints = roundTotal * 3;
   const lastAnswer = answers[answers.length - 1];
   const scorePercent = maxPoints ? Math.round((totalPoints / maxPoints) * 100) : 0;
 
@@ -1349,8 +1358,9 @@ export default function QuackResponseTimed() {
         }
         if (!saved || !active) return;
         setPracticeCompleted(saved.practiceCompleted===true);
-        if(saved.schemaVersion!==2)return;
-        setMode(saved.mode??'PRACTICE');
+        if(saved.schemaVersion!==3)return;
+        setPendingMode(saved.mode??'PRACTICE');
+        setResumeInstructions(true);
         if(saved.runId)runId.current=saved.runId;
         outcomeRef.current=saved.rushOutcomes??[];setOutcomes(outcomeRef.current);
         saved.nodeId = saved.nodeId || saved.currentNodeId || '';
@@ -1360,6 +1370,7 @@ export default function QuackResponseTimed() {
         }
         const savedNode = nodeMap.get(saved.nodeId);
         if (savedNode?.type === 'ENDING') {
+          setPendingMode(null);setResumeInstructions(false);
           setMode(null);
           await AsyncStorage.removeItem(resumeKey);
           return;
@@ -1393,7 +1404,7 @@ export default function QuackResponseTimed() {
   useEffect(() => {
     if (!resumeReady || !resumeKey || !mode || currentNode?.type === 'ENDING') return;
     const snapshot: SavedRushState = {
-      nodeId, schemaVersion:2, mode, practiceCompleted,runId:runId.current,rushOutcomes:outcomes,
+      nodeId, schemaVersion:3, mode, practiceCompleted,runId:runId.current,rushOutcomes:outcomes,
       answers,
       timeLeft: currentNode?.type === 'CHOICE'
         ? restoredChoiceTime.current ?? timeLeft
@@ -1426,9 +1437,9 @@ export default function QuackResponseTimed() {
       email:user.email,name:((user.fname??'')+' '+(user.lname??'')).trim(),date:new Date().toISOString(),
       clientAttemptId:runId.current,game:'QUACKRESPONSE_RUSH',mode:rushModeCode(mode),
       score:stats.correct,maxScore:stats.answered,correctAnswers:stats.correct,totalQuestions:stats.answered,
-      assessmentVersion:2,rushOutcomes:outcomeRef.current,completed:true,
+      assessmentVersion:3,rushOutcomes:outcomeRef.current,completed:true,
     }).then(()=>syncOfflineSubmissions(user.email)).catch(()=>{scoreSaved.current=false;});
-    const snapshot={schemaVersion:2,mode,practiceCompleted:practiceDone,runId:runId.current,nodeId, currentNodeId:nodeId,answers,rushOutcomes:outcomeRef.current,timeLeft:0,completed:true};
+    const snapshot={schemaVersion:3,mode,practiceCompleted:practiceDone,runId:runId.current,nodeId, currentNodeId:nodeId,answers,rushOutcomes:outcomeRef.current,timeLeft:0,completed:true};
     if(resumeKey)void AsyncStorage.setItem(resumeKey,JSON.stringify(snapshot));
     void fetch(expoconfig.API_URL+'/api/response-rush/progress?email='+encodeURIComponent(user.email),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(snapshot)}).catch(()=>undefined);
   },[currentNode?.id,mode,user?.email]);
@@ -1758,7 +1769,7 @@ export default function QuackResponseTimed() {
     pendingAfterCultural.current = null;
     scoreSaved.current = false;
     setAnswers([]);
-    setNodeId(START_NODE_ID);
+    setNodeId(nextMode==='PRACTICE'?PRACTICE_STORY.startId:START_NODE_ID);
     setTimeLeft(CHOICE_SECONDS);
     if (resumeKey) void AsyncStorage.removeItem(resumeKey);
 
@@ -1802,7 +1813,7 @@ export default function QuackResponseTimed() {
             <Ionicons name="arrow-back" size={24} color="#351A4A" />
           </Pressable>
           <View style={styles.headerCopy}>
-            <Text style={styles.headerEyebrow}>REPLY RUSH · {mode==='TIMED'?'TIMED CHALLENGE':'UNTIMED PRACTICE'} · {answers.length}/{TOTAL_CHOICES}</Text>
+            <Text style={styles.headerEyebrow}>REPLY RUSH · {mode==='TIMED'?'TIMED CHALLENGE':'UNTIMED PRACTICE'} · {answers.length}/{roundTotal}</Text>
             <Text style={styles.headerTitle} numberOfLines={1}>{currentNode.title?.split('·')[0]?.trim() || CHAPTER_TITLE}</Text>
           </View>
           <Pressable disabled={mode==='TIMED'&&isChoice} style={styles.iconButton} onPress={() => setReviewVisible(true)}>
@@ -1896,7 +1907,7 @@ export default function QuackResponseTimed() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.decisionEyebrow}>YOUR TURN · {mode==='TIMED'&&!exemptNodes.current.has(nodeId)?timeLeft+'s LEFT':'UNTIMED'}</Text>
-                  <Text style={styles.decisionTitle}>Decision {answers.length + 1} of {TOTAL_CHOICES}</Text>
+                  <Text style={styles.decisionTitle}>Decision {answers.length + 1} of {roundTotal}</Text>
                 </View>
                 <Pressable accessibilityHint="Hints are available in untimed practice" disabled={mode==='TIMED'&&!exemptNodes.current.has(nodeId)} style={[styles.hintButton,mode==='TIMED'&&!exemptNodes.current.has(nodeId)&&{opacity:.4}]} onPress={() => setHintVisible(true)}>
                   <Ionicons name="bulb-outline" size={18} color="#D58A1E" />
@@ -1988,9 +1999,9 @@ export default function QuackResponseTimed() {
 
       {/* Exit confirmation */}
       <Modal visible={exitVisible} transparent animationType="fade" onRequestClose={() => setExitVisible(false)}>
-        <View style={styles.modalBackdrop}>
+        <View style={styles.modalBackdrop}><ScrollView style={rushStyles.popupScroll} contentContainerStyle={rushStyles.popupScrollContent}>
           <View style={styles.exitCard}>
-            <Ionicons name="bookmark-outline" size={38} color="#8423D9" />
+            <View style={rushStyles.popupIcon}><Ionicons name="bookmark-outline" size={28} color="#8423D9" /></View>
             <Text style={styles.exitTitle}>Leave Response Rush?</Text>
             <Text style={styles.exitText}>Your exact place and current score are saved. Continue this rush whenever you return.</Text>
             <Pressable style={styles.primaryButton} onPress={() => { setExitVisible(false); setExiting(true); }}>
@@ -2000,12 +2011,12 @@ export default function QuackResponseTimed() {
               <Text style={styles.secondaryButtonText}>Keep going</Text>
             </Pressable>
           </View>
-        </View>
+        </ScrollView></View>
       </Modal>
 
       {/* Hint */}
       <Modal visible={hintVisible} transparent animationType="fade" onRequestClose={() => setHintVisible(false)}>
-        <View style={styles.modalBackdrop}>
+        <View style={styles.modalBackdrop}><ScrollView style={rushStyles.popupScroll} contentContainerStyle={rushStyles.popupScrollContent}>
           <View style={styles.hintCard}>
             <View style={styles.hintIcon}>
               <Ionicons name="bulb-outline" size={30} color="#D58A1E" />
@@ -2017,12 +2028,12 @@ export default function QuackResponseTimed() {
               <Text style={styles.primaryButtonText}>Back to the counter</Text>
             </Pressable>
           </View>
-        </View>
+        </ScrollView></View>
       </Modal>
 
       {/* Random cultural-context pop-up */}
       <Modal visible={culturalVisible} transparent animationType="fade" onRequestClose={() => undefined}>
-        <View style={styles.modalBackdrop}>
+        <View style={styles.modalBackdrop}><ScrollView style={rushStyles.popupScroll} contentContainerStyle={rushStyles.popupScrollContent}>
           <View style={rushStyles.culturalCard}>
             <View style={rushStyles.culturalIcon}>
               <Ionicons name="chatbubbles-outline" size={26} color="#2E9E48" />
@@ -2034,12 +2045,12 @@ export default function QuackResponseTimed() {
               <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
             </Pressable>
           </View>
-        </View>
+        </ScrollView></View>
       </Modal>
 
       {/* Per-choice feedback pop-up: why good/bad + a better example */}
       <Modal visible={feedbackVisible} transparent animationType="fade" onRequestClose={() => undefined}>
-        <View style={styles.modalBackdrop}>
+        <View style={styles.modalBackdrop}><ScrollView style={rushStyles.popupScroll} contentContainerStyle={rushStyles.popupScrollContent}>
           <View style={rushStyles.feedbackCard}>
             {lastAnswer && (
               <>
@@ -2089,11 +2100,37 @@ export default function QuackResponseTimed() {
               </>
             )}
           </View>
-        </View>
+        </ScrollView></View>
       </Modal>
 
-      <Modal visible={!mode} transparent animationType="fade"><View style={styles.modalBackdrop}><ScrollView style={{maxHeight:'90%',width:'100%',maxWidth:440}} contentContainerStyle={{alignItems:'center'}}><View style={styles.exitCard}><Text style={styles.exitTitle}>Reply Rush</Text><Text style={styles.exitText}>Practice without time pressure first. The timed challenge measures speed separately from understanding.</Text><Pressable disabled={!resumeReady} style={styles.primaryButton} onPress={()=>restart('PRACTICE')}><Text style={styles.primaryButtonText}>Untimed practice</Text></Pressable><Pressable disabled={!resumeReady||!practiceCompleted} style={[styles.secondaryButton,!practiceCompleted&&{opacity:.45}]} onPress={()=>restart('TIMED')}><Text style={styles.secondaryButtonText}>Timed challenge · 20 seconds</Text></Pressable>{!practiceCompleted&&<Text style={styles.hintText}>Complete an untimed practice round to unlock the timed challenge.</Text>}<Pressable onPress={()=>router.replace('/QuackResponse')}><Text style={styles.textButton}>Back to QuackResponse</Text></Pressable></View></ScrollView></View></Modal>
-      <Modal visible={!!technicalIssue} transparent animationType="fade"><View style={styles.modalBackdrop}><ScrollView style={{maxHeight:'90%',width:'100%',maxWidth:440}} contentContainerStyle={{alignItems:'center'}}><View style={styles.exitCard}><Text style={styles.exitTitle}>Practice paused</Text><Text style={styles.exitText}>{technicalIssue}</Text>{currentNode.japanese&&<View style={styles.explanationBox}><Text style={styles.choiceJapanese}>{currentNode.japanese}</Text><Text style={styles.choiceRomaji}>{currentNode.romaji}</Text></View>}<Text style={styles.hintText}>No incorrect answer or timeout was added for this interruption.</Text><Pressable style={styles.primaryButton} onPress={()=>{technicalRef.current=false;setTechnicalIssue('');setAudioRun(n=>n+1);}}><Text style={styles.primaryButtonText}>Retry / resume</Text></Pressable><Pressable style={styles.secondaryButton} onPress={()=>{const next=currentNode.type==='CHOICE'?currentNode.id:currentNode.nextNodeId;if(next){exemptNodes.current.add(next);setAudioReady(next);setNodeId(next);}else if(currentNode.type==='REACTION')setFeedbackVisible(true);technicalRef.current=false;setTechnicalIssue('');}}><Text style={styles.secondaryButtonText}>Read and continue untimed</Text></Pressable><Pressable onPress={()=>{technicalRef.current=false;setTechnicalIssue('');setExiting(true);}}><Text style={styles.textButton}>Save and leave</Text></Pressable></View></ScrollView></View></Modal>
+      <Modal visible={pendingMode!==null} transparent animationType="fade" onRequestClose={()=>{if(!resumeInstructions)setPendingMode(null);}}>
+        <View style={styles.modalBackdrop}><ScrollView style={rushStyles.popupScroll} contentContainerStyle={rushStyles.popupScrollContent}><View style={rushStyles.popupCard}>
+          <View style={rushStyles.popupIcon}><Ionicons name="information-circle-outline" size={28} color="#8423D9"/></View>
+          <Text style={rushStyles.popupTitle}>{resumeInstructions?'Continue your conversation':pendingMode==='TIMED'?'Timed challenge':'Quick practice'}</Text>
+          <Text style={rushStyles.popupText}>{pendingMode==='TIMED'?'Listen to Sumi and Haru, then choose the reply that fits. You have 20 seconds per reply. The timer starts only after the required audio finishes and the choices are ready. Timeouts are recorded separately from incorrect answers.':'Practice one short library conversation with four replies and no timer. Listen, choose a reply, and read the explanation at your own pace.'}</Text>
+          <Text style={rushStyles.popupText}>Japanese and Romaji stay visible. The conversation begins only when you press the button below.</Text>
+          <Pressable style={styles.primaryButton} onPress={()=>{if(!pendingMode)return;const selected=pendingMode;setPendingMode(null);if(resumeInstructions){setResumeInstructions(false);setMode(selected);}else restart(selected);}}><Text style={styles.primaryButtonText}>{resumeInstructions?'Resume game':'Start game'}</Text></Pressable>
+          {!resumeInstructions&&<Pressable style={styles.secondaryButton} onPress={()=>setPendingMode(null)}><Text>Back to modes</Text></Pressable>}
+        </View></ScrollView></View>
+      </Modal>
+      <Modal visible={!mode&&!pendingMode} transparent animationType="fade"><View style={styles.modalBackdrop}><ScrollView style={rushStyles.popupScroll} contentContainerStyle={rushStyles.popupScrollContent}><View style={rushStyles.popupCard}>
+        <View style={rushStyles.popupIcon}><Ionicons name="flash" size={30} color="#8423D9"/></View>
+        <Text style={rushStyles.popupEyebrow}>QUACKRESPONSE</Text><Text style={rushStyles.popupTitle}>Response Rush</Text>
+        <Text style={rushStyles.popupText}>Choose optional untimed practice, or go straight to the timed challenge if you feel ready.</Text>
+        <Pressable disabled={!resumeReady} style={[rushStyles.modeOption,!resumeReady&&{opacity:.5}]} onPress={()=>setPendingMode('PRACTICE')}><View style={[rushStyles.modeIcon,{backgroundColor:'#EFF8E8'}]}><Ionicons name="leaf-outline" size={22} color="#2E9E48"/></View><View style={{flex:1}}><Text style={rushStyles.modeTitle}>Quick practice · 4 replies</Text><Text style={rushStyles.modeText}>Take your time and learn each reply.</Text></View><Ionicons name="chevron-forward" size={19} color="#A58CAF"/></Pressable>
+        <Pressable disabled={!resumeReady} style={[rushStyles.modeOption,(!resumeReady)&&{opacity:.5}]} onPress={()=>{setResultsVisible(false);setPendingMode('TIMED');}}><View style={[rushStyles.modeIcon,{backgroundColor:'#F3E7FC'}]}><Ionicons name="timer-outline" size={22} color="#8423D9"/></View><View style={{flex:1}}><Text style={rushStyles.modeTitle}>Timed challenge</Text><Text style={rushStyles.modeText}>20 seconds per reply. Practice is optional.</Text></View><Ionicons name="chevron-forward" size={19} color="#A58CAF"/></Pressable>
+        <Pressable style={rushStyles.popupLink} onPress={()=>router.replace('/QuackResponse')}><Text style={styles.secondaryButtonText}>Back to QuackResponse</Text></Pressable>
+      </View></ScrollView></View></Modal>
+      <Modal visible={!!technicalIssue} transparent animationType="fade"><View style={styles.modalBackdrop}><ScrollView style={rushStyles.popupScroll} contentContainerStyle={rushStyles.popupScrollContent}><View style={rushStyles.popupCard}>
+        <View style={[rushStyles.popupIcon,{backgroundColor:'#FFF3D9'}]}><Ionicons name="pause" size={28} color="#D58A1E"/></View>
+        <Text style={[rushStyles.popupEyebrow,{color:'#D58A1E'}]}>TECHNICAL INTERRUPTION</Text><Text style={rushStyles.popupTitle}>Practice paused</Text>
+        <Text style={rushStyles.popupText}>{technicalIssue}</Text>
+        {currentNode.japanese&&<View style={rushStyles.popupLine}><Text style={styles.choiceJapanese}>{currentNode.japanese}</Text><Text style={styles.choiceRomaji}>{currentNode.romaji}</Text></View>}
+        <View style={rushStyles.popupNote}><Ionicons name="shield-checkmark-outline" size={17} color="#2E9E48"/><Text style={rushStyles.popupNoteText}>No incorrect answer or timeout was added for this interruption.</Text></View>
+        <Pressable style={styles.primaryButton} onPress={()=>{technicalRef.current=false;setTechnicalIssue('');setAudioRun(n=>n+1);}}><Ionicons name="refresh" size={18} color="#FFFFFF"/><Text style={styles.primaryButtonText}>Retry / resume</Text></Pressable>
+        <Pressable style={styles.secondaryButton} onPress={()=>{const next=currentNode.type==='CHOICE'?currentNode.id:currentNode.nextNodeId;if(next){exemptNodes.current.add(next);setAudioReady(next);setNodeId(next);}else if(currentNode.type==='REACTION')setFeedbackVisible(true);technicalRef.current=false;setTechnicalIssue('');}}><Text style={styles.secondaryButtonText}>Read and continue untimed</Text></Pressable>
+        <Pressable style={rushStyles.popupLink} onPress={()=>{technicalRef.current=false;setTechnicalIssue('');setExiting(true);}}><Text style={styles.secondaryButtonText}>Save and leave</Text></Pressable>
+      </View></ScrollView></View></Modal>
       <ReplyRushReview key={runId.current} visible={skillReview} nodeIds={missedNodes} onClose={()=>setSkillReview(false)} onSave={async reviewAnswers=>{if(!user?.email)throw Error('Sign in to save');await queueOfflineSubmission(user.email,'/api/response-rush/review',{email:user.email,clientAttemptId:runId.current,answers:reviewAnswers});void syncOfflineSubmissions(user.email);}}/>
       {/* Results */}
       <Modal visible={resultsVisible&&!skillReview&&!reviewVisible} transparent animationType="slide" onRequestClose={() => undefined}>
@@ -2104,8 +2141,9 @@ export default function QuackResponseTimed() {
                 <Ionicons name="ribbon" size={46} color="#FFFFFF" />
               </View>
               <Text style={styles.resultsEyebrow}>{mode==='TIMED'?'TIMED CHALLENGE COMPLETE':'UNTIMED PRACTICE COMPLETE'}</Text>
-              <Text style={styles.resultsTitle}>{CHAPTER_TITLE}</Text>
-              <Text style={styles.resultsScore}>{metrics.answeredAccuracy===null?'—':metrics.answeredAccuracy+'%'}</Text><Text style={styles.hintText}>Accuracy among answered questions only ({metrics.answered}). Not independent-mastery certification.</Text><Text style={styles.hintText}>{metrics.incorrect} incorrect · {metrics.timeouts} timeouts · {metrics.technicalInterruptions} technical interruptions</Text><Text style={styles.hintText}>{metrics.meanResponseMs===null?'No eligible speed sample':'Mean timed response: '+(metrics.meanResponseMs/1000).toFixed(1)+'s'}</Text>
+              <Text style={styles.resultsTitle}>{mode==='PRACTICE'?'Library welcome · Four-reply practice':CHAPTER_TITLE}</Text>
+              <Text style={styles.resultsScore}>{metrics.answeredAccuracy===null?'—':metrics.answeredAccuracy+'%'}</Text><Text style={styles.coachNotice}>Accuracy among {metrics.answered} answered questions · practice score, not a mastery certificate</Text>
+              <View style={rushStyles.statStrip}>{([['Incorrect',String(metrics.incorrect),'#D4635D'],['Timeouts',String(metrics.timeouts),'#D89525'],['Technical',String(metrics.technicalInterruptions),'#8A7D8F'],['Avg. time',metrics.meanResponseMs===null?'—':(metrics.meanResponseMs/1000).toFixed(1)+'s','#5086D8']] as const).map(([label,value,color],i)=><React.Fragment key={label}>{i>0&&<View style={rushStyles.statDivider}/>}<View style={rushStyles.statItem}><Text style={[rushStyles.statValue,{color}]}>{value}</Text><Text style={rushStyles.statLabel}>{label}</Text></View></React.Fragment>)}</View>
               <Text style={styles.resultsRating}>{mode==='TIMED'?'Timed challenge — speed and understanding are separate':'Untimed practice complete'}</Text>
 
               <View style={styles.resultGrid}>
@@ -2125,9 +2163,9 @@ export default function QuackResponseTimed() {
                 <Ionicons name="reader-outline" size={19} color="#FFFFFF" />
                 <Text style={styles.primaryButtonText}>Review my decisions</Text>
               </Pressable>
-              {missedNodes.length>0&&<Pressable style={styles.primaryButton} onPress={()=>setSkillReview(true)}><Text style={styles.primaryButtonText}>New untimed questions for missed skills</Text></Pressable>}
-              {mode==='PRACTICE'&&<Pressable style={styles.primaryButton} onPress={()=>restart('TIMED')}><Text style={styles.primaryButtonText}>Start timed challenge</Text></Pressable>}
-              <Pressable style={styles.secondaryButton} onPress={()=>restart()}>
+              {missedNodes.length>0&&<Pressable style={styles.primaryButton} onPress={()=>setSkillReview(true)}><Ionicons name="school-outline" size={19} color="#FFFFFF"/><Text style={styles.primaryButtonText}>Review missed skills</Text></Pressable>}
+              {mode==='PRACTICE'&&<Pressable style={styles.primaryButton} onPress={()=>{setResultsVisible(false);setPendingMode('TIMED');}}><Ionicons name="timer-outline" size={19} color="#FFFFFF"/><Text style={styles.primaryButtonText}>Start timed challenge</Text></Pressable>}
+              <Pressable style={styles.secondaryButton} onPress={()=>{setResultsVisible(false);setPendingMode(mode??'PRACTICE');}}>
                 <Text style={styles.secondaryButtonText}>Replay scenario</Text>
               </Pressable>
               <Pressable style={styles.textButtonWrap} onPress={() => { setResultsVisible(false); setExiting(true); }}>
@@ -2582,4 +2620,25 @@ const rushStyles = StyleSheet.create({
     color: '#4B3A57',
     lineHeight: 17,
   },
+  // Shared centered pop-ups
+  popupScroll: { width: '100%', maxWidth: 440, flexGrow: 0 },
+  popupScrollContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 12 },
+  popupCard: { width: '100%', maxWidth: 420, backgroundColor: '#FFFFFF', borderRadius: 28, padding: 24, alignItems: 'center', shadowColor: '#2A1640', shadowOpacity: 0.25, shadowRadius: 26, shadowOffset: { width: 0, height: 12 }, elevation: 12 },
+  popupIcon: { width: 62, height: 62, borderRadius: 21, backgroundColor: '#F3E7FC', alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
+  popupEyebrow: { color: '#65A936', fontSize: 10, fontWeight: '900', letterSpacing: 1.3 },
+  popupTitle: { fontFamily: 'Jua', color: '#351A4A', fontSize: 26, textAlign: 'center', marginTop: 4 },
+  popupText: { fontFamily: 'Jua', color: '#746779', fontSize: 14, lineHeight: 20, textAlign: 'center', marginTop: 8, marginBottom: 6 },
+  popupLine: { width: '100%', backgroundColor: '#F8F3FA', borderRadius: 16, padding: 14, marginTop: 10, alignItems: 'center' },
+  popupNote: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#EFF8E8', borderRadius: 14, padding: 11, marginTop: 12 },
+  popupNoteText: { flex: 1, color: '#3F6B34', fontSize: 12, lineHeight: 17 },
+  popupLink: { paddingVertical: 12, paddingHorizontal: 18, marginTop: 4 },
+  modeOption: { width: '100%', flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E8DDEE', borderRadius: 18, padding: 14, marginTop: 10 },
+  modeIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  modeTitle: { fontFamily: 'Jua', color: '#351A4A', fontSize: 16 },
+  modeText: { color: '#7D7082', fontSize: 12, lineHeight: 16, marginTop: 2 },
+  statStrip: { width: '100%', flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', borderRadius: 18, paddingVertical: 12, marginTop: 12 },
+  statItem: { flex: 1, alignItems: 'center' },
+  statDivider: { width: 1, height: 34, backgroundColor: '#E5DCE8' },
+  statValue: { fontFamily: 'Jua', fontSize: 20 },
+  statLabel: { color: '#8A7D8F', fontSize: 10, marginTop: 2 },
 });

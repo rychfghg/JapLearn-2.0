@@ -1,6 +1,10 @@
 // New transfer examples, not the original timed questions or their reactions.
 // Text-only, untimed review; Japanese always keeps Romaji directly underneath.
 export const rushFollowups:Record<string,[string,string,string,string,string,string]>={
+  practice_library_greet:['Greet a ticket-counter employee politely in the morning.','おはようございます。よろしくお願いします。','Ohayou gozaimasu. Yoroshiku onegaishimasu.','おい、早くして。','Oi, hayaku shite.','A greeting opens the interaction respectfully; a demand does not.'],
+  practice_library_purpose:['At a community center, tell the receptionist you want to join a Japanese class.','日本語の授業に参加したいです。','Nihongo no jugyou ni sanka shitai desu.','何でもいいと思います。','Nandemo ii to omoimasu.','State the specific activity you want to join.'],
+  practice_library_clarify:['A museum receptionist uses the unfamiliar word yoyaku. Ask what it means.','すみません、予約とは何ですか。','Sumimasen, yoyaku to wa nan desu ka.','全部分かるので、説明は要りません。','Zenbu wakaru node, setsumei wa irimasen.','Name the unknown term and request its meaning.'],
+  practice_library_confirm:['A receptionist asks to see your booking email. You have it on your phone.','はい、予約のメールはこちらです。','Hai, yoyaku no meeru wa kochira desu.','メールはどこかにあると思います。','Meeru wa dokoka ni aru to omoimasu.','Present the evidence you have instead of leaving the receptionist unsure.'],
   ward_greeting:['A library staff member calls you to the desk. Politely get their attention.','すみません。よろしくお願いします。','Sumimasen. Yoroshiku onegaishimasu.','おい、こっち。','Oi, kocchi.','A respectful opener suits an unfamiliar staff member; calling out a command does not.'],
   ward_purpose:['At a community center, clearly request information about a Japanese class.','日本語教室について聞きたいのですが。','Nihongo kyoushitsu ni tsuite kikitai no desu ga.','何でもいいです。','Nandemo ii desu.','Name the service you need so the staff member can help.'],
   ward_understanding:['A receptionist uses an unfamiliar word for a form. Ask what the word means.','すみません、その言葉はどういう意味ですか。','Sumimasen, sono kotoba wa dou iu imi desu ka.','はい、全部分かりました。','Hai, zenbu wakarimashita.','Ask about the unknown word rather than claiming to understand it.'],

@@ -1,0 +1,46 @@
+[
+  {
+    "id":"practice_library","title":"Library welcome · Quick practice","background":"wardOffice",
+    "narration":"You and Haru visit a community library. Sumi is the librarian. In four short replies, greet her, explain your purpose, clarify a new word, and present your student card. There is no timer.",
+    "opening":{"character":"HARU","expression":"SMILE","japanese":"図書館の利用登録をしに来ました。すみさんに聞いてみましょう。","romaji":"Toshokan no riyou touroku o shi ni kimashita. Sumi-san ni kiite mimashou."},
+    "culturalNotes":[],
+    "decisions":[
+      {
+        "id":"greet","prompt":"Greet Sumi politely at the library desk.","hint":"Begin with a greeting, not a demand.","playerCharacter":"HARU","playerExpression":"NEUTRAL",
+        "setup":{"character":"SUMI","expression":"SMILE","japanese":"こんにちは。図書館へようこそ。","romaji":"Konnichiwa. Toshokan e youkoso."},
+        "choices":[
+          {"id":"a","japanese":"こんにちは。よろしくお願いします。","romaji":"Konnichiwa. Yoroshiku onegaishimasu.","evaluation":"BEST","points":3,"feedbackTitle":"A polite opening","feedbackWhy":"Your greeting acknowledges Sumi before asking for help.","reaction":{"character":"SUMI","expression":"SMILE","japanese":"こんにちは。どうぞ、ご用件をお聞かせください。","romaji":"Konnichiwa. Douzo, goyouken o okikase kudasai."}},
+          {"id":"b","japanese":"早くして。","romaji":"Hayaku shite.","evaluation":"IMPOLITE","points":0,"feedbackTitle":"Start with a greeting","feedbackWhy":"This demands speed instead of greeting an unfamiliar staff member.","reaction":{"character":"SUMI","expression":"NEUTRAL","japanese":"まず、ご挨拶をしてからお話ししましょう。","romaji":"Mazu, goaisatsu o shite kara ohanashi shimashou."}}
+        ],
+        "timeout":{"character":"HARU","expression":"NEUTRAL","japanese":"練習なので、ゆっくり考えて大丈夫です。","romaji":"Renshuu na node, yukkuri kangaete daijoubu desu."}
+      },
+      {
+        "id":"purpose","prompt":"Tell Sumi you want to borrow a book.","hint":"Name what you want to do: borrow a book.","playerCharacter":"HARU","playerExpression":"NEUTRAL",
+        "setup":{"character":"SUMI","expression":"NEUTRAL","japanese":"本を借りたいですか。それとも、返したいですか。","romaji":"Hon o karitai desu ka. Soretomo, kaeshitai desu ka."},
+        "choices":[
+          {"id":"a","japanese":"本を借りたいです。","romaji":"Hon o karitai desu.","evaluation":"BEST","points":3,"feedbackTitle":"The purpose is clear","feedbackWhy":"This directly answers whether you want to borrow or return a book.","reaction":{"character":"SUMI","expression":"SMILE","japanese":"貸出ですね。初めての方には、登録をご案内します。","romaji":"Kashidashi desu ne. Hajimete no kata ni wa, touroku o goannai shimasu."}},
+          {"id":"b","japanese":"何でもいいです。","romaji":"Nandemo ii desu.","evaluation":"AWKWARD","points":1,"feedbackTitle":"Tell her which service you need","feedbackWhy":"Anything is fine does not tell Sumi that you want to borrow a book.","reaction":{"character":"SUMI","expression":"NEUTRAL","japanese":"借りたいのか、返したいのか教えてください。","romaji":"Karitai no ka, kaeshitai no ka oshiete kudasai."}}
+        ],
+        "timeout":{"character":"HARU","expression":"NEUTRAL","japanese":"借りたいことを、短く伝えましょう。","romaji":"Karitai koto o, mijikaku tsutaemashou."}
+      },
+      {
+        "id":"clarify","prompt":"You do not know what riyou touroku means. Ask Sumi to explain it.","hint":"Name the unfamiliar expression and ask what it means.","playerCharacter":"HARU","playerExpression":"NEUTRAL",
+        "setup":{"character":"SUMI","expression":"NEUTRAL","japanese":"初めて本を借りる方は、利用登録が必要です。","romaji":"Hajimete hon o kariru kata wa, riyou touroku ga hitsuyou desu."},
+        "choices":[
+          {"id":"a","japanese":"すみません、利用登録とは何ですか。","romaji":"Sumimasen, riyou touroku to wa nan desu ka.","evaluation":"BEST","points":3,"feedbackTitle":"Clarify before agreeing","feedbackWhy":"You identify the unfamiliar term, so Sumi knows exactly what to explain.","reaction":{"character":"SUMI","expression":"SMILE","japanese":"本を借りるための登録です。学生証があれば、ここで登録できます。","romaji":"Hon o kariru tame no touroku desu. Gakuseishou ga areba, koko de touroku dekimasu."}},
+          {"id":"b","japanese":"全部分かりました。","romaji":"Zenbu wakarimashita.","evaluation":"AWKWARD","points":1,"feedbackTitle":"Ask about the unknown word","feedbackWhy":"The situation says you do not understand the expression. Claiming to understand prevents clarification.","reaction":{"character":"SUMI","expression":"NEUTRAL","japanese":"分からない言葉があれば、遠慮なく聞いてくださいね。","romaji":"Wakaranai kotoba ga areba, enryo naku kiite kudasai ne."}}
+        ],
+        "timeout":{"character":"HARU","expression":"NEUTRAL","japanese":"分からない言葉は、聞いても大丈夫です。","romaji":"Wakaranai kotoba wa, kiite mo daijoubu desu."}
+      },
+      {
+        "id":"confirm","prompt":"You have your student card. Present it clearly to Sumi.","hint":"Confirm that you have it and present the requested card.","playerCharacter":"HARU","playerExpression":"NEUTRAL",
+        "setup":{"character":"SUMI","expression":"SMILE","japanese":"登録に使う学生証は、お持ちですか。","romaji":"Touroku ni tsukau gakuseishou wa, omochi desu ka."},
+        "choices":[
+          {"id":"a","japanese":"はい、こちらが学生証です。","romaji":"Hai, kochira ga gakuseishou desu.","evaluation":"BEST","points":3,"feedbackTitle":"A clear confirmation","feedbackWhy":"This confirms that you have the requested student card and presents it.","reaction":{"character":"SUMI","expression":"SMILE","japanese":"ありがとうございます。では、こちらで登録しましょう。","romaji":"Arigatou gozaimasu. Dewa, kochira de touroku shimashou."}},
+          {"id":"b","japanese":"たぶんあります。","romaji":"Tabun arimasu.","evaluation":"AWKWARD","points":1,"feedbackTitle":"You can be more definite","feedbackWhy":"You have the card, so present it rather than leaving Sumi unsure.","reaction":{"character":"SUMI","expression":"NEUTRAL","japanese":"確認して、見せていただけますか。","romaji":"Kakunin shite, misete itadakemasu ka."}}
+        ],
+        "timeout":{"character":"HARU","expression":"NEUTRAL","japanese":"学生証を確認して、見せましょう。","romaji":"Gakuseishou o kakunin shite, misemashou."}
+      }
+    ]
+  }
+]
