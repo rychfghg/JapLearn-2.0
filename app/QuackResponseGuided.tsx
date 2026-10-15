@@ -231,7 +231,7 @@ function SpriteActor({
   const blinkOpacity = useRef(new Animated.Value(0)).current;
   const bodyScale = useRef(new Animated.Value(1)).current;
   const neutralSource = sprites[characterKey]?.NEUTRAL;
-  const expressionSource = sprites[characterKey]?.[expressionKey] ?? neutralSource;
+  const expressionSource = sprites[characterKey]?.[expressionKey === 'SPEAKING' ? 'NEUTRAL' : expressionKey] ?? neutralSource;
   const sumiBlush = characterKey === 'SUMI' && ['SMILE', 'HAPPY', 'EMBARRASSED', 'SURPRISED'].includes(expressionKey);
   const sumiSmile = characterKey === 'SUMI' && ['NEUTRAL', 'SMILE', 'HAPPY', 'CORRECT', 'EMBARRASSED', 'SURPRISED'].includes(expressionKey);
   const mouthSource = characterKey === 'SUMI'
@@ -343,7 +343,6 @@ export default function ReplyCoachStory() {
   const [previewChoiceId, setPreviewChoiceId] = useState('');
   const [activeChoiceId, setActiveChoiceId] = useState('');
   const [activeVoiceId, setActiveVoiceId] = useState('');
-  const [showRomaji, setShowRomaji] = useState(false);
   const [showMeaning, setShowMeaning] = useState(false);
   const [listenVisible, setListenVisible] = useState(false);
   const [audioError, setAudioError] = useState('');
@@ -355,6 +354,8 @@ export default function ReplyCoachStory() {
   const supportUsage = useRef<Record<string, string[]>>({});
   const voiceFinish = useRef<(() => void) | null>(null);
   const { height: windowHeight } = useWindowDimensions();
+  const [stageSize, setStageSize] = useState({ width: 360, height: 560 });
+  const panelHeight = stageSize.height * 0.48;
   const fade = useRef(new Animated.Value(0)).current;
   const backgroundMusic = useRef<Audio.Sound | null>(null);
   const backgroundMusicKey = useRef('');
@@ -377,6 +378,8 @@ export default function ReplyCoachStory() {
     : 0;
   const studentName = user?.fname?.trim() || 'friend';
   const latestAnswer = attempt?.answers?.[attempt.answers.length - 1];
+  const selectedRomaji = (answer?: AnswerRecord) => answer ? nodes.get(answer.nodeId)?.choices?.find(choice => choice.japanese === answer.selectedJapanese)?.romaji : '';
+  const bestReply = (answer: AnswerRecord) => nodes.get(answer.nodeId)?.choices?.find(choice => choice.evaluation === 'BEST');
   const decisionId = currentNode?.type === 'CHOICE' ? currentNode.id
     : currentNode?.type === 'REACTION' ? latestAnswer?.nodeId ?? ''
     : (chapter?.nodes ?? []).find(node => node.type === 'CHOICE'
@@ -586,7 +589,6 @@ export default function ReplyCoachStory() {
   useEffect(() => {
     setHintVisible(false);
     setHintUsed(false);
-    setShowRomaji(false);
     setShowMeaning(false);
     setListenVisible(false);
     setAudioError('');
@@ -681,7 +683,6 @@ export default function ReplyCoachStory() {
       setAttempt(response.attempt);
       setSelectedChoice(response.choice);
       setNodeId(response.choice.nextNodeId);
-      setCorrectionVisible(true);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Your response could not be saved.');
     } finally {
@@ -737,7 +738,7 @@ export default function ReplyCoachStory() {
   const continueAfterCorrection = async () => {
     await stopVoice();
     if (example && !exampleVisible) {
-      exampleHelp.current = new Set([showRomaji ? 'romaji' : '', showMeaning ? 'meaning' : ''].filter(Boolean));
+      exampleHelp.current = new Set(showMeaning ? ['meaning'] : []);
       setExampleCorrectIndex(Math.random() < 0.5 ? 0 : 1);
       setExampleAnswer(null);
       setExampleVisible(true);
@@ -837,8 +838,8 @@ export default function ReplyCoachStory() {
           <View style={[styles.progressFill, { width: `${Math.max(2, progress * 100)}%` }]} />
         </View>
 
-        <Animated.View style={[styles.storyStage, { opacity: fade }]}>
-          {currentNode.spritesVisible && !isNarration && (
+        <Animated.View onLayout={({ nativeEvent }) => setStageSize({ width: nativeEvent.layout.width, height: nativeEvent.layout.height })} style={[styles.storyStage, { opacity: fade }]}>
+          {currentNode.spritesVisible !== false && !isNarration && (
             <View style={styles.spriteStage} pointerEvents="none">
               {currentNode.type === 'CHOICE' ? (
                 <>
@@ -846,22 +847,16 @@ export default function ReplyCoachStory() {
                     <SpriteActor
                       characterKey={secondaryChoiceCharacter}
                       expressionKey={currentNode.secondaryExpressionKey}
-                      positionStyle={choicePositionStyleFor(
-                        currentNode.secondaryCharacterPosition,
-                        styles.choiceSpriteLeft,
-                      )}
-                      speaking={false}
+                      positionStyle={choicePositionStyleFor(currentNode.secondaryCharacterPosition, styles.choiceSpriteLeft)}
+                      speaking={context.dialogue.some(line => line.characterKey === secondaryChoiceCharacter && line.id === activeVoiceId)}
                     />
                   )}
                   {primaryChoiceCharacter && sprites[primaryChoiceCharacter] && (
                     <SpriteActor
                       characterKey={primaryChoiceCharacter}
                       expressionKey={currentNode.expressionKey}
-                      positionStyle={choicePositionStyleFor(
-                        currentNode.characterPosition,
-                        styles.choiceSpriteRight,
-                      )}
-                      speaking={false}
+                      positionStyle={choicePositionStyleFor(currentNode.characterPosition, styles.choiceSpriteRight)}
+                      speaking={context.dialogue.some(line => line.characterKey === primaryChoiceCharacter && line.id === activeVoiceId)}
                     />
                   )}
                 </>
@@ -906,7 +901,16 @@ export default function ReplyCoachStory() {
               </View>
             </Pressable>
           ) : currentNode.type === 'CHOICE' ? (
-            <ScrollView style={[styles.decisionPanel, { maxHeight: windowHeight * 0.76 }]} contentContainerStyle={{ paddingBottom: 18 }} keyboardShouldPersistTaps="handled">
+            <>
+            {context.dialogue[0] && <View style={styles.coachSceneBubble}>
+              <ScrollView style={{ maxHeight: stageSize.height * 0.18 }}>
+                <Text style={styles.coachContextLabel}>{context.dialogue[0].speaker}</Text>
+                <Text style={styles.coachPreviewJapanese}>{context.dialogue[0].japanese || context.dialogue[0].text}</Text>
+                <Text style={styles.dialogueRomaji}>{context.dialogue[0].romaji}</Text>
+              </ScrollView>
+              <Pressable disabled={saving} accessibilityLabel="Replay character dialogue" style={styles.choiceAudioButton} onPress={() => replayLine(context.dialogue[0])}><Ionicons name="volume-medium-outline" size={20} color="#8423D9" /></Pressable>
+            </View>}
+            <View style={[styles.decisionPanel, { height: panelHeight }]}>
               <View style={styles.drawerHandle} />
               <View style={styles.decisionHeading}>
                 <View style={styles.decisionIcon}>
@@ -916,6 +920,7 @@ export default function ReplyCoachStory() {
                   <Text style={styles.decisionEyebrow}>YOUR TURN</Text>
                   <Text style={styles.decisionTitle}>{currentNode.title || 'What would you say?'}</Text>
                 </View>
+                <Pressable accessibilityRole="button" accessibilityLabel="Back to listen again" disabled={saving} style={styles.coachTool} onPress={() => { markSupport('dialogueReview'); setListenVisible(true); }}><Ionicons name="volume-medium-outline" size={20} color="#8423D9" /></Pressable>
                 <Pressable
                   style={styles.hintButton}
                   onPress={() => {
@@ -928,34 +933,11 @@ export default function ReplyCoachStory() {
                   <Text style={styles.hintButtonText}>Hint</Text>
                 </Pressable>
               </View>
-              <View style={styles.coachContext}>
-                <Text style={styles.coachContextLabel}>SETTING · {context.scene?.title || currentNode.backgroundKey || chapter.title}</Text>
-                <Text style={styles.coachContextText}>Partner: {getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker || currentNode.characterKey || 'Your conversation partner'}</Text>
-                {Boolean(context.scene?.text) && <Text style={styles.coachContextText}>{context.scene?.text}</Text>}
-                <Text style={styles.coachContextText}>Goal: {currentNode.text || currentNode.title}</Text>
-              </View>
-              {context.dialogue.map(line => (
-                <View key={line.id} style={styles.coachLine}>
-                  <View style={styles.coachLineHeading}>
-                    <Text style={styles.coachContextLabel}>{line.speaker || line.title}</Text>
-                    <Pressable accessibilityRole="button" accessibilityLabel={`Replay ${line.speaker || 'character'} line`} disabled={saving} style={styles.coachTool} onPress={() => replayLine(line)}>
-                      <Ionicons name="volume-medium-outline" size={17} color="#8423D9" /><Text style={styles.coachToolText}>Replay</Text>
-                    </Pressable>
-                  </View>
-                  <Text style={styles.dialogueJapanese}>{line.japanese || line.text}</Text>
-                  {showRomaji && <Text style={styles.dialogueRomaji}>{line.romaji}</Text>}
-                  {showMeaning && <Text style={styles.dialogueText}>{line.text}</Text>}
-                </View>
-              ))}
-              <View style={styles.coachTools}>
-                <Pressable accessibilityRole="button" disabled={saving} style={styles.coachTool} onPress={() => { markSupport('dialogueReview'); setListenVisible(true); }}><Ionicons name="return-up-back-outline" size={17} color="#8423D9" /><Text style={styles.coachToolText}>Back to listen</Text></Pressable>
-                <Pressable accessibilityRole="button" accessibilityState={{ selected: showRomaji }} disabled={saving} style={styles.coachTool} onPress={() => { if (!showRomaji) markSupport('romaji'); setShowRomaji(value => !value); }}><Text style={styles.coachToolText}>{showRomaji ? 'Hide Romaji' : 'Romaji'}</Text></Pressable>
-                <Pressable accessibilityRole="button" accessibilityState={{ selected: showMeaning }} disabled={saving} style={styles.coachTool} onPress={() => { if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
-              </View>
+              <Text style={styles.coachSceneSummary} numberOfLines={1}>{context.scene?.title || currentNode.backgroundKey} · {getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker}</Text>
+              <Text style={styles.decisionPrompt} numberOfLines={2}>{currentNode.text}</Text>
               {Boolean(audioError) && <Text accessibilityRole="alert" style={styles.coachNotice}>{audioError}</Text>}
-              <Text style={styles.decisionPrompt}>Choose your reply · no timer</Text>
               {Boolean(error) && <Text accessibilityRole="alert" style={styles.coachNotice}>{error} Please try your reply again.</Text>}
-              <View style={styles.choiceList}>
+              <ScrollView style={styles.coachChoiceScroll} contentContainerStyle={styles.choiceList} showsVerticalScrollIndicator keyboardShouldPersistTaps="handled">
                 {choiceOrder.map((choice, index) => (
                   <Pressable
                     key={choice.id}
@@ -974,7 +956,7 @@ export default function ReplyCoachStory() {
                     </View>
                     <View style={styles.choiceCopy}>
                       <Text style={styles.choiceJapanese}>{choice.japanese}</Text>
-                      {showRomaji && <Text style={styles.choiceRomaji}>{choice.romaji}</Text>}
+                      <Text style={styles.choiceRomaji}>{choice.romaji}</Text>
                       {showMeaning && <Text style={styles.dialogueText}>{choice.text}</Text>}
                     </View>
                     <Pressable
@@ -1000,8 +982,9 @@ export default function ReplyCoachStory() {
                     <Ionicons name="chevron-forward" size={19} color="#A58CAF" />
                   </Pressable>
                 ))}
-              </View>
-            </ScrollView>
+              </ScrollView>
+            </View>
+            </>
           ) : currentNode.type === 'ENDING' ? (
             <View style={styles.endingCard}>
               <Ionicons name="ribbon-outline" size={48} color="#8423D9" />
@@ -1017,11 +1000,10 @@ export default function ReplyCoachStory() {
               style={[
                 styles.speechBubbleArea,
                 styles.speechBubbleCentered,
-                { maxHeight: windowHeight * 0.54 },
               ]}
               onPress={() => isReaction ? setCorrectionVisible(true) : moveTo(currentNode.nextNodeId)}
             >
-              <ScrollView style={[styles.speechBubble, { maxHeight: windowHeight * 0.5 }]}>
+              <ScrollView style={[styles.speechBubble, { maxHeight: windowHeight * 0.24 }]}>
                 <View
                   style={[
                     styles.speechTail,
@@ -1044,7 +1026,7 @@ export default function ReplyCoachStory() {
                     {currentNode.japanese}
                   </Text>
                 )}
-                {showRomaji && Boolean(currentNode.romaji) && (
+                {Boolean(currentNode.romaji) && (
                   <Text style={styles.dialogueRomaji} numberOfLines={2} maxFontSizeMultiplier={1.05}>
                     {currentNode.romaji}
                   </Text>
@@ -1052,7 +1034,6 @@ export default function ReplyCoachStory() {
                 {showMeaning && <Text style={styles.dialogueText}>{currentNode.text}</Text>}
                 <View style={styles.coachTools}>
                   <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); replayLine(currentNode); }}><Ionicons name="volume-medium-outline" size={17} color="#8423D9" /><Text style={styles.coachToolText}>Replay</Text></Pressable>
-                  <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); if (!showRomaji) markSupport('romaji'); setShowRomaji(value => !value); }}><Text style={styles.coachToolText}>{showRomaji ? 'Hide Romaji' : 'Romaji'}</Text></Pressable>
                   <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
                 </View>
                 {Boolean(audioError) && <Text style={styles.coachNotice}>{audioError}</Text>}
@@ -1073,10 +1054,14 @@ export default function ReplyCoachStory() {
             <ScrollView style={{ alignSelf: 'stretch' }}>
               <Text style={styles.hintTitle}>Listen again</Text>
               <Text style={styles.hintText}>{context.scene?.title} · Your answer is not submitted.</Text>
+              <Text style={styles.coachContextText}>Partner: {getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker}</Text>
+              <Text style={styles.coachContextText}>Goal: {currentNode.text}</Text>
+              <Text style={styles.coachContextText}>{context.scene?.text}</Text>
+              <Pressable style={styles.coachTool} onPress={() => { if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Show meaning'}</Text></Pressable>
               {context.dialogue.map(line => <View key={line.id} style={styles.coachLine}>
                 <Text style={styles.coachContextLabel}>{line.speaker || line.title}</Text>
                 <Text style={styles.dialogueJapanese}>{line.japanese || line.text}</Text>
-                {showRomaji && <Text style={styles.dialogueRomaji}>{line.romaji}</Text>}
+                <Text style={styles.dialogueRomaji}>{line.romaji}</Text>
                 {showMeaning && <Text style={styles.dialogueText}>{line.text}</Text>}
                 <Pressable accessibilityRole="button" style={styles.coachTool} onPress={() => replayLine(line)}><Ionicons name="volume-medium-outline" size={18} color="#8423D9" /><Text style={styles.coachToolText}>Replay line</Text></Pressable>
               </View>)}
@@ -1145,14 +1130,13 @@ export default function ReplyCoachStory() {
               {Boolean(error) && <Text accessibilityRole="alert" style={styles.coachNotice}>{error}</Text>}
               <Text style={styles.hintText}>{example[0]}</Text>
               <View style={styles.coachTools}>
-                <Pressable disabled={saving || exampleAnswer !== null} style={styles.coachTool} onPress={() => { if (!showRomaji) exampleHelp.current.add('romaji'); setShowRomaji(value => !value); }}><Text style={styles.coachToolText}>{showRomaji ? 'Hide Romaji' : 'Romaji'}</Text></Pressable>
                 <Pressable disabled={saving || exampleAnswer !== null} style={styles.coachTool} onPress={() => { if (!showMeaning) exampleHelp.current.add('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
               </View>
               {[0, 1].map(index => {
                 const correct = index === exampleCorrectIndex;
                 return <Pressable key={index} disabled={saving || exampleAnswer !== null} style={[styles.coachExample, exampleAnswer === index && styles.choiceSelected]} onPress={() => saveExample(index)}>
                   <Text style={styles.choiceJapanese}>{example[correct ? 1 : 4]}</Text>
-                  {showRomaji && <Text style={styles.choiceRomaji}>{example[correct ? 2 : 5]}</Text>}
+                  <Text style={styles.choiceRomaji}>{example[correct ? 2 : 5]}</Text>
                   {showMeaning && <Text style={styles.dialogueText}>{example[correct ? 3 : 6]}</Text>}
                 </Pressable>;
               })}
@@ -1196,11 +1180,13 @@ export default function ReplyCoachStory() {
                 <View style={styles.answerComparisonColumn}>
                   <Text style={styles.answerComparisonLabel}>YOUR REPLY</Text>
                   <Text style={styles.answerComparisonValue}>{latestAnswer.selectedJapanese}</Text>
+                  <Text style={styles.choiceRomaji}>{selectedRomaji(latestAnswer)}</Text>
                 </View>
                 {latestAnswer.evaluation !== 'BEST' && (
                   <View style={styles.answerComparisonColumn}>
                     <Text style={styles.answerComparisonLabel}>BEST REPLY</Text>
-                    <Text style={styles.answerComparisonValue}>{latestAnswer.bestResponse}</Text>
+                    <Text style={styles.answerComparisonValue}>{bestReply(latestAnswer)?.japanese || latestAnswer.bestResponse.split(' · ')[0]}</Text>
+                    <Text style={styles.choiceRomaji}>{bestReply(latestAnswer)?.romaji || latestAnswer.bestResponse.split(' · ')[1]}</Text>
                   </View>
                 )}
               </View>
@@ -1301,10 +1287,12 @@ export default function ReplyCoachStory() {
                   <Text style={styles.reviewPrompt}>{answer.prompt}</Text>
                   <Text style={styles.coachNotice}>{answer.supported === true ? `Supported practice · ${(answer.helpTypes ?? []).join(', ')}` : answer.supported === false ? 'Independent first answer' : 'Earlier answer · support usage not fully tracked'}</Text>
                   <Text style={styles.reviewSelected}>{answer.selectedJapanese}</Text>
+                  <Text style={styles.choiceRomaji}>{selectedRomaji(answer)}</Text>
                   {answer.evaluation !== 'BEST' && (
                     <View style={styles.bestAnswerBox}>
                       <Text style={styles.bestAnswerLabel}>BEST RESPONSE</Text>
-                      <Text style={styles.bestAnswerText}>{answer.bestResponse}</Text>
+                      <Text style={styles.bestAnswerText}>{bestReply(answer)?.japanese || answer.bestResponse.split(' · ')[0]}</Text>
+                      <Text style={styles.choiceRomaji}>{bestReply(answer)?.romaji || answer.bestResponse.split(' · ')[1]}</Text>
                     </View>
                   )}
                   <Text style={styles.reviewExplanation}>{getCoachExplanation(answer)}</Text>

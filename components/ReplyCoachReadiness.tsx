@@ -5,7 +5,7 @@ import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackResponseGuided';
 import { coachExamples } from '../services/replyCoachPractice';
 
-type Review = { questionId: string; skill: string; prompt: string; correct: boolean; supported: boolean; explanation: string; bestReply: string; practiceNumber: number };
+type Review = { questionId: string; skill: string; prompt: string; correct: boolean; supported: boolean; explanation: string; bestReply: string; bestRomaji: string; practiceNumber: number };
 type Check = {
   status: 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED'; runId?: string; answered: number; ready: boolean;
   policy: { thresholdPercent: number; questionCount: number; label: string }; passed?: boolean; correct?: number; supported?: number;
@@ -62,13 +62,13 @@ export default function ReplyCoachReadiness({ attemptId, email, onClose }: { att
         {!check && !error && <ActivityIndicator color="#8423D9" />}
         {check && <>
           <Text style={styles.coachNotice}>{check.policy.label}</Text>
-          <Text style={styles.coachContextText}>{check.policy.questionCount} questions · no timer. Answer at least {check.policy.thresholdPercent}% correctly without Romaji or meaning support to demonstrate readiness. Using support is allowed, but that check becomes supported practice.</Text>
+          <Text style={styles.coachContextText}>{check.policy.questionCount} questions · no timer. Romaji is included below Japanese. Answer at least {check.policy.thresholdPercent}% correctly without optional meaning support to demonstrate readiness. Using meaning support is allowed, but that check becomes supported practice.</Text>
           <Text style={styles.coachNotice}>Text-only scenarios · separate from your chapter practice score.</Text>
           {check.status === 'NOT_STARTED' && <Pressable disabled={busy} style={styles.primaryButton} onPress={() => act({ action: 'start' })}><Text style={styles.primaryButtonText}>Start readiness check</Text></Pressable>}
           {check.status === 'IN_PROGRESS' && question && <>
             <Text style={styles.hintTitle}>Question {check.answered + 1} of {check.policy.questionCount}</Text>
             <Text style={styles.hintText}>{question.prompt}</Text>
-            <View style={styles.coachTools}>{['romaji', 'meaning'].map(help => <Pressable key={help} disabled={busy || question.helpTypes.includes(help)} style={styles.coachTool} onPress={() => act({ action: 'support', runId: check.runId!, questionId: question.id, helpType: help })}><Text style={styles.coachToolText}>{question.helpTypes.includes(help) ? `${help} shown` : `Show ${help}`}</Text></Pressable>)}</View>
+            <View style={styles.coachTools}>{['meaning'].map(help => <Pressable key={help} disabled={busy || question.helpTypes.includes(help)} style={styles.coachTool} onPress={() => act({ action: 'support', runId: check.runId!, questionId: question.id, helpType: help })}><Text style={styles.coachToolText}>{question.helpTypes.includes(help) ? `${help} shown` : `Show ${help}`}</Text></Pressable>)}</View>
             {question.helpTypes.length > 0 && <Text style={styles.coachNotice}>Support used · this answer will not count as independent.</Text>}
             {question.choices.map(choice => <Pressable key={choice.id} disabled={busy} style={styles.coachExample} onPress={() => act({ action: 'answer', runId: check.runId!, questionId: question.id, choiceId: choice.id })}><Text style={styles.choiceJapanese}>{choice.japanese}</Text>{Boolean(choice.romaji) && <Text style={styles.choiceRomaji}>{choice.romaji}</Text>}{Boolean(choice.meaning) && <Text style={styles.dialogueText}>{choice.meaning}</Text>}</Pressable>)}
             <Text style={styles.coachNotice}>Feedback appears after all questions. Each answer is saved; you can return later.</Text>
@@ -76,14 +76,14 @@ export default function ReplyCoachReadiness({ attemptId, email, onClose }: { att
           {check.status === 'COMPLETED' && <>
             <Text style={styles.hintTitle}>{check.passed ? 'Ready for the next activities' : 'Let’s strengthen these skills'}</Text>
             <Text style={styles.hintText}>{check.correct}/{check.policy.questionCount} correct · {check.supported} supported</Text>
-            {check.review?.map(item => <View key={item.questionId} style={styles.reviewCard}><Text style={styles.coachContextLabel}>{item.skill} · {item.correct ? 'Correct' : 'Review'}{item.supported ? ' · supported' : ''}</Text><Text style={styles.reviewPrompt}>{item.prompt}</Text><Text style={styles.bestAnswerText}>{item.bestReply}</Text><Text style={styles.reviewExplanation}>{item.explanation}</Text></View>)}
+            {check.review?.map(item => <View key={item.questionId} style={styles.reviewCard}><Text style={styles.coachContextLabel}>{item.skill} · {item.correct ? 'Correct' : 'Review'}{item.supported ? ' · supported' : ''}</Text><Text style={styles.reviewPrompt}>{item.prompt}</Text><Text style={styles.bestAnswerText}>{item.bestReply}</Text><Text style={styles.choiceRomaji}>{item.bestRomaji}</Text><Text style={styles.reviewExplanation}>{item.explanation}</Text></View>)}
             {!check.passed && <>
               <Text style={styles.hintTitle}>Targeted practice</Text>
               <Text style={styles.coachNotice}>Practice the missed or supported skills below, then try a different set. Your previous check stays saved.</Text>
               {needed.map(number => { const example = coachExamples[number - 1]; const done = check.practicedQuestions?.includes(`practice-${number}`); const help = practiceHelp[number] ?? []; return <View key={number} style={styles.reviewCard}>
                 <Text style={styles.reviewPrompt}>{example[0]}</Text>
-                <View style={styles.coachTools}>{['romaji', 'meaning'].map(type => <Pressable key={type} disabled={done} style={styles.coachTool} onPress={() => setPracticeHelp(value => ({ ...value, [number]: [...new Set([...help, type])] }))}><Text style={styles.coachToolText}>Show {type}</Text></Pressable>)}</View>
-                {[false, true].map((correct, index) => <Pressable key={index} disabled={busy || done} style={styles.coachExample} onPress={() => practice(number, correct)}><Text style={styles.choiceJapanese}>{example[correct ? 1 : 4]}</Text>{help.includes('romaji') && <Text style={styles.choiceRomaji}>{example[correct ? 2 : 5]}</Text>}{help.includes('meaning') && <Text style={styles.dialogueText}>{example[correct ? 3 : 6]}</Text>}</Pressable>)}
+                <View style={styles.coachTools}>{['meaning'].map(type => <Pressable key={type} disabled={done} style={styles.coachTool} onPress={() => setPracticeHelp(value => ({ ...value, [number]: [...new Set([...help, type])] }))}><Text style={styles.coachToolText}>Show {type}</Text></Pressable>)}</View>
+                {[false, true].map((correct, index) => <Pressable key={index} disabled={busy || done} style={styles.coachExample} onPress={() => practice(number, correct)}><Text style={styles.choiceJapanese}>{example[correct ? 1 : 4]}</Text><Text style={styles.choiceRomaji}>{example[correct ? 2 : 5]}</Text>{help.includes('meaning') && <Text style={styles.dialogueText}>{example[correct ? 3 : 6]}</Text>}</Pressable>)}
                 {done && <Text style={styles.reviewExplanation}>{practiceAnswers[number] === false ? 'Review: ' : 'Practice saved. '}{example[7]}</Text>}
               </View>; })}
               <Pressable disabled={busy || !practiceDone} style={[styles.primaryButton, !practiceDone && { opacity: 0.5 }]} onPress={() => { setPracticeAnswers({}); setPracticeHelp({}); void act({ action: 'start' }); }}><Text style={styles.primaryButtonText}>Try a different readiness set</Text></Pressable>

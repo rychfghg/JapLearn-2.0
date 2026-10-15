@@ -4,6 +4,11 @@ const { width, height } = Dimensions.get('window');
 const compact = height < 720;
 
 export default StyleSheet.create({
+  coachChoiceScroll: { flex: 1, minHeight: 0 },
+  coachCompactTools: { flexDirection: 'row', gap: 6, marginBottom: 5 },
+  coachSceneSummary: { fontSize: 10, lineHeight: 14, color: '#7A6389', marginTop: 3 },
+  coachSceneBubble: { position: 'absolute', left: '5%', right: '5%', top: 6, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.96)', padding: 10, flexDirection: 'row', alignItems: 'center', zIndex: 5 },
+  coachPreviewJapanese: { fontSize: 15, lineHeight: 20, color: '#351A4A' },
   coachContext: { borderRadius: 14, padding: 12, backgroundColor: '#F0E8F8', marginTop: 10 },
   coachContextLabel: { fontSize: 11, color: '#71449A', lineHeight: 17 },
   coachContextText: { fontSize: 13, lineHeight: 19, color: '#493254', marginTop: 3 },
