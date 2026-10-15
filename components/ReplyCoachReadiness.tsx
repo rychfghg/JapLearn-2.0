@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackResponseGuided';
 import { coachExamples } from '../services/replyCoachPractice';
+import { shuffleOptions } from '../services/shuffleOptions';
 
 type Review = { questionId: string; skill: string; prompt: string; correct: boolean; supported: boolean; explanation: string; bestReply: string; bestRomaji: string; practiceNumber: number };
 type Check = {
@@ -20,6 +21,11 @@ export default function ReplyCoachReadiness({ attemptId, email, onClose }: { att
   const [practiceAnswers, setPracticeAnswers] = useState<Record<number, boolean>>({});
   const [practiceHelp, setPracticeHelp] = useState<Record<number, string[]>>({});
   const lock = useRef(false);
+  const practiceOrder=useRef<Record<string,boolean[]>>({});
+  const choicesFor=(number:number)=>{
+    const key=`${check?.runId}:${number}`;
+    return practiceOrder.current[key]??(practiceOrder.current[key]=shuffleOptions([false,true]));
+  };
   const request = async (body?: Record<string, string>) => {
     const response = await fetch(`${expoconfig.API_URL}/api/reply-coach/readiness${body ? '' : `?attemptId=${encodeURIComponent(attemptId)}&email=${encodeURIComponent(email)}`}`, body ? {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ attemptId, email, ...body }),
@@ -83,7 +89,7 @@ export default function ReplyCoachReadiness({ attemptId, email, onClose }: { att
               {needed.map(number => { const example = coachExamples[number - 1]; const done = check.practicedQuestions?.includes(`practice-${number}`); const help = practiceHelp[number] ?? []; return <View key={number} style={styles.reviewCard}>
                 <Text style={styles.reviewPrompt}>{example[0]}</Text>
                 <View style={styles.coachTools}>{['meaning'].map(type => <Pressable key={type} disabled={done} style={styles.coachTool} onPress={() => setPracticeHelp(value => ({ ...value, [number]: [...new Set([...help, type])] }))}><Text style={styles.coachToolText}>Show {type}</Text></Pressable>)}</View>
-                {[false, true].map((correct, index) => <Pressable key={index} disabled={busy || done} style={styles.coachExample} onPress={() => practice(number, correct)}><Text style={styles.choiceJapanese}>{example[correct ? 1 : 4]}</Text><Text style={styles.choiceRomaji}>{example[correct ? 2 : 5]}</Text>{help.includes('meaning') && <Text style={styles.dialogueText}>{example[correct ? 3 : 6]}</Text>}</Pressable>)}
+                {choicesFor(number).map((correct, index) => <Pressable key={index} disabled={busy || done} style={styles.coachExample} onPress={() => practice(number, correct)}><Text style={styles.choiceJapanese}>{example[correct ? 1 : 4]}</Text><Text style={styles.choiceRomaji}>{example[correct ? 2 : 5]}</Text>{help.includes('meaning') && <Text style={styles.dialogueText}>{example[correct ? 3 : 6]}</Text>}</Pressable>)}
                 {done && <Text style={styles.reviewExplanation}>{practiceAnswers[number] === false ? 'Review: ' : 'Practice saved. '}{example[7]}</Text>}
               </View>; })}
               <Pressable disabled={busy || !practiceDone} style={[styles.primaryButton, !practiceDone && { opacity: 0.5 }]} onPress={() => { setPracticeAnswers({}); setPracticeHelp({}); void act({ action: 'start' }); }}><Text style={styles.primaryButtonText}>Try a different readiness set</Text></Pressable>

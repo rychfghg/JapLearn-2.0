@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
+import { shuffleOptions as shuffle } from '../services/shuffleOptions';
 import styles from '../styles/stylesQuackResponseGuided';
 import QuackSituateExit from '../components/QuackSituateExit';
 import replyCoachAudio from './replyCoachAudio';
@@ -185,15 +186,6 @@ const evaluationTheme: Record<Evaluation, { label: string; color: string; icon: 
   AWKWARD: { label: 'Awkward', color: '#D89525', icon: 'help-circle' },
   IMPOLITE: { label: 'Impolite', color: '#D4635D', icon: 'alert-circle' },
   RUDE: { label: 'Rude / offensive', color: '#B83B55', icon: 'close-circle' },
-};
-
-const shuffle = <T,>(items: T[]) => {
-  const copy = [...items];
-  for (let index = copy.length - 1; index > 0; index -= 1) {
-    const target = Math.floor(Math.random() * (index + 1));
-    [copy[index], copy[target]] = [copy[target], copy[index]];
-  }
-  return copy;
 };
 
 const positionStyleFor = (position?: CharacterPosition, fallback?: any) => {
@@ -376,8 +368,8 @@ export default function ReplyCoachStory() {
   const currentNode = nodes.get(nodeId);
   const choiceOrder = useMemo(() => {
     const choices = currentNode?.choices ?? [];
-    return currentNode?.shuffleChoices ? shuffle(choices) : choices;
-  }, [currentNode?.id]);
+    return shuffle(choices);
+  }, [attempt?.id,currentNode?.id,currentNode?.choices]);
   const fitted = replyCoachLayout(stageSize.width, stageSize.height, choiceOrder);
   const panelHeight = fitted.panelHeight;
   const activePage = Math.min(choicePage, fitted.pages - 1);
@@ -721,15 +713,6 @@ export default function ReplyCoachStory() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const replay = async () => {
-    setResultsVisible(false);
-    setReviewVisible(false);
-    setChapter(null);
-    setAttempt(null);
-    setNodeId('');
-    await loadStory(true);
   };
 
   const saveExample = async (index: number) => {
@@ -1261,9 +1244,6 @@ export default function ReplyCoachStory() {
                 <Text style={styles.primaryButtonText}>Review my decisions</Text>
               </Pressable>
               {chapter.title === 'A Day of First Impressions' && <Pressable style={styles.primaryButton} onPress={() => { setResultsVisible(false); setReadinessVisible(true); }}><Ionicons name="checkmark-done-outline" size={20} color="#FFFFFF" /><Text style={styles.primaryButtonText}>Check my readiness</Text></Pressable>}
-              <Pressable style={styles.secondaryButton} onPress={replay}>
-                <Text style={styles.secondaryButtonText}>Replay chapter</Text>
-              </Pressable>
               <Pressable style={styles.textButtonWrap} onPress={() => router.replace('/QuackResponse')}>
                 <Text style={styles.textButton}>Return to Reply Coach</Text>
               </Pressable>
