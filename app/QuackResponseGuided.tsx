@@ -41,7 +41,7 @@ const coachUI=StyleSheet.create({
   speaker:{flex:1,fontFamily:'Jua',fontSize:14,color:'#512B65'},
   replay:{minHeight:36,paddingHorizontal:10,borderRadius:12,backgroundColor:'#F2E9FA',flexDirection:'row',alignItems:'center',gap:5},
   replayText:{fontSize:12,color:'#8423D9'},japanese:{color:'#351A4A'},
-  romaji:{fontSize:12,lineHeight:18,color:'#8423D9',marginTop:4},
+  romaji:{fontSize:12.5,lineHeight:17,color:'#8423D9',marginTop:2},
   task:{color:'#584260',fontSize:12,lineHeight:17,marginVertical:6},
   choice:{borderWidth:1,borderColor:'#E6D9EB',borderRadius:16,shadowOpacity:.04}
 });
@@ -1060,7 +1060,7 @@ export default function ReplyCoachStory() {
                 </View>
                 {Boolean(currentNode.japanese) && (
                   <Text
-                    style={[styles.dialogueJapanese, { fontSize: fitted.short ? 15 : 18, lineHeight: fitted.short ? 20 : 24 }]}
+                    style={[styles.dialogueJapanese, { fontFamily: undefined, fontSize: fitted.short ? 16 : 19, lineHeight: fitted.short ? 22 : 26 }]}
                     maxFontSizeMultiplier={1.1}
                   >
                     {currentNode.japanese}
@@ -1071,9 +1071,10 @@ export default function ReplyCoachStory() {
                     {currentNode.romaji}
                   </Text>
                 )}
+                {showMeaning && Boolean(currentNode.text) && <Text style={styles.coachMeaning}>{currentNode.text}</Text>}
                 <View style={styles.coachTools}>
-                  <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); reenactConversation(); }}><Ionicons name="volume-medium-outline" size={17} color="#8423D9" /><Text style={styles.coachToolText}>Replay</Text></Pressable>
-                  <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); markSupport('meaning'); setShowMeaning(true); setListenLine(currentNode); setListenVisible(true); }}><Text style={styles.coachToolText}>Meaning</Text></Pressable>
+                  <Pressable accessibilityRole="button" accessibilityLabel="Replay the conversation" style={styles.coachTool} onPress={event => { event.stopPropagation(); reenactConversation(); }}><Ionicons name="volume-medium-outline" size={15} color="#8423D9" /><Text style={styles.coachToolText}>Replay</Text></Pressable>
+                  <Pressable accessibilityRole="button" accessibilityLabel={showMeaning ? 'Hide meaning' : 'Show meaning'} style={[styles.coachTool, showMeaning && styles.coachToolActive]} onPress={event => { event.stopPropagation(); if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Ionicons name={showMeaning ? 'eye-off-outline' : 'language-outline'} size={15} color={showMeaning ? '#FFFFFF' : '#8423D9'} /><Text style={[styles.coachToolText, showMeaning && styles.coachToolTextActive]}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
                 </View>
                 {Boolean(audioError) && <Text style={styles.coachNotice}>{audioError}</Text>}
                 {isReaction && <Text style={styles.reactionAddress}>{studentName}</Text>}
@@ -1096,25 +1097,30 @@ export default function ReplyCoachStory() {
       ]} onStart={()=>setInstructionsVisible(false)} onLeave={()=>router.replace({pathname:'/QuackResponse',params:{skipLoading:'1'}})}/>
       <Modal visible={listenVisible} transparent animationType="fade" onRequestClose={() => { void stopVoice(); setListenVisible(false); }}>
         <View style={styles.modalBackdrop}>
-          <View style={styles.feedbackCard}>
+          <View style={styles.listenCard}>
+            <View style={styles.listenHeader}>
+              <Text style={styles.listenTitle}>Listen again</Text>
+              <Pressable accessibilityRole="button" accessibilityLabel="Close" style={styles.listenClose} onPress={() => { void stopVoice(); setListenVisible(false); }}><Ionicons name="close" size={18} color="#71449A" /></Pressable>
+            </View>
             <ScrollView style={{ alignSelf: 'stretch' }}>
-              <Text style={styles.hintTitle}>Listen again</Text>
               {!listenLine && <><Text style={styles.hintText}>{context.scene?.title} · Your answer is not submitted.</Text>
               <Text style={styles.coachContextText}>Partner: {getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker}</Text>
               <Text style={styles.coachContextText}>Goal: {currentNode.text}</Text>
               <Text style={styles.coachContextText}>{context.scene?.text}</Text></>}
-              <Pressable style={styles.coachTool} onPress={() => { if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Show meaning'}</Text></Pressable>
+              <View style={styles.coachTools}><Pressable accessibilityRole="button" style={[styles.coachTool, showMeaning && styles.coachToolActive]} onPress={() => { if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Ionicons name={showMeaning ? 'eye-off-outline' : 'language-outline'} size={15} color={showMeaning ? '#FFFFFF' : '#8423D9'} /><Text style={[styles.coachToolText, showMeaning && styles.coachToolTextActive]}>{showMeaning ? 'Hide meaning' : 'Show meaning'}</Text></Pressable></View>
               {(listenLine ? [listenLine] : context.dialogue).map(line => <View key={line.id} style={styles.coachLine}>
-                <Text style={styles.coachContextLabel}>{line.speaker || line.title}</Text>
-                <Text style={styles.dialogueJapanese}>{line.japanese || line.text}</Text>
-                <Text style={styles.dialogueRomaji}>{line.romaji}</Text>
-                {showMeaning && <Text style={styles.dialogueText}>{line.text}</Text>}
-                <Pressable accessibilityRole="button" style={styles.coachTool} onPress={() => replayLine(line)}><Ionicons name="volume-medium-outline" size={18} color="#8423D9" /><Text style={styles.coachToolText}>Replay line</Text></Pressable>
+                <View style={styles.coachLineBody}>
+                  <Text style={styles.coachLineSpeaker}>{line.speaker || line.title}</Text>
+                  <Text style={styles.coachLineJapanese}>{line.japanese || line.text}</Text>
+                  {Boolean(line.romaji) && <Text style={styles.coachLineRomaji}>{line.romaji}</Text>}
+                  {showMeaning && <Text style={styles.coachMeaning}>{line.text}</Text>}
+                </View>
+                <Pressable accessibilityRole="button" accessibilityLabel="Replay line" style={styles.coachLinePlay} onPress={() => replayLine(line)}><Ionicons name="volume-medium" size={18} color="#8423D9" /></Pressable>
               </View>)}
               {!listenLine && !context.dialogue.length && <Text style={styles.hintText}>No earlier spoken line is available for this decision. Review the setting and goal instead.</Text>}
               {Boolean(audioError) && <Text style={styles.coachNotice}>{audioError}</Text>}
             </ScrollView>
-            <Pressable style={styles.primaryButton} onPress={() => { void stopVoice(); setListenVisible(false); }}><Text style={styles.primaryButtonText}>Return to my reply</Text></Pressable>
+            <Pressable style={[styles.primaryButton, { minHeight: 46 }]} onPress={() => { void stopVoice(); setListenVisible(false); }}><Text style={styles.primaryButtonText}>Back to my reply</Text></Pressable>
           </View>
         </View>
       </Modal>
@@ -1176,14 +1182,14 @@ export default function ReplyCoachStory() {
               {Boolean(error) && <Text accessibilityRole="alert" style={styles.coachNotice}>{error}</Text>}
               <Text style={styles.hintText}>{example[0]}</Text>
               <View style={styles.coachTools}>
-                <Pressable disabled={saving || exampleAnswer !== null} style={styles.coachTool} onPress={() => { if (!showMeaning) exampleHelp.current.add('meaning'); setShowMeaning(value => !value); }}><Text style={styles.coachToolText}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
+                <Pressable disabled={saving || exampleAnswer !== null} style={[styles.coachTool, showMeaning && styles.coachToolActive]} onPress={() => { if (!showMeaning) exampleHelp.current.add('meaning'); setShowMeaning(value => !value); }}><Ionicons name={showMeaning ? 'eye-off-outline' : 'language-outline'} size={15} color={showMeaning ? '#FFFFFF' : '#8423D9'} /><Text style={[styles.coachToolText, showMeaning && styles.coachToolTextActive]}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
               </View>
               {[0, 1].map(index => {
                 const correct = index === exampleCorrectIndex;
                 return <Pressable key={index} disabled={saving || exampleAnswer !== null} style={[styles.coachExample, exampleAnswer === index && styles.choiceSelected]} onPress={() => saveExample(index)}>
                   <Text style={styles.choiceJapanese}>{example[correct ? 1 : 4]}</Text>
                   <Text style={styles.choiceRomaji}>{example[correct ? 2 : 5]}</Text>
-                  {showMeaning && <Text style={styles.dialogueText}>{example[correct ? 3 : 6]}</Text>}
+                  {showMeaning && <Text style={styles.coachMeaning}>{example[correct ? 3 : 6]}</Text>}
                 </Pressable>;
               })}
               {exampleAnswer !== null && <View style={styles.explanationBox}><Text style={styles.explanationLabel}>{exampleAnswer === exampleCorrectIndex ? 'THAT FITS' : 'COMPARE THE CONTEXT'}</Text><Text style={styles.explanationText}>{example[7]}</Text><Text style={styles.explanationText}>A fitting reply: {example[1]}</Text></View>}

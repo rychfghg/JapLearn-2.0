@@ -5,8 +5,10 @@ import styles from '../styles/stylesQuackResponseGuided';
 import {rushFollowups,rushSkill} from '../services/replyRushFollowups';
 import {shuffleOptions} from '../services/shuffleOptions';
 export type RushReviewAnswer={nodeId:string;selectedJapanese:string};
-export default function ReplyRushReview({visible,nodeIds,onClose,onSave}:{visible:boolean;nodeIds:string[];onClose:()=>void;onSave:(answers:RushReviewAnswer[])=>Promise<void>}){
+export default function ReplyRushReview({visible,nodeIds:allNodeIds,onClose,onSave}:{visible:boolean;nodeIds:string[];onClose:()=>void;onSave:(answers:RushReviewAnswer[])=>Promise<void>}){
   const [index,setIndex]=useState(0),[answers,setAnswers]=useState<RushReviewAnswer[]>([]),[selected,setSelected]=useState<boolean|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+  // Only skills with a written transfer question can be reviewed; others would leave the learner stuck.
+  const nodeIds=allNodeIds.filter(n=>rushFollowups[rushSkill(n)]);
   const id=nodeIds[index],question=rushFollowups[rushSkill(id??'')];
   const order=useMemo(()=>shuffleOptions([true,false]),[id]);
   const finish=async()=>{setBusy(true);setError('');try{await onSave(answers);onClose();}catch{setError('Review could not be saved. Your answers remain here; please try again.');}finally{setBusy(false);}};

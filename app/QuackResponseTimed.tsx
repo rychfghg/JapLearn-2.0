@@ -1325,7 +1325,7 @@ export default function QuackResponseTimed() {
   const currentNode = nodeMap.get(nodeId);
   const orderedChoices=useMemo(()=>shuffleOptions(currentNode?.choices??[]),[currentNode?.id,mode]);
   const metrics=rushMetrics(outcomes);
-  const missedNodes=Array.from(new Set(outcomes.filter(e=>e.outcome!=='CORRECT').map(e=>e.nodeId)));
+  const missedNodes=Array.from(new Set(outcomes.filter(e=>e.outcome==='INCORRECT'||e.outcome==='TIMEOUT').map(e=>e.nodeId)));
   const addOutcome=(event:RushOutcome)=>{outcomeRef.current=[...outcomeRef.current,event];setOutcomes(outcomeRef.current);};
   const interrupt=(reason:string)=>{
     if(!currentNode||technicalRef.current)return;
@@ -1573,7 +1573,7 @@ export default function QuackResponseTimed() {
     return()=>clearInterval(timer);
   },[nodeId,mode,choiceReady,viewReady,audioReady,exitVisible,exiting,reviewVisible,technicalIssue,resumeReady,paused]);
   useEffect(()=>{
-    const pause=()=>{if(mode&&!paused&&!exitVisible&&!exiting&&currentNode&&(currentNode.type==='CHOICE'||currentNode.type==='DIALOGUE'))interrupt('The app left the foreground. No wrong answer was recorded.');};
+    const pause=()=>{if(mode&&!paused&&!exitVisible&&!exiting&&currentNode&&((currentNode.type==='CHOICE'&&mode==='TIMED')||currentNode.type==='DIALOGUE'))interrupt('The app left the foreground. No wrong answer was recorded.');};
     const subscription=AppState.addEventListener('change',state=>{if(state!=='active')pause();});
     const visibility=()=>{if(typeof document!=='undefined'&&document.hidden)pause();};
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',visibility);
@@ -2157,7 +2157,7 @@ export default function QuackResponseTimed() {
           <Text style={rushStyles.popupText}>{pendingMode==='TIMED'?'Listen to Sumi and Haru, then choose the reply that fits. You have 20 seconds per reply. The timer starts only after the required audio finishes and the choices are ready. Timeouts are recorded separately from incorrect answers.':'Practice one short library conversation with four replies and no timer. Listen, choose a reply, and read the explanation at your own pace.'}</Text>
           <Text style={rushStyles.popupText}>Japanese and Romaji stay visible. The conversation begins only when you press the button below.</Text>
           <Pressable style={styles.primaryButton} onPress={()=>{if(!pendingMode)return;const selected=pendingMode;setPendingMode(null);if(resumeInstructions){setResumeInstructions(false);setMode(selected);}else restart(selected);}}><Text style={styles.primaryButtonText}>{resumeInstructions?'Resume game':'Start game'}</Text></Pressable>
-          {!resumeInstructions&&<Pressable style={styles.secondaryButton} onPress={()=>setPendingMode(null)}><Text>Back to modes</Text></Pressable>}
+          {!resumeInstructions?<Pressable style={styles.secondaryButton} onPress={()=>setPendingMode(null)}><Text style={styles.secondaryButtonText}>Back to modes</Text></Pressable>:<Pressable style={rushStyles.popupLink} onPress={()=>router.replace('/QuackResponse')}><Text style={styles.secondaryButtonText}>Not now · back to QuackResponse</Text></Pressable>}
         </View></ScrollView></View>
       </Modal>
       <Modal visible={!mode&&!pendingMode} transparent animationType="fade"><View style={styles.modalBackdrop}><ScrollView style={rushStyles.popupScroll} contentContainerStyle={rushStyles.popupScrollContent}><View style={rushStyles.popupCard}>
