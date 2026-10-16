@@ -1,3 +1,4 @@
+import ResponsePauseMenu from '../components/ResponsePauseMenu';
 import ResponseGameInstructions from '../components/ResponseGameInstructions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,6 +33,8 @@ import { getCoachContext, getCoachExample, getCoachPartner, getCoachExplanation 
 
 // Reply Coach-only treatment: shared game styles and story behavior stay unchanged.
 const coachUI=StyleSheet.create({
+  dialogueWrap:{position:'absolute',top:12,left:16,right:16,maxWidth:680,alignSelf:'center',marginHorizontal:'auto'},
+  dialogueCard:{borderRadius:22,backgroundColor:'rgba(255,255,255,.98)',padding:16,borderWidth:1,borderColor:'#EADFF1',shadowColor:'#30133D',shadowOpacity:.12,shadowRadius:14,shadowOffset:{width:0,height:4},elevation:5},
   bubble:{position:'absolute',top:10,borderRadius:22,backgroundColor:'rgba(255,255,255,.98)',padding:14,borderWidth:1,borderColor:'#EADFF1',shadowColor:'#30133D',shadowOpacity:.12,shadowRadius:14,shadowOffset:{width:0,height:4},elevation:5},
   lineHeader:{flexDirection:'row',alignItems:'center',gap:7,marginBottom:6},
   speakerDot:{width:8,height:8,borderRadius:4,backgroundColor:'#65B83A'},
@@ -39,7 +42,6 @@ const coachUI=StyleSheet.create({
   replay:{minHeight:36,paddingHorizontal:10,borderRadius:12,backgroundColor:'#F2E9FA',flexDirection:'row',alignItems:'center',gap:5},
   replayText:{fontSize:12,color:'#8423D9'},japanese:{color:'#351A4A'},
   romaji:{fontSize:12,lineHeight:18,color:'#8423D9',marginTop:4},
-  panel:{bottom:10,borderRadius:22,borderWidth:1,borderColor:'#EADFF1',shadowOpacity:.14},
   task:{color:'#584260',fontSize:12,lineHeight:17,marginVertical:6},
   choice:{borderWidth:1,borderColor:'#E6D9EB',borderRadius:16,shadowOpacity:.04}
 });
@@ -340,6 +342,10 @@ export default function ReplyCoachStory() {
   const [attempt, setAttempt] = useState<Attempt | null>(null);
   const [nodeId, setNodeId] = useState('');
   const [loading, setLoading] = useState(true);
+  const [paused,setPaused]=useState(false);
+  const [replayLines,setReplayLines]=useState<StoryNode[]>([]);
+  const [replayIndex,setReplayIndex]=useState<number|null>(null);
+  const [replayRun,setReplayRun]=useState(0);
   const [instructionsVisible,setInstructionsVisible]=useState(true);
   const [error, setError] = useState('');
   const [selectedChoice, setSelectedChoice] = useState<ChoiceOption | null>(null);
@@ -382,12 +388,12 @@ export default function ReplyCoachStory() {
     () => new Map((chapter?.nodes ?? []).map((node) => [node.id, node])),
     [chapter],
   );
-  const currentNode = nodes.get(nodeId);
+  const currentNode = replayIndex!==null ? replayLines[replayIndex] : nodes.get(nodeId);
   const choiceOrder = useMemo(() => {
-    const choices = currentNode?.choices ?? [];
+    const choices = nodes.get(nodeId)?.choices ?? [];
     return shuffle(choices);
-  }, [attempt?.id,currentNode?.id,currentNode?.choices]);
-  const fitted = replyCoachLayout(Math.min(680,stageSize.width-24), stageSize.height, choiceOrder);
+  }, [attempt?.id,nodeId,nodes]);
+  const fitted = replyCoachLayout(stageSize.width, stageSize.height, choiceOrder);
   const panelHeight = fitted.panelHeight;
   const activePage = Math.min(choicePage, fitted.pages - 1);
   const visibleChoices = choiceOrder.slice(activePage * fitted.perPage, (activePage + 1) * fitted.perPage);
@@ -398,11 +404,12 @@ export default function ReplyCoachStory() {
   const latestAnswer = attempt?.answers?.[attempt.answers.length - 1];
   const selectedRomaji = (answer?: AnswerRecord) => answer ? nodes.get(answer.nodeId)?.choices?.find(choice => choice.japanese === answer.selectedJapanese)?.romaji : '';
   const bestReply = (answer: AnswerRecord) => nodes.get(answer.nodeId)?.choices?.find(choice => choice.evaluation === 'BEST');
-  const decisionId = currentNode?.type === 'CHOICE' ? currentNode.id
+  const decisionId = replayIndex!==null ? nodeId : currentNode?.type === 'CHOICE' ? currentNode.id
     : currentNode?.type === 'REACTION' ? latestAnswer?.nodeId ?? ''
     : (chapter?.nodes ?? []).find(node => node.type === 'CHOICE'
       && getCoachContext(chapter?.nodes ?? [], node.id).dialogue.some(line => line.id === currentNode?.id))?.id ?? '';
   const context = useMemo(() => getCoachContext(chapter?.nodes ?? [], decisionId), [chapter, decisionId]);
+  const promptLine=context.dialogue[context.dialogue.length-1];
   const example = getCoachExample(chapter?.title ?? '', latestAnswer?.nodeId ?? '');
 
   const markSupport = (helpType: string) => {
@@ -498,14 +505,24 @@ export default function ReplyCoachStory() {
     void playVoice(line.id, line.japanese ?? '', line.characterKey ?? 'SUMI', line.audioUrl).catch(() => setAudioError('Matching audio is unavailable. The displayed line remains available to read.'));
   };
 
+  const reenactConversation=()=>{
+    markSupport('replay');markSupport('dialogueReview');
+    const lines=context.dialogue;
+    if(!lines.length){setAudioError('No earlier exchange is available for this reply.');return;}
+    void stopVoice();setListenVisible(false);setShowMeaning(false);setReplayLines(lines);setReplayIndex(0);setReplayRun(run=>run+1);
+  };
+  useEffect(()=>{if(paused){void stopVoice();musicGeneration.current++;void backgroundMusic.current?.pauseAsync().catch(()=>undefined);}},[paused]);
   useEffect(() => {
-    if (instructionsVisible || !currentNode || currentNode.type === 'CHOICE' || !currentNode.japanese) return;
-    void playVoice(currentNode.id, currentNode.japanese, currentNode.characterKey ?? 'SUMI', currentNode.audioUrl).catch(() => setAudioError('Matching audio is unavailable. The displayed line remains available to read.'));
-    return () => { void stopVoice(); };
-  }, [currentNode?.id,instructionsVisible]);
+    if (paused || instructionsVisible || !currentNode || currentNode.type === 'CHOICE' || !currentNode.japanese) return;
+    let live=true;
+    void playVoice(currentNode.id,currentNode.japanese,currentNode.characterKey??'SUMI',currentNode.audioUrl)
+      .then(()=>{if(live&&replayIndex!==null)setReplayIndex(replayIndex+1<replayLines.length?replayIndex+1:null);})
+      .catch(()=>{if(live)setAudioError('Matching audio is unavailable. Read the displayed line and tap to continue.');});
+    return()=>{live=false;void stopVoice();};
+  },[currentNode?.id,instructionsVisible,paused,replayIndex,replayRun]);
 
   useEffect(() => {
-    if (instructionsVisible || !chapter || !currentNode) return;
+    if (paused || instructionsVisible || !chapter || !currentNode) return;
     const enabled = currentNode.bgmEnabled ?? chapter.bgmEnabled ?? true;
     const configuredUrl = currentNode.bgmUrl || chapter.bgmUrl || 'bundled:calm';
     const targetVolume = Math.max(0, Math.min(0.35, currentNode.bgmVolume ?? chapter.bgmVolume ?? 0.1));
@@ -572,7 +589,7 @@ export default function ReplyCoachStory() {
     };
 
     void syncMusic();
-  }, [chapter?.id, currentNode?.id, currentNode?.bgmUrl, currentNode?.bgmEnabled,instructionsVisible]);
+  }, [chapter?.id, currentNode?.id, currentNode?.bgmUrl, currentNode?.bgmEnabled,instructionsVisible,paused]);
 
   useEffect(() => {
     fade.setValue(0);
@@ -584,7 +601,7 @@ export default function ReplyCoachStory() {
   }, [nodeId]);
 
   useEffect(() => {
-    if (instructionsVisible || !currentNode || (currentNode.type !== 'NARRATION' && currentNode.type !== 'CULTURAL_NOTE')) {
+    if (paused || instructionsVisible || !currentNode || (currentNode.type !== 'NARRATION' && currentNode.type !== 'CULTURAL_NOTE')) {
       setTypedNarration('');
       setNarrationFinished(false);
       return;
@@ -604,7 +621,7 @@ export default function ReplyCoachStory() {
     }, 24);
 
     return () => clearInterval(timer);
-  }, [currentNode?.id,instructionsVisible]);
+  }, [currentNode?.id,instructionsVisible,paused]);
 
   useEffect(() => {
     setHintVisible(false);
@@ -623,6 +640,8 @@ export default function ReplyCoachStory() {
   };
 
   const loadStory = async (forceNew = false) => {
+    if(forceNew){setLoading(true);setInstructionsVisible(true);}
+    if(forceNew){await stopVoice();setReplayIndex(null);setReplayLines([]);setCorrectionVisible(false);setSelectedChoice(null);setListenVisible(false);setExampleVisible(false);setReadinessVisible(false);setReviewVisible(false);setHintVisible(false);setResultsVisible(false);choiceLock.current=false;setChoicePage(0);}
     setLoading(true);
     setError('');
     try {
@@ -640,6 +659,7 @@ export default function ReplyCoachStory() {
           email: user?.email,
           name: `${user?.fname ?? ''} ${user?.lname ?? ''}`.trim(),
           chapterId: selectedChapter.id,
+          restart: String(forceNew),
         }),
       })) as Attempt;
       setChapter(selectedChapter);
@@ -665,6 +685,8 @@ export default function ReplyCoachStory() {
   };
 
   const moveTo = async (next?: string) => {
+    if(paused)return;
+    if(replayIndex!==null){await stopVoice();setReplayIndex(replayIndex+1<replayLines.length?replayIndex+1:null);return;}
     if (!next || !attempt) return;
     await stopVoice();
     if (backgroundMusic.current) void backgroundMusic.current.playAsync().catch(() => undefined);
@@ -844,8 +866,8 @@ export default function ReplyCoachStory() {
             <Text style={styles.headerEyebrow}>REPLY COACH · CHAPTER {chapter.order ?? 1}</Text>
             <Text style={styles.headerTitle} numberOfLines={1}>{chapter.title}</Text>
           </View>
-          <Pressable style={styles.iconButton} onPress={() => setReviewVisible(true)}>
-            <Ionicons name="journal-outline" size={23} color="#8423D9" />
+          <Pressable disabled={saving} accessibilityLabel="Pause and game options" style={styles.iconButton} onPress={() => setPaused(true)}>
+            <Ionicons name="ellipsis-horizontal" size={23} color="#8423D9" />
           </Pressable>
         </View>
 
@@ -917,17 +939,17 @@ export default function ReplyCoachStory() {
             </Pressable>
           ) : currentNode.type === 'CHOICE' ? (
             <>
-            {context.dialogue[0] && <View style={[coachUI.bubble,{width:Math.min(680,stageSize.width-24),left:Math.max(12,(stageSize.width-680)/2),maxHeight:Math.max(76,stageSize.height-panelHeight-24)}]}>
+            {promptLine && <View style={[coachUI.bubble,{width:Math.min(560,stageSize.width*0.9),left:(stageSize.width-Math.min(560,stageSize.width*0.9))/2,maxHeight:Math.max(76,stageSize.height-panelHeight-24),padding:10,borderRadius:17}]}>
               <View style={coachUI.lineHeader}>
-                <View style={coachUI.speakerDot}/><Text style={coachUI.speaker}>{context.dialogue[0].speaker || 'Conversation'}</Text>
-                <Pressable disabled={saving} accessibilityLabel="Replay character dialogue" style={coachUI.replay} onPress={() => replayLine(context.dialogue[0])}><Ionicons name={activeVoiceId===context.dialogue[0].id?'volume-high':'volume-medium-outline'} size={17} color="#8423D9"/><Text style={coachUI.replayText}>Replay</Text></Pressable>
+                <View style={coachUI.speakerDot}/><Text style={coachUI.speaker}>{promptLine.speaker || 'Conversation'}</Text>
+                <Pressable disabled={saving} accessibilityLabel="Replay character dialogue" style={coachUI.replay} onPress={reenactConversation}><Ionicons name={activeVoiceId===promptLine.id?'volume-high':'volume-medium-outline'} size={17} color="#8423D9"/><Text style={coachUI.replayText}>Replay</Text></Pressable>
               </View>
-              <ScrollView style={{flexShrink:1}}>
-                <Text style={[coachUI.japanese,{fontSize:fitted.short?17:20,lineHeight:fitted.short?23:28}]}>{context.dialogue[0].japanese || context.dialogue[0].text}</Text>
-                <Text style={coachUI.romaji}>{context.dialogue[0].romaji}</Text>
+              <ScrollView style={{flexShrink:1,flexGrow:0}}>
+                <Text style={[coachUI.japanese,{fontSize:fitted.short?15:17,lineHeight:fitted.short?20:23}]}>{promptLine.japanese || promptLine.text}</Text>
+                <Text style={coachUI.romaji}>{promptLine.romaji}</Text>
               </ScrollView>
             </View>}
-            <View style={[styles.decisionPanel,coachUI.panel, { height: panelHeight,width:Math.min(680,stageSize.width-24),left:Math.max(12,(stageSize.width-680)/2),right:undefined }]}>
+            <View style={[styles.decisionPanel, { height: panelHeight }]}>
               <View style={styles.drawerHandle} />
               <View style={styles.decisionHeading}>
                 <View style={styles.decisionIcon}>
@@ -937,7 +959,7 @@ export default function ReplyCoachStory() {
                   <Text style={styles.decisionEyebrow}>YOUR TURN</Text>
                   <Text style={styles.decisionTitle}>{currentNode.title || 'What would you say?'}</Text>
                 </View>
-                <Pressable accessibilityRole="button" accessibilityLabel="Back to listen again" disabled={saving} style={styles.coachTool} onPress={() => { markSupport('dialogueReview'); setListenLine(null); setListenVisible(true); }}><Ionicons name="volume-medium-outline" size={20} color="#8423D9" /></Pressable>
+                <Pressable accessibilityRole="button" accessibilityLabel="Back to listen again" disabled={saving} style={styles.coachTool} onPress={reenactConversation}><Ionicons name="volume-medium-outline" size={20} color="#8423D9" /></Pressable>
                 <Pressable
                   style={styles.hintButton}
                   onPress={() => {
@@ -1021,13 +1043,11 @@ export default function ReplyCoachStory() {
           ) : (
             <Pressable
               style={[
-                styles.speechBubbleArea,
-                styles.speechBubbleCentered,
-                { maxHeight: undefined },
+                coachUI.dialogueWrap,
               ]}
               onPress={() => isReaction ? setCorrectionVisible(true) : moveTo(currentNode.nextNodeId)}
             >
-              <View style={styles.speechBubble}>
+              <View style={coachUI.dialogueCard}>
                 <View
                   style={[
                     styles.speechTail,
@@ -1047,12 +1067,12 @@ export default function ReplyCoachStory() {
                   </Text>
                 )}
                 {Boolean(currentNode.romaji) && (
-                  <Text style={styles.dialogueRomaji} maxFontSizeMultiplier={1.05}>
+                  <Text style={coachUI.romaji} maxFontSizeMultiplier={1.05}>
                     {currentNode.romaji}
                   </Text>
                 )}
                 <View style={styles.coachTools}>
-                  <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); replayLine(currentNode); }}><Ionicons name="volume-medium-outline" size={17} color="#8423D9" /><Text style={styles.coachToolText}>Replay</Text></Pressable>
+                  <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); reenactConversation(); }}><Ionicons name="volume-medium-outline" size={17} color="#8423D9" /><Text style={styles.coachToolText}>Replay</Text></Pressable>
                   <Pressable accessibilityRole="button" style={styles.coachTool} onPress={event => { event.stopPropagation(); markSupport('meaning'); setShowMeaning(true); setListenLine(currentNode); setListenVisible(true); }}><Text style={styles.coachToolText}>Meaning</Text></Pressable>
                 </View>
                 {Boolean(audioError) && <Text style={styles.coachNotice}>{audioError}</Text>}
@@ -1067,10 +1087,11 @@ export default function ReplyCoachStory() {
         </Animated.View>
       </SafeAreaView>
 
+      <ResponsePauseMenu visible={paused&&!reviewVisible} onResume={()=>setPaused(false)} onReview={()=>setReviewVisible(true)} onRestart={()=>{setPaused(false);void loadStory(true);}}/>
       <ResponseGameInstructions visible={instructionsVisible} title="Reply Coach" steps={[
         'Read the setting and goal, then listen to Sumi and Haru. There is no timer.',
         'Choose a reply and read why it fits or needs improvement. Japanese and Romaji stay visible.',
-        'Use Replay to hear a line again, or Hint and meaning support when you need help. Support use is recorded separately from independent readiness.',
+        'Use Replay to watch Sumi and Haru re-enact the exchange before returning to your reply. Hint and meaning support remain available and are recorded separately.',
         'Practice the same skill with a different example. Your saved conversation is kept; starting does not restart it.'
       ]} onStart={()=>setInstructionsVisible(false)} onLeave={()=>router.replace({pathname:'/QuackResponse',params:{skipLoading:'1'}})}/>
       <Modal visible={listenVisible} transparent animationType="fade" onRequestClose={() => { void stopVoice(); setListenVisible(false); }}>
@@ -1272,6 +1293,7 @@ export default function ReplyCoachStory() {
                 <Text style={styles.primaryButtonText}>Review my decisions</Text>
               </Pressable>
               {chapter.title === 'A Day of First Impressions' && <Pressable style={styles.primaryButton} onPress={() => { setResultsVisible(false); setReadinessVisible(true); }}><Ionicons name="checkmark-done-outline" size={20} color="#FFFFFF" /><Text style={styles.primaryButtonText}>Check my readiness</Text></Pressable>}
+              <Pressable style={styles.secondaryButton} disabled={saving} onPress={()=>void loadStory(true)}><Ionicons name="refresh-outline" size={19} color="#8423D9"/><Text style={styles.secondaryButtonText}>Play again</Text></Pressable>
               <Pressable style={styles.textButtonWrap} onPress={() => router.replace('/QuackResponse')}>
                 <Text style={styles.textButton}>Return to Reply Coach</Text>
               </Pressable>

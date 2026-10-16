@@ -20,9 +20,16 @@ audio using the same Sumi/Haru voice presets. Both keep the visual-novel format.
   the choice node or timer deadline. The countdown continues during replay;
   answering or timing out stops the replay. Replay failures are technical events.
 - Backgrounding, suspended event loops, audio failures and interrupted resume
-  are technical events. The affected question continues untimed, with no speed
-  sample. Intentional exit-confirmation pauses also invalidate that sample.
+  are technical events, not wrong answers. Resume retains the timed mode and
+  remaining response time; interrupted answers have no speed sample. Only the
+  explicit "Read and continue untimed" action removes timing for that question.
 - Audio can be retried, or the learner can read and continue untimed.
+- The header's three-dot menu pauses speech and the timed countdown. Resume
+  preserves the remaining time; a manually paused answer is excluded from speed
+  averages. Replay alone still does not pause the timer. Restart requires confirmation.
+- Hints are available beside Replay in both modes. During a timed question the
+  countdown continues while a hint is open; hinted answers are excluded from
+  independent speed samples. Each completion screen offers Play again.
 
 ## Evidence and review
 

@@ -1,3 +1,4 @@
+import ResponsePauseMenu from '../components/ResponsePauseMenu';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -1277,6 +1278,13 @@ export default function QuackResponseTimed() {
   const [nodeId, setNodeId] = useState(START_NODE_ID);
   const [answers, setAnswers] = useState<AnswerRecord[]>([]);
   const [feedbackVisible, setFeedbackVisible] = useState(false);
+  const [paused,setPaused]=useState(false);
+  const pausedAt=useRef(0);
+  const technicalPausedAt=useRef(0);
+  const exitPausedAt=useRef(0);
+  const pausedTimingNodes=useRef(new Set<string>());
+  const pauseGame=()=>{pausedAt.current=Date.now();pausedTimingNodes.current.add(nodeId);setPaused(true);};
+  const resumeGame=()=>{const elapsed=Date.now()-pausedAt.current;if(deadline.current){deadline.current+=elapsed;choiceStarted.current+=elapsed;}setPaused(false);};
   const [hintVisible, setHintVisible] = useState(false);
   const [questionReplay,setQuestionReplay]=useState<{nodeId:string;run:number}|null>(null);
   const [replaySpeaker,setReplaySpeaker]=useState<CharacterKey|null>(null);
@@ -1321,11 +1329,14 @@ export default function QuackResponseTimed() {
   const addOutcome=(event:RushOutcome)=>{outcomeRef.current=[...outcomeRef.current,event];setOutcomes(outcomeRef.current);};
   const interrupt=(reason:string)=>{
     if(!currentNode||technicalRef.current)return;
-    technicalRef.current=true;
+    technicalRef.current=true;technicalPausedAt.current=Date.now();
+    // A suspended app may wake after the old deadline. Freeze the last visible
+    // remaining time rather than instantly timing out when the user resumes.
+    if(currentNode.type==='CHOICE'&&deadline.current)deadline.current=technicalPausedAt.current+Math.max(1,timeLeft)*1000;
     const related=currentNode.id.replace(/_(setup|reply_[^_]+|react_[^_]+)$/,'_choice');
     const first=sceneMap.get(currentNode.sceneId)?.decisions[0];
     const affected=currentNode.type==='CHOICE'?currentNode.id:nodeMap.get(related)?.type==='CHOICE'?related:first?`n_${currentNode.sceneId}_${first.id}_choice`:currentNode.id;
-    if(nodeMap.get(affected)?.type==='CHOICE'){exemptNodes.current.add(affected);addOutcome({nodeId:affected,outcome:'TECHNICAL_INTERRUPTION',reason,timingEligible:false,responseMs:null});}
+    if(nodeMap.get(affected)?.type==='CHOICE'){pausedTimingNodes.current.add(affected);addOutcome({nodeId:affected,outcome:'TECHNICAL_INTERRUPTION',reason,timingEligible:false,responseMs:null});}
     setHintVisible(false);setReviewVisible(false);setTechnicalIssue(reason);setIsSpriteSpeaking(false);voiceGeneration.current++;void stopAndUnloadSound(voiceSound.current);voiceSound.current=null;
   };
   const roundTotal=mode==='PRACTICE'?PRACTICE_STORY.totalChoices:TOTAL_CHOICES;
@@ -1377,9 +1388,9 @@ export default function QuackResponseTimed() {
           await AsyncStorage.removeItem(resumeKey);
           return;
         }
-        exemptNodes.current=new Set(outcomeRef.current.filter(e=>e.outcome==='TECHNICAL_INTERRUPTION').map(e=>e.nodeId));
+        exemptNodes.current.clear();pausedTimingNodes.current=new Set(outcomeRef.current.filter(e=>e.outcome==='TECHNICAL_INTERRUPTION').map(e=>e.nodeId));
         if(saved.mode==='TIMED'&&savedNode?.type==='CHOICE'){
-          exemptNodes.current.add(savedNode.id);
+          pausedTimingNodes.current.add(savedNode.id);
           outcomeRef.current=[...outcomeRef.current,{nodeId:savedNode.id,outcome:'TECHNICAL_INTERRUPTION',reason:'Resumed a previously interrupted question',timingEligible:false,responseMs:null}];
           setOutcomes(outcomeRef.current);
         }
@@ -1462,8 +1473,8 @@ export default function QuackResponseTimed() {
   // stopped while the transition runs: countdown, delayed advancement,
   // dialogue, stingers, and both music beds are all cancelled here.
   useEffect(() => {
-    if (!exitVisible && !exiting) return;
-    if(mode==='TIMED'&&currentNode?.type==='CHOICE')exemptNodes.current.add(currentNode.id);
+    if (!paused && !exitVisible && !exiting) {if(exitPausedAt.current&&deadline.current){const elapsed=Date.now()-exitPausedAt.current;deadline.current+=elapsed;choiceStarted.current+=elapsed;}exitPausedAt.current=0;return;}
+    if(!paused&&mode==='TIMED'&&currentNode?.type==='CHOICE'){pausedTimingNodes.current.add(currentNode.id);if(!exitPausedAt.current)exitPausedAt.current=Date.now();}
     musicGeneration.current += 1;
     voiceGeneration.current += 1;
     if (advanceTimer.current) {
@@ -1481,11 +1492,11 @@ export default function QuackResponseTimed() {
     void stopAndUnloadSound(music);
     void stopAndUnloadSound(voice);
     void stopAndUnloadSound(stinger);
-  }, [exitVisible, exiting]);
+  }, [exitVisible, exiting,paused]);
 
   // Scene music, ducked under dialogue audio instead of a flat on/off toggle.
   useEffect(() => {
-    if (exitVisible || exiting || !mode || technicalIssue) return;
+    if (paused || exitVisible || exiting || !mode || technicalIssue) return;
     const generation = ++musicGeneration.current;
     const trackKey = 'response-rush';
     const duckedVolume = isSpriteSpeaking ? 0.045 : currentNode?.type === 'CHOICE' ? 0.14 : 0.1;
@@ -1516,7 +1527,7 @@ export default function QuackResponseTimed() {
       }
     };
     void syncMusic();
-  }, [currentNode?.type, exitVisible, exiting, isSpriteSpeaking,mode,technicalIssue]);
+  }, [currentNode?.type, exitVisible, exiting, isSpriteSpeaking,mode,technicalIssue,paused]);
 
   useEffect(() => {
     fade.setValue(0);
@@ -1551,27 +1562,27 @@ export default function QuackResponseTimed() {
   // Layout and required dialogue completion are independent readiness gates.
   useEffect(()=>{setChoiceReady('');answerLock.current='';activeChoiceNode.current='';deadline.current=0;setHintVisible(false);setTimeLeft(CHOICE_SECONDS);},[nodeId]);
   useEffect(()=>{
-    if(!currentNode||!rushCanTime({mode,layout:choiceReady===nodeId&&viewReady===nodeId,audio:audioReady===nodeId||!choicePromptReplayMap.has(nodeId),blocked:!resumeReady||exitVisible||exiting||reviewVisible||hintVisible||!!technicalIssue,exempt:exemptNodes.current.has(nodeId)}))return;
-    activeChoiceNode.current=nodeId;choiceStarted.current=Date.now();deadline.current=choiceStarted.current+CHOICE_SECONDS*1000;let lastTick=choiceStarted.current;
+    if(!currentNode||!rushCanTime({mode,layout:choiceReady===nodeId&&viewReady===nodeId,audio:audioReady===nodeId||!choicePromptReplayMap.has(nodeId),blocked:paused||!resumeReady||exitVisible||exiting||reviewVisible||!!technicalIssue,exempt:exemptNodes.current.has(nodeId)}))return;
+    activeChoiceNode.current=nodeId;if(!deadline.current){choiceStarted.current=Date.now();deadline.current=choiceStarted.current+(restoredChoiceTime.current??CHOICE_SECONDS)*1000;restoredChoiceTime.current=null;}let lastTick=Date.now();
     const timer=setInterval(()=>{
       const now=Date.now(),tick=rushClock(now,lastTick,deadline.current);lastTick=now;
-      if(tick.kind==='INTERRUPTED'){clearInterval(timer);interrupt('The screen was suspended or delayed. This question will resume untimed.');return;}
+      if(tick.kind==='INTERRUPTED'){clearInterval(timer);interrupt('The screen was suspended or delayed. Resume to continue the timed question.');return;}
       setTimeLeft(tick.seconds!);
       if(tick.kind==='TIMEOUT'){clearInterval(timer);handleTimeout(currentNode);}
     },100);
     return()=>clearInterval(timer);
-  },[nodeId,mode,choiceReady,viewReady,audioReady,exitVisible,exiting,reviewVisible,hintVisible,technicalIssue,resumeReady]);
+  },[nodeId,mode,choiceReady,viewReady,audioReady,exitVisible,exiting,reviewVisible,technicalIssue,resumeReady,paused]);
   useEffect(()=>{
-    const pause=()=>{if(mode&&!exitVisible&&!exiting&&currentNode&&(currentNode.type==='CHOICE'||currentNode.type==='DIALOGUE'))interrupt('The app left the foreground. No wrong answer was recorded.');};
+    const pause=()=>{if(mode&&!paused&&!exitVisible&&!exiting&&currentNode&&(currentNode.type==='CHOICE'||currentNode.type==='DIALOGUE'))interrupt('The app left the foreground. No wrong answer was recorded.');};
     const subscription=AppState.addEventListener('change',state=>{if(state!=='active')pause();});
     const visibility=()=>{if(typeof document!=='undefined'&&document.hidden)pause();};
     if(typeof document!=='undefined')document.addEventListener('visibilitychange',visibility);
     return()=>{subscription.remove();if(typeof document!=='undefined')document.removeEventListener('visibilitychange',visibility);};
-  },[nodeId,mode,technicalIssue,exitVisible,exiting]);
+  },[nodeId,mode,technicalIssue,exitVisible,exiting,paused]);
 
   // Replay stays on the choice node: it never resets readiness or the deadline.
   useEffect(()=>{
-    if(!questionReplay||questionReplay.nodeId!==nodeId||currentNode?.type!=='CHOICE'||exitVisible||exiting||technicalIssue)return;
+    if(!questionReplay||questionReplay.nodeId!==nodeId||currentNode?.type!=='CHOICE'||paused||exitVisible||exiting||technicalIssue)return;
     const lineId=choicePromptReplayMap.get(nodeId),line=lineId?nodeMap.get(lineId):undefined;
     let live=true,sound:Audio.Sound|null=null;
     const fail=()=>{if(live)interrupt('The replay recording could not play. Retry or continue untimed.');};
@@ -1593,12 +1604,12 @@ export default function QuackResponseTimed() {
     void play();
     const watchdog=setTimeout(()=>{if(live&&sound)void sound.getStatusAsync().then(status=>{if(live&&status.isLoaded&&status.isPlaying)fail();}).catch(fail);},30000);
     return()=>{live=false;clearTimeout(watchdog);setReplaySpeaker(null);void stopAndUnloadSound(sound);};
-  },[questionReplay,nodeId,exitVisible,exiting,technicalIssue]);
+  },[questionReplay,nodeId,exitVisible,exiting,technicalIssue,paused]);
 
   // Correct/incorrect flash + stinger the instant a REACTION lands.
   useEffect(() => {
     // Running out of time is not a wrong answer: no red cross/incorrect stinger.
-    if(lastAnswer?.evaluation==='TIMEOUT'){setFlashTier(null);return;}
+    if(paused||lastAnswer?.evaluation==='TIMEOUT'){setFlashTier(null);return;}
     if (!currentNode || currentNode.type !== 'REACTION' || !lastAnswer) {
       setFlashTier(null);
       return;
@@ -1625,7 +1636,7 @@ export default function QuackResponseTimed() {
       if (stingerSound.current === createdStinger) stingerSound.current = null;
       if (createdStinger) void stopAndUnloadSound(createdStinger);
     };
-  }, [currentNode?.id]);
+  }, [currentNode?.id,paused]);
 
   // The core auto-play engine: whenever a DIALOGUE or REACTION node becomes
   // current, its voice line starts immediately, the sprite's mouth runs for
@@ -1635,7 +1646,7 @@ export default function QuackResponseTimed() {
   // It never pretends required audio finished or consumes response time.
   useEffect(() => {
     advanceTimer.current && clearTimeout(advanceTimer.current);
-    if (!mode || technicalIssue || !resumeReady || exitVisible || exiting || !currentNode || (currentNode.type !== 'DIALOGUE' && currentNode.type !== 'REACTION')) {
+    if (paused || !mode || technicalIssue || !resumeReady || exitVisible || exiting || !currentNode || (currentNode.type !== 'DIALOGUE' && currentNode.type !== 'REACTION')) {
       setIsSpriteSpeaking(false);
       return;
     }
@@ -1690,7 +1701,7 @@ export default function QuackResponseTimed() {
       voiceGeneration.current += 1;
       if (advanceTimer.current) clearTimeout(advanceTimer.current);
     };
-  }, [currentNode?.id, exitVisible, exiting, resumeReady,mode,technicalIssue,audioRun]);
+  }, [currentNode?.id, exitVisible, exiting, resumeReady,mode,technicalIssue,audioRun,paused]);
 
   const handleTimeout = (node: StoryNode) => {
     if(mode!=='TIMED'||exemptNodes.current.has(node.id)||answerLock.current===node.id)return;
@@ -1710,11 +1721,11 @@ export default function QuackResponseTimed() {
   };
 
   const choose = (choice: RuntimeChoice) => {
-    if (!currentNode||currentNode.type!=='CHOICE'||answerLock.current===nodeId||technicalIssue||choiceReady!==nodeId||viewReady!==nodeId)return;
+    if (paused||!currentNode||currentNode.type!=='CHOICE'||answerLock.current===nodeId||technicalIssue||choiceReady!==nodeId||viewReady!==nodeId)return;
     if(mode==='TIMED'&&!exemptNodes.current.has(nodeId)&&activeChoiceNode.current!==nodeId)return;
     if(mode==='TIMED'&&!exemptNodes.current.has(nodeId)&&Date.now()>=deadline.current&&deadline.current>0){handleTimeout(currentNode);return;}
     answerLock.current=nodeId;
-    const timed=mode==='TIMED'&&!exemptNodes.current.has(nodeId);
+    const timed=mode==='TIMED'&&!exemptNodes.current.has(nodeId)&&!pausedTimingNodes.current.has(nodeId);
     addOutcome({nodeId:nodeId,outcome:GOOD_TIERS.includes(choice.evaluation)?'CORRECT':'INCORRECT',choiceId:choice.id,timingEligible:timed,responseMs:timed?Date.now()-choiceStarted.current:null});
     const record: AnswerRecord = {
       nodeId: currentNode.id,
@@ -1787,6 +1798,8 @@ export default function QuackResponseTimed() {
   const viewResults = () => setResultsVisible(true);
 
   const restart = (nextMode:RushMode=mode??'PRACTICE') => {
+    technicalPausedAt.current=0;exitPausedAt.current=0;restoredChoiceTime.current=null;
+    pausedTimingNodes.current.clear();
     setMode(nextMode);setOutcomes([]);outcomeRef.current=[];exemptNodes.current.clear();technicalRef.current=false;setTechnicalIssue('');answerLock.current='';runId.current='rush-'+Date.now()+'-'+Math.random().toString(36).slice(2);
     setResultsVisible(false);
     setReviewVisible(false);
@@ -1844,8 +1857,8 @@ export default function QuackResponseTimed() {
             <Text style={styles.headerEyebrow}>REPLY RUSH · {mode==='TIMED'?'TIMED CHALLENGE':'UNTIMED PRACTICE'} · {answers.length}/{roundTotal}</Text>
             <Text style={styles.headerTitle} numberOfLines={1}>{currentNode.title?.split('·')[0]?.trim() || CHAPTER_TITLE}</Text>
           </View>
-          <Pressable disabled={mode==='TIMED'&&isChoice} style={styles.iconButton} onPress={() => setReviewVisible(true)}>
-            <Ionicons name="journal-outline" size={23} color="#8423D9" />
+          <Pressable accessibilityLabel="Pause and game options" style={styles.iconButton} onPress={pauseGame}>
+            <Ionicons name="ellipsis-horizontal" size={23} color="#8423D9" />
           </Pressable>
         </View>
 
@@ -1937,16 +1950,16 @@ export default function QuackResponseTimed() {
                   <Text style={styles.decisionEyebrow}>YOUR TURN · {mode==='TIMED'&&!exemptNodes.current.has(nodeId)?timeLeft+'s LEFT':'UNTIMED'}</Text>
                   <Text style={styles.decisionTitle}>Decision {answers.length + 1} of {roundTotal}</Text>
                 </View>
-                <Pressable accessibilityHint="Hints are available in untimed practice" disabled={mode==='TIMED'&&!exemptNodes.current.has(nodeId)} style={[styles.hintButton,mode==='TIMED'&&!exemptNodes.current.has(nodeId)&&{opacity:.4}]} onPress={() => setHintVisible(true)}>
-                  <Ionicons name="bulb-outline" size={18} color="#D58A1E" />
-                  <Text style={styles.hintButtonText}>Hint</Text>
-                </Pressable>
               </View>
               <Text style={styles.decisionPrompt}>{currentNode.prompt}</Text>
-              <Pressable accessibilityLabel="Replay the speaker's question. The timer keeps running." style={[styles.hintButton,{alignSelf:'flex-start',marginBottom:8}]} disabled={!choicePromptReplayMap.has(nodeId)||!!technicalIssue} onPress={()=>setQuestionReplay(previous=>({nodeId,run:(previous?.run??0)+1}))}>
+              <View style={{flexDirection:'row',alignItems:'center',gap:8,marginBottom:8}}>
+              <Pressable accessibilityLabel="Replay the speaker's question. The timer keeps running." style={styles.hintButton} disabled={!choicePromptReplayMap.has(nodeId)||!!technicalIssue} onPress={()=>setQuestionReplay(previous=>({nodeId,run:(previous?.run??0)+1}))}>
                 <Ionicons name="volume-high-outline" size={18} color="#8423D9"/>
-                <Text style={styles.hintButtonText}>Replay{mode==='TIMED'&&!exemptNodes.current.has(nodeId)?' · timer continues':''}</Text>
+                <Text style={styles.hintButtonText}>Replay</Text>
               </Pressable>
+              <Pressable accessibilityLabel="Hint. The timer keeps running in timed mode." style={styles.hintButton} onPress={()=>{pausedTimingNodes.current.add(nodeId);setHintVisible(true);}}><Ionicons name="bulb-outline" size={18} color="#D58A1E"/><Text style={styles.hintButtonText}>Hint</Text></Pressable>
+              {mode==='TIMED'&&!exemptNodes.current.has(nodeId)&&<Text style={{fontSize:10,color:'#746779',flexShrink:1}}>Timer continues</Text>}
+              </View>
               <ScrollView style={{flexShrink:1}} onLayout={()=>requestAnimationFrame(()=>setChoiceReady(currentNode.id))}>
                 {orderedChoices.map((choice, index) => (
                   <Pressable
@@ -2046,6 +2059,7 @@ export default function QuackResponseTimed() {
         </ScrollView></View>
       </Modal>
 
+      <ResponsePauseMenu visible={paused&&!reviewVisible} onResume={resumeGame} onReview={()=>setReviewVisible(true)} onRestart={()=>{setPaused(false);pausedAt.current=0;deadline.current=0;setSkillReview(false);setHintVisible(false);setPendingMode(null);restart();}}/>
       {/* Hint */}
       <Modal visible={hintVisible} transparent animationType="fade" onRequestClose={() => setHintVisible(false)}>
         <View style={styles.modalBackdrop}><ScrollView style={rushStyles.popupScroll} contentContainerStyle={rushStyles.popupScrollContent}>
@@ -2156,11 +2170,11 @@ export default function QuackResponseTimed() {
       </View></ScrollView></View></Modal>
       <Modal visible={!!technicalIssue} transparent animationType="fade"><View style={styles.modalBackdrop}><ScrollView style={rushStyles.popupScroll} contentContainerStyle={rushStyles.popupScrollContent}><View style={rushStyles.popupCard}>
         <View style={[rushStyles.popupIcon,{backgroundColor:'#FFF3D9'}]}><Ionicons name="pause" size={28} color="#D58A1E"/></View>
-        <Text style={[rushStyles.popupEyebrow,{color:'#D58A1E'}]}>TECHNICAL INTERRUPTION</Text><Text style={rushStyles.popupTitle}>Practice paused</Text>
+        <Text style={[rushStyles.popupEyebrow,{color:'#D58A1E'}]}>TECHNICAL INTERRUPTION</Text><Text style={rushStyles.popupTitle}>{mode==='TIMED'?'Timed challenge paused':'Practice paused'}</Text>
         <Text style={rushStyles.popupText}>{technicalIssue}</Text>
         {currentNode.japanese&&<View style={rushStyles.popupLine}><Text style={styles.choiceJapanese}>{currentNode.japanese}</Text><Text style={styles.choiceRomaji}>{currentNode.romaji}</Text></View>}
         <View style={rushStyles.popupNote}><Ionicons name="shield-checkmark-outline" size={17} color="#2E9E48"/><Text style={rushStyles.popupNoteText}>No incorrect answer or timeout was added for this interruption.</Text></View>
-        <Pressable style={styles.primaryButton} onPress={()=>{technicalRef.current=false;setTechnicalIssue('');setAudioRun(n=>n+1);}}><Ionicons name="refresh" size={18} color="#FFFFFF"/><Text style={styles.primaryButtonText}>Retry / resume</Text></Pressable>
+        <Pressable style={styles.primaryButton} onPress={()=>{if(technicalPausedAt.current&&deadline.current){const elapsed=Date.now()-technicalPausedAt.current;deadline.current+=elapsed;choiceStarted.current+=elapsed;}technicalPausedAt.current=0;technicalRef.current=false;setTechnicalIssue('');setAudioRun(n=>n+1);}}><Ionicons name="refresh" size={18} color="#FFFFFF"/><Text style={styles.primaryButtonText}>{mode==='TIMED'?'Resume timed challenge':'Retry / resume'}</Text></Pressable>
         <Pressable style={styles.secondaryButton} onPress={()=>{const next=currentNode.type==='CHOICE'?currentNode.id:currentNode.nextNodeId;if(next){exemptNodes.current.add(next);setAudioReady(next);setNodeId(next);}else if(currentNode.type==='REACTION')setFeedbackVisible(true);technicalRef.current=false;setTechnicalIssue('');}}><Text style={styles.secondaryButtonText}>Read and continue untimed</Text></Pressable>
         <Pressable style={rushStyles.popupLink} onPress={()=>{technicalRef.current=false;setTechnicalIssue('');setExiting(true);}}><Text style={styles.secondaryButtonText}>Save and leave</Text></Pressable>
       </View></ScrollView></View></Modal>
@@ -2199,7 +2213,7 @@ export default function QuackResponseTimed() {
               {missedNodes.length>0&&<Pressable style={styles.primaryButton} onPress={()=>setSkillReview(true)}><Ionicons name="school-outline" size={19} color="#FFFFFF"/><Text style={styles.primaryButtonText}>Review missed skills</Text></Pressable>}
               {mode==='PRACTICE'&&<Pressable style={styles.primaryButton} onPress={()=>{setResultsVisible(false);setPendingMode('TIMED');}}><Ionicons name="timer-outline" size={19} color="#FFFFFF"/><Text style={styles.primaryButtonText}>Start timed challenge</Text></Pressable>}
               <Pressable style={styles.secondaryButton} onPress={()=>{setResultsVisible(false);setPendingMode(mode??'PRACTICE');}}>
-                <Text style={styles.secondaryButtonText}>Replay scenario</Text>
+                <Text style={styles.secondaryButtonText}>Play again</Text>
               </Pressable>
               <Pressable style={styles.textButtonWrap} onPress={() => { setResultsVisible(false); setExiting(true); }}>
                 <Text style={styles.textButton}>Return to mission map</Text>

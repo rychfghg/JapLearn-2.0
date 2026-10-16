@@ -1,8 +1,8 @@
 const fs=require('fs');const assert=require('node:assert/strict');const path=require('path');
 const root=path.resolve(__dirname,'..');const read=file=>fs.readFileSync(path.join(root,file),'utf8');
 const coach=read('app/QuackResponseGuided.tsx'),relay=read('app/QuackResponseMultiStep.tsx'),rush=read('app/QuackResponseTimed.tsx'),popup=read('components/ResponseGameInstructions.tsx');
-assert(coach.includes('if (instructionsVisible || !currentNode || currentNode.type'));
-assert(coach.includes('if (instructionsVisible || !chapter || !currentNode) return;'));
+assert(coach.includes('if (paused || instructionsVisible || !currentNode || currentNode.type'));
+assert(coach.includes('if (paused || instructionsVisible || !chapter || !currentNode) return;'));
 assert(coach.includes('onStart={()=>setInstructionsVisible(false)}'));
 assert(relay.includes("visible={phase==='tutorial'}"));
 assert(relay.includes("onStart={()=>{void ensureMusic();setPhase('narration');}}"));
@@ -16,5 +16,5 @@ assert(replayEffect.includes('resolveAudio(lineId)'));
 for(const forbidden of ['setNodeId(','setAudioReady(','setChoiceReady(','deadline.current=','choiceStarted.current='])assert(!replayEffect.includes(forbidden));
 const clockEffect=rush.slice(rush.indexOf('if(!currentNode||!rushCanTime('),rush.indexOf("const pause=()=>"));
 assert(!clockEffect.includes('questionReplay'));assert(!clockEffect.includes('replaySpeaker'));
-assert(rush.includes('timer continues'));assert(replayEffect.includes('stopAndUnloadSound(sound)'));
+assert(rush.includes('Timer continues'));assert(replayEffect.includes('stopAndUnloadSound(sound)'));
 console.log('PASS: instruction start gates, scrollable constrained popup, app-only interruption wording, contextual hint presentation.');
