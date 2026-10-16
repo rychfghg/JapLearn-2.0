@@ -491,8 +491,11 @@ export default function QuackSituateFormal() {
             <Ionicons name="location" size={14} color="#65A936" />
             <Text style={styles.locationText}>{question.location}</Text>
           </View>
-          <View style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:6}}><Ionicons name="people-outline" size={14} color="#D7F1C4"/><Text style={{color:'#D7F1C4',fontSize:11,flexShrink:1}}>Speaking to: {question.relationship}</Text></View>
-          <Text style={{color:'#E8DFF0',fontSize:10,marginTop:3}}>You: {question.learnerRole}</Text>
+          <View style={ctx.roles}>
+            <View style={ctx.role}><View style={ctx.roleIcon}><Ionicons name="people" size={13} color="#C9F0AE"/></View><View style={{flex:1}}><Text style={ctx.roleLabel}>SPEAKING TO</Text><Text style={ctx.roleValue} numberOfLines={2}>{question.relationship}</Text></View></View>
+            <View style={ctx.role}><View style={ctx.roleIcon}><Ionicons name="person" size={13} color="#C9F0AE"/></View><View style={{flex:1}}><Text style={ctx.roleLabel}>YOU</Text><Text style={ctx.roleValue} numberOfLines={2}>{question.learnerRole}</Text></View></View>
+          </View>
+          <View style={ctx.divider}/>
           <Text style={styles.promptLabel}>YOUR ROLE IN THIS MOMENT</Text>
           <Text style={styles.promptText}>{question.prompt}</Text>
         </View>
@@ -1176,4 +1179,12 @@ const styles = StyleSheet.create({
   },
 });
 
-
+// Relationship context in the prompt card: two equal labelled tiles instead of loose lines of text.
+const ctx={
+  roles:{flexDirection:'row' as const,gap:8,marginTop:9},
+  role:{flex:1,flexDirection:'row' as const,alignItems:'center' as const,gap:7,backgroundColor:'rgba(255,255,255,0.08)',borderWidth:1,borderColor:'rgba(255,255,255,0.12)',borderRadius:12,paddingVertical:7,paddingHorizontal:8},
+  roleIcon:{width:24,height:24,borderRadius:8,backgroundColor:'rgba(132,217,67,0.18)',alignItems:'center' as const,justifyContent:'center' as const},
+  roleLabel:{color:'#B9E59A',fontSize:8.5,fontWeight:'800' as const,letterSpacing:0.9},
+  roleValue:{color:'#FFFFFF',fontSize:11.5,lineHeight:15,marginTop:1},
+  divider:{height:1,backgroundColor:'rgba(255,255,255,0.12)',marginTop:10,marginBottom:2},
+};
