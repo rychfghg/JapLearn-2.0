@@ -41,6 +41,7 @@ type Moment = {
   topic: string;
   location: string;
   sceneKey: string;
+  bundledMediaKey?:string;
   imageUrl?: string;
   imageAlt?: string;
   secondaryImageUrl?: string;
@@ -212,8 +213,9 @@ export default function QuackSituateMatching() {
     pictureReadiness.current.bottom=ready;
   },[pictureKey]);
   const authoredMedia=expressionMedia.find(row=>row.japanese===current?.correctAnswer&&row.scenario===current?.scenario&&row.secondaryScenario===current?.secondaryScenario);
-  const correctBundledImage=authoredMedia?expressionImages[authoredMedia.key]?.scene:undefined;
-  const alternativeBundledImage=authoredMedia?expressionImages[authoredMedia.key]?.alternative:undefined;
+  const bundledMediaKey=current?.bundledMediaKey??authoredMedia?.key;
+  const correctBundledImage=bundledMediaKey?expressionImages[bundledMediaKey]?.scene:undefined;
+  const alternativeBundledImage=bundledMediaKey?expressionImages[bundledMediaKey]?.alternative:undefined;
   const correctImageUri = useOfflineMediaUri(correctBundledImage||isGenericGesture(current?.imageUrl) ? undefined : current?.imageUrl);
   const alternativeImageUri = useOfflineMediaUri(alternativeBundledImage||isGenericGesture(current?.secondaryImageUrl) ? undefined : current?.secondaryImageUrl);
   const currentAnswer = current ? getAnswer(current) : null;
@@ -243,7 +245,7 @@ export default function QuackSituateMatching() {
   ) => {
     const records=questionResults.current.map(row=>({...row}));
     const questionIds=moments.map(m=>m.id);
-    const snapshot={expressionMatchVersion:3,questionResults:records,questionIndex,correctCount:savedCorrectCount,mistakes:savedMistakes,questionIds,savedAt:Date.now()};
+    const snapshot={expressionMatchVersion:4,questionResults:records,questionIndex,correctCount:savedCorrectCount,mistakes:savedMistakes,questionIds,savedAt:Date.now()};
     const task=checkpointQueue.current.catch(()=>undefined).then(async()=>{
     try {
       const user = await getUser();
@@ -260,7 +262,7 @@ export default function QuackSituateMatching() {
         body: JSON.stringify({
           email: user.email,
           gameType: runGameType,
-          expressionMatchVersion:3,
+          expressionMatchVersion:4,
           questionIds,
           questionResults:records,
           questionIndex,
@@ -330,7 +332,7 @@ export default function QuackSituateMatching() {
       try {
         const all = await loadOfflineContent<Moment[]>('/api/situational/questions?gameType=EXPRESSION_MATCH');
         const replacements:Moment[]=expressionMedia.filter(row=>row.level===level).map((row,index)=>({
-          id:`canonical:${row.key}`,level,setNumber:1,topic:'Expression Match',location:'Expression Match',sceneKey:row.key,
+          id:`canonical:${row.key}`,level,setNumber:1,topic:'Expression Match',location:'Expression Match',sceneKey:row.key,bundledMediaKey:row.key,
           scenario:row.scenario,secondaryScenario:row.secondaryScenario,hint:row.hint,
           correctAnswer:row.japanese,choices:[{japanese:row.japanese,romaji:row.romaji}],
           explanation:`This expression fits “${row.scenario}”. ${row.hint}`,
@@ -836,7 +838,7 @@ export default function QuackSituateMatching() {
             <Text style={styles.feedbackKicker}>HOW TO PLAY</Text>
             <Text style={styles.feedbackTitle}>One phrase. Two situations.</Text>
             <Text style={styles.feedbackText}>
-              Read both situation captions, listen to the phrase, then drag it up or down. You can also tap a situation to answer. Some questions intentionally use captions only. If a required picture fails, use the captions for unscored practice and retry the picture before submitting a scored answer.
+              Look at both pictures and read their captions, listen to the phrase, then drag it up or down. You can also tap a situation to answer. If a picture fails, use the captions for unscored practice and retry the picture before submitting a scored answer.
             </Text>
             <Pressable style={styles.primaryButton} onPress={() => setShowHelp(false)}>
               <Text style={styles.primaryButtonText}>CONTINUE</Text>
@@ -869,9 +871,10 @@ export default function QuackSituateMatching() {
             <Text style={styles.feedbackText}>
               {correctCount} of {moments.length} situations matched. Your stars and score are stored for QuackProgress and teacher reports.
             </Text>
-            <Text style={styles.feedbackText}>This round includes caption-only context checks. This supported practice score alone does not prove independent mastery; try unfamiliar situations with your instructor too.</Text>
+            <Text style={styles.feedbackText}>Every question includes two scene pictures and context captions. This supported practice score alone does not prove independent mastery; try unfamiliar situations with your instructor too.</Text>
             {(['PICTURE','CAPTION_ONLY'] as const).map(mode=>{
               const records=questionResults.current.filter(row=>row.mode===mode&&row.outcome!=='TECHNICAL_INTERRUPTION');
+              if(!records.length)return null;
               return <Text key={mode} style={styles.feedbackText}>{mode==='PICTURE'?'Picture questions':'Caption-only questions'}: {records.filter(row=>row.outcome==='CORRECT').length}/{records.length} correct</Text>;
             })}
             <Text style={styles.feedbackText}>Technical interruptions: {questionResults.current.filter(row=>row.outcome==='TECHNICAL_INTERRUPTION').length} · excluded from wrong answers.</Text>
@@ -938,7 +941,7 @@ export default function QuackSituateMatching() {
           {scoreSummary}<Text style={styles.feedbackKicker}>EXPRESSION MATCH · LEVEL {level}</Text>
           <Text style={styles.feedbackTitle}>{momentIndex>0?'Continue your level':'One phrase. Two contexts.'}</Text>
           {!!checkpointNotice&&<Text style={styles.feedbackText}>{checkpointNotice}</Text>}
-          <Text style={styles.feedbackText}>Read who is speaking and what is happening in both captions. Listen to the phrase, then drag it up or down—or tap the matching situation. There is no timer. Every fourth question uses captions only to help you focus on meaning rather than memorizing artwork.</Text>
+          <Text style={styles.feedbackText}>Look at both scene pictures and read who is speaking and what is happening in their captions. Listen to the phrase, then drag it up or down—or tap the matching situation. There is no timer. Use the situation and relationship to choose, not just a familiar picture.</Text>
           <Text style={styles.feedbackText}>10 points per correct match. {moments.length} questions · {moments.length*10} possible points. Use the three-dot menu to pause, save and leave, or restart.</Text>
           <Pressable style={styles.primaryButton} onPress={()=>setShowStart(false)}><Text style={styles.primaryButtonText}>{momentIndex>0?'CONTINUE LEVEL':'START LEVEL'}</Text></Pressable>
           {momentIndex>0&&<Pressable style={styles.resultReturnButton} onPress={()=>{setShowStart(false);setShowRestart(true);}}><Text style={styles.resultReturnText}>START OVER</Text></Pressable>}

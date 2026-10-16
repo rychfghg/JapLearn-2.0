@@ -1,7 +1,7 @@
 require('./check_expression_match_level3.cjs');
 const assert=require('node:assert/strict'),fs=require('fs');
 const {hasDistinctContexts,hasMeaningfulText,canScoreExpression,isCaptionOnlyMoment,expressionCheckpoint,selectExpressionQuestions,replaceExpressionQuestions,expressionRunMatches}=require('../services/expressionMatchContext.ts');
-const checkpoint={expressionMatchVersion:3,questionIds:['one','two'],questionIndex:1,questionResults:[{questionId:'one',questionIndex:0,mode:'PICTURE',outcome:'CORRECT'}]};
+const checkpoint={expressionMatchVersion:4,questionIds:['one','two'],questionIndex:1,questionResults:[{questionId:'one',questionIndex:0,mode:'PICTURE',outcome:'CORRECT'}]};
 assert(expressionRunMatches(checkpoint,['one','two']));
 assert(!expressionRunMatches({...checkpoint,expressionMatchVersion:1},['one','two']));
 assert(!expressionRunMatches(checkpoint,['one']));
@@ -23,7 +23,7 @@ for(const top of [true,false])for(const bottom of [true,false]){
 assert(!hasDistinctContexts('Same scene.',' same SCENE! '));
 assert(!hasDistinctContexts('A scene',''));
 assert(hasDistinctContexts('Greeting your teacher in the morning','Saying goodbye after class'));
-for(let i=0;i<20;i++)assert.equal(isCaptionOnlyMoment(i),(i+1)%4===0);
+for(let i=0;i<60;i++)assert.equal(isCaptionOnlyMoment(i),false,'No main-round question should intentionally hide its pictures');
 assert.equal(expressionCheckpoint(4,false),4);
 assert.equal(expressionCheckpoint(4,true),5);
 assert.equal(expressionCheckpoint(19,true),20);
@@ -38,6 +38,14 @@ for(const level of [1,2,3]){
  assert(fixed.some(row=>row.id==='published-valid'),'Valid published questions must be retained');
  assert(fixed.every(row=>hasDistinctContexts(row.scenario,row.secondaryScenario)));
  assert.equal(replaceExpressionQuestions([],level,authored).length,20,'Missing content receives complete authored replacements');
+ const legacy={...authored[0],scenario:'Old published wording',secondaryScenario:'Different old wording',imageUrl:'/expression-match/gesture-wave.png',secondaryImageUrl:'/expression-match/gesture-bow.png'};
+ const restored=replaceExpressionQuestions([legacy],level,authored)[0];
+ assert.equal(restored.scenario,authored[0].scenario);assert.equal(restored.secondaryScenario,authored[0].secondaryScenario);
+ const custom={...legacy,imageUrl:'/api/situational/media/custom-scene',secondaryImageUrl:'/api/situational/media/custom-other'};
+ assert.equal(replaceExpressionQuestions([custom],level,authored)[0].scenario,custom.scenario,'Do not attach built-in pictures to custom uploaded contexts');
+ const crossLevel={...legacy,id:'unknown-old-row',correctAnswer:'Old expression not authored for this level',choices:[{japanese:'Old expression not authored for this level'}]};
+ const withLegacy=replaceExpressionQuestions([crossLevel,...authored],level,authored);
+ assert.equal(withLegacy.length,20);assert(!withLegacy.some(row=>row.id==='unknown-old-row'),'An audio-only legacy row must not displace one of the 20 pictured questions');
 }
 for(const row of bank)assert(hasDistinctContexts(row.scenario,row.secondaryScenario),row.key);
 for(const row of bank)assert(hasMeaningfulText(row.hint),row.key);
@@ -55,6 +63,6 @@ assert(screen.includes('authoredMedia?.hint'),'Use revised canonical hints inste
 assert(screen.includes('questionResults:questionResults.current'),'Records must be sent and checkpointed');
 assert(screen.includes("record('TECHNICAL_INTERRUPTION')"));
 assert(screen.includes("record(isCorrect?'CORRECT':'INCORRECT')"));
-assert(screen.includes('expressionMatchVersion:3'),'Reset older checkpoints after replacing question content');
+assert(screen.includes('expressionMatchVersion:4'),'Reset older caption-only checkpoints after restoring all pictures');
 assert(!restart.includes('ensureCompletedAttempt'),'Restarting unfinished practice must not submit it as complete');
-console.log('PASS: distinct-caption guard, 5 caption-only checks per 20 questions, checkpoint boundary logic, retry isolation, menu/start/restart/score UI wiring. Device interaction QA still required.');
+console.log('PASS: all main questions retain pictures; legacy scene-pair restoration, custom media preservation, valid replacements, checkpoints, retry isolation and per-question evidence. Device interaction QA still required.');
