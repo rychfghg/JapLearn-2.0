@@ -1,0 +1,282 @@
+[
+  {
+    "key": "level-1-01",
+    "side": "scene",
+    "file": "level-1-01-scene.webp",
+    "scene": "A student greets a teacher in the morning.",
+    "sha256": "be9b8e0805b876b80bd93ca2ffc7fdb8a3efca6f5728137e6a0d998cf27833a0"
+  },
+  {
+    "key": "level-1-01",
+    "side": "alternative",
+    "file": "level-1-01-alternative.webp",
+    "scene": "A friend waves goodbye after school.",
+    "sha256": "7795ed2155f7a05f963aa6cc18296716e1e010e234a79a0d0c02a79c2e213ac6"
+  },
+  {
+    "key": "level-1-02",
+    "side": "scene",
+    "file": "level-1-02-scene.webp",
+    "scene": "Two neighbors meet during the afternoon.",
+    "sha256": "5ead2deb99c01fa804aeed99d1cf333a731edec9a11a096acd5e853d383bca73"
+  },
+  {
+    "key": "level-1-03",
+    "side": "scene",
+    "file": "level-1-03-scene.webp",
+    "scene": "You meet a neighbor in the evening.",
+    "sha256": "4005c8c0b4b22e8ddd3899c9d9567102ca97018e328f24bc38b3986811e0bcb0"
+  },
+  {
+    "key": "level-1-02",
+    "side": "alternative",
+    "file": "level-1-02-alternative.webp",
+    "scene": "A family begins eating dinner together.",
+    "sha256": "2f74ddac5def98b6d22b4a447be0b6d45bf241e2daa62465c33ad39753efab4b"
+  },
+  {
+    "key": "level-1-03",
+    "side": "alternative",
+    "file": "level-1-03-alternative.webp",
+    "scene": "You arrive at school early in the morning.",
+    "sha256": "4f151131f65604e184f72ed3ccd2a270b3eeb7cfb6a9881ef8ec18589dcfda18"
+  },
+  {
+    "key": "level-1-04",
+    "side": "scene",
+    "file": "level-1-04-scene.webp",
+    "scene": "A classmate returns your lost notebook.",
+    "sha256": "2b3d9ba4c6d29e21f0dee844f0ee59795ab8c8adf9f0e32eb924b67429d12f08"
+  },
+  {
+    "key": "level-1-05",
+    "side": "alternative",
+    "file": "level-1-05-alternative.webp",
+    "scene": "Your teammate wins a competition.",
+    "sha256": "a8775b280be616238a91e60775edf5bc450ce7dcc116f1835cbe8345f57f26bb"
+  },
+  {
+    "key": "level-1-04",
+    "side": "alternative",
+    "file": "level-1-04-alternative.webp",
+    "scene": "A customer asks where the station is.",
+    "sha256": "155d09b13c97f2ea1d48b0d256f51c29b59874ae5772c188c7831ca16bd5e949"
+  },
+  {
+    "key": "level-1-06",
+    "side": "scene",
+    "file": "level-1-06-scene.webp",
+    "scene": "A student says goodbye to a teacher after class.",
+    "sha256": "7a37ff6e3d89ff358f884a1e516063ca8f43b112ccbc2513617266713b407348"
+  },
+  {
+    "key": "level-1-05",
+    "side": "scene",
+    "file": "level-1-05-scene.webp",
+    "scene": "You accidentally bump into someone at the station.",
+    "sha256": "004f339d605b72544fc4aefc80e80d0349b1a8cc22d84f102ea6708e57777c53"
+  },
+  {
+    "key": "level-1-06",
+    "side": "alternative",
+    "file": "level-1-06-alternative.webp",
+    "scene": "A guest enters a home for the first time.",
+    "sha256": "985b2289d1bf54df2c00a6901353e01162877d45476bf20b3afebf725b662366"
+  },
+  {
+    "key": "level-1-07",
+    "side": "alternative",
+    "file": "level-1-07-alternative.webp",
+    "scene": "Everyone has just finished eating.",
+    "sha256": "5fdabf0390874fc8b60948f43513d3d0f7bc0c3d553c9182e6bdeac6a5aa8426"
+  },
+  {
+    "key": "level-1-08",
+    "side": "scene",
+    "file": "level-1-08-scene.webp",
+    "scene": "You thank the host after finishing a meal.",
+    "sha256": "601c91d04a77d5eb4077ada497077c689284e4690405418d070629d729bfcd55"
+  },
+  {
+    "key": "level-1-07",
+    "side": "scene",
+    "file": "level-1-07-scene.webp",
+    "scene": "Everyone is ready to begin a meal.",
+    "sha256": "c518cd9361574d8e58fef6c0427f995050b8f56e4371003013b76b2f79719c51"
+  },
+  {
+    "key": "level-1-08",
+    "side": "alternative",
+    "file": "level-1-08-alternative.webp",
+    "scene": "You introduce yourself to a new class.",
+    "sha256": "2830fbd737dbc0f56d0050d9b00f6a5f254141e78337476743cfc53ed107ff40"
+  },
+  {
+    "key": "level-1-09",
+    "side": "scene",
+    "file": "level-1-09-scene.webp",
+    "scene": "You tell your family you are leaving home.",
+    "sha256": "860103e38140305a7e7627866e5b1a7934eb42f64c2258ea25de160436c566f8"
+  },
+  {
+    "key": "level-1-10",
+    "side": "scene",
+    "file": "level-1-10-scene.webp",
+    "scene": "You see a family member off at the door.",
+    "sha256": "7180a6f249b92939d39ad6e031c846343b9fc916c5f141639af18ebca2860936"
+  },
+  {
+    "key": "level-1-10",
+    "side": "alternative",
+    "file": "level-1-10-alternative.webp",
+    "scene": "You return home and announce your arrival.",
+    "sha256": "8b3592014e42fc78c2ceba46a4ec0f5cf7d1e543607e85003b2ff1858ffd339b"
+  },
+  {
+    "key": "level-1-09",
+    "side": "alternative",
+    "file": "level-1-09-alternative.webp",
+    "scene": "You welcome someone who returned home.",
+    "sha256": "c5d2765a6f5ec090eb3445e9031eb0f6f70bff70142e32e5dc64c8f1b611049a"
+  },
+  {
+    "key": "level-1-11",
+    "side": "scene",
+    "file": "level-1-11-scene.webp",
+    "scene": "You return home and greet your family.",
+    "sha256": "8ffa325bf05cd8c27a38bad9956d658d23f0a5e6b8c0e6681a00a5195664c3e9"
+  },
+  {
+    "key": "level-1-12",
+    "side": "alternative",
+    "file": "level-1-12-alternative.webp",
+    "scene": "You ask a shopkeeper for help.",
+    "sha256": "b09238f236e19c00dc6411fe834740f508670129db7559f86a7e4c341556601c"
+  },
+  {
+    "key": "level-1-11",
+    "side": "alternative",
+    "file": "level-1-11-alternative.webp",
+    "scene": "You meet someone for the first time.",
+    "sha256": "0c74ffef2581cf096d354d06dfd5f6cebb5dbe0afd73e5cabdd71b40ac5e33ab"
+  },
+  {
+    "key": "level-1-13",
+    "side": "scene",
+    "file": "level-1-13-scene.webp",
+    "scene": "You meet a new classmate for the first time.",
+    "sha256": "a80b1f51f23cf78a689f0742e06ebda5c8865455bf2d3f53dee41ddde2198565"
+  },
+  {
+    "key": "level-1-12",
+    "side": "scene",
+    "file": "level-1-12-scene.webp",
+    "scene": "You welcome a family member home.",
+    "sha256": "db91de0648d5865658e48131708ce2f4acaa42dcee59e54e3fe6a5cec41ac454"
+  },
+  {
+    "key": "level-1-14",
+    "side": "alternative",
+    "file": "level-1-14-alternative.webp",
+    "scene": "You leave the office before coworkers.",
+    "sha256": "1f197b4277e62e030db0e4e80251332b4799235c53b64aba3a39c8a11220ce65"
+  },
+  {
+    "key": "level-1-13",
+    "side": "alternative",
+    "file": "level-1-13-alternative.webp",
+    "scene": "You congratulate a friend on an award.",
+    "sha256": "d27bbb33c80f4894f080d56d2170e19d7fe1fd0788ccce98b71398f4df496f2e"
+  },
+  {
+    "key": "level-1-14",
+    "side": "scene",
+    "file": "level-1-14-scene.webp",
+    "scene": "You finish introducing yourself to a new group.",
+    "sha256": "153248073b96b50c1a23c12cd22c8e503535b46da075990395da7cf5744f7220"
+  },
+  {
+    "key": "level-1-15",
+    "side": "scene",
+    "file": "level-1-15-scene.webp",
+    "scene": "Your friend has won a school competition.",
+    "sha256": "1d8d69b32f52721629ce1e13cb445308f904b785b3801a2348e3cf579bfe7b67"
+  },
+  {
+    "key": "level-1-16",
+    "side": "alternative",
+    "file": "level-1-16-alternative.webp",
+    "scene": "You enter someone's home as a guest.",
+    "sha256": "00a1c522041d57c8c06ee64b4575826b96ae588b271cfe74807766ec8db69765"
+  },
+  {
+    "key": "level-1-15",
+    "side": "alternative",
+    "file": "level-1-15-alternative.webp",
+    "scene": "Your friend is feeling sick.",
+    "sha256": "fa3210b1073ef4ff7747703cc00f809e5b310f9316c476b833fab7559d0bb627"
+  },
+  {
+    "key": "level-1-16",
+    "side": "scene",
+    "file": "level-1-16-scene.webp",
+    "scene": "You greet a teammate after practice.",
+    "sha256": "29b8026f05815d43270bdec2815586e63001a70f9bf0fb23df03fae35db8dc9b"
+  },
+  {
+    "key": "level-1-17",
+    "side": "scene",
+    "file": "level-1-17-scene.webp",
+    "scene": "You politely ask a clerk for assistance.",
+    "sha256": "d896453ee073c25761224bb9cbcc497a1fe7548113b60803242dd5d95b8ade31"
+  },
+  {
+    "key": "level-1-18",
+    "side": "scene",
+    "file": "level-1-18-scene.webp",
+    "scene": "Someone offers help but you are okay.",
+    "sha256": "83049fc684fcf5320069cae0e2d6b3e91d044250c21bbee011491ffe100514ae"
+  },
+  {
+    "key": "level-1-18",
+    "side": "alternative",
+    "file": "level-1-18-alternative.webp",
+    "scene": "You interrupt a teacher to ask a question.",
+    "sha256": "18ac2502ee75c023230c85e9818fc6f49f999e762a64b759ad81b88c911bf946"
+  },
+  {
+    "key": "level-1-17",
+    "side": "alternative",
+    "file": "level-1-17-alternative.webp",
+    "scene": "You refuse an offer because you are fine.",
+    "sha256": "3ad0910fb5f8942c47df3e39f9d69a60c014adef732739778d3f9cfd7961e003"
+  },
+  {
+    "key": "level-1-19",
+    "side": "scene",
+    "file": "level-1-19-scene.webp",
+    "scene": "You enter the teacher's office politely.",
+    "sha256": "5415826608ea3807923e1281a2bd37747443c40a8e66c1e612c5a99e94603d3a"
+  },
+  {
+    "key": "level-1-19",
+    "side": "alternative",
+    "file": "level-1-19-alternative.webp",
+    "scene": "You welcome a friend home.",
+    "sha256": "cc24a9d3e8fd0e57f9d7d6311dece3d31fa7548018b319f2d4e2bf10d14f2796"
+  },
+  {
+    "key": "level-1-20",
+    "side": "scene",
+    "file": "level-1-20-scene.webp",
+    "scene": "You will see your classmate again tomorrow.",
+    "sha256": "bfdb0a86a73b99f5bcc8891fb69fdf0559d251e2d6c4bd5009485a2f77df5533"
+  },
+  {
+    "key": "level-1-20",
+    "side": "alternative",
+    "file": "level-1-20-alternative.webp",
+    "scene": "You meet a manager for the first time.",
+    "sha256": "d3c909e0bd14640f694ec0a1d13c3991334e40e635ddf6923e42c5e89c7e18b4"
+  }
+]

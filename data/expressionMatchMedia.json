@@ -1,0 +1,542 @@
+[
+  {
+    "key": "level-1-01",
+    "level": 1,
+    "japanese": "おはようございます",
+    "romaji": "Ohayou gozaimasu",
+    "scenario": "A student greets a teacher in the morning.",
+    "secondaryScenario": "A friend waves goodbye after school.",
+    "hint": "Think about a respectful morning greeting."
+  },
+  {
+    "key": "level-1-02",
+    "level": 1,
+    "japanese": "こんにちは",
+    "romaji": "Konnichiwa",
+    "scenario": "Two neighbors meet during the afternoon.",
+    "secondaryScenario": "A family begins eating dinner together.",
+    "hint": "Use the common daytime greeting."
+  },
+  {
+    "key": "level-1-03",
+    "level": 1,
+    "japanese": "こんばんは",
+    "romaji": "Konbanwa",
+    "scenario": "You meet a neighbor in the evening.",
+    "secondaryScenario": "You arrive at school early in the morning.",
+    "hint": "Notice the time of day."
+  },
+  {
+    "key": "level-1-04",
+    "level": 1,
+    "japanese": "ありがとうございます",
+    "romaji": "Arigatou gozaimasu",
+    "scenario": "A classmate returns your lost notebook.",
+    "secondaryScenario": "A customer asks where the station is.",
+    "hint": "Show polite gratitude."
+  },
+  {
+    "key": "level-1-05",
+    "level": 1,
+    "japanese": "すみません",
+    "romaji": "Sumimasen",
+    "scenario": "You accidentally bump into someone at the station.",
+    "secondaryScenario": "Your teammate wins a competition.",
+    "hint": "Use a brief apology."
+  },
+  {
+    "key": "level-1-06",
+    "level": 1,
+    "japanese": "さようなら",
+    "romaji": "Sayounara",
+    "scenario": "A student says goodbye to a teacher after class.",
+    "secondaryScenario": "A guest enters a home for the first time.",
+    "hint": "Use a standard farewell."
+  },
+  {
+    "key": "level-1-07",
+    "level": 1,
+    "japanese": "いただきます",
+    "romaji": "Itadakimasu",
+    "scenario": "Everyone is ready to begin a meal.",
+    "secondaryScenario": "Everyone has just finished eating.",
+    "hint": "This is said before eating."
+  },
+  {
+    "key": "level-1-08",
+    "level": 1,
+    "japanese": "ごちそうさまでした",
+    "romaji": "Gochisousama deshita",
+    "scenario": "You thank the host after finishing a meal.",
+    "secondaryScenario": "You introduce yourself to a new class.",
+    "hint": "This is said after eating."
+  },
+  {
+    "key": "level-1-09",
+    "level": 1,
+    "japanese": "いってきます",
+    "romaji": "Ittekimasu",
+    "scenario": "You tell your family you are leaving home.",
+    "secondaryScenario": "You welcome someone who returned home.",
+    "hint": "The speaker is leaving home."
+  },
+  {
+    "key": "level-1-10",
+    "level": 1,
+    "japanese": "いってらっしゃい",
+    "romaji": "Itterasshai",
+    "scenario": "You see a family member off at the door.",
+    "secondaryScenario": "You return home and announce your arrival.",
+    "hint": "Say this to the person leaving."
+  },
+  {
+    "key": "level-1-11",
+    "level": 1,
+    "japanese": "ただいま",
+    "romaji": "Tadaima",
+    "scenario": "You return home and greet your family.",
+    "secondaryScenario": "You meet someone for the first time.",
+    "hint": "The speaker has come home."
+  },
+  {
+    "key": "level-1-12",
+    "level": 1,
+    "japanese": "おかえりなさい",
+    "romaji": "Okaerinasai",
+    "scenario": "You welcome a family member home.",
+    "secondaryScenario": "You ask a shopkeeper for help.",
+    "hint": "Say this to the person who returned."
+  },
+  {
+    "key": "level-1-13",
+    "level": 1,
+    "japanese": "はじめまして",
+    "romaji": "Hajimemashite",
+    "scenario": "You meet a new classmate for the first time.",
+    "secondaryScenario": "You congratulate a friend on an award.",
+    "hint": "Use this at a first meeting."
+  },
+  {
+    "key": "level-1-14",
+    "level": 1,
+    "japanese": "よろしくおねがいします",
+    "romaji": "Yoroshiku onegaishimasu",
+    "scenario": "You finish introducing yourself to a new group.",
+    "secondaryScenario": "You leave the office before coworkers.",
+    "hint": "Politely close an introduction."
+  },
+  {
+    "key": "level-1-15",
+    "level": 1,
+    "japanese": "おめでとうございます",
+    "romaji": "Omedetou gozaimasu",
+    "scenario": "Your friend has won a school competition.",
+    "secondaryScenario": "Your friend is feeling sick.",
+    "hint": "Celebrate another person's success."
+  },
+  {
+    "key": "level-1-16",
+    "level": 1,
+    "japanese": "おつかれさまです",
+    "romaji": "Otsukaresama desu",
+    "scenario": "You greet a teammate after practice.",
+    "secondaryScenario": "You enter someone's home as a guest.",
+    "hint": "Acknowledge someone's effort."
+  },
+  {
+    "key": "level-1-17",
+    "level": 1,
+    "japanese": "おねがいします",
+    "romaji": "Onegaishimasu",
+    "scenario": "You politely ask a clerk for assistance.",
+    "secondaryScenario": "You refuse an offer because you are fine.",
+    "hint": "Use a polite request."
+  },
+  {
+    "key": "level-1-18",
+    "level": 1,
+    "japanese": "だいじょうぶです",
+    "romaji": "Daijoubu desu",
+    "scenario": "Someone offers help but you are okay.",
+    "secondaryScenario": "You interrupt a teacher to ask a question.",
+    "hint": "Politely say that you are fine."
+  },
+  {
+    "key": "level-1-19",
+    "level": 1,
+    "japanese": "しつれいします",
+    "romaji": "Shitsurei shimasu",
+    "scenario": "You enter the teacher's office politely.",
+    "secondaryScenario": "You welcome a friend home.",
+    "hint": "Use this when entering formally."
+  },
+  {
+    "key": "level-1-20",
+    "level": 1,
+    "japanese": "またあした",
+    "romaji": "Mata ashita",
+    "scenario": "You will see your classmate again tomorrow.",
+    "secondaryScenario": "You meet a manager for the first time.",
+    "hint": "The next meeting is tomorrow."
+  },
+  {
+    "key": "level-2-01",
+    "level": 2,
+    "japanese": "お先に失礼します",
+    "romaji": "Osaki ni shitsurei shimasu",
+    "scenario": "You leave work before your coworkers.",
+    "secondaryScenario": "You arrive late and keep someone waiting.",
+    "hint": "Acknowledge coworkers when leaving first."
+  },
+  {
+    "key": "level-2-02",
+    "level": 2,
+    "japanese": "お待たせしました",
+    "romaji": "Omatase shimashita",
+    "scenario": "You apologize after making someone wait.",
+    "secondaryScenario": "You ask a guest to wait for a moment.",
+    "hint": "The waiting has just ended."
+  },
+  {
+    "key": "level-2-03",
+    "level": 2,
+    "japanese": "かしこまりました",
+    "romaji": "Kashikomarimashita",
+    "scenario": "A staff member formally accepts a customer's request.",
+    "secondaryScenario": "A friend casually agrees to play a game.",
+    "hint": "Choose formal service language."
+  },
+  {
+    "key": "level-2-04",
+    "level": 2,
+    "japanese": "少々お待ちください",
+    "romaji": "Shoushou omachi kudasai",
+    "scenario": "A receptionist asks a visitor to wait briefly.",
+    "secondaryScenario": "A doctor tells a patient to take care.",
+    "hint": "Politely request a short wait."
+  },
+  {
+    "key": "level-2-05",
+    "level": 2,
+    "japanese": "お気をつけて",
+    "romaji": "Oki o tsukete",
+    "scenario": "You tell a friend to travel safely.",
+    "secondaryScenario": "You enter a host's home.",
+    "hint": "Express care as someone leaves."
+  },
+  {
+    "key": "level-2-06",
+    "level": 2,
+    "japanese": "お大事に",
+    "romaji": "Odaiji ni",
+    "scenario": "You speak to someone who is ill.",
+    "secondaryScenario": "You greet a coworker after a shift.",
+    "hint": "Wish an ill person well."
+  },
+  {
+    "key": "level-2-07",
+    "level": 2,
+    "japanese": "お邪魔します",
+    "romaji": "Ojama shimasu",
+    "scenario": "You enter a friend's home as a guest.",
+    "secondaryScenario": "You finish eating at a restaurant.",
+    "hint": "Use the customary phrase when entering a home."
+  },
+  {
+    "key": "level-2-08",
+    "level": 2,
+    "japanese": "失礼しました",
+    "romaji": "Shitsurei shimashita",
+    "scenario": "You apologize after making a formal mistake.",
+    "secondaryScenario": "You welcome a returning family member.",
+    "hint": "Use a formal past-tense apology."
+  },
+  {
+    "key": "level-2-09",
+    "level": 2,
+    "japanese": "どうぞよろしくお願いいたします",
+    "romaji": "Douzo yoroshiku onegai itashimasu",
+    "scenario": "You close a formal self-introduction.",
+    "secondaryScenario": "You ask for the restaurant bill.",
+    "hint": "A formal relationship is beginning."
+  },
+  {
+    "key": "level-2-10",
+    "level": 2,
+    "japanese": "申し訳ありません",
+    "romaji": "Moushiwake arimasen",
+    "scenario": "You sincerely apologize to a customer.",
+    "secondaryScenario": "You congratulate a close friend.",
+    "hint": "A stronger formal apology is needed."
+  },
+  {
+    "key": "level-2-11",
+    "level": 2,
+    "japanese": "手伝いましょうか",
+    "romaji": "Tetsudaimashou ka",
+    "scenario": "You offer to help someone carrying boxes.",
+    "secondaryScenario": "You ask permission to take a photo.",
+    "hint": "Offer assistance as a question."
+  },
+  {
+    "key": "level-2-12",
+    "level": 2,
+    "japanese": "助かりました",
+    "romaji": "Tasukarimashita",
+    "scenario": "You thank someone whose help solved your problem.",
+    "secondaryScenario": "You ask someone to repeat a sentence.",
+    "hint": "Their help made a real difference."
+  },
+  {
+    "key": "level-2-13",
+    "level": 2,
+    "japanese": "こちらへどうぞ",
+    "romaji": "Kochira e douzo",
+    "scenario": "A staff member guides a guest to a seat.",
+    "secondaryScenario": "A traveler asks for directions.",
+    "hint": "Invite the person to follow this way."
+  },
+  {
+    "key": "level-2-14",
+    "level": 2,
+    "japanese": "もう一度お願いします",
+    "romaji": "Mou ichido onegaishimasu",
+    "scenario": "You politely ask someone to repeat what they said.",
+    "secondaryScenario": "You tell a coworker to travel safely.",
+    "hint": "You need to hear it one more time."
+  },
+  {
+    "key": "level-2-15",
+    "level": 2,
+    "japanese": "写真を撮ってもいいですか",
+    "romaji": "Shashin o totte mo ii desu ka",
+    "scenario": "You ask permission before taking a photo.",
+    "secondaryScenario": "You announce that you are leaving home.",
+    "hint": "Ask before using the camera."
+  },
+  {
+    "key": "level-2-16",
+    "level": 2,
+    "japanese": "予約しています",
+    "romaji": "Yoyaku shiteimasu",
+    "scenario": "You tell restaurant staff you have a reservation.",
+    "secondaryScenario": "You apologize for bumping into someone.",
+    "hint": "You already arranged a booking."
+  },
+  {
+    "key": "level-2-17",
+    "level": 2,
+    "japanese": "お会計をお願いします",
+    "romaji": "Okaikei o onegaishimasu",
+    "scenario": "You politely ask for the bill after a meal.",
+    "secondaryScenario": "You introduce yourself to a new group.",
+    "hint": "The meal is finished and you want to pay."
+  },
+  {
+    "key": "level-2-18",
+    "level": 2,
+    "japanese": "ご案内します",
+    "romaji": "Goannai shimasu",
+    "scenario": "A staff member offers to guide a visitor.",
+    "secondaryScenario": "A guest thanks the cook after eating.",
+    "hint": "The speaker will show the way."
+  },
+  {
+    "key": "level-2-19",
+    "level": 2,
+    "japanese": "お久しぶりです",
+    "romaji": "Ohisashiburi desu",
+    "scenario": "You meet someone after a long absence.",
+    "secondaryScenario": "You meet someone for the first time.",
+    "hint": "You know them but much time passed."
+  },
+  {
+    "key": "level-2-20",
+    "level": 2,
+    "japanese": "では、また",
+    "romaji": "Dewa mata",
+    "scenario": "You end a polite conversation and expect to meet again.",
+    "secondaryScenario": "You begin a meal with your host.",
+    "hint": "Use a polite light farewell."
+  },
+  {
+    "key": "level-3-01",
+    "level": 3,
+    "japanese": "恐れ入りますが、もう一度お願いします",
+    "romaji": "Osoreirimasu ga, mou ichido onegaishimasu",
+    "scenario": "You ask a senior client to repeat an important point.",
+    "secondaryScenario": "You casually ask a close friend to repeat a joke.",
+    "hint": "Use a deferential request."
+  },
+  {
+    "key": "level-3-02",
+    "level": 3,
+    "japanese": "申し訳ございません",
+    "romaji": "Moushiwake gozaimasen",
+    "scenario": "You make a formal apology to a customer.",
+    "secondaryScenario": "You thank a friend for returning a pencil.",
+    "hint": "Use the strongest formal apology."
+  },
+  {
+    "key": "level-3-03",
+    "level": 3,
+    "japanese": "承知いたしました",
+    "romaji": "Shouchi itashimashita",
+    "scenario": "You formally confirm a supervisor's instructions.",
+    "secondaryScenario": "You casually agree with a sibling.",
+    "hint": "Confirm understanding formally."
+  },
+  {
+    "key": "level-3-04",
+    "level": 3,
+    "japanese": "お手数をおかけします",
+    "romaji": "Otesuu o okake shimasu",
+    "scenario": "You acknowledge that your request creates extra work.",
+    "secondaryScenario": "You celebrate a classmate's achievement.",
+    "hint": "Recognize the burden of your request."
+  },
+  {
+    "key": "level-3-05",
+    "level": 3,
+    "japanese": "ご確認いただけますでしょうか",
+    "romaji": "Gokakunin itadakemasu deshou ka",
+    "scenario": "You politely ask a manager to review a document.",
+    "secondaryScenario": "You tell a friend to view a funny photo.",
+    "hint": "Use an indirect respectful request."
+  },
+  {
+    "key": "level-3-06",
+    "level": 3,
+    "japanese": "伺ってもよろしいでしょうか",
+    "romaji": "Ukagatte mo yoroshii deshou ka",
+    "scenario": "You respectfully ask whether you may visit.",
+    "secondaryScenario": "You ask a close friend where lunch is.",
+    "hint": "Ask permission very politely."
+  },
+  {
+    "key": "level-3-07",
+    "level": 3,
+    "japanese": "お目にかかれて光栄です",
+    "romaji": "Ome ni kakarete kouei desu",
+    "scenario": "You meet a distinguished guest for the first time.",
+    "secondaryScenario": "You greet a classmate seen every day.",
+    "hint": "Express honor at a formal meeting."
+  },
+  {
+    "key": "level-3-08",
+    "level": 3,
+    "japanese": "ご配慮いただきありがとうございます",
+    "romaji": "Gohairyo itadaki arigatou gozaimasu",
+    "scenario": "You thank a supervisor for thoughtful consideration.",
+    "secondaryScenario": "You say goodbye to a shop clerk.",
+    "hint": "Thank someone for special consideration."
+  },
+  {
+    "key": "level-3-09",
+    "level": 3,
+    "japanese": "先ほどは失礼いたしました",
+    "romaji": "Sakihodo wa shitsurei itashimashita",
+    "scenario": "You formally apologize for your earlier behavior.",
+    "secondaryScenario": "You begin a casual call with a friend.",
+    "hint": "Refer respectfully to an earlier mistake."
+  },
+  {
+    "key": "level-3-10",
+    "level": 3,
+    "japanese": "お忙しいところ申し訳ありません",
+    "romaji": "Oisogashii tokoro moushiwake arimasen",
+    "scenario": "You interrupt a busy professor with an important request.",
+    "secondaryScenario": "You welcome a family member home.",
+    "hint": "Acknowledge that they are busy."
+  },
+  {
+    "key": "level-3-11",
+    "level": 3,
+    "japanese": "何卒よろしくお願いいたします",
+    "romaji": "Nanitozo yoroshiku onegai itashimasu",
+    "scenario": "You close a very formal request.",
+    "secondaryScenario": "You ask a friend to pass the salt.",
+    "hint": "Use a formal closing."
+  },
+  {
+    "key": "level-3-12",
+    "level": 3,
+    "japanese": "ご無沙汰しております",
+    "romaji": "Gobusata shiteorimasu",
+    "scenario": "You greet a senior person after a long absence.",
+    "secondaryScenario": "You greet someone met yesterday.",
+    "hint": "Use the humble phrase for a long absence."
+  },
+  {
+    "key": "level-3-13",
+    "level": 3,
+    "japanese": "お招きいただきありがとうございます",
+    "romaji": "Omaneki itadaki arigatou gozaimasu",
+    "scenario": "You thank a host for a formal invitation.",
+    "secondaryScenario": "You ask a waiter for the bill.",
+    "hint": "Express gratitude for being invited."
+  },
+  {
+    "key": "level-3-14",
+    "level": 3,
+    "japanese": "どうぞお気遣いなく",
+    "romaji": "Douzo okizukai naku",
+    "scenario": "You politely tell a host not to go to extra trouble.",
+    "secondaryScenario": "You warn a traveler about weather.",
+    "hint": "Politely decline excessive consideration."
+  },
+  {
+    "key": "level-3-15",
+    "level": 3,
+    "japanese": "お先に失礼いたします",
+    "romaji": "Osaki ni shitsurei itashimasu",
+    "scenario": "You formally leave before senior colleagues.",
+    "secondaryScenario": "You leave a casual picnic with friends.",
+    "hint": "Use the formal workplace farewell."
+  },
+  {
+    "key": "level-3-16",
+    "level": 3,
+    "japanese": "ご足労いただきありがとうございます",
+    "romaji": "Gosokurou itadaki arigatou gozaimasu",
+    "scenario": "You thank a guest for traveling to meet you.",
+    "secondaryScenario": "You thank a friend for an eraser.",
+    "hint": "Acknowledge the effort of coming."
+  },
+  {
+    "key": "level-3-17",
+    "level": 3,
+    "japanese": "差し支えなければ、お名前を伺えますか",
+    "romaji": "Sashitsukae nakereba, onamae o ukagaemasu ka",
+    "scenario": "You politely request a visitor's name.",
+    "secondaryScenario": "You call a best friend by a nickname.",
+    "hint": "Soften a sensitive question."
+  },
+  {
+    "key": "level-3-18",
+    "level": 3,
+    "japanese": "もう少し詳しくお聞かせください",
+    "romaji": "Mou sukoshi kuwashiku okikase kudasai",
+    "scenario": "You respectfully invite a client to explain further.",
+    "secondaryScenario": "You command a sibling to speak faster.",
+    "hint": "Invite more detail respectfully."
+  },
+  {
+    "key": "level-3-19",
+    "level": 3,
+    "japanese": "引き続きよろしくお願いいたします",
+    "romaji": "Hikitsuzuki yoroshiku onegai itashimasu",
+    "scenario": "You close a meeting and request continued cooperation.",
+    "secondaryScenario": "You say good night to family.",
+    "hint": "The professional relationship continues."
+  },
+  {
+    "key": "level-3-20",
+    "level": 3,
+    "japanese": "貴重なお時間をいただき、ありがとうございます",
+    "romaji": "Kichou na ojikan o itadaki, arigatou gozaimasu",
+    "scenario": "You thank an executive for meeting with you.",
+    "secondaryScenario": "You thank a classmate for a quick greeting.",
+    "hint": "Recognize the value of their time."
+  }
+]

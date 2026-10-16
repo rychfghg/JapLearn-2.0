@@ -1,0 +1,422 @@
+[
+  {
+    "key": "level-1-01",
+    "text": "おはようございます",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-2aab32744c8ad921371b.mp3",
+    "sha256": "c9d2d24ae9afd730291371b38899d0f16617c67bbd849e5788ec0bf9e4156801"
+  },
+  {
+    "key": "level-1-02",
+    "text": "こんにちは",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-4be97a711acd680fcc07.mp3",
+    "sha256": "1063a9bf97ed12b0f02b5aa40fa0cdc6a951064e1b549bf1471727ac48d25fed"
+  },
+  {
+    "key": "level-1-03",
+    "text": "こんばんは",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-eb9eb22cca2410acac7d.mp3",
+    "sha256": "d69ec2a8985c6a34b0a1f0522f8c2bc178f4744d82fd71a41837c590d04f85ab"
+  },
+  {
+    "key": "level-1-04",
+    "text": "ありがとうございます",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-daa3ed597057ef8f1801.mp3",
+    "sha256": "98fca6832fa44c8c5d6114e8b76444e33f7e97669b700f3bbc5fadf35adc1faa"
+  },
+  {
+    "key": "level-1-05",
+    "text": "すみません",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-cb24cec6df2cc5540e55.mp3",
+    "sha256": "9885e6f7e7fa750504566f87503c7fd689949a36cf0fb5445a01d192217120de"
+  },
+  {
+    "key": "level-1-06",
+    "text": "さようなら",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-a904783c1517e1b8896b.mp3",
+    "sha256": "045b293ef0ba08a3433bfc22b450f415f8f3ab6d3d7e6ac03804d4e952b6fc1e"
+  },
+  {
+    "key": "level-1-07",
+    "text": "いただきます",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-3e56e73d24ca85085615.mp3",
+    "sha256": "2f751ed98b2e02d6eb18cf1e2bcfc592467dea37f0bf1f996a28eb69e720a4ac"
+  },
+  {
+    "key": "level-1-08",
+    "text": "ごちそうさまでした",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-c489cf313c68fba5f382.mp3",
+    "sha256": "d788e52e6524ed3647e0d7822dd2e0213d9a1eed0e8e3b591ffe649520f46bb2"
+  },
+  {
+    "key": "level-1-09",
+    "text": "いってきます",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-21797de3648e1486dda9.mp3",
+    "sha256": "07f9547b70190b7008d0b6a15208092c092ad3ea2379f1f4990e05d245751c68"
+  },
+  {
+    "key": "level-1-10",
+    "text": "いってらっしゃい",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-10d93a52c6cd0b52ad28.mp3",
+    "sha256": "c8ee4e01e06061b897aec6c3166ec10bea47f4f5de634b83af1cf51db3f07a01"
+  },
+  {
+    "key": "level-1-11",
+    "text": "ただいま",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-5dee86c3bcfd9e6abc07.mp3",
+    "sha256": "32a6fe0eff6438048918dbccafe6efae103f4d18a602aaa6dced68d7564acfb0"
+  },
+  {
+    "key": "level-1-12",
+    "text": "おかえりなさい",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-37dfa4c8fdaa5dea4a36.mp3",
+    "sha256": "15624915e8cb768fb11f1c20573dc27bf451c2d517bada96833d81f3b02aee30"
+  },
+  {
+    "key": "level-1-13",
+    "text": "はじめまして",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-afb1f09d750b225f41c4.mp3",
+    "sha256": "17c5702582b5d993fdfb9afe8840c49121116cf2c1aef2c13d674481646a44a9"
+  },
+  {
+    "key": "level-1-14",
+    "text": "よろしくおねがいします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-1b1fab16d4b8f49345e9.mp3",
+    "sha256": "d771ae9c568f887c858f21517d9ea7077ae581faa1c9c96120f3bcfe7f1d2ed3"
+  },
+  {
+    "key": "level-1-15",
+    "text": "おめでとうございます",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-397d1660376e81da4908.mp3",
+    "sha256": "d4a96d0e16583528fd6107ddbc291ecd580d9d9c2de70de29d5da9c69deccee3"
+  },
+  {
+    "key": "level-1-16",
+    "text": "おつかれさまです",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-46017d7287101dbb209c.mp3",
+    "sha256": "8e20a70beb39fb43f983149fcdd9932c7c37c73ff58840b11c7b6a930d84f921"
+  },
+  {
+    "key": "level-1-17",
+    "text": "おねがいします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-0fb6b3734d016cb422f2.mp3",
+    "sha256": "8d927d44cde20e0e20cbb1f1505e1c6077f098eeecbc57119898f9cdc1879caa"
+  },
+  {
+    "key": "level-1-18",
+    "text": "だいじょうぶです",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-c580b2f7d55ce4144c30.mp3",
+    "sha256": "35ff57b27e173e5c328d6f0f0d1a74648729382a39a1767fa96765cee7201f51"
+  },
+  {
+    "key": "level-1-19",
+    "text": "しつれいします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-e170d49209f16ebaf3fb.mp3",
+    "sha256": "df4044aa766c397479015fb562aea3df188a00f97b3454c390879a44c84ed3d3"
+  },
+  {
+    "key": "level-1-20",
+    "text": "またあした",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-e25a2174b9bf3016609c.mp3",
+    "sha256": "3ba6bc106eb2706008c48eefef0f253ed1b57143dff343e37028b61352e8ac85"
+  },
+  {
+    "key": "level-2-01",
+    "text": "お先に失礼します",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-0359fbcc00dc3019e114.mp3",
+    "sha256": "e5ab7ab924d8942634915af08b1310679b0130014c6112489aae44a761d9ff13"
+  },
+  {
+    "key": "level-2-02",
+    "text": "お待たせしました",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-47cada682a08fe4ea7f9.mp3",
+    "sha256": "bf7e2213e3a423105873c1f352a3f1d88626e4eee98655c36c75dfb7b615b91a"
+  },
+  {
+    "key": "level-2-03",
+    "text": "かしこまりました",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-eed45ab039fc36fe0569.mp3",
+    "sha256": "ced07f14402a70d5b96f0bb412ba37e3d5bf1c3887e52cc5a72b6f979305d24b"
+  },
+  {
+    "key": "level-2-04",
+    "text": "少々お待ちください",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-b88146667011c490325d.mp3",
+    "sha256": "9cd4bf4fe9858d0c35c2a02c092e374a97694e5c39792d040695efcadcd7ec20"
+  },
+  {
+    "key": "level-2-05",
+    "text": "お気をつけて",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-dc4b65b90460bb8c9a8d.mp3",
+    "sha256": "e76ffd26ee2de98e15ec3a62237f720b6adff64ad2465cd47e014620ed52366e"
+  },
+  {
+    "key": "level-2-06",
+    "text": "お大事に",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-309f8b80d6911ec9aa33.mp3",
+    "sha256": "24bb3d5d1c1a6507d2c97afb51278e0db1aeb5ca1405ce170a99db7241cd322d"
+  },
+  {
+    "key": "level-2-07",
+    "text": "お邪魔します",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-0f9453d8f0212147c28d.mp3",
+    "sha256": "1580e901a9090b907f389ee154da2bc17646c28f13521ae9b1b21425d1a437cc"
+  },
+  {
+    "key": "level-2-08",
+    "text": "失礼しました",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-0333b8beb5a2c0059424.mp3",
+    "sha256": "cd3f50374df147decee3b9df95541529809afdfb79d9ecad2421c3923152b219"
+  },
+  {
+    "key": "level-2-09",
+    "text": "どうぞよろしくお願いいたします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-73771f4e4da5fb9ea4c3.mp3",
+    "sha256": "1f69c44573ee39b6a3e4b05b5ba24ec3451a4f9e22bcf203229fc1203cc5dea4"
+  },
+  {
+    "key": "level-2-10",
+    "text": "申し訳ありません",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-77df40f23b35fceb2605.mp3",
+    "sha256": "3ba3f693f87a854f6d5dc5cdb901f0413577697bc5b2b3ec11eccb2613aed9b2"
+  },
+  {
+    "key": "level-2-11",
+    "text": "手伝いましょうか",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-6787668494b76680b942.mp3",
+    "sha256": "f56a3280eed0a69c599fa35eb472533dfc1eaf3077b310e82984d16cd26a7804"
+  },
+  {
+    "key": "level-2-12",
+    "text": "助かりました",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-1e4aa4fa3acb81c89494.mp3",
+    "sha256": "8a3c08c12d8e4f7d999d3c6f66f0deb8f71a37439d3ed54ec481b6ef57b1e007"
+  },
+  {
+    "key": "level-2-13",
+    "text": "こちらへどうぞ",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-4ae956ec30851047fe5c.mp3",
+    "sha256": "f8388abef31cc4342bf0f464106f1aa86384f518928deddcd8ac66b05303fc96"
+  },
+  {
+    "key": "level-2-14",
+    "text": "もう一度お願いします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-0733b706791338ff1060.mp3",
+    "sha256": "c9ddf8873bb6fc60542d64b8cc6470bba0b7d4e2eb8f89614386983cb64a140f"
+  },
+  {
+    "key": "level-2-15",
+    "text": "写真を撮ってもいいですか",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-73a938802ae2256ba35c.mp3",
+    "sha256": "66d8a14858d2c6dec98492ef47d0bf2e4fbb5e549086c07e88ec34d18563227f"
+  },
+  {
+    "key": "level-2-16",
+    "text": "予約しています",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-a085a60695ae96dc4ef0.mp3",
+    "sha256": "cda7e9a6efc25b43d7706a1c0433f41b7435b646febdbddc1a074879b0de808f"
+  },
+  {
+    "key": "level-2-17",
+    "text": "お会計をお願いします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-744cbeb3842ae70df72a.mp3",
+    "sha256": "838dc5c087a098eb243c2dcff4fc5707b0de2f25173df7b7fb3c2c2bed84d813"
+  },
+  {
+    "key": "level-2-18",
+    "text": "ご案内します",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-f7b50f3fe5d1f2d22862.mp3",
+    "sha256": "6b18bc8261687d54ff83b7dfdcf1c31107dd6a947d8a985be7f5e1de80a27f7b"
+  },
+  {
+    "key": "level-2-19",
+    "text": "お久しぶりです",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-fbc1d52d485e27ccf040.mp3",
+    "sha256": "3581196578796562a2e519d8d00a4e9105a646a398626697551eadd5dccd2fcf"
+  },
+  {
+    "key": "level-2-20",
+    "text": "では、また",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-1b6f5bfe6bc3852fa8cd.mp3",
+    "sha256": "b5cd92f78f7db564a01eba543952122e77a898f634d7dc7526c46ff85e09cd13"
+  },
+  {
+    "key": "level-3-01",
+    "text": "恐れ入りますが、もう一度お願いします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-3cf474760346cbdb9eea.mp3",
+    "sha256": "77391360f5c064bec6fe98bb7869514be7a8950a36d9037938e6a09c38c44ba1"
+  },
+  {
+    "key": "level-3-02",
+    "text": "申し訳ございません",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-e89a57bbcd96cfa71919.mp3",
+    "sha256": "65e32e9411c9e1fa0d4c238d8adf80e33887b2ede648d6969b4f96227f05bfea"
+  },
+  {
+    "key": "level-3-03",
+    "text": "承知いたしました",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-9cfd00cb89f14dd5f867.mp3",
+    "sha256": "325821e5e3feddfac14cc31baf933d1ab2b81b5dedd5e30f19f32b176f5c7540"
+  },
+  {
+    "key": "level-3-04",
+    "text": "お手数をおかけします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-e2954e8e510f90222c6d.mp3",
+    "sha256": "339f6029403abb64f5b9d50a6ee612128dd1f9bda3bf36604289c4191558a1e0"
+  },
+  {
+    "key": "level-3-05",
+    "text": "ご確認いただけますでしょうか",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-dac80e28f72b1dddcbf1.mp3",
+    "sha256": "ef7fb0964f0985d0df9a664b2e4f7758196b760a5cd145c3ad5b79c554a21dd4"
+  },
+  {
+    "key": "level-3-06",
+    "text": "伺ってもよろしいでしょうか",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-e5ac65ddc496139f730e.mp3",
+    "sha256": "17ea369258161052f5a496c2df514e5c23974c2d3f2661a5a5e74209203b29a3"
+  },
+  {
+    "key": "level-3-07",
+    "text": "お目にかかれて光栄です",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-78be9f8436b664ee1a6d.mp3",
+    "sha256": "38733401ceb669f84e01e77298e12b17381b954c4343bb4b34fa7f117ad0dd21"
+  },
+  {
+    "key": "level-3-08",
+    "text": "ご配慮いただきありがとうございます",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-c3652f140e6ea7983a1d.mp3",
+    "sha256": "91affa01a44e2679235dc1e686ff3dcffba36d3d3692e418d7054937d388c41d"
+  },
+  {
+    "key": "level-3-09",
+    "text": "先ほどは失礼いたしました",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-2b3a64452cd6221640b0.mp3",
+    "sha256": "1915dc9ecacca3c7c9f357a2c7f27c09fbd012881c9659ed55fc0e43a33f38c1"
+  },
+  {
+    "key": "level-3-10",
+    "text": "お忙しいところ申し訳ありません",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-88767f7594a0ebbf6133.mp3",
+    "sha256": "d1d1667411f7b7349f3fe69cb40cee37c3793c3c7a9e1a6bb8be71ca8394d9ea"
+  },
+  {
+    "key": "level-3-11",
+    "text": "何卒よろしくお願いいたします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-57156833ac71b9c6f314.mp3",
+    "sha256": "b5ab6094bda1150dd99ef786d5f8f34562f0e3cd05718d74a82a056c06ee6452"
+  },
+  {
+    "key": "level-3-12",
+    "text": "ご無沙汰しております",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-31db8af0e380b9fdce73.mp3",
+    "sha256": "5e3cc2e18e2424d47370ed88a62b1edc195aa9018076c75420b504ad0fac565c"
+  },
+  {
+    "key": "level-3-13",
+    "text": "お招きいただきありがとうございます",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-fc1d2bef64b989a3b1ec.mp3",
+    "sha256": "312e15d51e9d6172665b1369e21f802a2c1f3fd6b8b39bb5247b17fde89594f3"
+  },
+  {
+    "key": "level-3-14",
+    "text": "どうぞお気遣いなく",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-b2e3c6ebfd1819899481.mp3",
+    "sha256": "23aa167704f4a4c4434b7d1669e01a287e0cfe06dc6a985588173a394dcdb221"
+  },
+  {
+    "key": "level-3-15",
+    "text": "お先に失礼いたします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-80d584a00744bebed635.mp3",
+    "sha256": "8ed5f533317a5a24b4d3f88aa2a74e30b61452411e3c92584cc0d2d129b8d10e"
+  },
+  {
+    "key": "level-3-16",
+    "text": "ご足労いただきありがとうございます",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-4326c02371c5efcdff6c.mp3",
+    "sha256": "13692f6c2d3252d5d8655f0ab59037568a763d5bed4e6fa919830d0844a16b07"
+  },
+  {
+    "key": "level-3-17",
+    "text": "差し支えなければ、お名前を伺えますか",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-7a7038b2f081c2d23fae.mp3",
+    "sha256": "c71c2fb6d57a37d90886019e62880f1ad9df1af7509f30b3b5733221f57a2541"
+  },
+  {
+    "key": "level-3-18",
+    "text": "もう少し詳しくお聞かせください",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-ee870b4d6373106f78af.mp3",
+    "sha256": "d3b12a52d80e1059c523027972c154a51e190e12a8b7f9d9c863799ccb906de6"
+  },
+  {
+    "key": "level-3-19",
+    "text": "引き続きよろしくお願いいたします",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-aad9db34f88b0c6e99cc.mp3",
+    "sha256": "dd24deb045d6a11d00744b2adc485e7849ce105167edbc604f8b343eda577e27"
+  },
+  {
+    "key": "level-3-20",
+    "text": "貴重なお時間をいただき、ありがとうございます",
+    "voice": "ja-JP-NanamiNeural",
+    "file": "phrase-043bec156822737c1a2b.mp3",
+    "sha256": "7eaeff99ed349323f95012de749447e2d207bfad45f01ea55c520562071922bd"
+  }
+]

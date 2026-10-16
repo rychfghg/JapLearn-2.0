@@ -1,3 +1,7 @@
+import expressionAudio from '../services/expressionMatchAudio';
+import expressionImages from '../services/expressionMatchImages';
+import expressionMedia from '../data/expressionMatchMedia.json';
+import {expressionTargetOrder} from '../services/expressionMatchTargets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -19,7 +23,7 @@ import {
 } from 'react-native';
 import QuackSituateExit from '../components/QuackSituateExit';
 import expoconfig from '../expoconfig';
-import { loadBundledSound } from '../utils/nativeAudio';
+import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
 import { loadOfflineContent, queueOfflineSubmission, syncOfflineSubmissions } from '../services/offlineSync';
 import { resolveOfflineMediaUri, useOfflineMediaUri } from '../services/offlineMedia';
 
@@ -55,32 +59,12 @@ const mediaUrl = (url?: string) => {
   return url.startsWith('http') ? url : `${expoconfig.API_URL}${url}`;
 };
 
-// Published starter moments use these asset paths, not backend media URLs.
-// Resolve them from the app bundle so both choices work in APK and offline.
-const waveImage = require('../assets/quacksituate/gestures/gesture-wave.png');
-const bowImage = require('../assets/quacksituate/gestures/gesture-bow.png');
-const bundledGestureImage = (url?: string) => {
-  if (!url) return null;
-  let path = url;
-  try { path = decodeURIComponent(url); } catch { /* Keep the original URL. */ }
-  const fileName = path.split(/[?#]/)[0].replace(/\\/g, '/').split('/').pop()?.toLowerCase();
-  if (fileName === 'gesture-wave.png') return waveImage;
-  if (fileName === 'gesture-bow.png') return bowImage;
-  return null;
-};
-
-function TargetPicture({ source, fallback }: { source: ImageSourcePropType; fallback: ImageSourcePropType }) {
-  const [failed, setFailed] = useState(false);
-  return (
-    <View style={styles.targetArtwork}>
-      <Image
-        source={failed ? fallback : source}
-        style={styles.targetImage}
-        resizeMode="contain"
-        onError={() => setFailed(true)}
-      />
-    </View>
-  );
+// Generic wave/bow art is not a scenario illustration and must not identify correctness.
+const isGenericGesture=(url?:string)=>/gesture-(wave|bow)\.png(?:[?#]|$)/i.test(url??'');
+function TargetPicture({source,scenario}:{source?:ImageSourcePropType;scenario:string}){
+  const [failed,setFailed]=useState(false);
+  useEffect(()=>setFailed(false),[source]);
+  return <View style={styles.targetArtwork}>{source&&!failed?<Image source={source} accessibilityLabel={scenario} style={styles.targetImage} resizeMode="contain" onError={()=>setFailed(true)}/>:<View style={{flex:1,alignItems:'center',justifyContent:'center',gap:6,padding:10}}><Ionicons name="image-outline" size={28} color="#C5B5E9"/><Text style={{fontSize:11,color:'#EEE7FB',textAlign:'center'}}>Scene illustration unavailable</Text></View>}</View>;
 }
 
 const getAnswer = (moment: Moment): Choice => {
@@ -171,7 +155,14 @@ export default function QuackSituateMatching() {
 
   const [moments, setMoments] = useState<Moment[]>([]);
   const [momentIndex, setMomentIndex] = useState(0);
-  const [correctPosition, setCorrectPosition] = useState<TargetPosition>('top');
+  const [runRevision,setRunRevision]=useState(0);
+  const targetOrder=useMemo(()=>expressionTargetOrder(moments.length),[moments,runRevision]);
+  const correctPosition=targetOrder[momentIndex]??'top';
+  const [audioError,setAudioError]=useState('');
+  const [audioPlaying,setAudioPlaying]=useState(false);
+  const choiceLock=useRef(false);
+  const audioGeneration=useRef(0);
+  const audioFocused=useRef(true);
   const [loading, setLoading] = useState(true);
   const [locked, setLocked] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
@@ -195,11 +186,14 @@ export default function QuackSituateMatching() {
   const current = moments.length > 0
     ? moments[Math.min(momentIndex, moments.length - 1)]
     : undefined;
-  const correctBundledImage = bundledGestureImage(current?.imageUrl);
-  const alternativeBundledImage = bundledGestureImage(current?.secondaryImageUrl);
-  const correctImageUri = useOfflineMediaUri(correctBundledImage ? undefined : current?.imageUrl);
-  const alternativeImageUri = useOfflineMediaUri(alternativeBundledImage ? undefined : current?.secondaryImageUrl);
+  const authoredMedia=expressionMedia.find(row=>row.japanese===current?.correctAnswer&&row.scenario===current?.scenario&&row.secondaryScenario===current?.secondaryScenario);
+  const correctBundledImage=authoredMedia?expressionImages[authoredMedia.key]?.scene:undefined;
+  const alternativeBundledImage=authoredMedia?expressionImages[authoredMedia.key]?.alternative:undefined;
+  const correctImageUri = useOfflineMediaUri(correctBundledImage||isGenericGesture(current?.imageUrl) ? undefined : current?.imageUrl);
+  const alternativeImageUri = useOfflineMediaUri(alternativeBundledImage||isGenericGesture(current?.secondaryImageUrl) ? undefined : current?.secondaryImageUrl);
   const currentAnswer = current ? getAnswer(current) : null;
+  const phraseAudio=current?expressionAudio[current.correctAnswer]:undefined;
+  const hasPhraseAudio=!!phraseAudio||!!current?.audioUrl;
   const answeredCount = correctCount + mistakes;
   const accuracy = answeredCount > 0 ? correctCount / answeredCount : 0;
   const stars = answeredCount === 0
@@ -244,6 +238,7 @@ export default function QuackSituateMatching() {
   }, [getUser, level, runGameType]);
 
   const stopAudio = useCallback(async (unload = false) => {
+    audioGeneration.current++;
     const sounds = [
       music.current,
       momentAudio.current,
@@ -272,7 +267,9 @@ export default function QuackSituateMatching() {
 
   useFocusEffect(
     useCallback(() => {
+      audioFocused.current=true;
       return () => {
+        audioFocused.current=false;
         void stopAudio(true);
       };
     }, [stopAudio]),
@@ -364,7 +361,7 @@ export default function QuackSituateMatching() {
         correctSound.current = loaded[1].sound;
         incorrectSound.current = loaded[2].sound;
       } catch {
-        if (active) setMoments([]);
+        if (active) setAudioError('Some audio could not load. The questions remain available.');
       } finally {
         if (active) {
           setLoading(false);
@@ -378,33 +375,38 @@ export default function QuackSituateMatching() {
     };
   }, [getUser, level, runGameType, setNumber, stopAudio]);
 
-  useEffect(() => {
-    setCorrectPosition(Math.random() > 0.5 ? 'top' : 'bottom');
-    setShowHint(false);
-    setLocked(false);
-  }, [current?.id]);
+  useEffect(()=>{
+    audioGeneration.current++;setAudioPlaying(false);setAudioError('');
+    const previous=momentAudio.current;momentAudio.current=null;void stopAndUnloadSound(previous);
+    setShowHint(false);setLocked(false);choiceLock.current=false;
+    return()=>{audioGeneration.current++;const stale=momentAudio.current;momentAudio.current=null;void stopAndUnloadSound(stale);};
+  },[current?.id]);
 
-  const playMomentAudio = async () => {
-    if (!current?.audioUrl) return;
-
-    try {
-      await momentAudio.current?.unloadAsync();
-      const loaded = await Audio.Sound.createAsync(
-        { uri: await resolveOfflineMediaUri(current.audioUrl) },
-        {
-          shouldPlay: true,
-          volume: 1,
-        },
-      );
-
-      momentAudio.current = loaded.sound;
-    } catch {}
+  const playMomentAudio=async()=>{
+    if(!current||!hasPhraseAudio||locked)return;
+    const generation=++audioGeneration.current;
+    setAudioError('');setAudioPlaying(false);
+    const previous=momentAudio.current;momentAudio.current=null;
+    await stopAndUnloadSound(previous);
+    try{
+      const source=phraseAudio??{uri:await resolveOfflineMediaUri(current.audioUrl)};
+      if(generation!==audioGeneration.current||!audioFocused.current)return;
+      const loaded=await loadBundledSound(source,{shouldPlay:false,volume:1},status=>{
+        if(generation!==audioGeneration.current)return;
+        if(!status.isLoaded&&status.error){setAudioPlaying(false);setAudioError('Audio could not play. Tap the speaker to retry.');}
+        if(status.isLoaded&&status.didJustFinish)setAudioPlaying(false);
+      });
+      if(generation!==audioGeneration.current||!audioFocused.current){void stopAndUnloadSound(loaded.sound);return;}
+      momentAudio.current=loaded.sound;await loaded.sound.playAsync();
+      if(generation===audioGeneration.current)setAudioPlaying(true);
+    }catch{if(generation===audioGeneration.current){setAudioPlaying(false);setAudioError('Audio could not play. Tap the speaker to retry.');}}
   };
 
   const choose = useCallback(async (position: TargetPosition) => {
-    if (!current || locked) return;
+    if (!current || locked || choiceLock.current) return;
+    choiceLock.current=true;
 
-    setLocked(true);
+    setLocked(true);audioGeneration.current++;setAudioPlaying(false);const previous=momentAudio.current;momentAudio.current=null;void stopAndUnloadSound(previous);
 
     const isCorrect = position === correctPosition;
     const nextCorrectCount = correctCount + (isCorrect ? 1 : 0);
@@ -498,9 +500,10 @@ export default function QuackSituateMatching() {
       setFeedback(null);
       setShowHint(false);
       setLocked(false);
+      choiceLock.current=false;
       setShowResult(false);
       setAttemptStored(false);
-      setCorrectPosition(Math.random() > 0.5 ? 'top' : 'bottom');
+      setRunRevision(run=>run+1);
     } finally {
       setSaving(false);
     }
@@ -553,15 +556,15 @@ export default function QuackSituateMatching() {
     );
   }
 
-  const correctImage = correctBundledImage ?? (correctImageUri ? { uri: correctImageUri } : waveImage);
-  const alternativeImage = alternativeBundledImage ?? (alternativeImageUri ? { uri: alternativeImageUri } : bowImage);
+  const correctImage = correctBundledImage ?? (correctImageUri ? { uri: correctImageUri } : undefined);
+  const alternativeImage = alternativeBundledImage ?? (alternativeImageUri ? { uri: alternativeImageUri } : undefined);
   const topTarget = correctPosition === 'top'
-    ? { image: correctImage, fallback: waveImage, scenario: current.scenario }
-    : { image: alternativeImage, fallback: bowImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
+    ? { image: correctImage, scenario: current.scenario }
+    : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
   const bottomTarget = correctPosition === 'bottom'
-    ? { image: correctImage, fallback: waveImage, scenario: current.scenario }
-    : { image: alternativeImage, fallback: bowImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
-  const feedbackReason = current.explanation?.trim()
+    ? { image: correctImage, scenario: current.scenario }
+    : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
+  const feedbackReason = (current.explanation&&!/fits the first (scene|situation)/i.test(current.explanation)?current.explanation.trim():'')
     || `This expression naturally matches “${current.scenario}” because its tone and meaning fit that social moment.`;
   const feedbackExample = `In this situation—${current.scenario}—say 「${current.correctAnswer}」 (${currentAnswer.romaji}).`;
 
@@ -611,7 +614,7 @@ export default function QuackSituateMatching() {
         </View>
 
         <View style={styles.targetCard}>
-          <TargetPicture key={`${current.id}-top-${correctPosition}`} source={topTarget.image} fallback={topTarget.fallback} />
+          <TargetPicture key={`${current.id}-top-${correctPosition}`} source={topTarget.image} scenario={topTarget.scenario} />
           <View style={styles.targetLabel}>
             <Text style={styles.targetScenario}>{topTarget.scenario}</Text>
           </View>
@@ -626,23 +629,25 @@ export default function QuackSituateMatching() {
           />
 
           <Pressable
-            disabled={!current.audioUrl}
+            disabled={!hasPhraseAudio||locked}
             style={[
               styles.audioButton,
-              !current.audioUrl && styles.audioButtonDisabled,
+              !hasPhraseAudio && styles.audioButtonDisabled,
             ]}
+            accessibilityLabel="Listen to the Japanese phrase"
             onPress={playMomentAudio}
           >
             <Ionicons
-              name={current.audioUrl ? 'volume-high' : 'volume-mute'}
+              name={hasPhraseAudio ? audioPlaying?'volume-high':'volume-medium-outline' : 'volume-mute'}
               size={23}
               color="#FFFFFF"
             />
           </Pressable>
         </View>
 
+        {!!audioError&&<Text accessibilityRole="alert" style={{fontSize:11,color:'#FFF0CB',textAlign:'center',paddingHorizontal:12}}>{audioError}</Text>}
         <View style={styles.targetCard}>
-          <TargetPicture key={`${current.id}-bottom-${correctPosition}`} source={bottomTarget.image} fallback={bottomTarget.fallback} />
+          <TargetPicture key={`${current.id}-bottom-${correctPosition}`} source={bottomTarget.image} scenario={bottomTarget.scenario} />
           <View style={styles.targetLabel}>
             <Text style={styles.targetScenario}>{bottomTarget.scenario}</Text>
           </View>
