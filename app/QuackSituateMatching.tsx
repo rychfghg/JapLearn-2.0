@@ -1,4 +1,5 @@
 import expressionAudio from '../services/expressionMatchAudio';
+import {hasDistinctContexts,isCaptionOnlyMoment,expressionCheckpoint} from '../services/expressionMatchContext';
 import expressionImages from '../services/expressionMatchImages';
 import expressionMedia from '../data/expressionMatchMedia.json';
 import {expressionTargetOrder} from '../services/expressionMatchTargets';
@@ -9,6 +10,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   Animated,
   Image,
   ImageSourcePropType,
@@ -61,10 +63,12 @@ const mediaUrl = (url?: string) => {
 
 // Generic wave/bow art is not a scenario illustration and must not identify correctness.
 const isGenericGesture=(url?:string)=>/gesture-(wave|bow)\.png(?:[?#]|$)/i.test(url??'');
-function TargetPicture({source,scenario}:{source?:ImageSourcePropType;scenario:string}){
+function TargetPicture({source,scenario,captionOnly}:{source?:ImageSourcePropType;scenario:string;captionOnly:boolean}){
   const [failed,setFailed]=useState(false);
-  useEffect(()=>setFailed(false),[source]);
-  return <View style={styles.targetArtwork}>{source&&!failed?<Image source={source} accessibilityLabel={scenario} style={styles.targetImage} resizeMode="contain" onError={()=>setFailed(true)}/>:<View style={{flex:1,alignItems:'center',justifyContent:'center',gap:6,padding:10}}><Ionicons name="image-outline" size={28} color="#C5B5E9"/><Text style={{fontSize:11,color:'#EEE7FB',textAlign:'center'}}>Scene illustration unavailable</Text></View>}</View>;
+  const [retry,setRetry]=useState(0);
+  const sourceKey=JSON.stringify(source);
+  useEffect(()=>setFailed(false),[sourceKey]);
+  return <View style={styles.targetArtwork}>{!captionOnly&&source&&!failed?<Image key={retry} source={source} accessibilityLabel={scenario} style={styles.targetImage} resizeMode="contain" onError={()=>setFailed(true)}/>:<View accessibilityLabel={scenario} style={{flex:1,alignItems:'center',justifyContent:'center',gap:6,padding:10}}><Ionicons name={captionOnly?'reader-outline':'image-outline'} size={28} color="#C5B5E9"/><Text style={{fontSize:11,color:'#EEE7FB',textAlign:'center'}}>{captionOnly?'CONTEXT CHECK · Read the situation below':'Picture unavailable. Use the full situation below; no image-error penalty.'}</Text>{!captionOnly&&!!source&&<Pressable accessibilityRole="button" accessibilityLabel="Retry scene picture" onPress={event=>{event.stopPropagation();setRetry(n=>n+1);setFailed(false);}}><Text style={{color:'#FFFFFF',padding:8}}>Retry picture</Text></Pressable>}</View>}</View>;
 }
 
 const getAnswer = (moment: Moment): Choice => {
@@ -76,10 +80,12 @@ const getAnswer = (moment: Moment): Choice => {
 
 function DraggablePhrase({
   label,
+  japanese,
   disabled,
   onDrop,
 }: {
   label: string;
+  japanese:string;
   disabled: boolean;
   onDrop: (position: TargetPosition) => void;
 }) {
@@ -142,7 +148,7 @@ function DraggablePhrase({
         },
       ]}
     >
-      <Text style={styles.draggableText}>{label}</Text>
+      <View style={{flexShrink:1,paddingVertical:7}}><Text style={styles.draggableText}>{japanese}</Text><Text style={{fontSize:11,color:'#E2D8FF',textAlign:'center',marginTop:3}}>{label}</Text></View>
       <Ionicons name="apps" size={16} color="#E2D8FF" />
     </Animated.View>
   );
@@ -175,6 +181,11 @@ export default function QuackSituateMatching() {
   const [attemptStored, setAttemptStored] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [showStart,setShowStart]=useState(true);
+  const [showPause,setShowPause]=useState(false);
+  const [showRestart,setShowRestart]=useState(false);
+  const blocked=showStart||showPause||showRestart||showExit||showHelp||showResult;
+  const captionOnly=isCaptionOnlyMoment(momentIndex);
 
   const music = useRef<Audio.Sound | null>(null);
   const momentAudio = useRef<Audio.Sound | null>(null);
@@ -220,7 +231,7 @@ export default function QuackSituateMatching() {
       const user = await getUser();
       if (!user.email) return;
       await AsyncStorage.setItem(`expressionRun:${user.email.trim().toLowerCase()}:${runGameType}`,
-        JSON.stringify({ questionIndex, correctCount: savedCorrectCount, mistakes: savedMistakes, savedAt: Date.now() }));
+        JSON.stringify({ questionIndex, correctCount: savedCorrectCount, mistakes: savedMistakes, questionIds:moments.map(m=>m.id), savedAt: Date.now() }));
       await fetch(`${expoconfig.API_URL}/api/situational/runs/current`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -235,7 +246,7 @@ export default function QuackSituateMatching() {
         }),
       });
     } catch {}
-  }, [getUser, level, runGameType]);
+  }, [getUser, level, runGameType,moments]);
 
   const stopAudio = useCallback(async (unload = false) => {
     audioGeneration.current++;
@@ -265,6 +276,15 @@ export default function QuackSituateMatching() {
     }
   }, []);
 
+  useEffect(()=>{
+    if(blocked){setAudioPlaying(false);void stopAudio();}
+    else void music.current?.playAsync().catch(()=>undefined);
+  },[blocked,stopAudio]);
+  useEffect(()=>{
+    const subscription=AppState.addEventListener('change',state=>{if(state!=='active'){setShowPause(true);void stopAudio();}});
+    return()=>subscription.remove();
+  },[stopAudio]);
+
   useFocusEffect(
     useCallback(() => {
       audioFocused.current=true;
@@ -289,14 +309,11 @@ export default function QuackSituateMatching() {
               choice => choice.japanese === item.correctAnswer,
             );
             return Boolean(
-              item.scenario &&
-              item.secondaryScenario &&
-              item.imageUrl &&
-              item.secondaryImageUrl &&
+              hasDistinctContexts(item.scenario,item.secondaryScenario) &&
               hasCorrectAnswer,
             );
           });
-        const selected = published;
+        let selected = published;
 
         if (active) setMoments(selected);
 
@@ -305,6 +322,12 @@ export default function QuackSituateMatching() {
           const runKey = `expressionRun:${user.email.trim().toLowerCase()}:${runGameType}`;
           const localRaw = await AsyncStorage.getItem(runKey);
           const localRun = localRaw ? JSON.parse(localRaw) : null;
+          if(Array.isArray(localRun?.questionIds)){
+            const ids=localRun.questionIds as string[];
+            const ordered=ids.map(id=>published.find(m=>m.id===id)).filter((m):m is Moment=>!!m);
+            selected=[...ordered,...published.filter(m=>!ids.includes(m.id))];
+            if(active)setMoments(selected);
+          }
           let run: any = localRun;
           try {
             const runResponse = await fetch(
@@ -350,7 +373,7 @@ export default function QuackSituateMatching() {
             {
               isLooping: true,
               volume: 0.08,
-              shouldPlay: true,
+              shouldPlay: false,
             },
           ),
           loadBundledSound(require('../assets/audio/sfx/correct_sfx.mp3')),
@@ -383,7 +406,7 @@ export default function QuackSituateMatching() {
   },[current?.id]);
 
   const playMomentAudio=async()=>{
-    if(!current||!hasPhraseAudio||locked)return;
+    if(!current||!hasPhraseAudio||locked||blocked)return;
     const generation=++audioGeneration.current;
     setAudioError('');setAudioPlaying(false);
     const previous=momentAudio.current;momentAudio.current=null;
@@ -403,7 +426,7 @@ export default function QuackSituateMatching() {
   };
 
   const choose = useCallback(async (position: TargetPosition) => {
-    if (!current || locked || choiceLock.current) return;
+    if (!current || locked || choiceLock.current || blocked) return;
     choiceLock.current=true;
 
     setLocked(true);audioGeneration.current++;setAudioPlaying(false);const previous=momentAudio.current;momentAudio.current=null;void stopAndUnloadSound(previous);
@@ -416,15 +439,15 @@ export default function QuackSituateMatching() {
     if (isCorrect) {
       setCorrectCount(nextCorrectCount);
       setFeedback('correct');
-      await correctSound.current?.replayAsync();
+      await correctSound.current?.replayAsync().catch(()=>undefined);
     } else {
       setMistakes(nextMistakes);
       setFeedback('incorrect');
-      await incorrectSound.current?.replayAsync();
+      await incorrectSound.current?.replayAsync().catch(()=>undefined);
     }
 
     await saveRun(nextQuestionIndex, nextCorrectCount, nextMistakes);
-  }, [correctCount, correctPosition, current, locked, mistakes, momentIndex, saveRun]);
+  }, [correctCount, correctPosition, current, locked, mistakes, momentIndex, saveRun,blocked]);
 
   const continueAfterFeedback = () => {
     setFeedback(null);
@@ -504,17 +527,38 @@ export default function QuackSituateMatching() {
       setShowResult(false);
       setAttemptStored(false);
       setRunRevision(run=>run+1);
+      setShowStart(true);
+      await saveRun(0,0,0);
     } finally {
       setSaving(false);
     }
   };
 
   const confirmExit = async () => {
-    await saveRun(momentIndex, correctCount, mistakes);
+    if(saving)return;
+    setSaving(true);
+    if(correctCount+mistakes>=moments.length)await ensureCompletedAttempt();
+    else await saveRun(expressionCheckpoint(momentIndex,locked), correctCount, mistakes);
     await stopAudio(true);
     setShowExit(false);
     setIsExiting(true);
+    setSaving(false);
   };
+
+  const restartGame=async()=>{
+    if(saving)return;
+    setSaving(true);
+    try{
+      await stopAudio();
+      await saveRun(0,0,0);
+      setMomentIndex(0);setCorrectCount(0);setMistakes(0);setFeedback(null);
+      setLocked(false);choiceLock.current=false;setShowHint(false);setShowHelp(false);
+      setShowExit(false);setShowPause(false);setShowRestart(false);setShowResult(false);
+      setAttemptStored(false);setRunRevision(n=>n+1);setShowStart(true);
+    }finally{setSaving(false);}
+  };
+
+  const scoreSummary=<View style={styles.scoreSummary}><Ionicons name="star" size={16} color="#E7AD30"/><Text style={styles.scoreSummaryText}>Level {level} · {score}/{moments.length*10} points · {correctCount}/{moments.length} matched</Text></View>;
 
   if (isExiting) {
     return (
@@ -592,16 +636,8 @@ export default function QuackSituateMatching() {
             </Text>
           </View>
 
-          <View style={styles.stars}>
-            {[1, 2, 3].map(star => (
-              <Ionicons
-                key={star}
-                name={star <= stars ? 'star' : 'star-outline'}
-                size={20}
-                color={star <= stars ? '#FFD65A' : '#9781D8'}
-              />
-            ))}
-          </View>
+          <Text style={styles.progressText}>{score}/{moments.length*10} pts</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="Pause and game options" style={styles.roundButton} onPress={()=>setShowPause(true)}><Ionicons name="ellipsis-horizontal" size={22} color="#FFFFFF"/></Pressable>
         </View>
 
         <View style={styles.instructionArea}>
@@ -609,27 +645,28 @@ export default function QuackSituateMatching() {
             {level === 1 ? 'EASY' : level === 2 ? 'MEDIUM' : 'HARD'} · {current.location || current.topic}
           </Text>
           <Text style={styles.instruction}>
-            Drag the phrase to the situation where it belongs
+            Match the phrase to the best-fitting situation
           </Text>
         </View>
 
-        <View style={styles.targetCard}>
-          <TargetPicture key={`${current.id}-top-${correctPosition}`} source={topTarget.image} scenario={topTarget.scenario} />
+        <Pressable accessibilityRole="button" accessibilityLabel={`Match phrase to: ${topTarget.scenario}`} disabled={locked||blocked} onPress={()=>void choose('top')} style={styles.targetCard}>
+          <TargetPicture key={`${current.id}-top-${correctPosition}`} source={topTarget.image} scenario={topTarget.scenario} captionOnly={captionOnly}/>
           <View style={styles.targetLabel}>
             <Text style={styles.targetScenario}>{topTarget.scenario}</Text>
           </View>
-        </View>
+        </Pressable>
 
         <View style={styles.dragZone}>
           <DraggablePhrase
             key={current.id}
             label={currentAnswer.romaji}
-            disabled={locked}
+            japanese={current.correctAnswer}
+            disabled={locked||blocked}
             onDrop={choose}
           />
 
           <Pressable
-            disabled={!hasPhraseAudio||locked}
+            disabled={!hasPhraseAudio||locked||blocked}
             style={[
               styles.audioButton,
               !hasPhraseAudio && styles.audioButtonDisabled,
@@ -646,12 +683,12 @@ export default function QuackSituateMatching() {
         </View>
 
         {!!audioError&&<Text accessibilityRole="alert" style={{fontSize:11,color:'#FFF0CB',textAlign:'center',paddingHorizontal:12}}>{audioError}</Text>}
-        <View style={styles.targetCard}>
-          <TargetPicture key={`${current.id}-bottom-${correctPosition}`} source={bottomTarget.image} scenario={bottomTarget.scenario} />
+        <Pressable accessibilityRole="button" accessibilityLabel={`Match phrase to: ${bottomTarget.scenario}`} disabled={locked||blocked} onPress={()=>void choose('bottom')} style={styles.targetCard}>
+          <TargetPicture key={`${current.id}-bottom-${correctPosition}`} source={bottomTarget.image} scenario={bottomTarget.scenario} captionOnly={captionOnly}/>
           <View style={styles.targetLabel}>
             <Text style={styles.targetScenario}>{bottomTarget.scenario}</Text>
           </View>
-        </View>
+        </Pressable>
 
         <View style={styles.footerControls}>
           <Pressable
@@ -676,7 +713,7 @@ export default function QuackSituateMatching() {
         ) : null}
       </View>
 
-      <Modal visible={feedback !== null} transparent animationType="fade">
+      <Modal visible={feedback !== null&&!blocked} transparent animationType="fade">
         <View style={styles.modalShade}>
           <View style={[styles.feedbackCard, styles.learningFeedbackCard]}>
             <ScrollView
@@ -684,6 +721,7 @@ export default function QuackSituateMatching() {
               contentContainerStyle={styles.feedbackScrollContent}
               showsVerticalScrollIndicator={false}
             >
+            {scoreSummary}
             <View style={[
               styles.feedbackStatusBar,
               feedback === 'correct' ? styles.feedbackStatusCorrect : styles.feedbackStatusIncorrect,
@@ -749,29 +787,34 @@ export default function QuackSituateMatching() {
       <Modal visible={showHelp} transparent animationType="fade">
         <View style={styles.modalShade}>
           <View style={styles.feedbackCard}>
+            <ScrollView style={{width:'100%'}} contentContainerStyle={{alignItems:'center'}}>
+            {scoreSummary}
             <View style={styles.feedbackIcon}>
               <Ionicons name="hand-left-outline" size={29} color="#FFFFFF" />
             </View>
             <Text style={styles.feedbackKicker}>HOW TO PLAY</Text>
             <Text style={styles.feedbackTitle}>One phrase. Two situations.</Text>
             <Text style={styles.feedbackText}>
-              Read both situations, listen to the Japanese phrase, then drag the phrase tile to the picture where that response belongs. Every answer is recorded once, so choose carefully.
+              Read both situation captions, listen to the phrase, then drag it up or down. You can also tap a situation to answer. Some questions use captions only: match the meaning and relationship, not a familiar picture. If a picture fails, retry it or use its full caption; the image error itself never changes your score.
             </Text>
             <Pressable style={styles.primaryButton} onPress={() => setShowHelp(false)}>
               <Text style={styles.primaryButtonText}>CONTINUE</Text>
             </Pressable>
+            </ScrollView>
           </View>
         </View>
       </Modal>
 
-      <Modal visible={showResult} transparent animationType="fade">
+      <Modal visible={showResult&&!showPause} transparent animationType="fade">
         <View style={styles.modalShade}>
           <View style={styles.feedbackCard}>
+            <ScrollView style={{width:'100%'}} contentContainerStyle={{alignItems:'center'}}>
+            {scoreSummary}
             <View style={[styles.feedbackIcon, styles.correctIcon]}>
               <Ionicons name="trophy" size={30} color="#FFFFFF" />
             </View>
             <Text style={styles.feedbackKicker}>EXPRESSION MATCH COMPLETE</Text>
-            <Text style={styles.feedbackTitle}>{score} points</Text>
+            <Text style={styles.feedbackTitle}>{score}/{moments.length*10} points</Text>
             <View style={styles.resultStars}>
               {[1, 2, 3].map(star => (
                 <Ionicons
@@ -783,8 +826,9 @@ export default function QuackSituateMatching() {
               ))}
             </View>
             <Text style={styles.feedbackText}>
-              {correctCount} of {moments.length} situations matched. Your stars, mastery result, and score are stored for QuackProgress and teacher reports.
+              {correctCount} of {moments.length} situations matched. Your stars and score are stored for QuackProgress and teacher reports.
             </Text>
+            <Text style={styles.feedbackText}>This round includes caption-only context checks. This supported practice score alone does not prove independent mastery; try unfamiliar situations with your instructor too.</Text>
             <Pressable
               disabled={saving}
               style={styles.primaryButton}
@@ -804,6 +848,7 @@ export default function QuackSituateMatching() {
                 RETURN TO SITUATION TRAIL
               </Text>
             </Pressable>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -811,13 +856,15 @@ export default function QuackSituateMatching() {
       <Modal visible={showExit} transparent animationType="fade">
         <View style={styles.modalShade}>
           <View style={styles.feedbackCard}>
+            <ScrollView style={{width:'100%'}} contentContainerStyle={{alignItems:'center'}}>
+            {scoreSummary}
             <View style={styles.feedbackIcon}>
               <Ionicons name="arrow-back" size={29} color="#FFFFFF" />
             </View>
             <Text style={styles.feedbackKicker}>LEAVE THIS JOURNEY?</Text>
             <Text style={styles.feedbackTitle}>Save your place</Text>
             <Text style={styles.feedbackText}>
-              Your current situation, score, and remaining moments will be saved to your account so you can continue on any device.
+              Save this level’s current position and score to continue later. A local checkpoint is kept if the connection is unavailable.
             </Text>
             <View style={styles.exitRow}>
               <Pressable
@@ -830,9 +877,32 @@ export default function QuackSituateMatching() {
                 <Text style={styles.primaryButtonText}>LEAVE</Text>
               </Pressable>
             </View>
+            <Pressable style={styles.resultReturnButton} onPress={()=>{setShowExit(false);setShowRestart(true);}}><Text style={styles.resultReturnText}>RESTART LEVEL</Text></Pressable>
+            </ScrollView>
           </View>
         </View>
       </Modal>
+      <Modal visible={showStart&&!showPause} transparent animationType="fade" onRequestClose={()=>setShowPause(true)}>
+        <View style={styles.modalShade}><View style={styles.feedbackCard}><ScrollView contentContainerStyle={{alignItems:'center'}}>
+          {scoreSummary}<Text style={styles.feedbackKicker}>EXPRESSION MATCH · LEVEL {level}</Text>
+          <Text style={styles.feedbackTitle}>{momentIndex>0?'Continue your level':'One phrase. Two contexts.'}</Text>
+          <Text style={styles.feedbackText}>Read who is speaking and what is happening in both captions. Listen to the phrase, then drag it up or down—or tap the matching situation. There is no timer. Every fourth question uses captions only to help you focus on meaning rather than memorizing artwork.</Text>
+          <Text style={styles.feedbackText}>10 points per correct match. {moments.length} questions · {moments.length*10} possible points. Use the three-dot menu to pause, save and leave, or restart.</Text>
+          <Pressable style={styles.primaryButton} onPress={()=>setShowStart(false)}><Text style={styles.primaryButtonText}>{momentIndex>0?'CONTINUE LEVEL':'START LEVEL'}</Text></Pressable>
+          {momentIndex>0&&<Pressable style={styles.resultReturnButton} onPress={()=>{setShowStart(false);setShowRestart(true);}}><Text style={styles.resultReturnText}>START OVER</Text></Pressable>}
+        </ScrollView></View></View>
+      </Modal>
+      <Modal visible={showPause} transparent animationType="fade" onRequestClose={()=>setShowPause(false)}><View style={styles.modalShade}><View style={styles.feedbackCard}><ScrollView contentContainerStyle={{alignItems:'center'}}>
+        {scoreSummary}<Text style={styles.feedbackTitle}>Game paused</Text><Text style={styles.feedbackText}>Your answers stay in place. Resume when you are ready.</Text>
+        <Pressable style={styles.primaryButton} onPress={()=>setShowPause(false)}><Text style={styles.primaryButtonText}>RESUME</Text></Pressable>
+        <Pressable style={styles.primaryButton} onPress={()=>{setShowPause(false);setShowStart(false);setShowRestart(true);}}><Text style={styles.primaryButtonText}>RESTART LEVEL</Text></Pressable>
+        <Pressable style={styles.resultReturnButton} onPress={()=>void confirmExit()}><Text style={styles.resultReturnText}>SAVE AND RETURN</Text></Pressable>
+      </ScrollView></View></View></Modal>
+      <Modal visible={showRestart} transparent animationType="fade" onRequestClose={()=>setShowRestart(false)}><View style={styles.modalShade}><View style={styles.feedbackCard}><ScrollView contentContainerStyle={{alignItems:'center'}}>
+        {scoreSummary}<Text style={styles.feedbackTitle}>Restart this level?</Text><Text style={styles.feedbackText}>This unfinished run will start at question 1 with zero points and newly shuffled answer positions. Previously completed results stay saved.</Text>
+        <Pressable disabled={saving} style={styles.primaryButton} onPress={()=>void restartGame()}><Text style={styles.primaryButtonText}>{saving?'RESTARTING…':'RESTART'}</Text></Pressable>
+        <Pressable disabled={saving} style={styles.resultReturnButton} onPress={()=>setShowRestart(false)}><Text style={styles.resultReturnText}>KEEP PLAYING</Text></Pressable>
+      </ScrollView></View></View></Modal>
     </SafeAreaView>
   );
 }
@@ -853,10 +923,12 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', borderRadius: 7, backgroundColor: '#FFD65A' },
   progressText: { fontFamily: 'Jua', fontSize: 12, color: '#FFFFFF' },
   stars: { flexDirection: 'row', gap: 1 },
+  scoreSummary:{flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,marginBottom:12,padding:9,borderRadius:12,backgroundColor:'#F1EBFC',width:'100%'},
+  scoreSummaryText:{flexShrink:1,fontSize:11,fontWeight:'700',color:'#563963',textAlign:'center'},
   instructionArea: { alignItems: 'center', marginTop: 5, marginBottom: 7 },
   kicker: { fontSize: 9, fontWeight: '900', letterSpacing: 1.2, color: '#D9CFFF' },
   instruction: { fontFamily: 'Jua', fontSize: 18, color: '#FFFFFF', textAlign: 'center', marginTop: 2 },
-  targetCard: { flex: 1, minHeight: 155, maxHeight: 245, padding: 8, borderRadius: 26, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.38)', backgroundColor: 'rgba(255,255,255,.10)', shadowColor: '#170B41', shadowOpacity: 0.28, shadowRadius: 13, elevation: 6 },
+  targetCard: { flex: 1, minHeight: 120, maxHeight: 245, padding: 8, borderRadius: 26, overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,255,255,.38)', backgroundColor: 'rgba(255,255,255,.10)', shadowColor: '#170B41', shadowOpacity: 0.28, shadowRadius: 13, elevation: 6 },
   targetArtwork: { flex: 1, minHeight: 0, width: '100%' },
   targetImage: { width: '100%', height: '100%' },
   targetLabel: { alignSelf: 'stretch', minHeight: 36, marginTop: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 13, justifyContent: 'center', backgroundColor: 'rgba(56,29,124,.82)', borderWidth: 1, borderColor: 'rgba(255,255,255,.22)' },
@@ -874,7 +946,7 @@ const styles = StyleSheet.create({
   hintCard: { position: 'absolute', left: 20, right: 20, bottom: 58, padding: 12, borderRadius: 16, backgroundColor: '#FFF6D9', zIndex: 20 },
   hintText: { fontSize: 12, lineHeight: 17, color: '#705522', textAlign: 'center' },
   modalShade: { flex: 1, backgroundColor: 'rgba(25,12,55,.66)', alignItems: 'center', justifyContent: 'center', padding: 22 },
-  feedbackCard: { width: '100%', maxWidth: 430, borderRadius: 29, backgroundColor: '#FFFDF9', padding: 24, alignItems: 'center', shadowColor: '#190D31', shadowOpacity: 0.28, shadowRadius: 22, elevation: 10 },
+  feedbackCard: { width: '100%', maxWidth: 430, maxHeight:'92%', borderRadius: 29, backgroundColor: '#FFFDF9', padding: 24, alignItems: 'center', shadowColor: '#190D31', shadowOpacity: 0.28, shadowRadius: 22, elevation: 10 },
   learningFeedbackCard: { padding: 18, alignItems: 'stretch', maxHeight: '92%' },
   feedbackScroll: { width: '100%' },
   feedbackScrollContent: { paddingBottom: 2 },

@@ -1,0 +1,18 @@
+require('./check_expression_match_level3.cjs');
+const assert=require('node:assert/strict'),fs=require('fs');
+const {hasDistinctContexts,isCaptionOnlyMoment,expressionCheckpoint}=require('../services/expressionMatchContext.ts');
+assert(!hasDistinctContexts('Same scene.',' same SCENE! '));
+assert(!hasDistinctContexts('A scene',''));
+assert(hasDistinctContexts('Greeting your teacher in the morning','Saying goodbye after class'));
+for(let i=0;i<20;i++)assert.equal(isCaptionOnlyMoment(i),(i+1)%4===0);
+assert.equal(expressionCheckpoint(4,false),4);
+assert.equal(expressionCheckpoint(4,true),5);
+assert.equal(expressionCheckpoint(19,true),20);
+const bank=require('../data/expressionMatchMedia.json');
+for(const row of bank)assert(hasDistinctContexts(row.scenario,row.secondaryScenario),row.key);
+const screen=fs.readFileSync(require('path').join(__dirname,'../app/QuackSituateMatching.tsx'),'utf8');
+for(const fragment of ['event.stopPropagation()','Retry scene picture','setShowPause(true)','setShowStart(true)','await saveRun(0,0,0)','expressionCheckpoint(momentIndex,locked)','questionIds:moments.map','{score}/{moments.length*10} pts','{scoreSummary}','captionOnly={captionOnly}','japanese={current.correctAnswer}'])assert(screen.includes(fragment),fragment);
+assert(!screen.includes('item.imageUrl &&'),'Missing artwork must not discard a caption-complete question');
+const restart=screen.slice(screen.indexOf('const restartGame='),screen.indexOf('const scoreSummary='));
+assert(!restart.includes('ensureCompletedAttempt'),'Restarting unfinished practice must not submit it as complete');
+console.log('PASS: distinct-caption guard, 5 caption-only checks per 20 questions, checkpoint boundary logic, retry isolation, menu/start/restart/score UI wiring. Device interaction QA still required.');
