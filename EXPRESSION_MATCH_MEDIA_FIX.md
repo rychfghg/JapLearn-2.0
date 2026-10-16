@@ -11,16 +11,14 @@ Scope: repair media and answer cues without changing the drag-and-match teaching
   on replay. Hints and audio renders do not move targets or alter correctness.
 - Do not use a universal wave image for the correct target and bow image for the
   alternative. Missing pictures show an honest neutral placeholder, not an answer cue.
-- Levels 1 and 2 each receive 40 separate illustrated scenes, one for each target
-  of their 20 questions (80 pictures total). Art was generated with the built-in image-generation tool, not
+- Levels 1, 2 and 3 each receive 40 separate illustrated scenes, one for each target
+  of their 20 questions (120 pictures total). Art was generated with the built-in image-generation tool, not
   an API-key CLI. Original generated PNGs are preserved in the workspace output
   folder; compressed WebP copies are bundled for app/offline use.
 - Match artwork to the exact phrase and scenario pair. Teacher-edited scenarios
   must not accidentally inherit unrelated built-in pictures.
-- Level 3 artwork is still pending; do not describe
-  all 120 pictures as complete or ship the remaining placeholder artwork as final.
 
 Run `node scripts/check_expression_match.cjs` for content/checksum and selection
-checks and `node scripts/check_expression_match_level2.cjs` for Level 2 coverage.
+checks and `node scripts/check_expression_match_level3.cjs` for all three levels.
 Listening tests and Android/browser visual/playback tests are still needed.
 No deployment, APK request or OTA publication is included in this change.

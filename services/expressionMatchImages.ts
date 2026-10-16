@@ -1,4 +1,4 @@
-// Generated Level 1 and Level 2 scenes. Both targets are bundled for APK/offline use.
+// Generated Levels 1–3 scenes. Both targets are bundled for APK/offline use.
 const images:Record<string,{scene:any;alternative:any}>={
   'level-1-01':{scene:require('../assets/quacksituate/expression-scenes-v1/level-1-01-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-v1/level-1-01-alternative.webp')},
   'level-1-02':{scene:require('../assets/quacksituate/expression-scenes-v1/level-1-02-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-v1/level-1-02-alternative.webp')},
@@ -40,5 +40,25 @@ const images:Record<string,{scene:any;alternative:any}>={
   'level-2-18':{scene:require('../assets/quacksituate/expression-scenes-level2-v1/level-2-18-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level2-v1/level-2-18-alternative.webp')},
   'level-2-19':{scene:require('../assets/quacksituate/expression-scenes-level2-v1/level-2-19-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level2-v1/level-2-19-alternative.webp')},
   'level-2-20':{scene:require('../assets/quacksituate/expression-scenes-level2-v1/level-2-20-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level2-v1/level-2-20-alternative.webp')},
+  'level-3-01':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-01-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-01-alternative.webp')},
+  'level-3-02':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-02-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-02-alternative.webp')},
+  'level-3-03':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-03-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-03-alternative.webp')},
+  'level-3-04':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-04-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-04-alternative.webp')},
+  'level-3-05':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-05-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-05-alternative.webp')},
+  'level-3-06':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-06-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-06-alternative.webp')},
+  'level-3-07':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-07-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-07-alternative.webp')},
+  'level-3-08':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-08-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-08-alternative.webp')},
+  'level-3-09':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-09-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-09-alternative.webp')},
+  'level-3-10':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-10-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-10-alternative.webp')},
+  'level-3-11':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-11-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-11-alternative.webp')},
+  'level-3-12':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-12-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-12-alternative.webp')},
+  'level-3-13':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-13-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-13-alternative.webp')},
+  'level-3-14':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-14-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-14-alternative.webp')},
+  'level-3-15':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-15-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-15-alternative.webp')},
+  'level-3-16':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-16-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-16-alternative.webp')},
+  'level-3-17':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-17-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-17-alternative.webp')},
+  'level-3-18':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-18-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-18-alternative.webp')},
+  'level-3-19':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-19-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-19-alternative.webp')},
+  'level-3-20':{scene:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-20-scene.webp'),alternative:require('../assets/quacksituate/expression-scenes-level3-v1/level-3-20-alternative.webp')},
 };
 export default images;

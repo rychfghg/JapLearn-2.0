@@ -1,0 +1,282 @@
+[
+  {
+    "key": "level-3-01",
+    "side": "alternative",
+    "file": "level-3-01-alternative.webp",
+    "scene": "You casually ask a close friend to repeat a joke.",
+    "sha256": "7f56c8db6c1473e2ee345f0e0a5b2e98949ff17cdf70282a00a1612b005e8211"
+  },
+  {
+    "key": "level-3-02",
+    "side": "alternative",
+    "file": "level-3-02-alternative.webp",
+    "scene": "You thank a friend for returning a pencil.",
+    "sha256": "0b0ffa7b078f9c4d1921e3b26380bbb07e2295ba887e9c308de8e7da0fb9df1a"
+  },
+  {
+    "key": "level-3-02",
+    "side": "scene",
+    "file": "level-3-02-scene.webp",
+    "scene": "You make a formal apology to a customer.",
+    "sha256": "ab11ee0eb1471df7dffd89dbc5766ecb4879b6596a365464fd88613866cde566"
+  },
+  {
+    "key": "level-3-01",
+    "side": "scene",
+    "file": "level-3-01-scene.webp",
+    "scene": "You ask a senior client to repeat an important point.",
+    "sha256": "125fbebb480f0b4cc6c73498f199d9b707952173eacfb4a096f658f5085e6b5e"
+  },
+  {
+    "key": "level-3-03",
+    "side": "scene",
+    "file": "level-3-03-scene.webp",
+    "scene": "You formally confirm a supervisor's instructions.",
+    "sha256": "86bda649db81ac3a417aff7ae8378c2e2172ea56033c6f32f3dec11768d598e9"
+  },
+  {
+    "key": "level-3-04",
+    "side": "scene",
+    "file": "level-3-04-scene.webp",
+    "scene": "You acknowledge that your request creates extra work.",
+    "sha256": "1c3dac5f7d8acb29fe0b4356d7ea45ebfe065d439a0ffdec72716eba7ca7f6e6"
+  },
+  {
+    "key": "level-3-04",
+    "side": "alternative",
+    "file": "level-3-04-alternative.webp",
+    "scene": "You celebrate a classmate's achievement.",
+    "sha256": "d12cbd6e95532b9b0a2daa5e30c46a0acc376d555b2f1be66f64ef446771fbef"
+  },
+  {
+    "key": "level-3-03",
+    "side": "alternative",
+    "file": "level-3-03-alternative.webp",
+    "scene": "You casually agree with a sibling.",
+    "sha256": "dbf58e0f4cb88db287d3f426c7822445f26b810a5f5db97fd2be4343ec8d967d"
+  },
+  {
+    "key": "level-3-05",
+    "side": "scene",
+    "file": "level-3-05-scene.webp",
+    "scene": "You politely ask a manager to review a document.",
+    "sha256": "0ae22429a5c3bae6dc77fd773ea5399b8e2ca75404b6134ac66b12a70a1eceef"
+  },
+  {
+    "key": "level-3-06",
+    "side": "scene",
+    "file": "level-3-06-scene.webp",
+    "scene": "You respectfully ask whether you may visit.",
+    "sha256": "7d61655778bf043bf6b01d2b86e5a0551e0c63c4dfe15ad86886c23279db5cc9"
+  },
+  {
+    "key": "level-3-05",
+    "side": "alternative",
+    "file": "level-3-05-alternative.webp",
+    "scene": "You tell a friend to view a funny photo.",
+    "sha256": "8fa093fdee2dbceede6522265e8871f8bde71f2c6314f5cc797eeae4036e77d6"
+  },
+  {
+    "key": "level-3-06",
+    "side": "alternative",
+    "file": "level-3-06-alternative.webp",
+    "scene": "You ask a close friend where lunch is.",
+    "sha256": "4730e43b0ea683b778584c21be502a70abcb75cabe968acbf2540d7ab29df5de"
+  },
+  {
+    "key": "level-3-07",
+    "side": "alternative",
+    "file": "level-3-07-alternative.webp",
+    "scene": "You greet a classmate seen every day.",
+    "sha256": "65e301f351c7d73807a3c6222591c3438aad98cbf871822c49be0bceac8025d7"
+  },
+  {
+    "key": "level-3-07",
+    "side": "scene",
+    "file": "level-3-07-scene.webp",
+    "scene": "You meet a distinguished guest for the first time.",
+    "sha256": "d00c12e10a9920bdd2390a3658bc16d07873069375f39cecf384ea3baf9409e5"
+  },
+  {
+    "key": "level-3-08",
+    "side": "scene",
+    "file": "level-3-08-scene.webp",
+    "scene": "You thank a supervisor for thoughtful consideration.",
+    "sha256": "525f4b2f5753c98a49f0ee34cde139cba58845c56dbdafbec266f007639a3663"
+  },
+  {
+    "key": "level-3-08",
+    "side": "alternative",
+    "file": "level-3-08-alternative.webp",
+    "scene": "You say goodbye to a shop clerk.",
+    "sha256": "12b43f279614ed040fc6a57a5db6f37b42db71fe0bd25129e4c277a2f6566c95"
+  },
+  {
+    "key": "level-3-09",
+    "side": "scene",
+    "file": "level-3-09-scene.webp",
+    "scene": "You formally apologize for your earlier behavior.",
+    "sha256": "13d306732cdf40fa7a0a0c3a1c3fc1561e4c402266509f4a6bf72a4aa79a1b75"
+  },
+  {
+    "key": "level-3-09",
+    "side": "alternative",
+    "file": "level-3-09-alternative.webp",
+    "scene": "You begin a casual call with a friend.",
+    "sha256": "86469f33dfbeddc5e44fc8b5a4cd389fbb3008d4f8b49317690df0fe1fc68f5f"
+  },
+  {
+    "key": "level-3-10",
+    "side": "alternative",
+    "file": "level-3-10-alternative.webp",
+    "scene": "You welcome a family member home.",
+    "sha256": "8335bb354c0ac3a9658acc5cb932741c4f306d916f8576ef185f30e7d520addb"
+  },
+  {
+    "key": "level-3-10",
+    "side": "scene",
+    "file": "level-3-10-scene.webp",
+    "scene": "You interrupt a busy professor with an important request.",
+    "sha256": "89122a30a5130caeab28c4eff20bac7d676e31ad4e1843e37f9a33d582da5d73"
+  },
+  {
+    "key": "level-3-12",
+    "side": "scene",
+    "file": "level-3-12-scene.webp",
+    "scene": "You greet a senior person after a long absence.",
+    "sha256": "ee2b83087a1166b3543173829b7c28103edd4131794069178aa7e35d0c51fa61"
+  },
+  {
+    "key": "level-3-11",
+    "side": "alternative",
+    "file": "level-3-11-alternative.webp",
+    "scene": "You ask a friend to pass the salt.",
+    "sha256": "80acfeb1e15da00e070a53b27f025a4a21f8f07d52d9cc8127813b15fec9a944"
+  },
+  {
+    "key": "level-3-11",
+    "side": "scene",
+    "file": "level-3-11-scene.webp",
+    "scene": "You close a very formal request.",
+    "sha256": "c21906ab0d444288051b6d18259bc93a5890d04b4395f188761ef41088a1df45"
+  },
+  {
+    "key": "level-3-12",
+    "side": "alternative",
+    "file": "level-3-12-alternative.webp",
+    "scene": "You greet someone met yesterday.",
+    "sha256": "3ad1707feb00158c83ded7a77d0bbe12100859cd4673b9b2965b28843315f708"
+  },
+  {
+    "key": "level-3-14",
+    "side": "scene",
+    "file": "level-3-14-scene.webp",
+    "scene": "You politely tell a host not to go to extra trouble.",
+    "sha256": "7c89e05044824d12c46bcb858e1900e7f63340faed0c37749fc606daf039d0b2"
+  },
+  {
+    "key": "level-3-13",
+    "side": "alternative",
+    "file": "level-3-13-alternative.webp",
+    "scene": "You ask a waiter for the bill.",
+    "sha256": "cfb3a3bcfa583ddea420e516a90b9b2d726652336cca6b362b03d368477eeb11"
+  },
+  {
+    "key": "level-3-13",
+    "side": "scene",
+    "file": "level-3-13-scene.webp",
+    "scene": "You thank a host for a formal invitation.",
+    "sha256": "c38dedaf833ff66731f34cad6c41d4a52df97ae3de02fa04930895c518b706de"
+  },
+  {
+    "key": "level-3-15",
+    "side": "scene",
+    "file": "level-3-15-scene.webp",
+    "scene": "You formally leave before senior colleagues.",
+    "sha256": "bc19c3bbe4e2ce7f0a2d3eabae7907402dcee1c1bdadd8c66078cc4d25308b8d"
+  },
+  {
+    "key": "level-3-15",
+    "side": "alternative",
+    "file": "level-3-15-alternative.webp",
+    "scene": "You leave a casual picnic with friends.",
+    "sha256": "0c25cf215ec46a21d34cea789fdf5f55c6168af61fbe22828bc238c11c364ed7"
+  },
+  {
+    "key": "level-3-14",
+    "side": "alternative",
+    "file": "level-3-14-alternative.webp",
+    "scene": "You warn a traveler about weather.",
+    "sha256": "158218914dcbffd137292ff123f2261a82b12bcd5dc5ac13b7567ff4e2c7bc8e"
+  },
+  {
+    "key": "level-3-16",
+    "side": "scene",
+    "file": "level-3-16-scene.webp",
+    "scene": "You thank a guest for traveling to meet you.",
+    "sha256": "a2de03cf3d06ac1689f62db9b8700107a989d17cbb5f014e7e6c8b6d02de2a04"
+  },
+  {
+    "key": "level-3-16",
+    "side": "alternative",
+    "file": "level-3-16-alternative.webp",
+    "scene": "You thank a friend for an eraser.",
+    "sha256": "789859b45d48b241623383ca7050320d1cbb2b4d209bc71c7d48312228e33836"
+  },
+  {
+    "key": "level-3-17",
+    "side": "alternative",
+    "file": "level-3-17-alternative.webp",
+    "scene": "You call a best friend by a nickname.",
+    "sha256": "32c20d3008ecc3d1eb05c9b1b4f0c41ee9fcd0ea45031b16218650f69cf54108"
+  },
+  {
+    "key": "level-3-18",
+    "side": "scene",
+    "file": "level-3-18-scene.webp",
+    "scene": "You respectfully invite a client to explain further.",
+    "sha256": "ad94a89322cf68a62639115a63840200770b36f65b1ebd8803f6a8cacf2875d5"
+  },
+  {
+    "key": "level-3-17",
+    "side": "scene",
+    "file": "level-3-17-scene.webp",
+    "scene": "You politely request a visitor's name.",
+    "sha256": "e2d61523e9736d18ea12993bcc88933129e4c24f80ccd255565cb4253c5380f3"
+  },
+  {
+    "key": "level-3-18",
+    "side": "alternative",
+    "file": "level-3-18-alternative.webp",
+    "scene": "You command a sibling to speak faster.",
+    "sha256": "adabc1f8a5e70f9337a822f6edb61d6767720df4a04f33a7b3130f89d27088a3"
+  },
+  {
+    "key": "level-3-19",
+    "side": "alternative",
+    "file": "level-3-19-alternative.webp",
+    "scene": "You say good night to family.",
+    "sha256": "a1f59f061aff4aab16200122c44912fffdcc280a42b30fa71cb6973a7a20d1cc"
+  },
+  {
+    "key": "level-3-19",
+    "side": "scene",
+    "file": "level-3-19-scene.webp",
+    "scene": "You close a meeting and request continued cooperation.",
+    "sha256": "55118a2f7dc46ce204d143dc06db9a121dcf4133938b3db34b7fab5d0b45cd0b"
+  },
+  {
+    "key": "level-3-20",
+    "side": "scene",
+    "file": "level-3-20-scene.webp",
+    "scene": "You thank an executive for meeting with you.",
+    "sha256": "5de5ad86e6be9893b727b96478ae559c1b05d78b49791a714308304d28869dbe"
+  },
+  {
+    "key": "level-3-20",
+    "side": "alternative",
+    "file": "level-3-20-alternative.webp",
+    "scene": "You thank a classmate for a quick greeting.",
+    "sha256": "7fcbda54285016a94352322b79b135d2c8720272284332c5833da77ba3fae187"
+  }
+]
