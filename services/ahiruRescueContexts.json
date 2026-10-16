@@ -1,0 +1,552 @@
+{
+  "You meet your professor in the hallway early in the morning. What should you say?": {
+    "partner": "Your professor",
+    "goal": "Greet your professor politely in the morning.",
+    "skill": "Greeting",
+    "transfer": {
+      "where": "Hotel lobby",
+      "who": "A hotel receptionist",
+      "goal": "It is early morning. Greet the receptionist politely.",
+      "choices": [
+        {
+          "japanese": "おはようございます",
+          "romaji": "Ohayou gozaimasu"
+        },
+        {
+          "japanese": "こんばんは",
+          "romaji": "Konbanwa"
+        }
+      ],
+      "correctAnswer": "おはようございます",
+      "explanation": "This situation asks you to: It is early morning. Greet the receptionist politely. おはようございます matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "You see a classmate in the afternoon. Which greeting fits?": {
+    "partner": "Your classmate",
+    "goal": "Greet a classmate in the afternoon.",
+    "skill": "Greeting",
+    "transfer": {
+      "where": "Park entrance",
+      "who": "Your friend",
+      "goal": "Meet a friend in the afternoon and greet them.",
+      "choices": [
+        {
+          "japanese": "こんにちは",
+          "romaji": "Konnichiwa"
+        },
+        {
+          "japanese": "おやすみなさい",
+          "romaji": "Oyasumi nasai"
+        }
+      ],
+      "correctAnswer": "こんにちは",
+      "explanation": "This situation asks you to: Meet a friend in the afternoon and greet them. こんにちは matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "You arrive for an evening class and greet your instructor. What do you say?": {
+    "partner": "Your instructor",
+    "goal": "Greet your instructor in the evening.",
+    "skill": "Greeting",
+    "transfer": {
+      "where": "Community center",
+      "who": "Your evening-course tutor",
+      "goal": "You arrive after sunset. Greet your tutor.",
+      "choices": [
+        {
+          "japanese": "こんばんは",
+          "romaji": "Konbanwa"
+        },
+        {
+          "japanese": "おはようございます",
+          "romaji": "Ohayou gozaimasu"
+        }
+      ],
+      "correctAnswer": "こんばんは",
+      "explanation": "This situation asks you to: You arrive after sunset. Greet your tutor. こんばんは matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "Your professor gives you helpful feedback. How do you respond politely?": {
+    "partner": "Your professor",
+    "goal": "Thank your professor for helpful feedback.",
+    "skill": "Thanking",
+    "transfer": {
+      "where": "Station information desk",
+      "who": "A station employee",
+      "goal": "An employee explains your route. Thank them politely.",
+      "choices": [
+        {
+          "japanese": "ありがとうございます",
+          "romaji": "Arigatou gozaimasu"
+        },
+        {
+          "japanese": "どういたしまして",
+          "romaji": "Dou itashimashite"
+        }
+      ],
+      "correctAnswer": "ありがとうございます",
+      "explanation": "This situation asks you to: An employee explains your route. Thank them politely. ありがとうございます matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "You need to politely get the librarian's attention. What should you say first?": {
+    "partner": "The librarian",
+    "goal": "Politely get the librarian’s attention.",
+    "skill": "Requesting help",
+    "transfer": {
+      "where": "Museum information desk",
+      "who": "A staff member",
+      "goal": "Get a staff member’s attention before asking about tickets.",
+      "choices": [
+        {
+          "japanese": "すみません",
+          "romaji": "Sumimasen"
+        },
+        {
+          "japanese": "乾杯",
+          "romaji": "Kanpai"
+        }
+      ],
+      "correctAnswer": "すみません",
+      "explanation": "This situation asks you to: Get a staff member’s attention before asking about tickets. すみません matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "Your meal has just been served. What do you say before eating?": {
+    "partner": "Your dining companions",
+    "goal": "Show appreciation before starting your meal.",
+    "skill": "Meal etiquette",
+    "transfer": {
+      "where": "Host family dining room",
+      "who": "Your hosts",
+      "goal": "Your hosts serve dinner. Say the expression used before eating.",
+      "choices": [
+        {
+          "japanese": "いただきます",
+          "romaji": "Itadakimasu"
+        },
+        {
+          "japanese": "ごちそうさまでした",
+          "romaji": "Gochisousama deshita"
+        }
+      ],
+      "correctAnswer": "いただきます",
+      "explanation": "This situation asks you to: Your hosts serve dinner. Say the expression used before eating. いただきます matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "You have finished a wonderful meal. Which expression fits?": {
+    "partner": "The people who provided your meal",
+    "goal": "Express appreciation after finishing your meal.",
+    "skill": "Thanking",
+    "transfer": {
+      "where": "Friend’s dining room",
+      "who": "The friend who cooked",
+      "goal": "You have finished your friend’s dinner. Express appreciation for the meal.",
+      "choices": [
+        {
+          "japanese": "ごちそうさまでした",
+          "romaji": "Gochisousama deshita"
+        },
+        {
+          "japanese": "いただきます",
+          "romaji": "Itadakimasu"
+        }
+      ],
+      "correctAnswer": "ごちそうさまでした",
+      "explanation": "This situation asks you to: You have finished your friend’s dinner. Express appreciation for the meal. ごちそうさまでした matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "You are introduced to a new classmate for the first time. What do you say first?": {
+    "partner": "A new classmate",
+    "goal": "Open a first-time introduction.",
+    "skill": "Introducing yourself",
+    "transfer": {
+      "where": "Volunteer orientation",
+      "who": "A new teammate",
+      "goal": "You meet a teammate for the very first time. Open your introduction.",
+      "choices": [
+        {
+          "japanese": "はじめまして",
+          "romaji": "Hajimemashite"
+        },
+        {
+          "japanese": "お久しぶり",
+          "romaji": "Ohisashiburi"
+        }
+      ],
+      "correctAnswer": "はじめまして",
+      "explanation": "This situation asks you to: You meet a teammate for the very first time. Open your introduction. はじめまして matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "Class is over and you will see your friend again soon. What is a natural casual goodbye?": {
+    "partner": "Your friend",
+    "goal": "Say a casual goodbye when you will meet again soon.",
+    "skill": "Saying goodbye",
+    "transfer": {
+      "where": "Cafe doorway",
+      "who": "Your close friend",
+      "goal": "You leave a cafe and will see your friend tomorrow. Say a casual goodbye.",
+      "choices": [
+        {
+          "japanese": "じゃあ、また",
+          "romaji": "Jaa, mata"
+        },
+        {
+          "japanese": "はじめまして",
+          "romaji": "Hajimemashite"
+        }
+      ],
+      "correctAnswer": "じゃあ、また",
+      "explanation": "This situation asks you to: You leave a cafe and will see your friend tomorrow. Say a casual goodbye. じゃあ、また matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "Your classmate asks if you understand the task, and you do. What is the direct reply?": {
+    "partner": "Your classmate",
+    "goal": "Confirm that you understand the task.",
+    "skill": "Confirming understanding",
+    "transfer": {
+      "where": "Art workshop",
+      "who": "Your instructor",
+      "goal": "The instructor asks whether you understand the next step. You do. Confirm it.",
+      "choices": [
+        {
+          "japanese": "はい",
+          "romaji": "Hai"
+        },
+        {
+          "japanese": "いいえ",
+          "romaji": "Iie"
+        }
+      ],
+      "correctAnswer": "はい",
+      "explanation": "This situation asks you to: The instructor asks whether you understand the next step. You do. Confirm it. はい matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "Your roommate returns and says Tadaima. What should you reply?": {
+    "partner": "Your roommate",
+    "goal": "Welcome someone back after they say Tadaima.",
+    "skill": "Welcoming someone back",
+    "transfer": {
+      "where": "Family living room",
+      "who": "Your sibling",
+      "goal": "Your sibling returns home and says Tadaima. Reply.",
+      "choices": [
+        {
+          "japanese": "おかえりなさい",
+          "romaji": "Okaeri nasai"
+        },
+        {
+          "japanese": "いってらっしゃい",
+          "romaji": "Itterasshai"
+        }
+      ],
+      "correctAnswer": "おかえりなさい",
+      "explanation": "This situation asks you to: Your sibling returns home and says Tadaima. Reply. おかえりなさい matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "A friend is leaving and says Ittekimasu. What do you say back?": {
+    "partner": "Your departing friend",
+    "goal": "Respond to someone leaving who says Ittekimasu.",
+    "skill": "Responding to a departure",
+    "transfer": {
+      "where": "Host family entrance",
+      "who": "Your host parent",
+      "goal": "Your host parent leaves for work and says Ittekimasu. Reply.",
+      "choices": [
+        {
+          "japanese": "いってらっしゃい",
+          "romaji": "Itterasshai"
+        },
+        {
+          "japanese": "ただいま",
+          "romaji": "Tadaima"
+        }
+      ],
+      "correctAnswer": "いってらっしゃい",
+      "explanation": "This situation asks you to: Your host parent leaves for work and says Ittekimasu. Reply. いってらっしゃい matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "You meet a friend you have not seen for months. What is the natural opening?": {
+    "partner": "A friend you have not seen for months",
+    "goal": "Acknowledge meeting again after a long absence.",
+    "skill": "Greeting",
+    "transfer": {
+      "where": "Alumni gathering",
+      "who": "An old classmate",
+      "goal": "You meet an old classmate after a year apart. Greet them.",
+      "choices": [
+        {
+          "japanese": "お久しぶり",
+          "romaji": "Ohisashiburi"
+        },
+        {
+          "japanese": "はじめまして",
+          "romaji": "Hajimemashite"
+        }
+      ],
+      "correctAnswer": "お久しぶり",
+      "explanation": "This situation asks you to: You meet an old classmate after a year apart. Greet them. お久しぶり matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "A teammate is nervous before a presentation. What can you say to encourage them?": {
+    "partner": "Your teammate",
+    "goal": "Encourage a nervous person before their presentation.",
+    "skill": "Encouraging",
+    "transfer": {
+      "where": "Sports center",
+      "who": "A nervous friend",
+      "goal": "Your friend is about to compete. Encourage them to do their best.",
+      "choices": [
+        {
+          "japanese": "頑張ってください",
+          "romaji": "Ganbatte kudasai"
+        },
+        {
+          "japanese": "助けてください",
+          "romaji": "Tasukete kudasai"
+        }
+      ],
+      "correctAnswer": "頑張ってください",
+      "explanation": "This situation asks you to: Your friend is about to compete. Encourage them to do their best. 頑張ってください matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "Your professor is speaking too quickly. What is the most useful polite request?": {
+    "partner": "Your professor",
+    "goal": "Ask the speaker to speak more slowly.",
+    "skill": "Requesting clarification",
+    "transfer": {
+      "where": "Visitor information center",
+      "who": "A guide",
+      "goal": "The guide is speaking too quickly. Politely ask them to slow down.",
+      "choices": [
+        {
+          "japanese": "ゆっくり話してください",
+          "romaji": "Yukkuri hanashite kudasai"
+        },
+        {
+          "japanese": "ちょっと待ってください",
+          "romaji": "Chotto matte kudasai"
+        }
+      ],
+      "correctAnswer": "ゆっくり話してください",
+      "explanation": "This situation asks you to: The guide is speaking too quickly. Politely ask them to slow down. ゆっくり話してください matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "You are leaving the faculty office before your professor. Which formal expression is most appropriate?": {
+    "partner": "Your professor",
+    "goal": "Politely excuse yourself for leaving before a senior person.",
+    "skill": "Saying goodbye",
+    "transfer": {
+      "where": "Workplace",
+      "who": "Your supervisor",
+      "goal": "You are leaving work while your supervisor stays. Politely excuse yourself.",
+      "choices": [
+        {
+          "japanese": "お先に失礼します",
+          "romaji": "Osaki ni shitsurei shimasu"
+        },
+        {
+          "japanese": "じゃあ、また",
+          "romaji": "Jaa, mata"
+        }
+      ],
+      "correctAnswer": "お先に失礼します",
+      "explanation": "This situation asks you to: You are leaving work while your supervisor stays. Politely excuse yourself. お先に失礼します matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "Your team has completed a long project meeting. What expression recognizes everyone's effort?": {
+    "partner": "Your project teammates",
+    "goal": "Acknowledge everyone’s effort after work.",
+    "skill": "Appreciating effort",
+    "transfer": {
+      "where": "Volunteer cleanup",
+      "who": "Fellow volunteers",
+      "goal": "The cleanup has ended. Acknowledge everyone’s hard work.",
+      "choices": [
+        {
+          "japanese": "お疲れさまでした",
+          "romaji": "Otsukaresama deshita"
+        },
+        {
+          "japanese": "どういたしまして",
+          "romaji": "Dou itashimashite"
+        }
+      ],
+      "correctAnswer": "お疲れさまでした",
+      "explanation": "This situation asks you to: The cleanup has ended. Acknowledge everyone’s hard work. お疲れさまでした matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "A visitor arrives for a scheduled meeting. What should you say while inviting them inside?": {
+    "partner": "A visitor",
+    "goal": "Politely invite the visitor to come inside.",
+    "skill": "Inviting",
+    "transfer": {
+      "where": "Club meeting room",
+      "who": "An invited guest",
+      "goal": "Your guest is waiting at the open door. Politely invite them in.",
+      "choices": [
+        {
+          "japanese": "どうぞ入ってください",
+          "romaji": "Douzo haitte kudasai"
+        },
+        {
+          "japanese": "ちょっと待ってください",
+          "romaji": "Chotto matte kudasai"
+        }
+      ],
+      "correctAnswer": "どうぞ入ってください",
+      "explanation": "This situation asks you to: Your guest is waiting at the open door. Politely invite them in. どうぞ入ってください matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "You work at a restaurant and a customer enters. Which welcome is appropriate?": {
+    "partner": "An arriving customer; you are restaurant staff",
+    "goal": "Welcome a customer as a member of staff.",
+    "skill": "Welcoming customers",
+    "transfer": {
+      "where": "Bookshop",
+      "who": "An arriving customer; you work here",
+      "goal": "You work in a bookshop. Welcome an arriving customer.",
+      "choices": [
+        {
+          "japanese": "いらっしゃいませ",
+          "romaji": "Irasshaimase"
+        },
+        {
+          "japanese": "おかえりなさい",
+          "romaji": "Okaeri nasai"
+        }
+      ],
+      "correctAnswer": "いらっしゃいませ",
+      "explanation": "This situation asks you to: You work in a bookshop. Welcome an arriving customer. いらっしゃいませ matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "Your classmate wins a major competition. What is the most fitting response?": {
+    "partner": "Your classmate",
+    "goal": "Congratulate someone after an achievement.",
+    "skill": "Congratulating",
+    "transfer": {
+      "where": "Graduation reception",
+      "who": "A graduating friend",
+      "goal": "Your friend has successfully graduated. Congratulate them politely.",
+      "choices": [
+        {
+          "japanese": "おめでとうございます",
+          "romaji": "Omedetou gozaimasu"
+        },
+        {
+          "japanese": "頑張ってください",
+          "romaji": "Ganbatte kudasai"
+        }
+      ],
+      "correctAnswer": "おめでとうございます",
+      "explanation": "This situation asks you to: Your friend has successfully graduated. Congratulate them politely. おめでとうございます matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "A friend is about to travel alone. What phrase best expresses take care?": {
+    "partner": "Your friend",
+    "goal": "Wish someone a safe journey.",
+    "skill": "Showing care",
+    "transfer": {
+      "where": "Bus terminal",
+      "who": "A departing friend",
+      "goal": "Your friend is leaving on a long trip. Wish them a safe journey.",
+      "choices": [
+        {
+          "japanese": "気をつけてください",
+          "romaji": "Ki o tsukete kudasai"
+        },
+        {
+          "japanese": "助けてください",
+          "romaji": "Tasukete kudasai"
+        }
+      ],
+      "correctAnswer": "気をつけてください",
+      "explanation": "This situation asks you to: Your friend is leaving on a long trip. Wish them a safe journey. 気をつけてください matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "You need your professor to wait briefly while you get a document. What do you say?": {
+    "partner": "Your professor",
+    "goal": "Ask someone to wait briefly while you get a document.",
+    "skill": "Requesting time",
+    "transfer": {
+      "where": "Office reception",
+      "who": "A colleague",
+      "goal": "Your colleague needs a folder. Ask them to wait a moment while you fetch it.",
+      "choices": [
+        {
+          "japanese": "ちょっと待ってください",
+          "romaji": "Chotto matte kudasai"
+        },
+        {
+          "japanese": "ゆっくり話してください",
+          "romaji": "Yukkuri hanashite kudasai"
+        }
+      ],
+      "correctAnswer": "ちょっと待ってください",
+      "explanation": "This situation asks you to: Your colleague needs a folder. Ask them to wait a moment while you fetch it. ちょっと待ってください matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "A classmate looks unwell. What should you ask?": {
+    "partner": "An unwell classmate",
+    "goal": "Check whether someone is all right.",
+    "skill": "Showing care",
+    "transfer": {
+      "where": "Playground",
+      "who": "A friend who has stumbled",
+      "goal": "Your friend stumbles and looks hurt. Check whether they are all right.",
+      "choices": [
+        {
+          "japanese": "大丈夫ですか",
+          "romaji": "Daijoubu desu ka"
+        },
+        {
+          "japanese": "元気です",
+          "romaji": "Genki desu"
+        }
+      ],
+      "correctAnswer": "大丈夫ですか",
+      "explanation": "This situation asks you to: Your friend stumbles and looks hurt. Check whether they are all right. 大丈夫ですか matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "After saying Hajimemashite to a new professor, which phrase naturally completes the introduction?": {
+    "partner": "A new professor",
+    "goal": "Complete a polite first-time introduction.",
+    "skill": "Introducing yourself",
+    "transfer": {
+      "where": "Internship orientation",
+      "who": "Your new supervisor",
+      "goal": "You have said Hajimemashite. Complete your polite introduction to your supervisor.",
+      "choices": [
+        {
+          "japanese": "どうぞよろしくお願いします",
+          "romaji": "Douzo yoroshiku onegaishimasu"
+        },
+        {
+          "japanese": "どういたしまして",
+          "romaji": "Dou itashimashite"
+        }
+      ],
+      "correctAnswer": "どうぞよろしくお願いします",
+      "explanation": "This situation asks you to: You have said Hajimemashite. Complete your polite introduction to your supervisor. どうぞよろしくお願いします matches that purpose; compare it with the other phrase before continuing."
+    }
+  },
+  "Your professor asks Ogenki desu ka, and you are well. Which reply is most natural?": {
+    "partner": "Your professor",
+    "goal": "Directly answer a question about your well-being.",
+    "skill": "Answering a question",
+    "transfer": {
+      "where": "Video call",
+      "who": "Your language tutor",
+      "goal": "Your tutor asks Ogenki desu ka. You are well. Answer directly.",
+      "choices": [
+        {
+          "japanese": "元気です",
+          "romaji": "Genki desu"
+        },
+        {
+          "japanese": "大丈夫ですか",
+          "romaji": "Daijoubu desu ka"
+        }
+      ],
+      "correctAnswer": "元気です",
+      "explanation": "This situation asks you to: Your tutor asks Ogenki desu ka. You are well. Answer directly. 元気です matches that purpose; compare it with the other phrase before continuing."
+    }
+  }
+}

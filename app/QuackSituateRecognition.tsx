@@ -1,3 +1,6 @@
+import RescueContextCard from '../components/RescueContextCard';
+import RescueSkillReview from '../components/RescueSkillReview';
+import {rescueContext,rescueMismatch} from '../services/ahiruRescueContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -14,6 +17,7 @@ import {
   ScrollView,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import BackIcon from '../assets/svg/back-icon.svg';
 import QuackSituateExit from '../components/QuackSituateExit';
@@ -37,6 +41,7 @@ type Question = {
   choices: Choice[];
   correctAnswer: string;
   explanation: string;
+  partner?:string;goal?:string;skill?:string;
 };
 
 type RescueRun = {
@@ -422,11 +427,12 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
   question: Question;
   onContinue: () => void;
 }) {
+  const {height}=useWindowDimensions();
   return (
     <Modal transparent visible={visible} animationType="fade">
       <View style={styles.reactionShade}>
         <View style={styles.reactionCard}>
-          <View style={styles.reactionScene}>
+          <View style={[styles.reactionScene,{height:Math.min(240,height*0.3)}]}>
             <RescueStage
               danger={danger}
               mode={failed ? 'failed' : 'live'}
@@ -436,11 +442,11 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
             />
             <View style={[styles.reactionTag, correct ? styles.reactionTagGood : styles.reactionTagWrong]}>
               <Text style={styles.reactionTagText}>
-                {correct ? '+100 · CAGE HELD' : failed ? 'THE ROPE BROKE!' : 'CAGE LOWERED'}
+                {correct ? '+10 · CAGE HELD' : failed ? 'THE ROPE BROKE!' : 'CAGE LOWERED'}
               </Text>
             </View>
           </View>
-          <View style={styles.reactionCopy}>
+          <ScrollView style={{flexShrink:1,flexGrow:0,minHeight:0}} contentContainerStyle={styles.reactionCopy}>
             <Text style={[styles.modalEyebrow, !correct && styles.wrongEyebrow]}>
               {correct ? 'AHIRU IS SAFER' : failed ? 'RESCUE FAILED' : 'ONE LEVEL LOWER'}
             </Text>
@@ -460,7 +466,7 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
                 </View>
                 <View style={styles.explanationBox}>
                   <Ionicons name="compass-outline" size={18} color="#65A936" />
-                  <Text style={styles.modalBody}>{question.explanation}</Text>
+                  <View style={{flex:1}}><Text style={styles.answerReviewLabel}>WHY IT DOES NOT FIT THIS GOAL</Text><Text style={[styles.modalBody,{textAlign:'left',marginTop:4}]}>{rescueMismatch(question,selected?.japanese??'')}</Text></View>
                 </View>
               </>
             )}
@@ -475,7 +481,7 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
               </Text>
               <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
             </Pressable>
-          </View>
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -697,7 +703,9 @@ export default function QuackSituateRecognition() {
     };
   }, [index, correctCount, easyMistakes, hardMistakes, hintsUsed, phase, questions.length, storageKey, user?.email]);
 
+  const [skillReviewVisible,setSkillReviewVisible]=useState(false);
   const question = questions[index];
+  const learningContext=question?rescueContext(question):null;
   const offlineSceneUri = useOfflineMediaUri(question?.imageUrl);
   const isHard = question?.difficulty === 'HARD';
   const mistakes = isHard ? hardMistakes : easyMistakes;
@@ -795,7 +803,7 @@ export default function QuackSituateRecognition() {
     }
   };
 
-  const continueAfterFeedback = () => {
+  const finishFeedback = () => {
     setFeedbackVisible(false);
     setSelected(null);
     if (lastFailed) {
@@ -813,7 +821,12 @@ export default function QuackSituateRecognition() {
     setIndex((value) => value + 1);
   };
 
+  const continueAfterFeedback=()=>{
+    if(selected&&question&&selected.japanese!==question.correctAnswer&&rescueContext(question).transfer){setFeedbackVisible(false);setSkillReviewVisible(true);return;}
+    finishFeedback();
+  };
   const resetGame = async () => {
+    setSkillReviewVisible(false);
     if (remoteSaveTimer.current) clearTimeout(remoteSaveTimer.current);
     const freshRun: RescueRun = {
       index: 0,
@@ -1084,7 +1097,7 @@ export default function QuackSituateRecognition() {
 
         <View style={styles.sceneCard}>
           <View style={styles.sceneMedia}><Image source={sceneImage} style={styles.sceneBackdrop} resizeMode="cover" blurRadius={10} /><View style={styles.sceneBackdropTint} /><Image source={sceneImage} style={styles.scenePicture} resizeMode="contain" /><View style={styles.locationPill}><Ionicons name="location" size={14} color="#FFF" /><Text style={styles.locationText}>{question.location}</Text></View></View>
-          <View style={styles.scenarioCopy}><View style={styles.scenarioHeading}><View style={styles.scenarioMarker}><Ionicons name="chatbubble-ellipses" size={14} color="#65A936" /></View><Text style={styles.scenarioLabel}>WHAT WOULD YOU SAY?</Text></View><Text style={styles.scenarioText}>{question.scenario}</Text></View>
+          <View style={styles.scenarioCopy}><View style={styles.scenarioHeading}><View style={styles.scenarioMarker}><Ionicons name="chatbubble-ellipses" size={14} color="#65A936" /></View><Text style={styles.scenarioLabel}>WHAT WOULD YOU SAY?</Text></View><Text style={styles.scenarioText}>{question.scenario}</Text>{learningContext&&<RescueContextCard {...learningContext}/>}</View>
         </View>
 
         <View style={styles.answerHeader}><View><Text style={styles.answerTitle}>Choose your response</Text><Text style={styles.answerSubtitle}>One phrase keeps Ahiru safe</Text></View><Pressable style={styles.hintButton} onPress={() => { setHintsUsed((value) => value + 1); setHintVisible(true); }}><Ionicons name="bulb-outline" size={20} color="#8423D9" /><Text style={styles.hintButtonText}>Hint</Text></Pressable></View>
@@ -1093,6 +1106,7 @@ export default function QuackSituateRecognition() {
       </ScrollView>
 
       <Modal transparent visible={hintVisible} animationType="fade" onRequestClose={() => setHintVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={styles.modalIconSoft}><Ionicons name="bulb-outline" size={29} color="#D88B19" /></View><Text style={styles.modalEyebrow}>RESCUE HINT</Text><Text style={styles.modalTitle}>Read the social clue</Text><Text style={styles.modalBody}>{question.hint}</Text><Pressable style={styles.modalSecondary} onPress={() => setHintVisible(false)}><Text style={styles.modalSecondaryText}>Back to the rescue</Text></Pressable></View></View></Modal>
+      {skillReviewVisible&&learningContext?.transfer&&<RescueSkillReview key={question.id} question={learningContext.transfer} onContinue={()=>{setSkillReviewVisible(false);finishFeedback();}}/>}
       <ReactionModal
         visible={feedbackVisible}
         correct={lastCorrect}

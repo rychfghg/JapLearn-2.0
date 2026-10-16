@@ -36,11 +36,11 @@ const coachUI=StyleSheet.create({
   dialogueWrap:{position:'absolute',top:12,left:16,right:16,maxWidth:680,alignSelf:'center',marginHorizontal:'auto'},
   dialogueCard:{borderRadius:22,backgroundColor:'rgba(255,255,255,.98)',padding:16,borderWidth:1,borderColor:'#EADFF1',shadowColor:'#30133D',shadowOpacity:.12,shadowRadius:14,shadowOffset:{width:0,height:4},elevation:5},
   bubble:{position:'absolute',top:10,borderRadius:22,backgroundColor:'rgba(255,255,255,.98)',padding:14,borderWidth:1,borderColor:'#EADFF1',shadowColor:'#30133D',shadowOpacity:.12,shadowRadius:14,shadowOffset:{width:0,height:4},elevation:5},
-  lineHeader:{flexDirection:'row',alignItems:'center',gap:7,marginBottom:6},
+  lineHeader:{flexDirection:'row',alignItems:'center',gap:7,marginBottom:4},
   speakerDot:{width:8,height:8,borderRadius:4,backgroundColor:'#65B83A'},
-  speaker:{flex:1,fontFamily:'Jua',fontSize:14,color:'#512B65'},
-  replay:{minHeight:36,paddingHorizontal:10,borderRadius:12,backgroundColor:'#F2E9FA',flexDirection:'row',alignItems:'center',gap:5},
-  replayText:{fontSize:12,color:'#8423D9'},japanese:{color:'#351A4A'},
+  speaker:{flex:1,fontFamily:'Jua',fontSize:13,color:'#512B65',textTransform:'uppercase',letterSpacing:.8},
+  replay:{minHeight:30,paddingHorizontal:11,borderRadius:999,backgroundColor:'#F4ECFA',borderWidth:1,borderColor:'#E6D6F2',flexDirection:'row',alignItems:'center',gap:4},
+  replayText:{fontSize:12,fontWeight:'600',color:'#71449A'},japanese:{color:'#351A4A'},
   romaji:{fontSize:12.5,lineHeight:17,color:'#8423D9',marginTop:2},
   task:{color:'#584260',fontSize:12,lineHeight:17,marginVertical:6},
   choice:{borderWidth:1,borderColor:'#E6D9EB',borderRadius:16,shadowOpacity:.04}
@@ -939,13 +939,13 @@ export default function ReplyCoachStory() {
             </Pressable>
           ) : currentNode.type === 'CHOICE' ? (
             <>
-            {promptLine && <View style={[coachUI.bubble,{width:Math.min(560,stageSize.width*0.9),left:(stageSize.width-Math.min(560,stageSize.width*0.9))/2,maxHeight:Math.max(76,stageSize.height-panelHeight-24),padding:10,borderRadius:17}]}>
+            {promptLine && <View style={[coachUI.bubble,{width:Math.min(560,stageSize.width*0.9),left:(stageSize.width-Math.min(560,stageSize.width*0.9))/2,maxHeight:Math.max(76,stageSize.height-panelHeight-24),paddingVertical:12,paddingHorizontal:16,borderRadius:20}]}>
               <View style={coachUI.lineHeader}>
                 <View style={coachUI.speakerDot}/><Text style={coachUI.speaker}>{promptLine.speaker || 'Conversation'}</Text>
-                <Pressable disabled={saving} accessibilityLabel="Replay character dialogue" style={coachUI.replay} onPress={reenactConversation}><Ionicons name={activeVoiceId===promptLine.id?'volume-high':'volume-medium-outline'} size={17} color="#8423D9"/><Text style={coachUI.replayText}>Replay</Text></Pressable>
+                <Pressable disabled={saving} accessibilityLabel="Replay character dialogue" style={coachUI.replay} onPress={reenactConversation}><Ionicons name={activeVoiceId===promptLine.id?'volume-high':'volume-medium-outline'} size={15} color="#8423D9"/><Text style={coachUI.replayText}>Replay</Text></Pressable>
               </View>
               <ScrollView style={{flexShrink:1,flexGrow:0}}>
-                <Text style={[coachUI.japanese,{fontSize:fitted.short?15:17,lineHeight:fitted.short?20:23}]}>{promptLine.japanese || promptLine.text}</Text>
+                <Text style={[coachUI.japanese,{fontSize:fitted.short?16:19,lineHeight:fitted.short?22:26}]}>{promptLine.japanese || promptLine.text}</Text>
                 <Text style={coachUI.romaji}>{promptLine.romaji}</Text>
               </ScrollView>
             </View>}
@@ -1077,7 +1077,6 @@ export default function ReplyCoachStory() {
                   <Pressable accessibilityRole="button" accessibilityLabel={showMeaning ? 'Hide meaning' : 'Show meaning'} style={[styles.coachTool, showMeaning && styles.coachToolActive]} onPress={event => { event.stopPropagation(); if (!showMeaning) markSupport('meaning'); setShowMeaning(value => !value); }}><Ionicons name={showMeaning ? 'eye-off-outline' : 'language-outline'} size={15} color={showMeaning ? '#FFFFFF' : '#8423D9'} /><Text style={[styles.coachToolText, showMeaning && styles.coachToolTextActive]}>{showMeaning ? 'Hide meaning' : 'Meaning'}</Text></Pressable>
                 </View>
                 {Boolean(audioError) && <Text style={styles.coachNotice}>{audioError}</Text>}
-                {isReaction && <Text style={styles.reactionAddress}>{studentName}</Text>}
                 <View style={styles.continueRowDark}>
                   <Text style={styles.continueTextDark}>Tap to continue</Text>
                   <Ionicons name="chevron-forward" size={18} color="#8423D9" />
