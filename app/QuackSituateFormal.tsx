@@ -407,6 +407,20 @@ export default function QuackSituateFormal() {
     setLeaving(true);
   };
 
+  // Start the level over: same run id, so the saved unfinished attempt is replaced, never duplicated.
+  const restartLevel = async () => {
+    await stopSound();
+    answerRecords.current = [];
+    hintUsed.current = false;
+    answerLock.current = false;
+    setShowExit(false);
+    setSelectedIndex(null);
+    setScore(0);
+    setIndex(0);
+    setPhase('speaking');
+    await saveAttempt(0, false, 0);
+  };
+
   const characterMood = phase === 'reaction'
     ? answeredCorrectly
       ? 'correct'
@@ -481,6 +495,10 @@ export default function QuackSituateFormal() {
             </View>
           </View>
 
+          <View style={pop.scoreBadge}>
+            <Ionicons name="star" size={13} color="#F2B640" />
+            <Text style={pop.scoreText}>{score}</Text>
+          </View>
           <View style={styles.counter}>
             <Text style={styles.counterText}>{index + 1}/{questions.length}</Text>
           </View>
@@ -538,36 +556,11 @@ export default function QuackSituateFormal() {
             </Pressable>
           </View>
 
-          {phase !== 'reaction' ? (
-            <>
-              <Text style={styles.npcJapanese}>{question.npcLine}</Text>
-              <Text style={styles.npcRomaji}>{question.npcRomaji || (()=>{const authored=POLITENESS_SCENARIOS.find(item=>item.npcLine===question.npcLine);return authored?npcRomaji[authored.id-1]:'';})()}</Text>
-              <Text style={styles.translation}>{question.translation}</Text>
-            </>
-          ) : (
-            <View style={styles.reactionCopy}>
-              <Text
-                style={[
-                  styles.reactionTitle,
-                  !answeredCorrectly && styles.reactionTitleWrong,
-                ]}
-              >
-                {reactionTitle}
-              </Text>
-              <Text style={styles.reactionText}>{reactionText}</Text>
-              {!answeredCorrectly && (
-                <View style={styles.betterAnswer}>
-                  <Text style={styles.betterAnswerLabel}>ONE RESPONSE THAT FITS HERE</Text>
-                  <Text style={styles.betterAnswerJapanese}>
-                    {question.choices.find((choice) => choice.correct)?.jp}
-                  </Text>
-                  <Text style={styles.betterAnswerRomaji}>
-                    {question.choices.find((choice) => choice.correct)?.romaji}
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
+          <>
+            <Text style={styles.npcJapanese}>{question.npcLine}</Text>
+            <Text style={styles.npcRomaji}>{question.npcRomaji || (()=>{const authored=POLITENESS_SCENARIOS.find(item=>item.npcLine===question.npcLine);return authored?npcRomaji[authored.id-1]:'';})()}</Text>
+            <Text style={styles.translation}>{question.translation}</Text>
+          </>
         </View>
 
         {phase === 'speaking' && (
@@ -623,18 +616,38 @@ export default function QuackSituateFormal() {
           </View>
         )}
 
-        {phase === 'reaction' && (
-          <Pressable
-            style={[styles.continueButton, { bottom: storyPanelHeight + 34 }]}
-            onPress={() => void continueStory()}
-          >
-            <Text style={styles.continueText}>
-              {index === questions.length - 1 ? 'FINISH THIS LEVEL' : 'CONTINUE THE STORY'}
-            </Text>
-            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
-          </Pressable>
-        )}
+
       </ImageBackground>
+
+      <Modal visible={phase === 'reaction'} transparent animationType="fade" onRequestClose={() => undefined}>
+        <View style={styles.modalShade}>
+          <View style={pop.card}>
+            <ScrollView style={{ alignSelf: 'stretch' }} contentContainerStyle={{ alignItems: 'center' }} showsVerticalScrollIndicator={false}>
+              <View style={[pop.badge, { backgroundColor: answeredCorrectly ? '#EAF6E1' : '#FCE9EC' }]}>
+                <Ionicons name={answeredCorrectly ? 'checkmark-circle' : 'refresh-circle'} size={36} color={answeredCorrectly ? '#4E9F2B' : '#D4536B'} />
+              </View>
+              <Text style={[pop.kicker, { color: answeredCorrectly ? '#4E9F2B' : '#D4536B' }]}>{answeredCorrectly ? 'GOOD TONE' : 'NEEDS ADJUSTMENT'}</Text>
+              <Text style={pop.title}>{reactionTitle}</Text>
+              <View style={pop.contextRow}><Ionicons name="people-outline" size={13} color="#8A6AA3" /><Text style={pop.contextText}>{question.speaker} · {question.relationship}</Text></View>
+              {selectedChoice && <View style={[pop.answerBox, { borderColor: answeredCorrectly ? '#CDE8BB' : '#F3CBD3' }]}>
+                <Text style={pop.answerLabel}>YOUR RESPONSE</Text>
+                <Text style={pop.answerJapanese}>{selectedChoice.jp}</Text>
+                <Text style={pop.answerRomaji}>{selectedChoice.romaji}</Text>
+              </View>}
+              <Text style={pop.body}>{reactionText}</Text>
+              {!answeredCorrectly && <View style={pop.betterBox}>
+                <Text style={pop.betterLabel}>ONE RESPONSE THAT FITS HERE</Text>
+                <Text style={pop.answerJapanese}>{question.choices.find((choice) => choice.correct)?.jp}</Text>
+                <Text style={pop.answerRomaji}>{question.choices.find((choice) => choice.correct)?.romaji}</Text>
+              </View>}
+              <Pressable style={pop.primary} onPress={() => void continueStory()}>
+                <Text style={pop.primaryText}>{index === questions.length - 1 ? 'FINISH THIS LEVEL' : 'CONTINUE THE STORY'}</Text>
+                <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+              </Pressable>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       <Modal visible={showComplete} transparent animationType="fade">
         <View style={styles.modalShade}>
@@ -666,17 +679,23 @@ export default function QuackSituateFormal() {
             <View style={styles.exitIcon}>
               <Ionicons name="flag-outline" size={31} color="#8423D9" />
             </View>
-            <Text style={styles.modalKicker}>LEAVE THIS STORY?</Text>
-            <Text style={styles.modalTitle}>End the current tone quest?</Text>
+            <Text style={styles.modalKicker}>PAUSED · LEVEL {level}</Text>
+            <Text style={styles.modalTitle}>Take a break?</Text>
             <Text style={styles.modalText}>
-              This unfinished level will not be submitted as a completed score.
+              Question {Math.min(index + 1, questions.length)} of {questions.length} · Score {score}
             </Text>
             <Pressable style={styles.modalPrimary} onPress={() => setShowExit(false)}>
               <Text style={styles.modalPrimaryText}>CONTINUE THE STORY</Text>
             </Pressable>
-            <Pressable style={styles.modalSecondary} onPress={() => void leaveGame()}>
-              <Text style={styles.modalSecondaryText}>Exit this level</Text>
+            <Pressable style={pop.option} onPress={() => void leaveGame()}>
+              <Ionicons name="bookmark-outline" size={17} color="#6D3F91" />
+              <Text style={pop.optionText}>Save and exit</Text>
             </Pressable>
+            <Pressable style={pop.option} onPress={() => void restartLevel()}>
+              <Ionicons name="refresh" size={17} color="#B8455C" />
+              <Text style={[pop.optionText, { color: '#B8455C' }]}>Restart this level</Text>
+            </Pressable>
+            <Text style={pop.optionNote}>Restarting clears this level's current score. Completed results are kept.</Text>
           </View>
         </View>
       </Modal>
@@ -806,9 +825,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: '8%',
     right: '8%',
-    bottom: 146,
+    bottom: 112,
     width: '84%',
-    height: '61%',
+    height: '56%',
   },
   characterFrame: {
     ...StyleSheet.absoluteFillObject,
@@ -824,7 +843,7 @@ const styles = StyleSheet.create({
   characterGround: {
     position: 'absolute',
     alignSelf: 'center',
-    bottom: 151,
+    bottom: 117,
     width: '48%',
     height: 28,
     borderRadius: 999,
@@ -1187,4 +1206,28 @@ const ctx={
   roleLabel:{color:'#B9E59A',fontSize:8.5,fontWeight:'800' as const,letterSpacing:0.9},
   roleValue:{color:'#FFFFFF',fontSize:11.5,lineHeight:15,marginTop:1},
   divider:{height:1,backgroundColor:'rgba(255,255,255,0.12)',marginTop:10,marginBottom:2},
+};
+
+// Feedback pop-up, score badge and pause options.
+const pop={
+  scoreBadge:{flexDirection:'row' as const,alignItems:'center' as const,gap:4,height:34,paddingHorizontal:10,borderRadius:12,backgroundColor:'rgba(255,255,255,0.94)',marginRight:6},
+  scoreText:{color:'#432750',fontFamily:'Jua',fontSize:15},
+  card:{width:'100%' as const,maxWidth:420,maxHeight:'88%' as const,borderRadius:28,backgroundColor:'#FFFFFF',paddingHorizontal:22,paddingTop:22,paddingBottom:18},
+  badge:{width:64,height:64,borderRadius:22,alignItems:'center' as const,justifyContent:'center' as const,marginBottom:10},
+  kicker:{fontSize:10,fontWeight:'900' as const,letterSpacing:1.3},
+  title:{color:'#432750',fontFamily:'Jua',fontSize:22,lineHeight:28,textAlign:'center' as const,marginTop:4},
+  contextRow:{flexDirection:'row' as const,alignItems:'center' as const,gap:5,marginTop:6},
+  contextText:{color:'#8A6AA3',fontSize:11.5},
+  answerBox:{alignSelf:'stretch' as const,borderWidth:1.5,borderRadius:16,paddingVertical:10,paddingHorizontal:14,marginTop:14,backgroundColor:'#FFFFFF'},
+  answerLabel:{color:'#8A6AA3',fontSize:9,fontWeight:'900' as const,letterSpacing:1},
+  answerJapanese:{color:'#351A4A',fontSize:18,lineHeight:25,marginTop:3},
+  answerRomaji:{color:'#8423D9',fontSize:12,marginTop:1},
+  body:{alignSelf:'stretch' as const,color:'#5E4F66',fontSize:13.5,lineHeight:20,marginTop:12},
+  betterBox:{alignSelf:'stretch' as const,borderRadius:16,paddingVertical:10,paddingHorizontal:14,marginTop:12,backgroundColor:'#EFF8E8',borderLeftWidth:4,borderLeftColor:'#65A936'},
+  betterLabel:{color:'#4E9F2B',fontSize:9,fontWeight:'900' as const,letterSpacing:1},
+  primary:{alignSelf:'stretch' as const,height:52,borderRadius:17,backgroundColor:'#8423D9',flexDirection:'row' as const,alignItems:'center' as const,justifyContent:'center' as const,gap:8,marginTop:18},
+  primaryText:{color:'#FFFFFF',fontSize:11,fontWeight:'900' as const,letterSpacing:0.8},
+  option:{width:'100%' as const,height:48,borderRadius:16,backgroundColor:'#F6F0FA',flexDirection:'row' as const,alignItems:'center' as const,justifyContent:'center' as const,gap:8,marginTop:8},
+  optionText:{color:'#6D3F91',fontSize:12,fontWeight:'800' as const},
+  optionNote:{color:'#9A8C9F',fontSize:10.5,textAlign:'center' as const,marginTop:10},
 };
