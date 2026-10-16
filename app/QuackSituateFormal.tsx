@@ -131,6 +131,14 @@ export default function QuackSituateFormal() {
   const answerLock=useRef(false);
   const answerRecords=useRef<Array<{scenarioId:string;relationship:string;learnerRole:string;prompt:string;npcLine:string;selectedJapanese:string;acceptedJapanese:string[];correct:boolean;hintUsed:boolean;recordedAt:string}>>([]);
   const hintUsed=useRef(false);
+  // One id per run: partial saves update the same attempt, and answers survive leave/resume on this device.
+  const runId=useRef('pol-'+Date.now()+'-'+Math.random().toString(36).slice(2));
+  const runKey=async()=>{const u=JSON.parse((await AsyncStorage.getItem('user'))||'{}');return u.email?`politenessRun:${String(u.email).toLowerCase()}:${level}`:null;};
+  useEffect(()=>{
+    if(!(Number(params.resumeIndex)>0))return;
+    void (async()=>{try{const key=await runKey();const raw=key?await AsyncStorage.getItem(key):null;const saved=raw?JSON.parse(raw):null;
+      if(saved?.runId&&Array.isArray(saved.records)){runId.current=saved.runId;answerRecords.current=saved.records.slice(0,Number(params.resumeIndex));}}catch{}})();
+  },[]);
 
   useEffect(() => {
     let active = true;
@@ -349,12 +357,15 @@ export default function QuackSituateFormal() {
           totalQuestions: questions.length,
           correctAnswers: finalScore,
           politenessResponses:answerRecords.current,
+          clientAttemptId:runId.current,
           completed,
           level,
           setNumber: resumeIndex,
-          answeredCount: completed ? questions.length : resumeIndex + (phase === 'reaction' ? 1 : 0),
+          answeredCount: completed ? questions.length : resumeIndex,
           topic: questions[0]?.location || 'Politeness and social tone',
         };
+      const key=await runKey();
+      if(key){if(completed)await AsyncStorage.removeItem(key);else await AsyncStorage.setItem(key,JSON.stringify({runId:runId.current,records:answerRecords.current}));}
       if (completed) {
         await queueOfflineSubmission(storedUser.email, '/api/situational/attempts', attempt);
         void syncOfflineSubmissions(storedUser.email);
@@ -385,7 +396,10 @@ export default function QuackSituateFormal() {
     await stopSound();
 
     if (saveResume && !showComplete) {
-      await saveAttempt(score, false, index);
+      // Leaving while the feedback shows: that answer is already scored, so resume at the next question.
+      const next = phase === 'reaction' ? index + 1 : index;
+      if (next >= questions.length) await saveAttempt(score, true, questions.length);
+      else await saveAttempt(score, false, next);
     }
 
     setShowExit(false);
