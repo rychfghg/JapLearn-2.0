@@ -1,8 +1,10 @@
-export type PolitenessChoice = { jp: string; romaji: string; tone: string; correct: boolean };
+import {POLITENESS_GUIDANCE} from './politenessGuidance';
+export type PolitenessChoice = { jp: string; romaji: string; tone: string; correct: boolean; feedback?:string };
 export type PolitenessScenario = {
   id: number; level: 1 | 2 | 3; location: string; speaker: string; gender: 'male' | 'female';
   npcLine: string; translation: string; prompt: string; hint: string; explanation: string;
   choices: PolitenessChoice[];
+  relationship:string;learnerRole:string;
 };
 
 const choices = (id: number, correct: [string,string,string], otherA: [string,string,string], otherB: [string,string,string]) => {
@@ -10,7 +12,7 @@ const choices = (id: number, correct: [string,string,string], otherA: [string,st
   return id % 3 === 0 ? [values[1],values[2],values[0]] : id % 3 === 1 ? [values[0],values[2],values[1]] : [values[2],values[1],values[0]];
 };
 
-const raw: Array<Omit<PolitenessScenario,'choices'> & { answers:[[string,string,string],[string,string,string],[string,string,string]] }> = [
+const raw: Array<Omit<PolitenessScenario,'choices'|'relationship'|'learnerRole'> & { answers:[[string,string,string],[string,string,string],[string,string,string]] }> = [
   {id:1,level:1,location:'School hallway',speaker:'Professor Tanaka',gender:'male',npcLine:'おはようございます。',translation:'Good morning.',prompt:'Your professor greets you before class. How do you reply?',hint:'Use a respectful morning greeting with a professor.',explanation:'Adding ございます makes the greeting appropriate for a professor.',answers:[['おはようございます','Ohayou gozaimasu','Polite'],['おはよう','Ohayou','Casual'],['じゃあね','Jaa ne','Too casual']]},
   {id:2,level:1,location:'Campus library',speaker:'Librarian Aoki',gender:'female',npcLine:'こちらの本ですね。',translation:'This is the book, correct?',prompt:'The librarian hands you the book you requested. What do you say?',hint:'Thank a staff member politely.',explanation:'ありがとうございます is the standard polite expression of thanks.',answers:[['ありがとうございます','Arigatou gozaimasu','Polite'],['ありがとう','Arigatou','Casual'],['どうもね','Doumo ne','Too familiar']]},
   {id:3,level:1,location:'Teacher’s office',speaker:'Professor Sato',gender:'female',npcLine:'どうしましたか。',translation:'What happened?',prompt:'You arrived late for your consultation. Begin with an apology.',hint:'Use the completed polite apology.',explanation:'申し訳ありません is respectful and suitable in a formal meeting.',answers:[['申し訳ありません','Moushiwake arimasen','Formal'],['ごめん','Gomen','Impolite here'],['悪かったね','Warukatta ne','Too casual']]},
@@ -45,7 +47,16 @@ const raw: Array<Omit<PolitenessScenario,'choices'> & { answers:[[string,string,
   {id:30,level:3,location:'Job interview exit',speaker:'Hiring manager',gender:'female',npcLine:'本日の面接は以上です。',translation:'That concludes today’s interview.',prompt:'The hiring manager ends your interview.',hint:'Close with gratitude and a respectful request for continued consideration.',explanation:'本日はありがとうございました。よろしくお願いいたします is a proper formal closing.',answers:[['本日はありがとうございました。よろしくお願いいたします','Honjitsu wa arigatou gozaimashita. Yoroshiku onegai itashimasu','Formal'],['今日はありがとう','Kyou wa arigatou','Casual'],['じゃ、失礼','Ja, shitsurei','Abrupt']]},
 ];
 
-export const POLITENESS_SCENARIOS: PolitenessScenario[] = raw.map(item => ({ ...item, choices: choices(item.id, ...item.answers) }));
+export const POLITENESS_SCENARIOS: PolitenessScenario[] = raw.map(item => {
+  const guidance=POLITENESS_GUIDANCE[item.id];
+  return {...item,relationship:guidance.relationship,learnerRole:guidance.role,
+    explanation:guidance.why,hint:`You are the ${guidance.role.toLowerCase()}. ${item.id===24?'You represent the institution when answering this outside caller; state that the requested person is away.':item.hint}`,
+    choices:choices(item.id,...item.answers).map(choice=>{
+      const original=item.answers.findIndex(answer=>answer[0]===choice.jp);
+      return {...choice,correct:original===0||!!guidance.alsoFits?.includes(original),
+        feedback:original===0?guidance.why:guidance.other[original-1]};
+    })};
+});
 export const POLITENESS_LEVELS = [
   { level:1 as const, name:'Courtesy Lane', difficulty:'EASY', count:5, color:'#65A936', icon:'leaf' },
   { level:2 as const, name:'Social Crossing', difficulty:'MEDIUM', count:10, color:'#E58B2A', icon:'people' },

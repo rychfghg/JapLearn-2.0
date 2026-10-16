@@ -128,6 +128,9 @@ export default function QuackSituateFormal() {
   const level = Math.min(3, Math.max(1, Number(params.level) || 1)) as 1 | 2 | 3;
   const bundledQuestions = useMemo(() => POLITENESS_SCENARIOS.filter((question) => question.level === level), [level]);
   const [questions, setQuestions] = useState<RuntimeScenario[]>(bundledQuestions);
+  const answerLock=useRef(false);
+  const answerRecords=useRef<Array<{scenarioId:string;relationship:string;learnerRole:string;prompt:string;npcLine:string;selectedJapanese:string;acceptedJapanese:string[];correct:boolean;hintUsed:boolean;recordedAt:string}>>([]);
+  const hintUsed=useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -135,29 +138,34 @@ export default function QuackSituateFormal() {
       .then((records: any[]) => {
         const mapped = records
           .filter((record) => Number(record.level || 1) === level)
-          .map((record, position): RuntimeScenario => ({
+          .map((record, position): RuntimeScenario => {
+            const authored=POLITENESS_SCENARIOS.find(row=>row.level===level&&row.npcLine===record.npcLine&&row.prompt===record.scenario);
+            return ({
             id: Number(record.order) || position + 1,
             level,
             location: record.location || 'Japanese conversation',
             speaker: record.speaker || (record.characterKey === 'HARU' ? 'Haru' : 'Sumi'),
+            relationship:authored?.relationship||record.relationship||'',
+            learnerRole:authored?.learnerRole||record.learnerRole||'',
             gender: record.characterKey === 'HARU' ? 'male' : 'female',
             characterKey: record.characterKey === 'HARU' ? 'HARU' : 'SUMI',
             npcLine: record.npcLine || '',
             npcRomaji: record.npcRomaji || '',
             translation: '',
             prompt: record.scenario || '',
-            hint: record.hint || '',
-            explanation: record.explanation || '',
+            hint: authored?.hint||record.hint||'',
+            explanation: authored?.explanation||record.explanation||'',
             imageUrl: mediaUrl(record.imageUrl),
             audioUrl: mediaUrl(record.audioUrl),
             choices: (record.choices || []).map((choice: any) => ({
               jp: choice.japanese,
               romaji: choice.romaji,
               tone: choice.japanese === record.correctAnswer ? 'Polite' : 'Needs adjustment',
-              correct: choice.japanese === record.correctAnswer,
+              correct: authored?.choices.find(item=>item.jp===choice.japanese)?.correct??(choice.japanese===record.correctAnswer||choice.acceptable===true),
+              feedback:authored?.choices.find(item=>item.jp===choice.japanese)?.feedback||choice.feedback,
             })),
-          }))
-          .filter((record) => record.npcLine && record.prompt && record.choices.length >= 3);
+          });})
+          .filter((record) => record.npcLine && record.prompt && record.relationship&&record.learnerRole&&record.choices.length >= 3&&record.choices.some(choice=>choice.correct));
         if (active && mapped.length) {
           setQuestions(mapped);
           setIndex((current) => Math.min(current, mapped.length - 1));
@@ -205,7 +213,7 @@ export default function QuackSituateFormal() {
   };
 
   const revealChoices = () => {
-    setPhase((current) => current === 'speaking' ? 'choosing' : current);
+    setPhase((current) => current === 'speaking' ? answerLock.current?'reaction':'choosing' : current);
   };
 
   const playNpc = async () => {
@@ -232,8 +240,11 @@ export default function QuackSituateFormal() {
     fallbackTimer.current = setTimeout(revealChoices, 4200);
 
     try {
+      const authored=POLITENESS_SCENARIOS.find(item=>item.npcLine===question.npcLine);
+      const source=question.audioUrl?{uri:await resolveOfflineMediaUri(question.audioUrl)}:authored?npcVoices[authored.id-1]:null;
+      if(!source){finishSpeaking();return;}
       const loaded = await loadBundledSound(
-        question.audioUrl ? { uri: await resolveOfflineMediaUri(question.audioUrl) } : npcVoices[(question.id - 1) % npcVoices.length],
+        source,
         {
           shouldPlay: true,
           volume: 1,
@@ -257,7 +268,7 @@ export default function QuackSituateFormal() {
     return () => {
       void stopSound();
     };
-  }, [index]);
+  }, [index,question.npcLine,question.audioUrl]);
 
   useFocusEffect(
     useCallback(() => () => {
@@ -291,13 +302,17 @@ export default function QuackSituateFormal() {
   }, [phase, index, question.gender]);
 
   const selectResponse = async (choiceIndex: number) => {
-    if (phase !== 'choosing') return;
+    if (phase !== 'choosing'||answerLock.current) return;
+    answerLock.current=true;
 
     await stopSound();
     setSelectedIndex(choiceIndex);
     setPhase('reaction');
 
     const correct = question.choices[choiceIndex].correct;
+    answerRecords.current.push({scenarioId:String(question.id),relationship:question.relationship,learnerRole:question.learnerRole,
+      prompt:question.prompt,npcLine:question.npcLine,selectedJapanese:question.choices[choiceIndex].jp,
+      acceptedJapanese:question.choices.filter(choice=>choice.correct).map(choice=>choice.jp),correct,hintUsed:hintUsed.current,recordedAt:new Date().toISOString()});
 
     if (correct) {
       setScore((current) => current + 1);
@@ -333,6 +348,7 @@ export default function QuackSituateFormal() {
           score: finalScore * 10,
           totalQuestions: questions.length,
           correctAnswers: finalScore,
+          politenessResponses:answerRecords.current,
           completed,
           level,
           setNumber: resumeIndex,
@@ -354,6 +370,7 @@ export default function QuackSituateFormal() {
     await stopSound();
 
     if (index < questions.length - 1) {
+      answerLock.current=false;hintUsed.current=false;
       setSelectedIndex(null);
       setPhase('speaking');
       setIndex((current) => current + 1);
@@ -404,12 +421,10 @@ export default function QuackSituateFormal() {
   ] as const;
 
   const reactionTitle = answeredCorrectly
-    ? 'That response feels respectful.'
-    : 'That tone feels uncomfortable here.';
+    ? 'This fits the relationship.'
+    : 'Consider the relationship and purpose.';
 
-  const reactionText = answeredCorrectly
-    ? question.explanation
-    : `That answer sounds ${selectedChoice?.tone.toLowerCase()}. ${question.explanation}`;
+  const reactionText = selectedChoice?.feedback||`${question.explanation} Consider your role (${question.learnerRole}) when speaking to ${question.relationship.toLowerCase()}. This judgment applies to this setting, not every use of the expression.`;
 
   if (leaving) {
     return (
@@ -462,6 +477,8 @@ export default function QuackSituateFormal() {
             <Ionicons name="location" size={14} color="#65A936" />
             <Text style={styles.locationText}>{question.location}</Text>
           </View>
+          <View style={{flexDirection:'row',alignItems:'center',gap:5,marginTop:6}}><Ionicons name="people-outline" size={14} color="#D7F1C4"/><Text style={{color:'#D7F1C4',fontSize:11,flexShrink:1}}>Speaking to: {question.relationship}</Text></View>
+          <Text style={{color:'#E8DFF0',fontSize:10,marginTop:3}}>You: {question.learnerRole}</Text>
           <Text style={styles.promptLabel}>YOUR ROLE IN THIS MOMENT</Text>
           <Text style={styles.promptText}>{question.prompt}</Text>
         </View>
@@ -507,7 +524,7 @@ export default function QuackSituateFormal() {
           {phase !== 'reaction' ? (
             <>
               <Text style={styles.npcJapanese}>{question.npcLine}</Text>
-              <Text style={styles.npcRomaji}>{question.npcRomaji || npcRomaji[(question.id - 1) % npcRomaji.length]}</Text>
+              <Text style={styles.npcRomaji}>{question.npcRomaji || (()=>{const authored=POLITENESS_SCENARIOS.find(item=>item.npcLine===question.npcLine);return authored?npcRomaji[authored.id-1]:'';})()}</Text>
               <Text style={styles.translation}>{question.translation}</Text>
             </>
           ) : (
@@ -523,7 +540,7 @@ export default function QuackSituateFormal() {
               <Text style={styles.reactionText}>{reactionText}</Text>
               {!answeredCorrectly && (
                 <View style={styles.betterAnswer}>
-                  <Text style={styles.betterAnswerLabel}>A BETTER RESPONSE</Text>
+                  <Text style={styles.betterAnswerLabel}>ONE RESPONSE THAT FITS HERE</Text>
                   <Text style={styles.betterAnswerJapanese}>
                     {question.choices.find((choice) => choice.correct)?.jp}
                   </Text>
@@ -553,7 +570,7 @@ export default function QuackSituateFormal() {
               </View>
               <Pressable
                 style={styles.hintButton}
-                onPress={() => setShowHint(true)}
+                onPress={() => {hintUsed.current=true;setShowHint(true);}}
               >
                 <Ionicons name="bulb-outline" size={21} color="#D88727" />
               </Pressable>
