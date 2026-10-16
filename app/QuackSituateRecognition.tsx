@@ -46,7 +46,13 @@ type Question = {
   partner?:string;goal?:string;skill?:string;
 };
 
+// One record per first answer, so repeated mistakes can be analysed per question and skill.
+type RescueAnswer = { questionId: string; order: number; difficulty: string; skill: string; selected: string; correct: boolean; hintUsed: boolean };
+// Untimed "same skill, new scene" practice: kept separate, never scored.
+type RescueReview = { questionId: string; skill: string; selected: string | null; correct: boolean };
 type RescueRun = {
+  answers?: RescueAnswer[];
+  skillReviews?: RescueReview[];
   index: number;
   questionIndex: number;
   correctCount: number;
@@ -499,6 +505,9 @@ export default function QuackSituateRecognition() {
   const [easyMistakes, setEasyMistakes] = useState(0);
   const [hardMistakes, setHardMistakes] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
+  const answersRef = useRef<RescueAnswer[]>([]);
+  const reviewsRef = useRef<RescueReview[]>([]);
+  const hintThisQuestion = useRef(false);
   const [phase, setPhase] = useState<'intro' | 'quiz' | 'gameover'>('intro');
   const [introStep, setIntroStep] = useState(0);
   const [briefingStep, setBriefingStep] = useState(0);
@@ -526,6 +535,8 @@ export default function QuackSituateRecognition() {
   const storageKey = `ahiru-rescue:${String(user?.email || 'guest').toLowerCase()}`;
 
   const makeRunSnapshot = (savedAt = Date.now()): RescueRun => ({
+    answers: answersRef.current,
+    skillReviews: reviewsRef.current,
     index,
     questionIndex: index,
     correctCount,
@@ -599,6 +610,9 @@ export default function QuackSituateRecognition() {
           setEasyMistakes(Math.min(6, Math.max(0, Number(run.easyMistakes) || 0)));
           setHardMistakes(Math.min(3, Math.max(0, Number(run.hardMistakes) || 0)));
           setHintsUsed(Number(run.hintsUsed) || 0);
+          // Per-question records live in the device checkpoint; a server-only checkpoint restarts them.
+          answersRef.current = Array.isArray(run.answers) ? run.answers : [];
+          reviewsRef.current = Array.isArray(run.skillReviews) ? run.skillReviews : [];
           // Always present the story prologue and tutorial when the mission is opened.
           // The run itself remains restored, so BEGIN/CONTINUE still resumes the exact trial.
           setIntroStep(0);
@@ -708,6 +722,7 @@ export default function QuackSituateRecognition() {
     };
   }, [index, correctCount, easyMistakes, hardMistakes, hintsUsed, phase, questions.length, storageKey, user?.email]);
 
+  useEffect(() => { hintThisQuestion.current = false; }, [index]);
   const [skillReviewVisible,setSkillReviewVisible]=useState(false);
   const [restartInstructionsVisible,setRestartInstructionsVisible]=useState(false);
   const [briefingVisible,setBriefingVisible]=useState(false);
@@ -765,6 +780,12 @@ export default function QuackSituateRecognition() {
     if (!selected || !question) return;
     const correct = selected.japanese === question.correctAnswer;
     const nextMistakes = mistakes + (correct ? 0 : 1);
+    if (!answersRef.current.some((a) => a.questionId === question.id)) {
+      answersRef.current = [...answersRef.current, {
+        questionId: question.id, order: index + 1, difficulty: question.difficulty || (index >= 15 ? 'HARD' : 'STARTER'),
+        skill: rescueContext(question).skill, selected: selected.japanese, correct, hintUsed: hintThisQuestion.current,
+      }];
+    }
     setLastCorrect(correct);
     setLastFailed(!correct && nextMistakes >= maxMistakes);
     if (correct) {
@@ -783,11 +804,16 @@ export default function QuackSituateRecognition() {
     setFeedbackVisible(true);
   };
 
-  const saveAttempt = async () => {
+  // completed=false is a lost run (game over): a real, finished result that is not a full clear.
+  const saveAttempt = async (completed = true) => {
     if (!user?.email) return;
     setSaving(true);
     try {
       await queueOfflineSubmission(user.email, '/api/situational/attempts', {
+          answers: answersRef.current,
+          skillReviews: reviewsRef.current,
+          answeredCount: answersRef.current.length,
+          endReason: completed ? 'CLEARED' : 'GAME_OVER',
           email: user.email,
           name: `${user.fname || ''} ${user.lname || ''}`.trim(),
           gameType: 'RECOGNITION',
@@ -797,7 +823,7 @@ export default function QuackSituateRecognition() {
           totalQuestions: questions.length,
           correctAnswers: correctCount,
           hintsUsed,
-          completed: true,
+          completed,
         });
       void syncOfflineSubmissions(user.email);
       await AsyncStorage.removeItem(storageKey);
@@ -814,6 +840,7 @@ export default function QuackSituateRecognition() {
     setFeedbackVisible(false);
     setSelected(null);
     if (lastFailed) {
+      void saveAttempt(false);
       setPhase('gameover');
       return;
     }
@@ -854,6 +881,9 @@ export default function QuackSituateRecognition() {
     setEasyMistakes(0);
     setHardMistakes(0);
     setHintsUsed(0);
+    answersRef.current = [];
+    reviewsRef.current = [];
+    hintThisQuestion.current = false;
     setSelected(null);
     setRestartInstructionsVisible(true);
     setPhase('quiz');
@@ -1102,14 +1132,13 @@ export default function QuackSituateRecognition() {
           </View>
         </View>
         <View style={styles.progressTrack}><View style={[styles.progressFill, { width: `${progress}%` }]} /></View>
-        <View style={styles.introCopy}><Text style={styles.introTitle}>Choose the phrase. Hold the cage.</Text><Text style={styles.introText}>Use the relationship and scene clues before the pirate lowers Ahiru toward the sea.</Text></View>
 
         <View style={styles.sceneCard}>
           <View style={styles.sceneMedia}><Image source={sceneImage} style={styles.sceneBackdrop} resizeMode="cover" blurRadius={10} /><View style={styles.sceneBackdropTint} /><Image source={sceneImage} style={styles.scenePicture} resizeMode="contain" /><View style={styles.locationPill}><Ionicons name="location" size={14} color="#FFF" /><Text style={styles.locationText}>{question.location}</Text></View></View>
-          <View style={styles.scenarioCopy}><View style={styles.scenarioHeading}><View style={styles.scenarioMarker}><Ionicons name="chatbubble-ellipses" size={14} color="#65A936" /></View><Text style={styles.scenarioLabel}>WHAT WOULD YOU SAY?</Text></View><Text style={styles.scenarioText}>{question.scenario}</Text></View>
+          <View style={styles.scenarioCopy}><View style={styles.scenarioHeading}><View style={styles.scenarioMarker}><Ionicons name="chatbubble-ellipses" size={14} color="#65A936" /></View><Text style={styles.scenarioLabel}>WHAT WOULD YOU SAY?</Text></View><Text style={styles.scenarioText}>{question.scenario}</Text>{learningContext&&<View style={styles.contextStrip}><View style={styles.contextChip}><Ionicons name="people-outline" size={13} color="#8423D9" /><Text style={styles.contextChipLabel}>WHO</Text><Text style={styles.contextChipValue} numberOfLines={2}>{learningContext.who}</Text></View>{learningContext.goal!==question.scenario&&<View style={styles.contextChip}><Ionicons name="flag-outline" size={13} color="#65A936" /><Text style={[styles.contextChipLabel,{color:'#5E9A34'}]}>GOAL</Text><Text style={styles.contextChipValue} numberOfLines={2}>{learningContext.goal}</Text></View>}</View>}</View>
         </View>
 
-        <View style={[styles.answerHeader,{gap:8,flexWrap:'wrap'}]}><Text style={[styles.answerTitle,{flex:1,minWidth:95}]}>Your response</Text><View style={{flexDirection:'row',alignItems:'center',gap:6}}><RescueBriefingButton questionId={question.id} onPress={()=>setBriefingVisible(true)}/><Pressable style={styles.hintButton} onPress={() => { setHintsUsed((value) => value + 1); setHintVisible(true); }}><Ionicons name="bulb-outline" size={20} color="#8423D9" /><Text style={styles.hintButtonText}>Hint</Text></Pressable></View></View>
+        <View style={[styles.answerHeader,{gap:8,flexWrap:'wrap'}]}><Text style={[styles.answerTitle,{flex:1,minWidth:95}]}>Your response</Text><View style={{flexDirection:'row',alignItems:'center',gap:6}}><RescueBriefingButton questionId={question.id} onPress={()=>setBriefingVisible(true)}/><Pressable style={styles.hintButton} onPress={() => { hintThisQuestion.current = true; setHintsUsed((value) => value + 1); setHintVisible(true); }}><Ionicons name="bulb-outline" size={20} color="#8423D9" /><Text style={styles.hintButtonText}>Hint</Text></Pressable></View></View>
         <View style={styles.choices}>{question.choices.map((choice, choiceIndex) => { const active = selected?.japanese === choice.japanese; return <Pressable key={`${choice.japanese}-${choiceIndex}`} style={[styles.choiceCard, active && styles.choiceCardActive]} onPress={() => setSelected(choice)}><View style={[styles.choiceMarker, active && styles.choiceMarkerActive]}><Text style={[styles.choiceMarkerText, active && styles.choiceMarkerTextActive]}>{String.fromCharCode(65 + choiceIndex)}</Text></View><View style={styles.choiceCopy}><Text style={styles.choiceJapanese}>{choice.japanese}</Text><Text style={styles.choiceRomaji}>{choice.romaji}</Text></View><Ionicons name={active ? 'checkmark-circle' : 'ellipse-outline'} size={23} color={active ? '#A95BE8' : '#D7CBDB'} /></Pressable>; })}</View>
         <Pressable disabled={!selected} style={[styles.submitButton, !selected && styles.submitButtonDisabled]} onPress={submit}><Text style={styles.submitText}>LOCK IN PHRASE</Text><Ionicons name="arrow-forward" size={19} color="#FFF" /></Pressable>
       </ScrollView>
@@ -1121,7 +1150,7 @@ export default function QuackSituateRecognition() {
         'After a mistake, read why the phrase does not fit and practice the same skill in a different situation. That extra practice does not change your score or lives.'
       ]} onStart={()=>setRestartInstructionsVisible(false)} onLeave={()=>router.replace({pathname:'/QuackSituate',params:{skipLoading:'1'}})}/>
       <Modal transparent visible={briefingVisible} animationType="fade" onRequestClose={()=>setBriefingVisible(false)}><View style={styles.modalShade}><ScrollView style={{width:'100%',maxWidth:470,maxHeight:'94%',flexGrow:0}} contentContainerStyle={{paddingVertical:12}}><View style={styles.modalCard}><Ionicons name="compass-outline" size={28} color="#8423D9"/><Text style={styles.modalTitle}>Before you answer</Text><Text style={styles.modalBody}>Use these clues to choose a reply that fits.</Text>{learningContext&&<RescueContextCard {...learningContext}/>}<Pressable style={styles.primaryButton} onPress={()=>setBriefingVisible(false)}><Text style={styles.primaryButtonText}>BACK TO MY RESPONSE</Text></Pressable></View></ScrollView></View></Modal>
-      {skillReviewVisible&&learningContext?.transfer&&<RescueSkillReview key={question.id} question={learningContext.transfer} onContinue={()=>{setSkillReviewVisible(false);finishFeedback();}}/>}
+      {skillReviewVisible&&learningContext?.transfer&&<RescueSkillReview key={question.id} question={learningContext.transfer} onContinue={picked=>{const transfer=learningContext.transfer!;reviewsRef.current=[...reviewsRef.current,{questionId:question.id,skill:learningContext.skill,selected:picked,correct:picked===transfer.correctAnswer}];setSkillReviewVisible(false);finishFeedback();}}/>}
       <ReactionModal
         visible={feedbackVisible}
         correct={lastCorrect}

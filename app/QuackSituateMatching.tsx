@@ -1,5 +1,5 @@
 import expressionAudio from '../services/expressionMatchAudio';
-import {hasDistinctContexts,isCaptionOnlyMoment,expressionCheckpoint} from '../services/expressionMatchContext';
+import {hasMeaningfulText,canScoreExpression,isCaptionOnlyMoment,expressionCheckpoint,replaceExpressionQuestions,expressionRunMatches,ExpressionQuestionResult} from '../services/expressionMatchContext';
 import expressionImages from '../services/expressionMatchImages';
 import expressionMedia from '../data/expressionMatchMedia.json';
 import {expressionTargetOrder} from '../services/expressionMatchTargets';
@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   AppState,
@@ -63,19 +63,18 @@ const mediaUrl = (url?: string) => {
 
 // Generic wave/bow art is not a scenario illustration and must not identify correctness.
 const isGenericGesture=(url?:string)=>/gesture-(wave|bow)\.png(?:[?#]|$)/i.test(url??'');
-function TargetPicture({source,scenario,captionOnly}:{source?:ImageSourcePropType;scenario:string;captionOnly:boolean}){
+function TargetPicture({source,scenario,captionOnly,onReady}:{source?:ImageSourcePropType;scenario:string;captionOnly:boolean;onReady:(ready:boolean)=>void}){
   const [failed,setFailed]=useState(false);
   const [retry,setRetry]=useState(0);
   const sourceKey=JSON.stringify(source);
-  useEffect(()=>setFailed(false),[sourceKey]);
-  return <View style={styles.targetArtwork}>{!captionOnly&&source&&!failed?<Image key={retry} source={source} accessibilityLabel={scenario} style={styles.targetImage} resizeMode="contain" onError={()=>setFailed(true)}/>:<View accessibilityLabel={scenario} style={{flex:1,alignItems:'center',justifyContent:'center',gap:6,padding:10}}><Ionicons name={captionOnly?'reader-outline':'image-outline'} size={28} color="#C5B5E9"/><Text style={{fontSize:11,color:'#EEE7FB',textAlign:'center'}}>{captionOnly?'CONTEXT CHECK · Read the situation below':'Picture unavailable. Use the full situation below; no image-error penalty.'}</Text>{!captionOnly&&!!source&&<Pressable accessibilityRole="button" accessibilityLabel="Retry scene picture" onPress={event=>{event.stopPropagation();setRetry(n=>n+1);setFailed(false);}}><Text style={{color:'#FFFFFF',padding:8}}>Retry picture</Text></Pressable>}</View>}</View>;
+  useLayoutEffect(()=>{setFailed(false);onReady(captionOnly);},[sourceKey,captionOnly,onReady]);
+  return <View style={styles.targetArtwork}>{!captionOnly&&source&&!failed?<Image key={retry} source={source} accessibilityLabel={scenario} style={styles.targetImage} resizeMode="contain" onLoad={()=>onReady(true)} onError={()=>{onReady(false);setFailed(true);}}/>:<View accessibilityLabel={scenario} style={{flex:1,alignItems:'center',justifyContent:'center',gap:6,padding:10}}><Ionicons name={captionOnly?'reader-outline':'image-outline'} size={28} color="#C5B5E9"/><Text style={{fontSize:11,color:'#EEE7FB',textAlign:'center'}}>{captionOnly?'CONTEXT CHECK · Read the situation below':'Picture unavailable. Caption practice is unscored until both pictures load.'}</Text>{!captionOnly&&!!source&&<Pressable accessibilityRole="button" accessibilityLabel="Retry scene picture" onPress={event=>{event.stopPropagation();onReady(false);setRetry(n=>n+1);setFailed(false);}}><Text style={{color:'#FFFFFF',padding:8}}>Retry picture</Text></Pressable>}</View>}</View>;
 }
 
 const getAnswer = (moment: Moment): Choice => {
-  return moment.choices?.find(choice => choice.japanese === moment.correctAnswer) || {
-    japanese: moment.correctAnswer,
-    romaji: moment.correctAnswer,
-  };
+  const answer=moment.choices?.find(choice=>choice.japanese===moment.correctAnswer);
+  const authored=expressionMedia.find(row=>row.level===moment.level&&row.japanese===moment.correctAnswer);
+  return {japanese:moment.correctAnswer,romaji:hasMeaningfulText(answer?.romaji)?answer!.romaji:authored?.romaji||moment.correctAnswer};
 };
 
 function DraggablePhrase({
@@ -157,7 +156,7 @@ function DraggablePhrase({
 export default function QuackSituateMatching() {
   const params = useLocalSearchParams<{ level?: string; set?: string }>();
   const level = Math.min(3, Math.max(1, Number(params.level) || 1));
-  const setNumber = Math.max(1, Number(params.set) || 1);
+  const setNumber = 1; // The Expression Match trail uses the authored first set only.
 
   const [moments, setMoments] = useState<Moment[]>([]);
   const [momentIndex, setMomentIndex] = useState(0);
@@ -167,6 +166,11 @@ export default function QuackSituateMatching() {
   const [audioError,setAudioError]=useState('');
   const [audioPlaying,setAudioPlaying]=useState(false);
   const choiceLock=useRef(false);
+  const pictureReadiness=useRef({key:'',top:false,bottom:false});
+  const questionResults=useRef<ExpressionQuestionResult[]>([]);
+  const checkpointQueue=useRef<Promise<void>>(Promise.resolve());
+  const questionSupport=useRef({hintUsed:false,audioReplays:0});
+  const [checkpointNotice,setCheckpointNotice]=useState('');
   const audioGeneration=useRef(0);
   const audioFocused=useRef(true);
   const [loading, setLoading] = useState(true);
@@ -184,7 +188,8 @@ export default function QuackSituateMatching() {
   const [showStart,setShowStart]=useState(true);
   const [showPause,setShowPause]=useState(false);
   const [showRestart,setShowRestart]=useState(false);
-  const blocked=showStart||showPause||showRestart||showExit||showHelp||showResult;
+  const [showTechnical,setShowTechnical]=useState(false);
+  const blocked=showStart||showPause||showRestart||showExit||showHelp||showResult||showTechnical;
   const captionOnly=isCaptionOnlyMoment(momentIndex);
 
   const music = useRef<Audio.Sound | null>(null);
@@ -197,6 +202,15 @@ export default function QuackSituateMatching() {
   const current = moments.length > 0
     ? moments[Math.min(momentIndex, moments.length - 1)]
     : undefined;
+  const pictureKey=`${runRevision}:${momentIndex}:${current?.id}`;
+  const markTopReady=useCallback((ready:boolean)=>{
+    if(pictureReadiness.current.key!==pictureKey)pictureReadiness.current={key:pictureKey,top:false,bottom:false};
+    pictureReadiness.current.top=ready;
+  },[pictureKey]);
+  const markBottomReady=useCallback((ready:boolean)=>{
+    if(pictureReadiness.current.key!==pictureKey)pictureReadiness.current={key:pictureKey,top:false,bottom:false};
+    pictureReadiness.current.bottom=ready;
+  },[pictureKey]);
   const authoredMedia=expressionMedia.find(row=>row.japanese===current?.correctAnswer&&row.scenario===current?.scenario&&row.secondaryScenario===current?.secondaryScenario);
   const correctBundledImage=authoredMedia?expressionImages[authoredMedia.key]?.scene:undefined;
   const alternativeBundledImage=authoredMedia?expressionImages[authoredMedia.key]?.alternative:undefined;
@@ -227,17 +241,28 @@ export default function QuackSituateMatching() {
     savedCorrectCount: number,
     savedMistakes: number,
   ) => {
+    const records=questionResults.current.map(row=>({...row}));
+    const questionIds=moments.map(m=>m.id);
+    const snapshot={expressionMatchVersion:3,questionResults:records,questionIndex,correctCount:savedCorrectCount,mistakes:savedMistakes,questionIds,savedAt:Date.now()};
+    const task=checkpointQueue.current.catch(()=>undefined).then(async()=>{
     try {
       const user = await getUser();
       if (!user.email) return;
       await AsyncStorage.setItem(`expressionRun:${user.email.trim().toLowerCase()}:${runGameType}`,
-        JSON.stringify({ questionIndex, correctCount: savedCorrectCount, mistakes: savedMistakes, questionIds:moments.map(m=>m.id), savedAt: Date.now() }));
+        JSON.stringify(snapshot));
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(),6000);
+      try{
       await fetch(`${expoconfig.API_URL}/api/situational/runs/current`, {
         method: 'PUT',
+        signal:controller.signal,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: user.email,
           gameType: runGameType,
+          expressionMatchVersion:3,
+          questionIds,
+          questionResults:records,
           questionIndex,
           correctCount: savedCorrectCount,
           easyMistakes: savedMistakes,
@@ -245,7 +270,10 @@ export default function QuackSituateMatching() {
           hintsUsed: 0,
         }),
       });
+      }finally{clearTimeout(timeout);}
     } catch {}
+    });
+    checkpointQueue.current=task;await task;
   }, [getUser, level, runGameType,moments]);
 
   const stopAudio = useCallback(async (unload = false) => {
@@ -301,18 +329,13 @@ export default function QuackSituateMatching() {
     void (async () => {
       try {
         const all = await loadOfflineContent<Moment[]>('/api/situational/questions?gameType=EXPRESSION_MATCH');
-        const published = all
-          .filter(item => item.level === level)
-          .filter(item => {
-            const choices = Array.isArray(item.choices) ? item.choices : [];
-            const hasCorrectAnswer = choices.some(
-              choice => choice.japanese === item.correctAnswer,
-            );
-            return Boolean(
-              hasDistinctContexts(item.scenario,item.secondaryScenario) &&
-              hasCorrectAnswer,
-            );
-          });
+        const replacements:Moment[]=expressionMedia.filter(row=>row.level===level).map((row,index)=>({
+          id:`canonical:${row.key}`,level,setNumber:1,topic:'Expression Match',location:'Expression Match',sceneKey:row.key,
+          scenario:row.scenario,secondaryScenario:row.secondaryScenario,hint:row.hint,
+          correctAnswer:row.japanese,choices:[{japanese:row.japanese,romaji:row.romaji}],
+          explanation:`This expression fits “${row.scenario}”. ${row.hint}`,
+        }));
+        const published = replaceExpressionQuestions(all,level,replacements);
         let selected = published;
 
         if (active) setMoments(selected);
@@ -322,12 +345,6 @@ export default function QuackSituateMatching() {
           const runKey = `expressionRun:${user.email.trim().toLowerCase()}:${runGameType}`;
           const localRaw = await AsyncStorage.getItem(runKey);
           const localRun = localRaw ? JSON.parse(localRaw) : null;
-          if(Array.isArray(localRun?.questionIds)){
-            const ids=localRun.questionIds as string[];
-            const ordered=ids.map(id=>published.find(m=>m.id===id)).filter((m):m is Moment=>!!m);
-            selected=[...ordered,...published.filter(m=>!ids.includes(m.id))];
-            if(active)setMoments(selected);
-          }
           let run: any = localRun;
           try {
             const runResponse = await fetch(
@@ -341,24 +358,23 @@ export default function QuackSituateMatching() {
           // 204 means there is no unfinished checkpoint. It has no JSON body
           // and is the normal state for a fresh game or replay.
           if (active && run) {
+            const expectedIds=selected.map(m=>m.id);
+            if(!expressionRunMatches(run,expectedIds)){
+              run=null;questionResults.current=[];
+              setCheckpointNotice('The question list has been cleaned up. This level starts fresh; completed results are unchanged.');
+              await AsyncStorage.removeItem(runKey);
+            }
+          }
+          if (active && run) {
+            questionResults.current=run.questionResults;
             const savedQuestionIndex = Math.max(0, Number(run.questionIndex) || 0);
             const resumeIndex = Math.min(savedQuestionIndex, selected.length - 1);
-            const resumedCorrect = Math.min(
-              selected.length,
-              Math.max(0, Number(run.correctCount) || 0),
-            );
+            const resumedCorrect=questionResults.current.filter(row=>row.outcome==='CORRECT').length;
             if (savedQuestionIndex >= selected.length) {
-              // A completed run is not resumable. Attempts are stored separately,
-              // so clear stale run state and begin a clean, replayable round.
-              await fetch(
-                `${expoconfig.API_URL}/api/situational/runs/current?email=${encodeURIComponent(user.email)}&gameType=${encodeURIComponent(runGameType)}`,
-                { method: 'DELETE' },
-              ).catch(() => undefined);
-              await AsyncStorage.removeItem(runKey);
-              setMomentIndex(0);
-              setCorrectCount(0);
-              setMistakes(0);
-              setShowResult(false);
+              // Restore final feedback/results after a shutdown before completion was stored.
+              setMomentIndex(selected.length-1);setCorrectCount(resumedCorrect);
+              setMistakes(questionResults.current.filter(row=>row.outcome==='INCORRECT').length);
+              setShowStart(false);setShowResult(true);
             } else {
               setMomentIndex(resumeIndex);
               setCorrectCount(resumedCorrect);
@@ -399,14 +415,16 @@ export default function QuackSituateMatching() {
   }, [getUser, level, runGameType, setNumber, stopAudio]);
 
   useEffect(()=>{
+    questionSupport.current={hintUsed:false,audioReplays:0};
     audioGeneration.current++;setAudioPlaying(false);setAudioError('');
     const previous=momentAudio.current;momentAudio.current=null;void stopAndUnloadSound(previous);
     setShowHint(false);setLocked(false);choiceLock.current=false;
     return()=>{audioGeneration.current++;const stale=momentAudio.current;momentAudio.current=null;void stopAndUnloadSound(stale);};
-  },[current?.id]);
+  },[current?.id,runRevision]);
 
   const playMomentAudio=async()=>{
     if(!current||!hasPhraseAudio||locked||blocked)return;
+    questionSupport.current.audioReplays++;
     const generation=++audioGeneration.current;
     setAudioError('');setAudioPlaying(false);
     const previous=momentAudio.current;momentAudio.current=null;
@@ -427,14 +445,30 @@ export default function QuackSituateMatching() {
 
   const choose = useCallback(async (position: TargetPosition) => {
     if (!current || locked || choiceLock.current || blocked) return;
+    const ready=pictureReadiness.current;
+    const record=(outcome:ExpressionQuestionResult['outcome'])=>{
+      if(outcome==='TECHNICAL_INTERRUPTION'&&questionResults.current.some(row=>row.questionId===current.id&&row.outcome===outcome))return false;
+      questionResults.current.push({questionId:current.id,expression:current.correctAnswer,questionIndex:momentIndex,
+        mode:captionOnly?'CAPTION_ONLY':'PICTURE',outcome,selectedPosition:position,correctPosition,
+        selectedScenario:position===correctPosition?current.scenario:current.secondaryScenario!,
+        correctScenario:current.scenario,alternativeScenario:current.secondaryScenario!,
+        ...questionSupport.current,recordedAt:new Date().toISOString()});
+      return true;
+    };
+    if(!canScoreExpression(captionOnly,ready.key===pictureKey&&ready.top,ready.key===pictureKey&&ready.bottom)){
+      const added=record('TECHNICAL_INTERRUPTION');setShowTechnical(true);
+      if(added)void saveRun(momentIndex,correctCount,mistakes);return; // Evidence only; never a scored answer.
+    }
     choiceLock.current=true;
 
     setLocked(true);audioGeneration.current++;setAudioPlaying(false);const previous=momentAudio.current;momentAudio.current=null;void stopAndUnloadSound(previous);
 
     const isCorrect = position === correctPosition;
+    record(isCorrect?'CORRECT':'INCORRECT');
     const nextCorrectCount = correctCount + (isCorrect ? 1 : 0);
     const nextMistakes = mistakes + (isCorrect ? 0 : 1);
     const nextQuestionIndex = momentIndex + 1;
+    const checkpoint=saveRun(nextQuestionIndex,nextCorrectCount,nextMistakes);
 
     if (isCorrect) {
       setCorrectCount(nextCorrectCount);
@@ -446,8 +480,8 @@ export default function QuackSituateMatching() {
       await incorrectSound.current?.replayAsync().catch(()=>undefined);
     }
 
-    await saveRun(nextQuestionIndex, nextCorrectCount, nextMistakes);
-  }, [correctCount, correctPosition, current, locked, mistakes, momentIndex, saveRun,blocked]);
+    await checkpoint;
+  }, [correctCount, correctPosition, current, locked, mistakes, momentIndex, saveRun,blocked,captionOnly,pictureKey]);
 
   const continueAfterFeedback = () => {
     setFeedback(null);
@@ -461,6 +495,7 @@ export default function QuackSituateMatching() {
   };
 
   const storeCompletedAttempt = async () => {
+    await checkpointQueue.current;
     const user = await getUser();
 
     await queueOfflineSubmission(user.email, '/api/situational/attempts', {
@@ -475,6 +510,8 @@ export default function QuackSituateMatching() {
         maxScore: moments.length * 10,
         totalQuestions: moments.length,
         correctAnswers: correctCount,
+        questionResults:questionResults.current,
+        hintsUsed:questionResults.current.filter(row=>row.outcome!=='TECHNICAL_INTERRUPTION'&&row.hintUsed).length,
         stars,
         completed: true,
       });
@@ -518,6 +555,7 @@ export default function QuackSituateMatching() {
     try {
       await ensureCompletedAttempt();
       setMomentIndex(0);
+      questionResults.current=[];
       setCorrectCount(0);
       setMistakes(0);
       setFeedback(null);
@@ -528,6 +566,7 @@ export default function QuackSituateMatching() {
       setAttemptStored(false);
       setRunRevision(run=>run+1);
       setShowStart(true);
+      setShowTechnical(false);
       await saveRun(0,0,0);
     } finally {
       setSaving(false);
@@ -550,11 +589,13 @@ export default function QuackSituateMatching() {
     setSaving(true);
     try{
       await stopAudio();
+      questionResults.current=[];
       await saveRun(0,0,0);
       setMomentIndex(0);setCorrectCount(0);setMistakes(0);setFeedback(null);
       setLocked(false);choiceLock.current=false;setShowHint(false);setShowHelp(false);
       setShowExit(false);setShowPause(false);setShowRestart(false);setShowResult(false);
       setAttemptStored(false);setRunRevision(n=>n+1);setShowStart(true);
+      setShowTechnical(false);
     }finally{setSaving(false);}
   };
 
@@ -608,7 +649,7 @@ export default function QuackSituateMatching() {
   const bottomTarget = correctPosition === 'bottom'
     ? { image: correctImage, scenario: current.scenario }
     : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
-  const feedbackReason = (current.explanation&&!/fits the first (scene|situation)/i.test(current.explanation)?current.explanation.trim():'')
+  const feedbackReason = (hasMeaningfulText(current.explanation)&&!/fits the first (scene|situation)/i.test(current.explanation)?current.explanation.trim():'')
     || `This expression naturally matches “${current.scenario}” because its tone and meaning fit that social moment.`;
   const feedbackExample = `In this situation—${current.scenario}—say 「${current.correctAnswer}」 (${currentAnswer.romaji}).`;
 
@@ -642,7 +683,7 @@ export default function QuackSituateMatching() {
 
         <View style={styles.instructionArea}>
           <Text style={styles.kicker}>
-            {level === 1 ? 'EASY' : level === 2 ? 'MEDIUM' : 'HARD'} · {current.location || current.topic}
+            {level === 1 ? 'EASY' : level === 2 ? 'MEDIUM' : 'HARD'} · {hasMeaningfulText(current.location)?current.location:hasMeaningfulText(current.topic)?current.topic:'Expression Match'}
           </Text>
           <Text style={styles.instruction}>
             Match the phrase to the best-fitting situation
@@ -650,7 +691,7 @@ export default function QuackSituateMatching() {
         </View>
 
         <Pressable accessibilityRole="button" accessibilityLabel={`Match phrase to: ${topTarget.scenario}`} disabled={locked||blocked} onPress={()=>void choose('top')} style={styles.targetCard}>
-          <TargetPicture key={`${current.id}-top-${correctPosition}`} source={topTarget.image} scenario={topTarget.scenario} captionOnly={captionOnly}/>
+          <TargetPicture key={`${pictureKey}-top-${correctPosition}`} source={topTarget.image} scenario={topTarget.scenario} captionOnly={captionOnly} onReady={markTopReady}/>
           <View style={styles.targetLabel}>
             <Text style={styles.targetScenario}>{topTarget.scenario}</Text>
           </View>
@@ -684,7 +725,7 @@ export default function QuackSituateMatching() {
 
         {!!audioError&&<Text accessibilityRole="alert" style={{fontSize:11,color:'#FFF0CB',textAlign:'center',paddingHorizontal:12}}>{audioError}</Text>}
         <Pressable accessibilityRole="button" accessibilityLabel={`Match phrase to: ${bottomTarget.scenario}`} disabled={locked||blocked} onPress={()=>void choose('bottom')} style={styles.targetCard}>
-          <TargetPicture key={`${current.id}-bottom-${correctPosition}`} source={bottomTarget.image} scenario={bottomTarget.scenario} captionOnly={captionOnly}/>
+          <TargetPicture key={`${pictureKey}-bottom-${correctPosition}`} source={bottomTarget.image} scenario={bottomTarget.scenario} captionOnly={captionOnly} onReady={markBottomReady}/>
           <View style={styles.targetLabel}>
             <Text style={styles.targetScenario}>{bottomTarget.scenario}</Text>
           </View>
@@ -693,7 +734,7 @@ export default function QuackSituateMatching() {
         <View style={styles.footerControls}>
           <Pressable
             style={styles.hintButton}
-            onPress={() => setShowHint(value => !value)}
+            onPress={() => {questionSupport.current.hintUsed=true;setShowHint(value => !value);}}
           >
             <Ionicons name="bulb-outline" size={19} color="#7652E8" />
             <Text style={styles.hintButtonText}>Hint</Text>
@@ -708,7 +749,7 @@ export default function QuackSituateMatching() {
 
         {showHint ? (
           <View style={styles.hintCard}>
-            <Text style={styles.hintText}>{current.hint}</Text>
+            <Text style={styles.hintText}>{authoredMedia?.hint||(hasMeaningfulText(current.hint)?current.hint:`Compare who is speaking and the purpose of the phrase. Look for: ${current.scenario}`)}</Text>
           </View>
         ) : null}
       </View>
@@ -795,7 +836,7 @@ export default function QuackSituateMatching() {
             <Text style={styles.feedbackKicker}>HOW TO PLAY</Text>
             <Text style={styles.feedbackTitle}>One phrase. Two situations.</Text>
             <Text style={styles.feedbackText}>
-              Read both situation captions, listen to the phrase, then drag it up or down. You can also tap a situation to answer. Some questions use captions only: match the meaning and relationship, not a familiar picture. If a picture fails, retry it or use its full caption; the image error itself never changes your score.
+              Read both situation captions, listen to the phrase, then drag it up or down. You can also tap a situation to answer. Some questions intentionally use captions only. If a required picture fails, use the captions for unscored practice and retry the picture before submitting a scored answer.
             </Text>
             <Pressable style={styles.primaryButton} onPress={() => setShowHelp(false)}>
               <Text style={styles.primaryButtonText}>CONTINUE</Text>
@@ -829,6 +870,11 @@ export default function QuackSituateMatching() {
               {correctCount} of {moments.length} situations matched. Your stars and score are stored for QuackProgress and teacher reports.
             </Text>
             <Text style={styles.feedbackText}>This round includes caption-only context checks. This supported practice score alone does not prove independent mastery; try unfamiliar situations with your instructor too.</Text>
+            {(['PICTURE','CAPTION_ONLY'] as const).map(mode=>{
+              const records=questionResults.current.filter(row=>row.mode===mode&&row.outcome!=='TECHNICAL_INTERRUPTION');
+              return <Text key={mode} style={styles.feedbackText}>{mode==='PICTURE'?'Picture questions':'Caption-only questions'}: {records.filter(row=>row.outcome==='CORRECT').length}/{records.length} correct</Text>;
+            })}
+            <Text style={styles.feedbackText}>Technical interruptions: {questionResults.current.filter(row=>row.outcome==='TECHNICAL_INTERRUPTION').length} · excluded from wrong answers.</Text>
             <Pressable
               disabled={saving}
               style={styles.primaryButton}
@@ -882,10 +928,16 @@ export default function QuackSituateMatching() {
           </View>
         </View>
       </Modal>
+      <Modal visible={showTechnical&&!showPause&&!showExit} transparent animationType="fade" onRequestClose={()=>setShowTechnical(false)}><View style={styles.modalShade}><View style={styles.feedbackCard}><ScrollView style={{width:'100%'}} contentContainerStyle={{alignItems:'center'}}>
+        {scoreSummary}<Ionicons name="image-outline" size={30} color="#7652E8"/><Text style={styles.feedbackTitle}>Picture not ready</Text><Text style={styles.feedbackText}>No answer or mistake was recorded. Read the captions for practice, then retry any missing picture. A scored answer is available only after both pictures load.</Text>
+        <Pressable style={styles.primaryButton} onPress={()=>setShowTechnical(false)}><Text style={styles.primaryButtonText}>BACK TO PICTURES</Text></Pressable>
+        <Pressable style={styles.resultReturnButton} onPress={()=>{setShowTechnical(false);setShowExit(true);}}><Text style={styles.resultReturnText}>SAVE AND RETURN</Text></Pressable>
+      </ScrollView></View></View></Modal>
       <Modal visible={showStart&&!showPause} transparent animationType="fade" onRequestClose={()=>setShowPause(true)}>
         <View style={styles.modalShade}><View style={styles.feedbackCard}><ScrollView contentContainerStyle={{alignItems:'center'}}>
           {scoreSummary}<Text style={styles.feedbackKicker}>EXPRESSION MATCH · LEVEL {level}</Text>
           <Text style={styles.feedbackTitle}>{momentIndex>0?'Continue your level':'One phrase. Two contexts.'}</Text>
+          {!!checkpointNotice&&<Text style={styles.feedbackText}>{checkpointNotice}</Text>}
           <Text style={styles.feedbackText}>Read who is speaking and what is happening in both captions. Listen to the phrase, then drag it up or down—or tap the matching situation. There is no timer. Every fourth question uses captions only to help you focus on meaning rather than memorizing artwork.</Text>
           <Text style={styles.feedbackText}>10 points per correct match. {moments.length} questions · {moments.length*10} possible points. Use the three-dot menu to pause, save and leave, or restart.</Text>
           <Pressable style={styles.primaryButton} onPress={()=>setShowStart(false)}><Text style={styles.primaryButtonText}>{momentIndex>0?'CONTINUE LEVEL':'START LEVEL'}</Text></Pressable>

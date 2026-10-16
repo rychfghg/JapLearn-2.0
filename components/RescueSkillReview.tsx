@@ -3,7 +3,7 @@ import {Modal,Pressable,ScrollView,StyleSheet,Text,View} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {RescueTransfer,rescueTransferFeedback} from '../services/ahiruRescueContext';
 import {shuffleOptions} from '../services/shuffleOptions';
-export default function RescueSkillReview({question,onContinue}:{question:RescueTransfer;onContinue:()=>void}){
+export default function RescueSkillReview({question,onContinue}:{question:RescueTransfer;onContinue:(selected:string|null)=>void}){
   const choices=useMemo(()=>shuffleOptions(question.choices),[question]);
   const [selected,setSelected]=useState<string|null>(null);
   const answered=selected!==null,correct=selected===question.correctAnswer;
@@ -29,7 +29,7 @@ export default function RescueSkillReview({question,onContinue}:{question:Rescue
         {answered&&<View accessibilityLiveRegion="polite" style={[s.feedback,!correct&&s.feedbackCompare]}><Text style={[s.feedbackTitle,!correct&&{color:'#9D6731'}]}>{correct?'That fits the situation':'Notice the difference'}</Text><Text style={s.feedbackText}>{rescueTransferFeedback(question,selected)}</Text></View>}
       </ScrollView>
       <View style={s.footer}><View style={s.note}><Ionicons name="shield-checkmark-outline" size={14} color="#8B7399"/><Text style={s.noteText}>Your score and rescue lives stay unchanged.</Text></View>
-        {answered&&<Pressable style={s.continue} onPress={onContinue}><Text style={s.continueText}>Continue rescue</Text><Ionicons name="arrow-forward" size={18} color="#fff"/></Pressable>}
+        {answered&&<Pressable style={s.continue} onPress={()=>onContinue(selected)}><Text style={s.continueText}>Continue rescue</Text><Ionicons name="arrow-forward" size={18} color="#fff"/></Pressable>}
       </View>
     </View></View>
   </Modal>;

@@ -6,7 +6,7 @@
     "romaji": "Ohayou gozaimasu",
     "scenario": "A student greets a teacher in the morning.",
     "secondaryScenario": "A friend waves goodbye after school.",
-    "hint": "Think about a respectful morning greeting."
+    "hint": "A morning greeting to someone you are meeting, not a goodbye after school."
   },
   {
     "key": "level-1-02",
@@ -15,7 +15,7 @@
     "romaji": "Konnichiwa",
     "scenario": "Two neighbors meet during the afternoon.",
     "secondaryScenario": "A family begins eating dinner together.",
-    "hint": "Use the common daytime greeting."
+    "hint": "A daytime greeting when neighbors meet, not a phrase for starting a meal."
   },
   {
     "key": "level-1-03",
@@ -24,7 +24,7 @@
     "romaji": "Konbanwa",
     "scenario": "You meet a neighbor in the evening.",
     "secondaryScenario": "You arrive at school early in the morning.",
-    "hint": "Notice the time of day."
+    "hint": "An evening greeting. Compare the evening visit with the early-morning arrival."
   },
   {
     "key": "level-1-04",
@@ -33,7 +33,7 @@
     "romaji": "Arigatou gozaimasu",
     "scenario": "A classmate returns your lost notebook.",
     "secondaryScenario": "A customer asks where the station is.",
-    "hint": "Show polite gratitude."
+    "hint": "Thanks for something helpful: returning your notebook. This is not a request for directions."
   },
   {
     "key": "level-1-05",
@@ -42,7 +42,7 @@
     "romaji": "Sumimasen",
     "scenario": "You accidentally bump into someone at the station.",
     "secondaryScenario": "Your teammate wins a competition.",
-    "hint": "Use a brief apology."
+    "hint": "A brief apology after bumping into someone, not congratulations for winning."
   },
   {
     "key": "level-1-06",
@@ -51,7 +51,7 @@
     "romaji": "Sayounara",
     "scenario": "A student says goodbye to a teacher after class.",
     "secondaryScenario": "A guest enters a home for the first time.",
-    "hint": "Use a standard farewell."
+    "hint": "A goodbye when parting after class, not a greeting when entering a home."
   },
   {
     "key": "level-1-07",
@@ -60,7 +60,7 @@
     "romaji": "Itadakimasu",
     "scenario": "Everyone is ready to begin a meal.",
     "secondaryScenario": "Everyone has just finished eating.",
-    "hint": "This is said before eating."
+    "hint": "Said just before eating. Check whether the meal is beginning or already finished."
   },
   {
     "key": "level-1-08",
@@ -69,7 +69,7 @@
     "romaji": "Gochisousama deshita",
     "scenario": "You thank the host after finishing a meal.",
     "secondaryScenario": "You introduce yourself to a new class.",
-    "hint": "This is said after eating."
+    "hint": "Thanks after a meal is finished, not an introduction to new classmates."
   },
   {
     "key": "level-1-09",
@@ -78,7 +78,7 @@
     "romaji": "Ittekimasu",
     "scenario": "You tell your family you are leaving home.",
     "secondaryScenario": "You welcome someone who returned home.",
-    "hint": "The speaker is leaving home."
+    "hint": "The speaker is leaving home and expects to return; they are not welcoming someone back."
   },
   {
     "key": "level-1-10",
@@ -87,7 +87,7 @@
     "romaji": "Itterasshai",
     "scenario": "You see a family member off at the door.",
     "secondaryScenario": "You return home and announce your arrival.",
-    "hint": "Say this to the person leaving."
+    "hint": "Spoken by the person staying home to someone leaving, not by the person arriving."
   },
   {
     "key": "level-1-11",
@@ -96,7 +96,7 @@
     "romaji": "Tadaima",
     "scenario": "You return home and greet your family.",
     "secondaryScenario": "You meet someone for the first time.",
-    "hint": "The speaker has come home."
+    "hint": "Spoken by the person returning home, not someone meeting a stranger."
   },
   {
     "key": "level-1-12",
@@ -105,7 +105,7 @@
     "romaji": "Okaerinasai",
     "scenario": "You welcome a family member home.",
     "secondaryScenario": "You ask a shopkeeper for help.",
-    "hint": "Say this to the person who returned."
+    "hint": "Spoken to the family member who has returned, not to a shopkeeper for help."
   },
   {
     "key": "level-1-13",
@@ -114,7 +114,7 @@
     "romaji": "Hajimemashite",
     "scenario": "You meet a new classmate for the first time.",
     "secondaryScenario": "You congratulate a friend on an award.",
-    "hint": "Use this at a first meeting."
+    "hint": "A first introduction. Look for people meeting for the first time, not celebrating an award."
   },
   {
     "key": "level-1-14",
@@ -123,7 +123,7 @@
     "romaji": "Yoroshiku onegaishimasu",
     "scenario": "You finish introducing yourself to a new group.",
     "secondaryScenario": "You leave the office before coworkers.",
-    "hint": "Politely close an introduction."
+    "hint": "A friendly request for a good relationship after introducing yourself, not leaving work."
   },
   {
     "key": "level-1-15",
@@ -132,7 +132,7 @@
     "romaji": "Omedetou gozaimasu",
     "scenario": "Your friend has won a school competition.",
     "secondaryScenario": "Your friend is feeling sick.",
-    "hint": "Celebrate another person's success."
+    "hint": "Congratulations on an achievement, not words to someone who is ill."
   },
   {
     "key": "level-1-16",
@@ -141,7 +141,7 @@
     "romaji": "Otsukaresama desu",
     "scenario": "You greet a teammate after practice.",
     "secondaryScenario": "You enter someone's home as a guest.",
-    "hint": "Acknowledge someone's effort."
+    "hint": "Acknowledge a teammate’s effort after practice, not your arrival as a houseguest."
   },
   {
     "key": "level-1-17",
@@ -150,7 +150,7 @@
     "romaji": "Onegaishimasu",
     "scenario": "You politely ask a clerk for assistance.",
     "secondaryScenario": "You refuse an offer because you are fine.",
-    "hint": "Use a polite request."
+    "hint": "A polite request for assistance, not a refusal of help."
   },
   {
     "key": "level-1-18",
@@ -159,7 +159,7 @@
     "romaji": "Daijoubu desu",
     "scenario": "Someone offers help but you are okay.",
     "secondaryScenario": "You interrupt a teacher to ask a question.",
-    "hint": "Politely say that you are fine."
+    "hint": "Reassure the person offering help that you are okay, not interrupt a teacher."
   },
   {
     "key": "level-1-19",
@@ -168,7 +168,7 @@
     "romaji": "Shitsurei shimasu",
     "scenario": "You enter the teacher's office politely.",
     "secondaryScenario": "You welcome a friend home.",
-    "hint": "Use this when entering formally."
+    "hint": "Politely acknowledge entering someone’s office, not welcome a person returning home."
   },
   {
     "key": "level-1-20",
@@ -177,7 +177,7 @@
     "romaji": "Mata ashita",
     "scenario": "You will see your classmate again tomorrow.",
     "secondaryScenario": "You meet a manager for the first time.",
-    "hint": "The next meeting is tomorrow."
+    "hint": "A farewell that mentions seeing the person tomorrow, not a first meeting."
   },
   {
     "key": "level-2-01",
@@ -186,7 +186,7 @@
     "romaji": "Osaki ni shitsurei shimasu",
     "scenario": "You leave work before your coworkers.",
     "secondaryScenario": "You arrive late and keep someone waiting.",
-    "hint": "Acknowledge coworkers when leaving first."
+    "hint": "Acknowledge that you are leaving work while others remain, not arriving late."
   },
   {
     "key": "level-2-02",
@@ -195,7 +195,7 @@
     "romaji": "Omatase shimashita",
     "scenario": "You apologize after making someone wait.",
     "secondaryScenario": "You ask a guest to wait for a moment.",
-    "hint": "The waiting has just ended."
+    "hint": "The other person has already waited and you are now ready; you are not asking them to wait."
   },
   {
     "key": "level-2-03",
@@ -204,7 +204,7 @@
     "romaji": "Kashikomarimashita",
     "scenario": "A staff member formally accepts a customer's request.",
     "secondaryScenario": "A friend casually agrees to play a game.",
-    "hint": "Choose formal service language."
+    "hint": "Respectfully accept a customer’s request as staff, rather than casually agree with a friend."
   },
   {
     "key": "level-2-04",
@@ -213,7 +213,7 @@
     "romaji": "Shoushou omachi kudasai",
     "scenario": "A receptionist asks a visitor to wait briefly.",
     "secondaryScenario": "A doctor tells a patient to take care.",
-    "hint": "Politely request a short wait."
+    "hint": "Ask a visitor to wait a little longer, not wish a sick person well."
   },
   {
     "key": "level-2-05",
@@ -222,7 +222,7 @@
     "romaji": "Oki o tsukete",
     "scenario": "You tell a friend to travel safely.",
     "secondaryScenario": "You enter a host's home.",
-    "hint": "Express care as someone leaves."
+    "hint": "Wish someone safety as they travel, not announce that you are entering a home."
   },
   {
     "key": "level-2-06",
@@ -231,7 +231,7 @@
     "romaji": "Odaiji ni",
     "scenario": "You speak to someone who is ill.",
     "secondaryScenario": "You greet a coworker after a shift.",
-    "hint": "Wish an ill person well."
+    "hint": "Wish an ill person a good recovery, not thank a coworker for their work."
   },
   {
     "key": "level-2-07",
@@ -240,7 +240,7 @@
     "romaji": "Ojama shimasu",
     "scenario": "You enter a friend's home as a guest.",
     "secondaryScenario": "You finish eating at a restaurant.",
-    "hint": "Use the customary phrase when entering a home."
+    "hint": "A guest acknowledges entering someone else’s home, not finishing a meal."
   },
   {
     "key": "level-2-08",
@@ -249,7 +249,7 @@
     "romaji": "Shitsurei shimashita",
     "scenario": "You apologize after making a formal mistake.",
     "secondaryScenario": "You welcome a returning family member.",
-    "hint": "Use a formal past-tense apology."
+    "hint": "Apologize for an action that already happened, not welcome someone home."
   },
   {
     "key": "level-2-09",
@@ -258,7 +258,7 @@
     "romaji": "Douzo yoroshiku onegai itashimasu",
     "scenario": "You close a formal self-introduction.",
     "secondaryScenario": "You ask for the restaurant bill.",
-    "hint": "A formal relationship is beginning."
+    "hint": "A respectful closing to a self-introduction, not a request to pay for food."
   },
   {
     "key": "level-2-10",
@@ -267,7 +267,7 @@
     "romaji": "Moushiwake arimasen",
     "scenario": "You sincerely apologize to a customer.",
     "secondaryScenario": "You congratulate a close friend.",
-    "hint": "A stronger formal apology is needed."
+    "hint": "A sincere apology for a customer-facing mistake, not congratulations."
   },
   {
     "key": "level-2-11",
@@ -276,7 +276,7 @@
     "romaji": "Tetsudaimashou ka",
     "scenario": "You offer to help someone carrying boxes.",
     "secondaryScenario": "You ask permission to take a photo.",
-    "hint": "Offer assistance as a question."
+    "hint": "Offer your own help with a task such as carrying boxes; you are not asking permission."
   },
   {
     "key": "level-2-12",
@@ -285,7 +285,7 @@
     "romaji": "Tasukarimashita",
     "scenario": "You thank someone whose help solved your problem.",
     "secondaryScenario": "You ask someone to repeat a sentence.",
-    "hint": "Their help made a real difference."
+    "hint": "Recognize that someone’s help solved your problem, not ask them to repeat their words."
   },
   {
     "key": "level-2-13",
@@ -294,7 +294,7 @@
     "romaji": "Kochira e douzo",
     "scenario": "A staff member guides a guest to a seat.",
     "secondaryScenario": "A traveler asks for directions.",
-    "hint": "Invite the person to follow this way."
+    "hint": "The speaker invites a guest to come this way, rather than asks where to go."
   },
   {
     "key": "level-2-14",
@@ -303,7 +303,7 @@
     "romaji": "Mou ichido onegaishimasu",
     "scenario": "You politely ask someone to repeat what they said.",
     "secondaryScenario": "You tell a coworker to travel safely.",
-    "hint": "You need to hear it one more time."
+    "hint": "Ask to hear the same words again, not wish someone a safe trip."
   },
   {
     "key": "level-2-15",
@@ -312,7 +312,7 @@
     "romaji": "Shashin o totte mo ii desu ka",
     "scenario": "You ask permission before taking a photo.",
     "secondaryScenario": "You announce that you are leaving home.",
-    "hint": "Ask before using the camera."
+    "hint": "Ask permission before taking a picture, not announce your departure."
   },
   {
     "key": "level-2-16",
@@ -321,7 +321,7 @@
     "romaji": "Yoyaku shiteimasu",
     "scenario": "You tell restaurant staff you have a reservation.",
     "secondaryScenario": "You apologize for bumping into someone.",
-    "hint": "You already arranged a booking."
+    "hint": "Tell staff about a booking already made, not apologize for an accident."
   },
   {
     "key": "level-2-17",
@@ -330,7 +330,7 @@
     "romaji": "Okaikei o onegaishimasu",
     "scenario": "You politely ask for the bill after a meal.",
     "secondaryScenario": "You introduce yourself to a new group.",
-    "hint": "The meal is finished and you want to pay."
+    "hint": "Ask to pay after eating, not introduce yourself to a group."
   },
   {
     "key": "level-2-18",
@@ -339,7 +339,7 @@
     "romaji": "Goannai shimasu",
     "scenario": "A staff member offers to guide a visitor.",
     "secondaryScenario": "A guest thanks the cook after eating.",
-    "hint": "The speaker will show the way."
+    "hint": "The speaker offers to lead a visitor, not thank the person who cooked."
   },
   {
     "key": "level-2-19",
@@ -348,7 +348,7 @@
     "romaji": "Ohisashiburi desu",
     "scenario": "You meet someone after a long absence.",
     "secondaryScenario": "You meet someone for the first time.",
-    "hint": "You know them but much time passed."
+    "hint": "You already know this person but have not met for a long time; it is not a first meeting."
   },
   {
     "key": "level-2-20",
@@ -357,7 +357,7 @@
     "romaji": "Dewa mata",
     "scenario": "You end a polite conversation and expect to meet again.",
     "secondaryScenario": "You begin a meal with your host.",
-    "hint": "Use a polite light farewell."
+    "hint": "A light, polite goodbye with an expectation of meeting again, not a mealtime phrase."
   },
   {
     "key": "level-3-01",
@@ -366,7 +366,7 @@
     "romaji": "Osoreirimasu ga, mou ichido onegaishimasu",
     "scenario": "You ask a senior client to repeat an important point.",
     "secondaryScenario": "You casually ask a close friend to repeat a joke.",
-    "hint": "Use a deferential request."
+    "hint": "Ask for repetition with extra respect toward a senior client, rather than casually ask a friend."
   },
   {
     "key": "level-3-02",
@@ -375,7 +375,7 @@
     "romaji": "Moushiwake gozaimasen",
     "scenario": "You make a formal apology to a customer.",
     "secondaryScenario": "You thank a friend for returning a pencil.",
-    "hint": "Use the strongest formal apology."
+    "hint": "A very formal apology to a customer, not thanks for returning an item."
   },
   {
     "key": "level-3-03",
@@ -384,7 +384,7 @@
     "romaji": "Shouchi itashimashita",
     "scenario": "You formally confirm a supervisor's instructions.",
     "secondaryScenario": "You casually agree with a sibling.",
-    "hint": "Confirm understanding formally."
+    "hint": "Respectfully confirm that you understand a supervisor’s instructions, not casual agreement at home."
   },
   {
     "key": "level-3-04",
@@ -393,7 +393,7 @@
     "romaji": "Otesuu o okake shimasu",
     "scenario": "You acknowledge that your request creates extra work.",
     "secondaryScenario": "You celebrate a classmate's achievement.",
-    "hint": "Recognize the burden of your request."
+    "hint": "Acknowledge the extra trouble caused by your request, not celebrate someone’s achievement."
   },
   {
     "key": "level-3-05",
@@ -402,7 +402,7 @@
     "romaji": "Gokakunin itadakemasu deshou ka",
     "scenario": "You politely ask a manager to review a document.",
     "secondaryScenario": "You tell a friend to view a funny photo.",
-    "hint": "Use an indirect respectful request."
+    "hint": "Respectfully ask a manager to check something, not casually show a friend a funny picture."
   },
   {
     "key": "level-3-06",
@@ -411,7 +411,7 @@
     "romaji": "Ukagatte mo yoroshii deshou ka",
     "scenario": "You respectfully ask whether you may visit.",
     "secondaryScenario": "You ask a close friend where lunch is.",
-    "hint": "Ask permission very politely."
+    "hint": "Humbly ask permission to visit someone, not ask a friend where lunch is."
   },
   {
     "key": "level-3-07",
@@ -420,7 +420,7 @@
     "romaji": "Ome ni kakarete kouei desu",
     "scenario": "You meet a distinguished guest for the first time.",
     "secondaryScenario": "You greet a classmate seen every day.",
-    "hint": "Express honor at a formal meeting."
+    "hint": "Express that meeting a distinguished guest is an honor, not an everyday classmate greeting."
   },
   {
     "key": "level-3-08",
@@ -429,7 +429,7 @@
     "romaji": "Gohairyo itadaki arigatou gozaimasu",
     "scenario": "You thank a supervisor for thoughtful consideration.",
     "secondaryScenario": "You say goodbye to a shop clerk.",
-    "hint": "Thank someone for special consideration."
+    "hint": "Thank someone for thoughtful consideration of your needs, not say goodbye."
   },
   {
     "key": "level-3-09",
@@ -438,7 +438,7 @@
     "romaji": "Sakihodo wa shitsurei itashimashita",
     "scenario": "You formally apologize for your earlier behavior.",
     "secondaryScenario": "You begin a casual call with a friend.",
-    "hint": "Refer respectfully to an earlier mistake."
+    "hint": "Apologize respectfully for something you did earlier, not start a friendly call."
   },
   {
     "key": "level-3-10",
@@ -447,7 +447,7 @@
     "romaji": "Oisogashii tokoro moushiwake arimasen",
     "scenario": "You interrupt a busy professor with an important request.",
     "secondaryScenario": "You welcome a family member home.",
-    "hint": "Acknowledge that they are busy."
+    "hint": "Acknowledge interrupting someone who is busy before making your request, not welcome someone home."
   },
   {
     "key": "level-3-11",
@@ -456,7 +456,7 @@
     "romaji": "Nanitozo yoroshiku onegai itashimasu",
     "scenario": "You close a very formal request.",
     "secondaryScenario": "You ask a friend to pass the salt.",
-    "hint": "Use a formal closing."
+    "hint": "A very respectful closing asking for cooperation with your request, not a casual request at the table."
   },
   {
     "key": "level-3-12",
@@ -465,7 +465,7 @@
     "romaji": "Gobusata shiteorimasu",
     "scenario": "You greet a senior person after a long absence.",
     "secondaryScenario": "You greet someone met yesterday.",
-    "hint": "Use the humble phrase for a long absence."
+    "hint": "A humble greeting to someone senior after a long time apart, not someone you saw yesterday."
   },
   {
     "key": "level-3-13",
@@ -474,7 +474,7 @@
     "romaji": "Omaneki itadaki arigatou gozaimasu",
     "scenario": "You thank a host for a formal invitation.",
     "secondaryScenario": "You ask a waiter for the bill.",
-    "hint": "Express gratitude for being invited."
+    "hint": "Thank your host specifically for inviting you, not request the restaurant bill."
   },
   {
     "key": "level-3-14",
@@ -483,7 +483,7 @@
     "romaji": "Douzo okizukai naku",
     "scenario": "You politely tell a host not to go to extra trouble.",
     "secondaryScenario": "You warn a traveler about weather.",
-    "hint": "Politely decline excessive consideration."
+    "hint": "Gently reassure your host that extra effort is unnecessary, not warn someone about weather."
   },
   {
     "key": "level-3-15",
@@ -492,7 +492,7 @@
     "romaji": "Osaki ni shitsurei itashimasu",
     "scenario": "You formally leave before senior colleagues.",
     "secondaryScenario": "You leave a casual picnic with friends.",
-    "hint": "Use the formal workplace farewell."
+    "hint": "A formal workplace farewell when you leave before senior coworkers, not a casual picnic goodbye."
   },
   {
     "key": "level-3-16",
@@ -501,7 +501,7 @@
     "romaji": "Gosokurou itadaki arigatou gozaimasu",
     "scenario": "You thank a guest for traveling to meet you.",
     "secondaryScenario": "You thank a friend for an eraser.",
-    "hint": "Acknowledge the effort of coming."
+    "hint": "Thank someone specifically for making the journey to see you, not lending a small item."
   },
   {
     "key": "level-3-17",
@@ -510,7 +510,7 @@
     "romaji": "Sashitsukae nakereba, onamae o ukagaemasu ka",
     "scenario": "You politely request a visitor's name.",
     "secondaryScenario": "You call a best friend by a nickname.",
-    "hint": "Soften a sensitive question."
+    "hint": "Ask a visitor’s name politely and indirectly, not call a friend by a name you already know."
   },
   {
     "key": "level-3-18",
@@ -519,7 +519,7 @@
     "romaji": "Mou sukoshi kuwashiku okikase kudasai",
     "scenario": "You respectfully invite a client to explain further.",
     "secondaryScenario": "You command a sibling to speak faster.",
-    "hint": "Invite more detail respectfully."
+    "hint": "Respectfully invite more detail about what was said, not demand faster speech."
   },
   {
     "key": "level-3-19",
@@ -528,7 +528,7 @@
     "romaji": "Hikitsuzuki yoroshiku onegai itashimasu",
     "scenario": "You close a meeting and request continued cooperation.",
     "secondaryScenario": "You say good night to family.",
-    "hint": "The professional relationship continues."
+    "hint": "Request continued cooperation after a professional meeting, not say good night at home."
   },
   {
     "key": "level-3-20",
@@ -537,6 +537,6 @@
     "romaji": "Kichou na ojikan o itadaki, arigatou gozaimasu",
     "scenario": "You thank an executive for meeting with you.",
     "secondaryScenario": "You thank a classmate for a quick greeting.",
-    "hint": "Recognize the value of their time."
+    "hint": "Thank someone for giving their valuable time to meet you, not for a passing greeting."
   }
 ]
