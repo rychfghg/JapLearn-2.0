@@ -22,4 +22,10 @@ const source=read('app/QuackSituateRecognition.tsx'),review=read('components/Res
 assert(source.includes('<RescueContextCard {...learningContext}/>'));assert(source.includes('setSkillReviewVisible(true)'));assert(source.includes('finishFeedback();'));
 for(const mutation of ['setCorrectCount','setEasyMistakes','setHardMistakes','queueOfflineSubmission','fetch('])assert(!review.includes(mutation));
 assert(review.includes('shuffleOptions(question.choices)'));assert(source.includes('contentContainerStyle={styles.reactionCopy}'));
+assert(source.includes('<RescueBriefingButton questionId={question.id}'));
+assert(source.includes('visible={briefingVisible}'));
+assert(source.indexOf('<RescueContextCard {...learningContext}/>')>source.indexOf('visible={briefingVisible}'));
+assert(source.includes('visible={restartInstructionsVisible}'));assert(source.includes('setRestartInstructionsVisible(true)'));
+assert(source.includes('onStart={()=>setRestartInstructionsVisible(false)}'));
+assert(source.includes('>Play again</Text>'));assert(source.includes('setCompleteVisible(false);setFeedbackVisible(false)'));
 console.log('PASS: 25 seeded contexts, every distractor contextualized, 25 different-setting transfer questions, safe custom-content fallback, unscored randomized practice and scrollable feedback.');

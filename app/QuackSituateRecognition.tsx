@@ -1,4 +1,6 @@
 import RescueContextCard from '../components/RescueContextCard';
+import RescueBriefingButton from '../components/RescueBriefingButton';
+import ResponseGameInstructions from '../components/ResponseGameInstructions';
 import RescueSkillReview from '../components/RescueSkillReview';
 import {rescueContext,rescueMismatch} from '../services/ahiruRescueContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -508,6 +510,9 @@ export default function QuackSituateRecognition() {
   const [levelVisible, setLevelVisible] = useState(false);
   const [completeVisible, setCompleteVisible] = useState(false);
   const [exitVisible, setExitVisible] = useState(false);
+  const [restartConfirm,setRestartConfirm]=useState(false);
+  const [restartBusy,setRestartBusy]=useState(false);
+  const [restartError,setRestartError]=useState('');
   const [lastCorrect, setLastCorrect] = useState(false);
   const [lastFailed, setLastFailed] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -704,6 +709,8 @@ export default function QuackSituateRecognition() {
   }, [index, correctCount, easyMistakes, hardMistakes, hintsUsed, phase, questions.length, storageKey, user?.email]);
 
   const [skillReviewVisible,setSkillReviewVisible]=useState(false);
+  const [restartInstructionsVisible,setRestartInstructionsVisible]=useState(false);
+  const [briefingVisible,setBriefingVisible]=useState(false);
   const question = questions[index];
   const learningContext=question?rescueContext(question):null;
   const offlineSceneUri = useOfflineMediaUri(question?.imageUrl);
@@ -827,6 +834,7 @@ export default function QuackSituateRecognition() {
   };
   const resetGame = async () => {
     setSkillReviewVisible(false);
+    setCompleteVisible(false);setFeedbackVisible(false);setLevelVisible(false);setHintVisible(false);setExitVisible(false);
     if (remoteSaveTimer.current) clearTimeout(remoteSaveTimer.current);
     const freshRun: RescueRun = {
       index: 0,
@@ -847,6 +855,7 @@ export default function QuackSituateRecognition() {
     setHardMistakes(0);
     setHintsUsed(0);
     setSelected(null);
+    setRestartInstructionsVisible(true);
     setPhase('quiz');
   };
 
@@ -1097,15 +1106,21 @@ export default function QuackSituateRecognition() {
 
         <View style={styles.sceneCard}>
           <View style={styles.sceneMedia}><Image source={sceneImage} style={styles.sceneBackdrop} resizeMode="cover" blurRadius={10} /><View style={styles.sceneBackdropTint} /><Image source={sceneImage} style={styles.scenePicture} resizeMode="contain" /><View style={styles.locationPill}><Ionicons name="location" size={14} color="#FFF" /><Text style={styles.locationText}>{question.location}</Text></View></View>
-          <View style={styles.scenarioCopy}><View style={styles.scenarioHeading}><View style={styles.scenarioMarker}><Ionicons name="chatbubble-ellipses" size={14} color="#65A936" /></View><Text style={styles.scenarioLabel}>WHAT WOULD YOU SAY?</Text></View><Text style={styles.scenarioText}>{question.scenario}</Text>{learningContext&&<RescueContextCard {...learningContext}/>}</View>
+          <View style={styles.scenarioCopy}><View style={styles.scenarioHeading}><View style={styles.scenarioMarker}><Ionicons name="chatbubble-ellipses" size={14} color="#65A936" /></View><Text style={styles.scenarioLabel}>WHAT WOULD YOU SAY?</Text></View><Text style={styles.scenarioText}>{question.scenario}</Text></View>
         </View>
 
-        <View style={styles.answerHeader}><View><Text style={styles.answerTitle}>Choose your response</Text><Text style={styles.answerSubtitle}>One phrase keeps Ahiru safe</Text></View><Pressable style={styles.hintButton} onPress={() => { setHintsUsed((value) => value + 1); setHintVisible(true); }}><Ionicons name="bulb-outline" size={20} color="#8423D9" /><Text style={styles.hintButtonText}>Hint</Text></Pressable></View>
+        <View style={[styles.answerHeader,{gap:8,flexWrap:'wrap'}]}><Text style={[styles.answerTitle,{flex:1,minWidth:95}]}>Your response</Text><View style={{flexDirection:'row',alignItems:'center',gap:6}}><RescueBriefingButton questionId={question.id} onPress={()=>setBriefingVisible(true)}/><Pressable style={styles.hintButton} onPress={() => { setHintsUsed((value) => value + 1); setHintVisible(true); }}><Ionicons name="bulb-outline" size={20} color="#8423D9" /><Text style={styles.hintButtonText}>Hint</Text></Pressable></View></View>
         <View style={styles.choices}>{question.choices.map((choice, choiceIndex) => { const active = selected?.japanese === choice.japanese; return <Pressable key={`${choice.japanese}-${choiceIndex}`} style={[styles.choiceCard, active && styles.choiceCardActive]} onPress={() => setSelected(choice)}><View style={[styles.choiceMarker, active && styles.choiceMarkerActive]}><Text style={[styles.choiceMarkerText, active && styles.choiceMarkerTextActive]}>{String.fromCharCode(65 + choiceIndex)}</Text></View><View style={styles.choiceCopy}><Text style={styles.choiceJapanese}>{choice.japanese}</Text><Text style={styles.choiceRomaji}>{choice.romaji}</Text></View><Ionicons name={active ? 'checkmark-circle' : 'ellipse-outline'} size={23} color={active ? '#A95BE8' : '#D7CBDB'} /></Pressable>; })}</View>
         <Pressable disabled={!selected} style={[styles.submitButton, !selected && styles.submitButtonDisabled]} onPress={submit}><Text style={styles.submitText}>LOCK IN PHRASE</Text><Ionicons name="arrow-forward" size={19} color="#FFF" /></Pressable>
       </ScrollView>
 
       <Modal transparent visible={hintVisible} animationType="fade" onRequestClose={() => setHintVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={styles.modalIconSoft}><Ionicons name="bulb-outline" size={29} color="#D88B19" /></View><Text style={styles.modalEyebrow}>RESCUE HINT</Text><Text style={styles.modalTitle}>Read the social clue</Text><Text style={styles.modalBody}>{question.hint}</Text><Pressable style={styles.modalSecondary} onPress={() => setHintVisible(false)}><Text style={styles.modalSecondaryText}>Back to the rescue</Text></Pressable></View></View></Modal>
+      <ResponseGameInstructions visible={restartInstructionsVisible} title="Start a new Ahiru Rescue" steps={[
+        'Your new rescue starts at question one. Tap Scene briefing beside Hint to see WHERE you are, WHO you are speaking to, and your GOAL before answering.',
+        'Choose a Japanese phrase that fits the situation, then press Lock in phrase. A correct answer earns 10 points; a mistake uses a rescue chance.',
+        'After a mistake, read why the phrase does not fit and practice the same skill in a different situation. That extra practice does not change your score or lives.'
+      ]} onStart={()=>setRestartInstructionsVisible(false)} onLeave={()=>router.replace({pathname:'/QuackSituate',params:{skipLoading:'1'}})}/>
+      <Modal transparent visible={briefingVisible} animationType="fade" onRequestClose={()=>setBriefingVisible(false)}><View style={styles.modalShade}><ScrollView style={{width:'100%',maxWidth:470,maxHeight:'94%',flexGrow:0}} contentContainerStyle={{paddingVertical:12}}><View style={styles.modalCard}><Ionicons name="compass-outline" size={28} color="#8423D9"/><Text style={styles.modalTitle}>Before you answer</Text><Text style={styles.modalBody}>Use these clues to choose a reply that fits.</Text>{learningContext&&<RescueContextCard {...learningContext}/>}<Pressable style={styles.primaryButton} onPress={()=>setBriefingVisible(false)}><Text style={styles.primaryButtonText}>BACK TO MY RESPONSE</Text></Pressable></View></ScrollView></View></Modal>
       {skillReviewVisible&&learningContext?.transfer&&<RescueSkillReview key={question.id} question={learningContext.transfer} onContinue={()=>{setSkillReviewVisible(false);finishFeedback();}}/>}
       <ReactionModal
         visible={feedbackVisible}
@@ -1118,8 +1133,24 @@ export default function QuackSituateRecognition() {
         onContinue={continueAfterFeedback}
       />
       <Modal transparent visible={levelVisible} animationType="fade"><View style={styles.modalShade}><View style={styles.levelCard}><View style={styles.hardIcon}><Ionicons name="flame" size={34} color="#FFF" /></View><Text style={styles.levelEyebrow}>STARTER DECK CLEARED</Text><Text style={styles.levelTitle}>The pirate raises the stakes</Text><Text style={styles.levelBody}>Hard mode gives only three chances. Read every social cue closely.</Text><View style={styles.levelStats}><Text>15 trials cleared</Text><Text>{correctCount} correct</Text></View><Pressable style={styles.primaryButton} onPress={() => { setLevelVisible(false); setIndex(15); }}><Text style={styles.primaryButtonText}>BEGIN HARD RESCUE</Text><Ionicons name="flame" size={18} color="#FFF" /></Pressable></View></View></Modal>
-      <Modal transparent visible={completeVisible} animationType="fade"><View style={styles.modalShade}><View style={[styles.modalCard, styles.successCard]}><VictoryRescueStage /><View style={styles.successRibbon}><Ionicons name="shield-checkmark" size={14} color="#FFFFFF" /><Text style={styles.successRibbonText}>RESCUE COMPLETE</Text></View><Text style={styles.modalTitle}>Ahiru is safely back on deck!</Text><View style={styles.scoreMedallion}><Text style={styles.finalScore}>{score}</Text><Text style={styles.scoreMedallionLabel}>OF {maximumScore} POINTS</Text></View><View style={styles.successStats}><View style={styles.successStat}><Text style={styles.successStatValue}>{correctCount}</Text><Text style={styles.successStatLabel}>NATURAL PHRASES</Text></View><View style={styles.successStatDivider} /><View style={styles.successStat}><Text style={styles.successStatValue}>{questions.length}</Text><Text style={styles.successStatLabel}>TOTAL TRIALS</Text></View></View><Text style={styles.modalBody}>{saving ? 'Securing your rescue record...' : 'Your result is now reflected in QuackProgress and your teacher’s report.'}</Text><Pressable disabled={saving} style={styles.primaryButton} onPress={() => { setCompleteVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>CONTINUE TO YOUR REPORT</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable></View></View></Modal>
-      <Modal transparent visible={exitVisible} animationType="fade" onRequestClose={() => setExitVisible(false)}><View style={styles.modalShade}><View style={styles.modalCard}><View style={[styles.modalIconSoft, styles.pauseIcon]}><Ionicons name="bookmark-outline" size={28} color="#8423D9" /></View><Text style={styles.modalEyebrow}>PAUSE THIS MISSION?</Text><Text style={styles.modalTitle}>Save your progress for later.</Text><Text style={styles.modalBody}>Your current trial, score, and remaining lives will be restored when you return.</Text><Pressable style={styles.primaryButton} onPress={() => void pauseAndExit()}><Text style={styles.primaryButtonText}>SAVE &amp; RETURN</Text></Pressable><Pressable style={styles.modalSecondary} onPress={() => setExitVisible(false)}><Text style={styles.modalSecondaryText}>Continue playing</Text></Pressable></View></View></Modal>
+      <Modal transparent visible={completeVisible} animationType="fade"><View style={styles.modalShade}><View style={[styles.modalCard, styles.successCard]}><VictoryRescueStage /><View style={styles.successRibbon}><Ionicons name="shield-checkmark" size={14} color="#FFFFFF" /><Text style={styles.successRibbonText}>RESCUE COMPLETE</Text></View><Text style={styles.modalTitle}>Ahiru is safely back on deck!</Text><View style={styles.scoreMedallion}><Text style={styles.finalScore}>{score}</Text><Text style={styles.scoreMedallionLabel}>OF {maximumScore} POINTS</Text></View><View style={styles.successStats}><View style={styles.successStat}><Text style={styles.successStatValue}>{correctCount}</Text><Text style={styles.successStatLabel}>NATURAL PHRASES</Text></View><View style={styles.successStatDivider} /><View style={styles.successStat}><Text style={styles.successStatValue}>{questions.length}</Text><Text style={styles.successStatLabel}>TOTAL TRIALS</Text></View></View><Text style={styles.modalBody}>{saving ? 'Securing your rescue record...' : 'Your result is now reflected in QuackProgress and your teacher’s report.'}</Text><Pressable disabled={saving} style={styles.modalSecondary} onPress={()=>void resetGame()}><Text style={styles.modalSecondaryText}>Play again</Text></Pressable><Pressable disabled={saving} style={styles.primaryButton} onPress={() => { setCompleteVisible(false); setIsExiting(true); }}><Text style={styles.primaryButtonText}>CONTINUE TO YOUR REPORT</Text><Ionicons name="arrow-forward" size={18} color="#FFF" /></Pressable></View></View></Modal>
+      <Modal transparent visible={exitVisible} animationType="fade" onRequestClose={()=>{if(!restartBusy){setRestartConfirm(false);setExitVisible(false);}}}>
+        <View style={styles.modalShade}><ScrollView style={{width:'100%',maxWidth:470,maxHeight:'94%',flexGrow:0}} contentContainerStyle={{paddingVertical:12}}><View style={styles.modalCard}>
+          <View style={[styles.modalIconSoft,styles.pauseIcon]}><Ionicons name={restartConfirm?'refresh-outline':'bookmark-outline'} size={28} color="#8423D9"/></View>
+          <Text style={styles.modalEyebrow}>{restartConfirm?'START OVER?':'MISSION OPTIONS'}</Text>
+          <Text style={styles.modalTitle}>{restartConfirm?'Restart Ahiru Rescue?':'What would you like to do?'}</Text>
+          <Text style={styles.modalBody}>{restartConfirm?'This resets your current trial, score, and lives to question one. Previously completed results are kept. Instructions will appear before you start again.':'Save your place and return, restart from question one, or continue this rescue.'}</Text>
+          {!!restartError&&<Text accessibilityRole="alert" style={styles.modalBody}>{restartError}</Text>}
+          {restartConfirm?<>
+            <Pressable disabled={restartBusy} style={styles.primaryButton} onPress={async()=>{setRestartBusy(true);setRestartError('');try{await resetGame();setRestartConfirm(false);}catch{setRestartError('Could not restart. Please try again.');}finally{setRestartBusy(false);}}}><Text style={styles.primaryButtonText}>{restartBusy?'RESTARTING...':'RESTART GAME'}</Text></Pressable>
+            <Pressable disabled={restartBusy} style={styles.modalSecondary} onPress={()=>{setRestartConfirm(false);setRestartError('');}}><Text style={styles.modalSecondaryText}>Keep current rescue</Text></Pressable>
+          </>:<>
+            <Pressable style={styles.primaryButton} onPress={()=>void pauseAndExit()}><Text style={styles.primaryButtonText}>SAVE &amp; RETURN</Text></Pressable>
+            <Pressable style={styles.modalSecondary} onPress={()=>{setRestartError('');setRestartConfirm(true);}}><Text style={styles.modalSecondaryText}>Restart game</Text></Pressable>
+            <Pressable style={styles.modalSecondary} onPress={()=>setExitVisible(false)}><Text style={styles.modalSecondaryText}>Continue playing</Text></Pressable>
+          </>}
+        </View></ScrollView></View>
+      </Modal>
     </View>
   );
 }
