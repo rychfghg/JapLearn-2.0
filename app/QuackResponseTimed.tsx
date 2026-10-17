@@ -1950,16 +1950,15 @@ export default function QuackResponseTimed() {
                   <Text style={styles.decisionEyebrow}>YOUR TURN · {mode==='TIMED'&&!exemptNodes.current.has(nodeId)?timeLeft+'s LEFT':'UNTIMED'}</Text>
                   <Text style={styles.decisionTitle}>Decision {answers.length + 1} of {roundTotal}</Text>
                 </View>
-              </View>
-              <Text style={styles.decisionPrompt}>{currentNode.prompt}</Text>
-              <View style={{flexDirection:'row',alignItems:'center',gap:8,marginBottom:8}}>
+                <View style={{flexDirection:'row',alignItems:'center',gap:6}}>
               <Pressable accessibilityLabel="Replay the speaker's question. The timer keeps running." style={styles.hintButton} disabled={!choicePromptReplayMap.has(nodeId)||!!technicalIssue} onPress={()=>setQuestionReplay(previous=>({nodeId,run:(previous?.run??0)+1}))}>
                 <Ionicons name="volume-high-outline" size={18} color="#8423D9"/>
                 <Text style={styles.hintButtonText}>Replay</Text>
               </Pressable>
               <Pressable accessibilityLabel="Hint. The timer keeps running in timed mode." style={styles.hintButton} onPress={()=>{pausedTimingNodes.current.add(nodeId);setHintVisible(true);}}><Ionicons name="bulb-outline" size={18} color="#D58A1E"/><Text style={styles.hintButtonText}>Hint</Text></Pressable>
-              {mode==='TIMED'&&!exemptNodes.current.has(nodeId)&&<Text style={{fontSize:10,color:'#746779',flexShrink:1}}>Timer continues</Text>}
+                </View>
               </View>
+              <Text style={styles.decisionPrompt}>{currentNode.prompt}</Text>
               <ScrollView style={{flexShrink:1}} onLayout={()=>requestAnimationFrame(()=>setChoiceReady(currentNode.id))}>
                 {orderedChoices.map((choice, index) => (
                   <Pressable
