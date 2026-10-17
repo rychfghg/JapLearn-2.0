@@ -5,19 +5,19 @@
 
   **Interactive Japanese learning through lessons, speaking practice, and games.**
 
-  [![Android APK v1.0.1](https://img.shields.io/badge/Android%20APK-v1.0.1%20pre--release-3DDC84?logo=android&logoColor=white)](https://github.com/rychfghg/JapLearn-2.0/releases/tag/v1.0.1)
+  [![Android APK v1.1.0](https://img.shields.io/badge/Android%20APK-v1.1.0%20refactored-3DDC84?logo=android&logoColor=white)](https://github.com/rychfghg/JapLearn-2.0/releases/tag/v1.1.0-refactored)
   [![Expo SDK 52](https://img.shields.io/badge/Expo-SDK%2052-4630EB?logo=expo&logoColor=white)](https://expo.dev/)
   [![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB?logo=react&logoColor=111827)](https://reactnative.dev/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-  Android application · Web at [japlearn.com](https://japlearn.com) · Teacher dashboard
+  Android student application · Web-based [Teacher Portal](https://portal.japlearn.com)
 </div>
 
 ---
 
 ## Overview
 
-JapLearn is a Japanese-learning application for students, paired with a **teacher dashboard and admin portal**. Students use the standalone **Android APK** or the **web version at [japlearn.com](https://japlearn.com)**; Expo Go is not required for either. A native iOS application is not part of this release, so iPhone and iPad users should use the web version.
+JapLearn consists of a **React Native Android application for students** and a separate **web-based Teacher Portal and Admin Portal**. Students install the standalone Android APK; Expo Go is only needed during local development. A native iOS student application is not part of this release.
 
 The student experience includes:
 
@@ -41,13 +41,13 @@ This repository contains the **Expo/React Native student frontend**. Authenticat
 
 | Repository | Contents |
 |---|---|
-| [JapLearn-2.0](https://github.com/rychfghg/JapLearn-2.0) | This student application (Android and web) |
-| [Japlearn-Website](https://github.com/rychfghg/Japlearn-Website) | Teacher dashboard and admin portal at [portal.japlearn.com](https://portal.japlearn.com) |
+| [JapLearn-2.0](https://github.com/rychfghg/JapLearn-2.0) | React Native Android student application |
+| [Japlearn-Website](https://github.com/rychfghg/Japlearn-Website) | Web-based Teacher Portal and Admin Portal at [portal.japlearn.com](https://portal.japlearn.com) |
 | [JapLearn2.0](https://github.com/rychfghg/JapLearn2.0) | Spring Boot backend API |
 
 ## Download JapLearn
 
-**[Download JapLearn for Android (v1.0.1 pre-release)](https://github.com/rychfghg/JapLearn-2.0/releases/tag/v1.0.1)**
+**[Download JapLearn for Android (v1.1.0 refactored MVP)](https://github.com/rychfghg/JapLearn-2.0/releases/tag/v1.1.0-refactored)**
 
 Open the release page on an Android device, download the `.apk` asset, and approve installation from the browser when Android requests permission.
 
@@ -83,8 +83,7 @@ JapLearn 2.0 keeps every game and refactors **how students prepare, progress, an
 | App | React Native 0.76 + Expo SDK 52 |
 | Language | TypeScript |
 | Navigation | Expo Router |
-| Web hosting | Vercel ([japlearn.com](https://japlearn.com)) |
-| Sign-in | Email and password, Google Sign-In (native on Android, Google Identity Services on web) |
+| Sign-in | Email and password, Google Sign-In on Android |
 | Local device state | AsyncStorage |
 | Synced records | Spring Boot API + MongoDB Atlas |
 | Speech assessment | Microsoft Azure Speech (through the backend) |
@@ -112,7 +111,7 @@ npm ci
 npx expo start
 ```
 
-For local development, scan the QR code with Expo Go on an Android device, or press `w` for the browser. If cached files cause unexpected behavior, start with `npx expo start -c`.
+For local development, scan the QR code with Expo Go on an Android device or run an Android development build. If cached files cause unexpected behavior, start with `npx expo start -c`.
 
 ## Backend Configuration
 
@@ -123,7 +122,7 @@ Backend selection is managed in [`expoconfig.tsx`](./expoconfig.tsx).
 | Local development preview | `http://localhost:8080` |
 | Android emulator | `http://10.0.2.2:8080` |
 | Expo Go on a physical device | Development computer's LAN address |
-| APK and web builds | `https://portal.japlearn.com` (relayed to the backend) |
+| Android APK builds | `https://portal.japlearn.com` (relayed to the backend) |
 
 For Expo Go testing, set `LAN_IP_URL` to the active IPv4 address of the computer running Spring Boot. The phone and computer must use the same network.
 
@@ -138,7 +137,6 @@ The Google OAuth **client IDs** in the app are public identifiers and are safe t
 | Command | Purpose |
 |---|---|
 | `npx expo start` | Start the Expo development server |
-| `npm run web` | Run the web version locally |
 | `npx expo start -c` | Start Expo with a cleared cache |
 | `npx tsc --noEmit -p .` | Type-check the project (takes a few minutes) |
 | `npx expo export --platform android` | Verify the Android production bundle |
@@ -152,7 +150,7 @@ npx eas-cli build -p android --profile apk          # installable APK
 npx eas-cli build -p android --profile production   # Android App Bundle for Google Play
 ```
 
-The `apk` profile produces the standalone package used for direct installation. The `production` profile produces an Android App Bundle for a future Google Play release. The published APK is attached to the [v1.0.1 pre-release](https://github.com/rychfghg/JapLearn-2.0/releases/tag/v1.0.1).
+The `apk` profile produces the standalone package used for direct installation. The `production` profile produces an Android App Bundle for a future Google Play release. The published APK is attached to the [v1.1.0 refactored MVP release](https://github.com/rychfghg/JapLearn-2.0/releases/tag/v1.1.0-refactored).
 
 > Native iOS builds are not part of the current release. Do not advertise App Store availability until an iOS build has been implemented, tested, and published.
 
@@ -214,13 +212,12 @@ Japlearn-1/
 ├── app.json        # Expo configuration (name, icons, permissions, plugins, updates)
 ├── eas.json        # EAS build profiles (apk, preview, production)
 ├── expoconfig.tsx  # Backend URL selection
-├── vercel.json     # Web hosting rewrites and security headers
 └── package.json    # Dependencies and scripts
 ```
 
 ## Before Committing
 
-1. Confirm the APK installs and opens, and the web version loads.
+1. Confirm the APK installs, opens, and connects to the backend.
 2. Test the changed screen on a narrow phone layout.
 3. Verify audio, fonts, icons, and local images.
 4. Confirm timers and audio stop when leaving game screens.
@@ -242,7 +239,6 @@ Japlearn-1/
 ### The Google button is missing
 
 - On Android, the installed APK predates Google Sign-In. Install the newest APK.
-- On web, confirm the site's address is listed as an authorized JavaScript origin for the web client ID.
 
 ### An update does not appear on a phone
 
