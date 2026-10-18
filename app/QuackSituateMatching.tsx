@@ -216,8 +216,10 @@ export default function QuackSituateMatching() {
   const bundledMediaKey=current?.bundledMediaKey??authoredMedia?.key;
   const correctBundledImage=bundledMediaKey?expressionImages[bundledMediaKey]?.scene:undefined;
   const alternativeBundledImage=bundledMediaKey?expressionImages[bundledMediaKey]?.alternative:undefined;
-  const correctImageUri = useOfflineMediaUri(correctBundledImage||isGenericGesture(current?.imageUrl) ? undefined : current?.imageUrl);
-  const alternativeImageUri = useOfflineMediaUri(alternativeBundledImage||isGenericGesture(current?.secondaryImageUrl) ? undefined : current?.secondaryImageUrl);
+  // Admin-managed media takes precedence. Bundled copies remain until the
+  // database migration is verified; generic wave/bow placeholders never win.
+  const correctImageUri = useOfflineMediaUri(isGenericGesture(current?.imageUrl) ? undefined : current?.imageUrl);
+  const alternativeImageUri = useOfflineMediaUri(isGenericGesture(current?.secondaryImageUrl) ? undefined : current?.secondaryImageUrl);
   const currentAnswer = current ? getAnswer(current) : null;
   const phraseAudio=current?expressionAudio[current.correctAnswer]:undefined;
   const hasPhraseAudio=!!phraseAudio||!!current?.audioUrl;
@@ -432,7 +434,7 @@ export default function QuackSituateMatching() {
     const previous=momentAudio.current;momentAudio.current=null;
     await stopAndUnloadSound(previous);
     try{
-      const source=phraseAudio??{uri:await resolveOfflineMediaUri(current.audioUrl)};
+      const source=current.audioUrl?{uri:await resolveOfflineMediaUri(current.audioUrl)}:phraseAudio;
       if(generation!==audioGeneration.current||!audioFocused.current)return;
       const loaded=await loadBundledSound(source,{shouldPlay:false,volume:1},status=>{
         if(generation!==audioGeneration.current)return;
@@ -643,8 +645,8 @@ export default function QuackSituateMatching() {
     );
   }
 
-  const correctImage = correctBundledImage ?? (correctImageUri ? { uri: correctImageUri } : undefined);
-  const alternativeImage = alternativeBundledImage ?? (alternativeImageUri ? { uri: alternativeImageUri } : undefined);
+  const correctImage = correctImageUri ? { uri: correctImageUri } : correctBundledImage;
+  const alternativeImage = alternativeImageUri ? { uri: alternativeImageUri } : alternativeBundledImage;
   const topTarget = correctPosition === 'top'
     ? { image: correctImage, scenario: current.scenario }
     : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };
