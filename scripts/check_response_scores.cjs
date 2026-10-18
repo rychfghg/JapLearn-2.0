@@ -12,10 +12,14 @@ assert(rush.includes("evaluation: 'TIMEOUT',\n      points: 0") || /evaluation: 
 assert(rush.includes("lastAnswer.betterExample || nodeMap.get(lastAnswer.nodeId)?.choices?.find(choice=>choice.evaluation==='BEST')"));
 for(const file of ['app/QuackResponseGuided.tsx','app/QuackResponseTimed.tsx','app/QuackResponseMultiStep.tsx']){
  const source=read(file);
- assert((source.match(/<ResponseScore /g)||[]).length>=2,`${file}: feedback and final score`);
+ assert.equal((source.match(/<ResponseFeedbackHeader /g)||[]).length,1,`${file}: single compact feedback score`);
+ assert.equal((source.match(/<ResponseScore /g)||[]).length,1,`${file}: final score only`);
+ assert(!source.includes('<ResponseScore earned='));
  const compiled=ts.transpileModule(source,{fileName:file,reportDiagnostics:true,compilerOptions:{jsx:ts.JsxEmit.React,target:ts.ScriptTarget.ES2020}});
  assert(!(compiled.diagnostics||[]).some(d=>d.category===ts.DiagnosticCategory.Error));
 }
-const relay=read('app/QuackResponseMultiStep.tsx');
-assert(relay.includes('earned={answers.find(a=>a.sceneId===scene.id&&a.questionIndex===questionIndex)?.points ?? 0}'));
-console.log('PASS: per-choice and final scores in all games; zero incorrect/timeout points, Rush examples, Relay repair uses first-attempt points, TSX syntax.');
+const compact=read('components/ResponseFeedbackHeader.tsx');
+assert(compact.includes("flexDirection:'row'"));
+assert(compact.includes('Score: {total}/{maximum}'));
+assert(!read('components/ResponseScore.tsx').includes('this reply'));
+console.log('PASS: single compact icon/result/score row per game; final scores retained; no duplicate points boxes; zero incorrect/timeout points and Rush examples unchanged.');

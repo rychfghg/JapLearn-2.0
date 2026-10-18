@@ -1,5 +1,6 @@
 import ResponsePauseMenu from '../components/ResponsePauseMenu';
 import ResponseScore from '../components/ResponseScore';
+import ResponseFeedbackHeader from '../components/ResponseFeedbackHeader';
 import ResponseGameInstructions from '../components/ResponseGameInstructions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -1199,27 +1200,7 @@ export default function ReplyCoachStory() {
             </> : <>
             {reactionEvaluation && (
               <>
-                <View
-                  style={[
-                    styles.feedbackIcon,
-                    { backgroundColor: `${evaluationTheme[reactionEvaluation].color}18` },
-                  ]}
-                >
-                  <Ionicons
-                    name={evaluationTheme[reactionEvaluation].icon}
-                    size={34}
-                    color={evaluationTheme[reactionEvaluation].color}
-                  />
-                </View>
-                <Text
-                  style={[
-                    styles.feedbackEyebrow,
-                    { color: evaluationTheme[reactionEvaluation].color },
-                  ]}
-                >
-                  {evaluationTheme[reactionEvaluation].label} | Score: {attempt.score} / {attempt.maximumScore}
-                </Text>
-                <ResponseScore earned={latestAnswer?.points ?? 0} maximum={Math.max(0,...(nodes.get(latestAnswer?.nodeId ?? '')?.choices ?? []).map(choice=>choice.points))} total={attempt.score} totalMaximum={attempt.maximumScore}/>
+                <ResponseFeedbackHeader label={evaluationTheme[reactionEvaluation].label} icon={evaluationTheme[reactionEvaluation].icon} color={evaluationTheme[reactionEvaluation].color} total={attempt.score} maximum={attempt.maximumScore}/>
               </>
             )}
             <Text style={styles.feedbackReaction}>

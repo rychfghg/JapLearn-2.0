@@ -1,5 +1,6 @@
 import ResponsePauseMenu from '../components/ResponsePauseMenu';
 import ResponseScore from '../components/ResponseScore';
+import ResponseFeedbackHeader from '../components/ResponseFeedbackHeader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Audio } from 'expo-av';
@@ -2108,13 +2109,7 @@ export default function QuackResponseTimed() {
             {lastAnswer && (
               <>
                 <View style={[rushStyles.feedbackRibbon, { backgroundColor: evaluationTheme[lastAnswer.evaluation].color }]} />
-                <View style={[styles.feedbackIcon, { backgroundColor: `${evaluationTheme[lastAnswer.evaluation].color}18` }]}>
-                  <Ionicons name={evaluationTheme[lastAnswer.evaluation].icon} size={34} color={evaluationTheme[lastAnswer.evaluation].color} />
-                </View>
-                <Text style={[styles.feedbackEyebrow, { color: evaluationTheme[lastAnswer.evaluation].color }]}>
-                  {evaluationTheme[lastAnswer.evaluation].label} | Score: {totalPoints} / {maxPoints}
-                </Text>
-                <ResponseScore earned={lastAnswer.points} total={totalPoints} totalMaximum={maxPoints}/>
+                <ResponseFeedbackHeader label={evaluationTheme[lastAnswer.evaluation].label} icon={evaluationTheme[lastAnswer.evaluation].icon} color={evaluationTheme[lastAnswer.evaluation].color} total={totalPoints} maximum={maxPoints}/>
                 <Text style={styles.feedbackReaction}>{lastAnswer.feedbackTitle}</Text>
                 {lastAnswer.selectedJapanese !== '—' && (
                   <View style={rushStyles.answerMeaningCard}>
