@@ -18,7 +18,6 @@ for (const width of [280, 320, 360, 412, 680, 820]) {
       }));
       const result = exportsObject.replyCoachLayout(width, height, choices);
       assert(result.panelHeight > 0 && result.panelHeight <= height * (height < 400 ? .72 : .62));
-      assert(result.perPage >= 1 && result.pages * result.perPage >= choices.length);
       assert(Number.isFinite(result.panelHeight));
       cases++;
     }
@@ -29,6 +28,9 @@ const choiceSection = screen.slice(screen.indexOf(") : currentNode.type === 'CHO
 assert(choiceSection.indexOf('Show a hint for this reply') > choiceSection.indexOf('styles.decisionPanel'));
 assert(choiceSection.includes('contentContainerStyle={coachUI.choiceContent}'));
 assert(choiceSection.includes('{choice.romaji}'));
+assert(choiceSection.includes('choiceOrder.map((choice, index)'));
+assert(!screen.includes('setChoicePage'));
+assert(!choiceSection.includes('coachChoicePager'));
 for (const file of ['app/QuackResponseGuided.tsx', 'services/replyCoachLayout.ts']) {
   const result = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), {
     fileName: file, reportDiagnostics: true,

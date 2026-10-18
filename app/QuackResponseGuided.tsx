@@ -378,7 +378,6 @@ export default function ReplyCoachStory() {
   const [showMeaning, setShowMeaning] = useState(false);
   const [listenVisible, setListenVisible] = useState(false);
   const [listenLine, setListenLine] = useState<StoryNode | null>(null);
-  const [choicePage, setChoicePage] = useState(0);
   const [audioError, setAudioError] = useState('');
   const [exampleVisible, setExampleVisible] = useState(false);
   const [readinessVisible, setReadinessVisible] = useState(false);
@@ -408,8 +407,6 @@ export default function ReplyCoachStory() {
   }, [attempt?.id,nodeId,nodes]);
   const fitted = replyCoachLayout(stageSize.width, stageSize.height, choiceOrder);
   const panelHeight = fitted.panelHeight;
-  const activePage = Math.min(choicePage, fitted.pages - 1);
-  const visibleChoices = choiceOrder.slice(activePage * fitted.perPage, (activePage + 1) * fitted.perPage);
   const progress = chapter
     ? Math.min(1, (attempt?.answers.length ?? 0) / Math.max(1, chapter.nodes.filter((node) => node.type === 'CHOICE').length))
     : 0;
@@ -641,7 +638,6 @@ export default function ReplyCoachStory() {
     setShowMeaning(false);
     setListenVisible(false);
     setListenLine(null);
-    setChoicePage(0);
     setAudioError('');
   }, [currentNode?.id]);
 
@@ -653,7 +649,7 @@ export default function ReplyCoachStory() {
 
   const loadStory = async (forceNew = false) => {
     if(forceNew){setLoading(true);setInstructionsVisible(true);}
-    if(forceNew){await stopVoice();setReplayIndex(null);setReplayLines([]);setCorrectionVisible(false);setSelectedChoice(null);setListenVisible(false);setExampleVisible(false);setReadinessVisible(false);setReviewVisible(false);setHintVisible(false);setResultsVisible(false);choiceLock.current=false;setChoicePage(0);}
+    if(forceNew){await stopVoice();setReplayIndex(null);setReplayLines([]);setCorrectionVisible(false);setSelectedChoice(null);setListenVisible(false);setExampleVisible(false);setReadinessVisible(false);setReviewVisible(false);setHintVisible(false);setResultsVisible(false);choiceLock.current=false;}
     setLoading(true);
     setError('');
     try {
@@ -968,7 +964,7 @@ export default function ReplyCoachStory() {
               </ScrollView>
             </View>
             <View style={[styles.decisionPanel, { height: panelHeight }]}>
-              <ScrollView key={`${currentNode.id}:${activePage}`} style={{flex:1,minHeight:0}} contentContainerStyle={coachUI.choiceContent} keyboardShouldPersistTaps="handled">
+              <ScrollView key={currentNode.id} style={{flex:1,minHeight:0}} contentContainerStyle={coachUI.choiceContent} keyboardShouldPersistTaps="handled">
               <View style={styles.drawerHandle} />
               <View style={[styles.decisionHeading,coachUI.panelHeading]}>
                 <View style={coachUI.headingIcon}><Ionicons name="chatbubbles-outline" size={18} color="#FFFFFF"/></View>
@@ -984,7 +980,7 @@ export default function ReplyCoachStory() {
               {Boolean(audioError) && <Text accessibilityRole="alert" style={styles.coachNotice}>{audioError}</Text>}
               {Boolean(error) && <Text accessibilityRole="alert" style={styles.coachNotice}>{error} Please try your reply again.</Text>}
               <View style={[styles.choiceList,coachUI.balancedChoices, { flexDirection: 'row', flexWrap: 'wrap', gap: fitted.columns === 2 ? 8 : 0 }]}>
-                {visibleChoices.map((choice, index) => (
+                {choiceOrder.map((choice, index) => (
                   <Pressable
                     key={choice.id}
                     disabled={saving}
@@ -999,7 +995,7 @@ export default function ReplyCoachStory() {
                   >
                     <View style={[styles.choiceLetter, activeChoiceId === choice.id && styles.choiceLetterSelected]}>
                       <Text style={[styles.choiceLetterText, activeChoiceId === choice.id && styles.choiceLetterTextSelected]}>
-                        {activeChoiceId === choice.id ? '✓' : String.fromCharCode(65 + activePage * fitted.perPage + index)}
+                        {activeChoiceId === choice.id ? '✓' : String.fromCharCode(65 + index)}
                       </Text>
                     </View>
                     <View style={styles.choiceCopy}>
@@ -1031,11 +1027,6 @@ export default function ReplyCoachStory() {
                 ))}
               </View>
               </ScrollView>
-              {fitted.pages > 1 && <View style={styles.coachChoicePager}>
-                <Pressable disabled={saving || activePage === 0} accessibilityLabel="Previous choices" onPress={() => setChoicePage(page => Math.max(0, page - 1))}><Ionicons name="chevron-back" size={24} color={activePage === 0 ? '#C8BBD1' : '#8423D9'} /></Pressable>
-                <Text style={styles.coachToolText}>Choices {activePage + 1}/{fitted.pages}</Text>
-                <Pressable disabled={saving || activePage === fitted.pages - 1} accessibilityLabel="Next choices" onPress={() => setChoicePage(page => Math.min(fitted.pages - 1, page + 1))}><Ionicons name="chevron-forward" size={24} color={activePage === fitted.pages - 1 ? '#C8BBD1' : '#8423D9'} /></Pressable>
-              </View>}
             </View>
             </>
           ) : currentNode.type === 'ENDING' ? (

@@ -1,6 +1,6 @@
 type Reply = { japanese: string; romaji: string };
 /** Keep readable Japanese/Romaji and reserve stage space for the characters.
- * Very small screens use explicit choice pages, never hidden/clipped choices.
+ * Every reply stays in one continuous list, with scrolling for overflow.
  */
 export function replyCoachLayout(width: number, height: number, choices: Reply[]) {
   const wide = width >= 680;
@@ -15,13 +15,8 @@ export function replyCoachLayout(width: number, height: number, choices: Reply[]
   // Only the compact choice heading lives here; the task/context is above.
   const header = 78;
   const maxPanel = Math.max(0, height * (short ? 0.72 : 0.62));
-  const rows = Math.max(1, Math.floor((maxPanel - header) / (rowHeight + 6)));
-  let perPage = Math.min(Math.max(1, choices.length), rows * columns);
-  if (perPage < choices.length) perPage = Math.max(1, Math.floor((maxPanel - header - 34) / (rowHeight + 6))) * columns;
-  if (choices.length === 4 && perPage === 3) perPage = 2;
-  const pages = Math.max(1, Math.ceil(choices.length / perPage));
   // Text wrapping and accessibility font sizes can exceed our estimate. The
   // actual panel stays bounded; its ScrollView makes any overflow reachable.
-  const panelHeight = Math.min(maxPanel, header + Math.ceil(perPage / columns) * (rowHeight + 6) + (pages > 1 ? 34 : 0));
-  return { columns, short, japaneseSize, romajiSize, perPage, pages, panelHeight };
+  const panelHeight = Math.min(maxPanel, header + Math.ceil(choices.length / columns) * (rowHeight + 6));
+  return { columns, short, japaneseSize, romajiSize, panelHeight };
 }
