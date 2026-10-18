@@ -45,8 +45,10 @@ const coachUI=StyleSheet.create({
   task:{color:'#584260',fontSize:12,lineHeight:17,marginVertical:6},
   choice:{borderWidth:1,borderColor:'#E6D9EB',borderRadius:16,shadowOpacity:.04},
   contextCard:{borderLeftWidth:3,borderLeftColor:'#9A45E5'},
-  locationBadge:{width:28,height:28,borderRadius:10,backgroundColor:'#F1E5FA',alignItems:'center',justifyContent:'center'},
-  partner:{fontSize:11,lineHeight:15,color:'#82658F',marginTop:2,marginBottom:4},
+  contextMeta:{flexDirection:'row',alignItems:'center',gap:8,marginBottom:8,paddingBottom:8,borderBottomWidth:1,borderBottomColor:'#EEE4F4'},
+  contextItem:{flex:1,minWidth:0,flexDirection:'row',alignItems:'center',gap:5},
+  contextLabel:{flex:1,minWidth:0,fontFamily:'Jua',fontSize:11,lineHeight:15,color:'#69477B'},
+  contextDivider:{width:1,alignSelf:'stretch',backgroundColor:'#DFD0E9',marginVertical:1},
   goal:{fontSize:13,lineHeight:19,fontWeight:'600',color:'#4A3258'},
   panelHeading:{marginBottom:10,flexWrap:'nowrap'},
   headingIcon:{width:30,height:30,borderRadius:10,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center',marginRight:8},
@@ -951,10 +953,17 @@ export default function ReplyCoachStory() {
             <>
             <View style={[coachUI.bubble,coachUI.contextCard,{width:Math.min(560,stageSize.width*0.94),left:(stageSize.width-Math.min(560,stageSize.width*0.94))/2,maxHeight:Math.max(0,stageSize.height-panelHeight-20),paddingVertical:10,paddingHorizontal:12,borderRadius:20}]}>
               <ScrollView style={{flexShrink:1,minHeight:0}} keyboardShouldPersistTaps="handled">
-              <View style={coachUI.lineHeader}>
-                <View style={coachUI.locationBadge}><Ionicons name="location-outline" size={16} color="#8423D9"/></View><Text style={[coachUI.speaker,{textTransform:'none',letterSpacing:0,fontSize:13}]}>{context.scene?.title || currentNode.backgroundKey}</Text>
+              <View style={coachUI.contextMeta}>
+                <View style={coachUI.contextItem}>
+                  <Ionicons name="location-outline" size={15} color="#8423D9"/>
+                  <Text style={coachUI.contextLabel}>{context.scene?.title || currentNode.backgroundKey}</Text>
+                </View>
+                <View style={coachUI.contextDivider}/>
+                <View style={coachUI.contextItem}>
+                  <Ionicons name="people-outline" size={15} color="#8423D9"/>
+                  <Text style={coachUI.contextLabel}>{getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker || 'Conversation partner'}</Text>
+                </View>
               </View>
-                <Text style={coachUI.partner}>{getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker || 'Conversation partner'}</Text>
                 <Text style={coachUI.goal}>{currentNode.text}</Text>
               </ScrollView>
             </View>
