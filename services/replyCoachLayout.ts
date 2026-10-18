@@ -13,7 +13,7 @@ export function replyCoachLayout(width: number, height: number, choices: Reply[]
     Math.ceil([...choice.japanese].length * japaneseSize / copyWidth) * (japaneseSize + 4)
     + Math.ceil(choice.romaji.length * romajiSize * 0.58 / copyWidth) * (romajiSize + 4) + 16));
   // Only the compact choice heading lives here; the task/context is above.
-  const header = 54;
+  const header = 78;
   const maxPanel = Math.max(0, height * (short ? 0.72 : 0.62));
   const rows = Math.max(1, Math.floor((maxPanel - header) / (rowHeight + 6)));
   let perPage = Math.min(Math.max(1, choices.length), rows * columns);
@@ -22,6 +22,6 @@ export function replyCoachLayout(width: number, height: number, choices: Reply[]
   const pages = Math.max(1, Math.ceil(choices.length / perPage));
   // Text wrapping and accessibility font sizes can exceed our estimate. The
   // actual panel stays bounded; its ScrollView makes any overflow reachable.
-  const panelHeight = Math.min(maxPanel, Math.max(height * 0.48, header + Math.ceil(perPage / columns) * (rowHeight + 6) + (pages > 1 ? 34 : 0)));
+  const panelHeight = Math.min(maxPanel, header + Math.ceil(perPage / columns) * (rowHeight + 6) + (pages > 1 ? 34 : 0));
   return { columns, short, japaneseSize, romajiSize, perPage, pages, panelHeight };
 }

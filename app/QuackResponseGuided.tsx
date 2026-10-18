@@ -43,7 +43,18 @@ const coachUI=StyleSheet.create({
   replayText:{fontSize:12,fontWeight:'600',color:'#71449A'},japanese:{color:'#351A4A'},
   romaji:{fontSize:12.5,lineHeight:17,color:'#8423D9',marginTop:2},
   task:{color:'#584260',fontSize:12,lineHeight:17,marginVertical:6},
-  choice:{borderWidth:1,borderColor:'#E6D9EB',borderRadius:16,shadowOpacity:.04}
+  choice:{borderWidth:1,borderColor:'#E6D9EB',borderRadius:16,shadowOpacity:.04},
+  contextCard:{borderLeftWidth:3,borderLeftColor:'#9A45E5'},
+  locationBadge:{width:28,height:28,borderRadius:10,backgroundColor:'#F1E5FA',alignItems:'center',justifyContent:'center'},
+  partner:{fontSize:11,lineHeight:15,color:'#82658F',marginTop:2,marginBottom:4},
+  goal:{fontSize:13,lineHeight:19,fontWeight:'600',color:'#4A3258'},
+  panelHeading:{marginBottom:10,flexWrap:'nowrap'},
+  headingIcon:{width:30,height:30,borderRadius:10,backgroundColor:'#8423D9',alignItems:'center',justifyContent:'center',marginRight:8},
+  headingTitle:{fontFamily:'Jua',fontSize:13,lineHeight:17,color:'#351A4A'},
+  tools:{flexDirection:'row',alignItems:'center',gap:6},
+  panelReplay:{width:36,height:36,borderRadius:12,backgroundColor:'#F1E5FA',borderWidth:1,borderColor:'#E6D6F2',alignItems:'center',justifyContent:'center'},
+  choiceContent:{flexGrow:1,paddingBottom:2},
+  balancedChoices:{flexGrow:1,justifyContent:'space-between',alignContent:'space-between'},
 });
 import ReplyCoachReadiness from '../components/ReplyCoachReadiness';
 
@@ -863,7 +874,7 @@ export default function ReplyCoachStory() {
           </Pressable>
           <View style={styles.headerCopy}>
             <Text style={styles.headerEyebrow}>REPLY COACH · CHAPTER {chapter.order ?? 1}</Text>
-            <Text style={styles.headerTitle} numberOfLines={1}>{chapter.title}</Text>
+            <Text style={[styles.headerTitle,{fontSize:17,lineHeight:21}]} numberOfLines={2}>{chapter.title}</Text>
           </View>
           <Pressable disabled={saving} accessibilityLabel="Pause and game options" style={styles.iconButton} onPress={() => setPaused(true)}>
             <Ionicons name="ellipsis-horizontal" size={23} color="#8423D9" />
@@ -938,29 +949,32 @@ export default function ReplyCoachStory() {
             </Pressable>
           ) : currentNode.type === 'CHOICE' ? (
             <>
-            <View style={[coachUI.bubble,{width:Math.min(560,stageSize.width*0.94),left:(stageSize.width-Math.min(560,stageSize.width*0.94))/2,maxHeight:Math.max(0,stageSize.height-panelHeight-20),paddingVertical:8,paddingHorizontal:12,borderRadius:20}]}>
+            <View style={[coachUI.bubble,coachUI.contextCard,{width:Math.min(560,stageSize.width*0.94),left:(stageSize.width-Math.min(560,stageSize.width*0.94))/2,maxHeight:Math.max(0,stageSize.height-panelHeight-20),paddingVertical:10,paddingHorizontal:12,borderRadius:20}]}>
               <ScrollView style={{flexShrink:1,minHeight:0}} keyboardShouldPersistTaps="handled">
               <View style={coachUI.lineHeader}>
-                <Ionicons name="location-outline" size={14} color="#8423D9"/><Text style={[coachUI.speaker,{textTransform:'none',letterSpacing:0,fontSize:12}]}>{context.scene?.title || currentNode.backgroundKey}</Text>
-                <Pressable disabled={saving} accessibilityLabel="Watch Sumi and Haru repeat the conversation" style={coachUI.replay} onPress={reenactConversation}><Ionicons name="volume-medium-outline" size={15} color="#8423D9"/><Text style={coachUI.replayText}>Replay</Text></Pressable>
-                <Pressable accessibilityLabel="Show a hint for this reply" style={styles.hintButton} onPress={()=>{markSupport('hint');setHintUsed(true);setHintVisible(true);}}><Ionicons name="bulb-outline" size={16} color="#D58A1E"/><Text style={styles.hintButtonText}>Hint</Text></Pressable>
+                <View style={coachUI.locationBadge}><Ionicons name="location-outline" size={16} color="#8423D9"/></View><Text style={[coachUI.speaker,{textTransform:'none',letterSpacing:0,fontSize:13}]}>{context.scene?.title || currentNode.backgroundKey}</Text>
               </View>
-                <Text style={[styles.coachSceneSummary,{marginTop:0}]}>{getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker || 'Conversation partner'}</Text>
-                <Text style={[coachUI.task,{marginVertical:2}]}>{currentNode.text}</Text>
+                <Text style={coachUI.partner}>{getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker || 'Conversation partner'}</Text>
+                <Text style={coachUI.goal}>{currentNode.text}</Text>
               </ScrollView>
             </View>
             <View style={[styles.decisionPanel, { height: panelHeight }]}>
-              <ScrollView key={`${currentNode.id}:${activePage}`} style={{flex:1,minHeight:0}} contentContainerStyle={{paddingBottom:4}} keyboardShouldPersistTaps="handled">
+              <ScrollView key={`${currentNode.id}:${activePage}`} style={{flex:1,minHeight:0}} contentContainerStyle={coachUI.choiceContent} keyboardShouldPersistTaps="handled">
               <View style={styles.drawerHandle} />
-              <View style={styles.decisionHeading}>
+              <View style={[styles.decisionHeading,coachUI.panelHeading]}>
+                <View style={coachUI.headingIcon}><Ionicons name="chatbubbles-outline" size={18} color="#FFFFFF"/></View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.decisionEyebrow}>YOUR TURN</Text>
-                  <Text style={[styles.decisionEyebrow,{color:'#64536B',letterSpacing:0,fontSize:11}]}>What would you say?</Text>
+                  <Text style={coachUI.headingTitle}>Choose your reply</Text>
+                </View>
+                <View style={coachUI.tools}>
+                  <Pressable disabled={saving} accessibilityRole="button" accessibilityLabel="Watch Sumi and Haru repeat the conversation" style={coachUI.panelReplay} onPress={reenactConversation}><Ionicons name="volume-medium-outline" size={18} color="#8423D9"/></Pressable>
+                  <Pressable accessibilityRole="button" accessibilityLabel="Show a hint for this reply" style={styles.hintButton} onPress={()=>{markSupport('hint');setHintUsed(true);setHintVisible(true);}}><Ionicons name="bulb-outline" size={16} color="#D58A1E"/><Text style={styles.hintButtonText}>Hint</Text></Pressable>
                 </View>
               </View>
               {Boolean(audioError) && <Text accessibilityRole="alert" style={styles.coachNotice}>{audioError}</Text>}
               {Boolean(error) && <Text accessibilityRole="alert" style={styles.coachNotice}>{error} Please try your reply again.</Text>}
-              <View style={[styles.choiceList, { flexDirection: 'row', flexWrap: 'wrap', gap: fitted.columns === 2 ? 8 : 0 }]}>
+              <View style={[styles.choiceList,coachUI.balancedChoices, { flexDirection: 'row', flexWrap: 'wrap', gap: fitted.columns === 2 ? 8 : 0 }]}>
                 {visibleChoices.map((choice, index) => (
                   <Pressable
                     key={choice.id}
