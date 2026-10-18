@@ -98,7 +98,7 @@ export async function queueOfflineSubmission(
   const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const entry: PendingSubmission = {
     id, email: normalizedEmail, path, method,
-    body: { ...body, email: normalizedEmail, clientAttemptId: id },
+    body: { ...body, email: normalizedEmail, clientAttemptId: typeof body.clientAttemptId === 'string' && body.clientAttemptId ? body.clientAttemptId : id },
     createdAt: new Date().toISOString(),
   };
   await locked(async () => {

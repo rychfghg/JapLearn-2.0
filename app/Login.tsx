@@ -21,7 +21,6 @@ import { AuthContext } from '../context/AuthContext';
 import { useClassCode } from '../context/ClassCodeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { markSurveyAfterLogin } from '../services/surveyPrompt';
 import { cleanEmailInput, cleanPasswordInput, isStrictEmail } from '../utils/inputRules';
 import GoogleAuthButton from '../components/GoogleAuthButton';
 import { takePendingGoogleToken } from '../services/googleAuth';
@@ -186,8 +185,6 @@ const Login = () => {
         await AsyncStorage.setItem('classCode', userClassCode);
 
         await setClassCode(userClassCode);
-        // Flag the survey before login(): the auth change can open Home right away.
-        if (userData.role === 'student') await markSurveyAfterLogin();
         await login(userData);
 
         navigateBasedOnRole(userData.role, userClassCode);

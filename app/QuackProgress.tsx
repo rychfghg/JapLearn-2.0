@@ -8,6 +8,7 @@ import styles from '../styles/stylesQuackProgress';
 import expoconfig from '../expoconfig';
 import { AuthContext } from '../context/AuthContext';
 import StudentBottomNav from '../components/StudentBottomNav';
+import { loadProgressAnalytics } from '../services/progressHistory';
 
 type MasteryItem = { name: string; percentage: number };
 type ProgressSummary = { overallMastery: number; completedActivities: number; weakAreaCount: number; recommendation: string; masteryItems: MasteryItem[] };
@@ -28,6 +29,8 @@ export default function QuackProgress() {
   const { user } = useContext(AuthContext);
   const [summary, setSummary] = useState<ProgressSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [progressError, setProgressError] = useState('');
+  const [attemptCounts, setAttemptCounts] = useState({situate:0,response:0,pending:0});
   const [guide, setGuide] = useState(0);
   const [quackamoleBest, setQuackamoleBest] = useState(0);
   const [recognitionBest, setRecognitionBest] = useState(0);
@@ -63,27 +66,6 @@ export default function QuackProgress() {
     }
 
     setQuackamoleBest(0);
-    setResponseRushBest(0);
-    fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(email)}&game=QUACKRESPONSE_RUSH`)
-      .then((response) => response.status === 204 ? null : response.json())
-      .then((record) => {
-        if (!record) return;
-        const percentage = record.maxScore > 0
-          ? Math.round(((record.score || 0) / record.maxScore) * 100)
-          : (record.score || 0);
-        setResponseRushBest((current) => Math.max(current, percentage));
-      })
-      .catch((error) => console.log('Response Rush score fetch error:', error.message));
-    fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(email)}&game=QUACKRESPONSE_RELAY`)
-      .then((response) => response.status === 204 ? null : response.json())
-      .then((record) => {
-        if (!record) return;
-        const percentage = record.maxScore > 0
-          ? Math.round(((record.score || 0) / record.maxScore) * 100)
-          : (record.score || 0);
-        setDialogueRelayBest(percentage);
-      })
-      .catch((error) => console.log('Dialogue Relay score fetch error:', error.message));
     fetch(`${expoconfig.API_URL}/api/scores/high-score?email=${encodeURIComponent(email)}&game=QUACKAMOLE`)
       .then((response) => response.status === 204 ? null : response.json())
       .then((record) => record && setQuackamoleBest((current) => Math.max(current, record.score || 0)))
@@ -140,62 +122,37 @@ export default function QuackProgress() {
 
     try {
       setLoading(true);
-      const response = await fetch(
-        `${expoconfig.API_URL}/api/communicationAnalytics/getStudentAnalytics?email=${encodeURIComponent(email)}`,
-      );
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to fetch communication mastery.');
-
-      const masteryItems = [
-        { name: 'Recognition', percentage: data.recognitionAccuracy || 0 },
-        { name: 'Expression Match', percentage: data.expressionMatchAccuracy || 0 },
-        { name: 'Politeness', percentage: data.politenessAccuracy || 0 },
-        { name: 'Reply Coach', percentage: data.quackResponseAccuracy || 0 },
-        { name: 'QuackTalk', percentage: data.quackTalkAccuracy || 0 },
-        { name: 'Quack-a-Mole', percentage: data.quackamoleAccuracy || 0 },
-        { name: 'Quackman', percentage: data.quackmanAccuracy || 0 },
-        { name: 'QuackSlate', percentage: data.quackslateAccuracy || 0 },
-      ];
-      const activeMastery = masteryItems.filter((item) => item.percentage > 0);
-      const overallMastery = activeMastery.length
-        ? Math.round(
-            activeMastery.reduce((total, item) => total + item.percentage, 0)
-              / activeMastery.length,
-          )
-        : 0;
-
-      setSummary({
-        overallMastery,
-        completedActivities: data.completedActivities || 0,
-        weakAreaCount: data.weakAreaCount || 0,
-        recommendation: data.recommendation,
-        masteryItems,
-      });
+      const data = await loadProgressAnalytics(email);
+      setAttemptCounts({situate:data.history.filter(row=>['RECOGNITION','POLITENESS','EXPRESSION_MATCH'].includes(row.gameType || '') || row.gameType?.startsWith('EXPRESSION_MATCH_LEVEL_')).length,response:data.history.filter(row=>['REPLY_COACH','QUACKRESPONSE_RUSH','QUACKRESPONSE_RELAY'].includes(row.gameType || '')).length,pending:data.history.filter(row=>row.status==='PENDING_SYNC').length});
+      const masteryItems = data.moduleAccuracy.map(item => ({name:item.label, percentage:item.value}));
+      setResponseRushBest(masteryItems.find(item=>item.name==='Response Rush')?.percentage || 0);
+      setDialogueRelayBest(masteryItems.find(item=>item.name==='Dialogue Relay')?.percentage || 0);
+      setSummary({overallMastery:data.overallMastery,completedActivities:data.completedActivities || 0,weakAreaCount:data.weakAreas.length,recommendation:data.recommendation,masteryItems});
+      setProgressError('');
     } catch (error: any) {
-      console.log('QuackProgress fetch error:', error.message);
-      setSummary({ overallMastery: 0, completedActivities: 0, weakAreaCount: 0, recommendation: 'No progress data found yet. Complete communication activities to generate recommendations.', masteryItems: [] });
+      setProgressError(error.message || 'Progress could not be loaded. Please retry.');
     } finally {
       setLoading(false);
     }
   };
 
   const masteryFor = (name: string) => summary?.masteryItems.find((item) => item.name === name)?.percentage || 0;
-  const activeAverage = (values: number[]) => {
-    const active = values.filter((value) => value > 0);
+  const activeAverage = (values: number[], names: string[]) => {
+    const active = values.filter((_,index) => summary?.masteryItems.some(item=>item.name===names[index]));
     return active.length ? Math.round(active.reduce((total, value) => total + value, 0) / active.length) : 0;
   };
   const situateScores = [masteryFor('Recognition'), masteryFor('Expression Match'), masteryFor('Politeness')];
   const responseScores = [masteryFor('Reply Coach'), responseRushBest, dialogueRelayBest];
   const gameScores = [
     { key: 'quacktalk', name: 'QuackTalk', caption: `${speakingSummary.sessions} completed speaking session${speakingSummary.sessions === 1 ? '' : 's'}`, score: masteryFor('QuackTalk'), color: '#7552C8', tint: '#F1ECFC', icon: 'mic-outline', children: quackTalkBreakdown.map((item) => ({ name: item.label, skill: `${item.sessions} completed session${item.sessions === 1 ? '' : 's'}${item.value > 0 ? ' · assessed' : ' · activity only'}`, score: item.value, icon: item.key === 'guidedPhrase' ? 'mic-outline' : 'chatbubbles-outline' })) },
-    { key: 'quacksituate', name: 'QuackSituate', caption: 'Real-world communication', score: activeAverage(situateScores), color: '#65A936', tint: '#EFF8E8', icon: 'navigate-outline', children: [
+    { key: 'quacksituate', name: 'QuackSituate', caption: `${attemptCounts.situate} recorded attempts · completed and unfinished`, score: activeAverage(situateScores, ['Recognition','Expression Match','Politeness']), color: '#65A936', tint: '#EFF8E8', icon: 'navigate-outline', children: [
       { name: 'Ahiru Rescue', skill: 'Recognition', score: situateScores[0], icon: 'eye-outline' },
       { name: 'Expression Match', skill: 'Gesture matching', score: situateScores[1], icon: 'git-compare-outline' },
       { name: 'Tone Quest', skill: 'Politeness', score: situateScores[2], icon: 'people-outline' },
     ] },
-    { key: 'quackresponse', name: 'QuackResponse', caption: `${replyCoachSummary.attempts} story attempt${replyCoachSummary.attempts === 1 ? '' : 's'}`, score: activeAverage(responseScores), color: '#8423D9', tint: '#F3EAFB', icon: 'chatbubbles-outline', children: [
+    { key: 'quackresponse', name: 'QuackResponse', caption: `${attemptCounts.response} recorded attempts · see History for speed trials`, score: activeAverage(responseScores, ['Reply Coach','Response Rush','Dialogue Relay']), color: '#8423D9', tint: '#F3EAFB', icon: 'chatbubbles-outline', children: [
       { name: 'Reply Coach', skill: 'Guided response', score: responseScores[0], icon: 'book-outline' },
-      { name: 'Response Rush', skill: 'Timed response', score: responseScores[1], icon: 'timer-outline' },
+      { name: 'Response Rush', skill: 'Untimed understanding · timed runs in History', score: responseScores[1], icon: 'timer-outline' },
       { name: 'Dialogue Relay', skill: 'Multi-step response', score: responseScores[2], icon: 'git-branch-outline' },
     ] },
     { key: 'quackamole', name: 'Quack-a-Mole', caption: `Personal best: ${quackamoleBest}`, score: masteryFor('Quack-a-Mole'), color: '#D59A2A', tint: '#FFF7E5', icon: 'hammer-outline' },
@@ -226,6 +183,8 @@ export default function QuackProgress() {
         </View>
       </View>
 
+      {attemptCounts.pending>0 && <View style={{padding:14,margin:12,backgroundColor:'#F3EAFB',borderRadius:16}}><Text style={{color:'#653A75'}}>{attemptCounts.pending} results saved on this device are waiting to sync. Open History to view them.</Text></View>}
+      {!!progressError && <View accessibilityRole="alert" style={{padding:16,margin:12,backgroundColor:'#FFF2E8',borderRadius:16}}><Text style={{color:'#653A25'}}>{progressError}</Text><Pressable onPress={()=>void fetchProgressSummary()}><Text style={{color:'#8423D9',paddingTop:8}}>Retry progress</Text></Pressable></View>}
       {loading ? <View style={styles.loadingCard}><ActivityIndicator size="large" color="#8423D9" /><Text style={styles.loadingText}>Loading your progress...</Text></View> : <View style={styles.content}>
         <View style={styles.sectionHeading}><View><Text style={styles.sectionTitle}>Progress overview</Text><Text style={styles.sectionSubtitle}>A snapshot of your communication growth.</Text></View><View style={styles.updatedPill}><View style={styles.updatedDot} /><Text style={styles.updatedText}>UPDATED</Text></View></View>
         <View style={styles.statsRow}>

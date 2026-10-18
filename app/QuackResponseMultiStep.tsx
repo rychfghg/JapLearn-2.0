@@ -39,7 +39,7 @@ const CORRECT=require('../assets/audio/sfx/correct.mp3');
 const WRONG=require('../assets/audio/sfx/incorrect.mp3');
 type Phase='tutorial'|'narration'|'sumi'|'haru'|'choice'|'userReply'|'resultFlash'|'reaction'|'feedback'|'finished';
 type Answer={sceneId:string;questionIndex:number;choiceId:string;correct:boolean;evaluation:RelayChoice['evaluation'];points:number};
-type Save={version:5;sceneIndex:number;questionIndex:number;answers:Answer[];completed?:boolean};
+type Save={savedAt?:number;version:5;sceneIndex:number;questionIndex:number;answers:Answer[];completed?:boolean};
 
 export default function DialogueRelay(){
   const {user}=useContext(AuthContext);
@@ -117,7 +117,7 @@ export default function DialogueRelay(){
     return()=>{live=false;};
   },[phase,scene.id,questionIndex,replayRun,paused]);
 
-  const persist=(over:Partial<Save>={})=>{const state:Save={version:5,sceneIndex,questionIndex,answers,completed:phase==='finished',...over};if(user?.email&&!state.completed)void fetch(`${expoconfig.API_URL}/api/dialogue-relay/progress?email=${encodeURIComponent(user.email)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({answered:state.answers.length,correct:state.answers.filter(a=>a.correct).length})}).catch(()=>{});return AsyncStorage.setItem(saveKey,JSON.stringify(state));};
+  const persist=(over:Partial<Save>={})=>{const state:Save={savedAt:Date.now(),version:5,sceneIndex,questionIndex,answers,completed:phase==='finished',...over};if(user?.email&&!state.completed)void fetch(`${expoconfig.API_URL}/api/dialogue-relay/progress?email=${encodeURIComponent(user.email)}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({answered:state.answers.length,correct:state.answers.filter(a=>a.correct).length})}).catch(()=>{});return AsyncStorage.setItem(saveKey,JSON.stringify(state));};
   const stopFeedbackSfx=async()=>{for(const sound of [correctEffect.current,wrongEffect.current,effect.current]){if(!sound)continue;sound.setOnPlaybackStatusUpdate(null);await sound.stopAsync().catch(()=>{});}await music.current?.setVolumeAsync(.15).catch(()=>{});};
   const playSfx=async(kind:'correct'|'wrong')=>{try{await ensureEffects();let sound=kind==='correct'?correctEffect.current:wrongEffect.current;if(!sound){await effect.current?.unloadAsync().catch(()=>{});const loaded=await Audio.Sound.createAsync(kind==='correct'?CORRECT:WRONG,{shouldPlay:false,volume:.95});effect.current=loaded.sound;sound=loaded.sound;}await music.current?.setVolumeAsync(.025).catch(()=>{});sound.setOnPlaybackStatusUpdate(status=>{if(status.isLoaded&&status.didJustFinish){sound?.setOnPlaybackStatusUpdate(null);void music.current?.setVolumeAsync(.15).catch(()=>{});}});await sound.setPositionAsync(0);if(!pausedRef.current)await sound.playAsync();}catch{void music.current?.setVolumeAsync(.15).catch(()=>{});}};
   const advance=async(over:Partial<Save>={})=>{if(questionIndex+1<scene.questions.length){setQuestionIndex(questionIndex+1);setPhase('sumi');await persist({questionIndex:questionIndex+1,...over});return;}if(sceneIndex+1<RELAY_SCENES.length){setSceneIndex(sceneIndex+1);setQuestionIndex(0);setPhase('narration');await persist({sceneIndex:sceneIndex+1,questionIndex:0,...over});return;}setPhase('finished');await persist({completed:true});if(user?.email)void fetch(`${expoconfig.API_URL}/api/dialogue-relay/progress?email=${encodeURIComponent(user.email)}`,{method:'DELETE'}).catch(()=>{});void sendScore();};

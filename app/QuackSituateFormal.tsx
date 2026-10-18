@@ -325,6 +325,8 @@ export default function QuackSituateFormal() {
     if (correct) {
       setScore((current) => current + 1);
     }
+    // Persist each observed response, not only the final screen or an explicit exit.
+    await saveAttempt(score + (correct ? 1 : 0), false, index + 1);
 
     try {
       const loaded = await loadBundledSound(
@@ -366,14 +368,8 @@ export default function QuackSituateFormal() {
         };
       const key=await runKey();
       if(key){if(completed)await AsyncStorage.removeItem(key);else await AsyncStorage.setItem(key,JSON.stringify({runId:runId.current,records:answerRecords.current}));}
-      if (completed) {
-        await queueOfflineSubmission(storedUser.email, '/api/situational/attempts', attempt);
-        void syncOfflineSubmissions(storedUser.email);
-      } else {
-        await fetch(`${expoconfig.API_URL}/api/situational/attempts`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(attempt),
-        });
-      }
+      await queueOfflineSubmission(storedUser.email, '/api/situational/attempts', attempt);
+      void syncOfflineSubmissions(storedUser.email);
     } catch {}
   };
 

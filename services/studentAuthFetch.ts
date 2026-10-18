@@ -18,7 +18,7 @@ async function storedStudentToken(): Promise<string | null> {
     const raw = await AsyncStorage.getItem('user');
     if (!raw) return null;
     const user = JSON.parse(raw);
-    return user?.role === 'student' && typeof user.portalSessionToken === 'string' && user.portalSessionToken
+    return String(user?.role || '').toLowerCase() === 'student' && typeof user.portalSessionToken === 'string' && user.portalSessionToken
       ? user.portalSessionToken
       : null;
   } catch {

@@ -8,10 +8,11 @@ import styles from '../styles/stylesQuackProgressAnalytics';
 import expoconfig from '../expoconfig';
 import { AuthContext } from '../context/AuthContext';
 import StudentBottomNav from '../components/StudentBottomNav';
+import { loadProgressAnalytics, deviceActivityHistory, mergeActivityHistory, type ActivityHistory } from '../services/progressHistory';
 
 type ModuleAccuracy = { label: string; value: number };
 type QuackTalkBreakdownItem = { key: string; label: string; value: number; sessions: number };
-type HistoryItem = { title: string; score: number };
+type HistoryItem = ActivityHistory;
 type AnalyticsData = { overallMastery: number; situationalAccuracy: number; interactionAccuracy: number; progressSummary: string; recommendation: string; weakAreas: string[]; repeatedMistakes: string[]; history: HistoryItem[]; moduleAccuracy: ModuleAccuracy[]; quackTalkBreakdown?: QuackTalkBreakdownItem[] };
 type LessonProgress = { hiragana1: boolean; hiragana2: boolean; hiragana3: boolean; katakana1: boolean; katakana2: boolean; katakana3: boolean; vocab1: boolean; vocab2: boolean; vocab3: boolean; sentence: boolean };
 
@@ -21,7 +22,9 @@ export default function QuackProgressAnalytics() {
   const [tab, setTab] = useState<'summary' | 'mistakes' | 'history'>('summary');
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [lessonProgress, setLessonProgress] = useState<LessonProgress | null>(null);
+  useEffect(() => { setAnalytics(null); setLoadError(''); }, [user?.email]);
 
   useEffect(() => {
     if (!isFocused) return;
@@ -38,13 +41,14 @@ export default function QuackProgressAnalytics() {
     try {
       setLoading(true);
       if (!user?.email) throw new Error('User email not found.');
-      const response = await fetch(`${expoconfig.API_URL}/api/quackProgress/analytics?email=${encodeURIComponent(user.email)}`);
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to fetch analytics.');
-      setAnalytics(data);
+      const data = await loadProgressAnalytics(user.email);
+      setAnalytics(data); setLoadError('');
     } catch (error: any) {
-      console.log('QuackProgress analytics fetch error:', error.message);
-      setAnalytics({ overallMastery: 0, situationalAccuracy: 0, interactionAccuracy: 0, progressSummary: 'No analytics records found yet. Complete QuackSituate, QuackResponse, or QuackTalk activities first.', recommendation: 'Start with guided communication activities to generate progress recommendations.', weakAreas: [], repeatedMistakes: [], history: [], moduleAccuracy: [], quackTalkBreakdown: [] });
+      setLoadError(error.message || 'Progress could not be loaded. Try Refresh.');
+      if (user?.email) {
+        const device = await deviceActivityHistory(user.email);
+        setAnalytics(previous => ({...(previous || {overallMastery:0,situationalAccuracy:0,interactionAccuracy:0,progressSummary:'',recommendation:'',weakAreas:[],repeatedMistakes:[],moduleAccuracy:[]}), history:mergeActivityHistory(previous?.history || [],device.pending,device.local)}));
+      }
     } finally { setLoading(false); }
   };
 
@@ -68,6 +72,8 @@ export default function QuackProgressAnalytics() {
 
       <View style={styles.content}>
         <View style={styles.tabs}>{(['summary','mistakes','history'] as const).map((item) => <Pressable key={item} style={[styles.tab, tab === item && styles.activeTab]} onPress={() => setTab(item)}><Ionicons name={item === 'summary' ? 'pie-chart-outline' : item === 'mistakes' ? 'alert-circle-outline' : 'time-outline'} size={17} color={tab === item ? '#FFFFFF' : '#8A7D8F'} /><Text style={[styles.tabText, tab === item && styles.activeTabText]}>{item === 'summary' ? 'Summary' : item === 'mistakes' ? 'Focus' : 'History'}</Text></Pressable>)}</View>
+        {!!loadError && <View accessibilityRole="alert" style={styles.emptyCard}><Text style={styles.emptyTitle}>Progress unavailable</Text><Text style={styles.emptyText}>{loadError}</Text></View>}
+        <Pressable accessibilityRole="button" onPress={() => void fetchAnalytics()} disabled={loading} style={{padding:12,alignSelf:'flex-end'}}><Text style={{color:'#8423D9'}}>Refresh progress</Text></Pressable>
         {loading ? <View style={styles.loadingCard}><ActivityIndicator size="large" color="#8423D9" /><Text style={styles.loadingText}>Loading progress analytics...</Text></View> : <>
           {tab === 'summary' && <>
             <View style={styles.sectionHeading}><View><Text style={styles.sectionTitle}>Core lesson journey</Text><Text style={styles.sectionSubtitle}>Your badge milestones and lesson completion.</Text></View><View style={styles.lessonCountPill}><Text style={styles.lessonCountText}>{completedCore} / 3 COMPLETE</Text></View></View>
@@ -88,7 +94,7 @@ export default function QuackProgressAnalytics() {
             <Text style={styles.subheading}>Weak communication areas</Text><View style={styles.areaWrap}>{analytics?.weakAreas?.length ? analytics.weakAreas.map(item => <View key={item} style={styles.areaBadge}><Ionicons name="fitness-outline" size={15} color="#D88727" /><Text style={styles.areaText}>{item}</Text></View>) : <Text style={styles.noAreaText}>No weak areas recorded yet.</Text>}</View>
           </>}
           {tab === 'history' && <><View style={styles.sectionHeading}><Text style={styles.sectionTitle}>Activity history</Text><View style={styles.historyPill}><Text style={styles.historyPillText}>{analytics?.history?.length || 0} RECORDS</Text></View></View>
-            {analytics?.history?.length ? analytics.history.map((item,index) => <View key={`${item.title}-${index}`} style={styles.historyCard}><View style={styles.historyIcon}><Ionicons name="game-controller-outline" size={20} color="#8423D9" /></View><View style={styles.historyCopy}><Text style={styles.historyTitle}>{item.title}</Text><Text style={styles.historyLabel}>Completed activity</Text></View><View style={styles.scoreBadge}><Text style={styles.historyScore}>{item.score}%</Text></View></View>) : <View style={styles.emptyCard}><Ionicons name="time-outline" size={27} color="#A99DAE" /><Text style={styles.emptyTitle}>No activity history yet</Text><Text style={styles.emptyText}>Complete a communication activity to see it here.</Text></View>}
+            {analytics?.history?.length ? analytics.history.map((item,index) => <View key={item.id || `${item.title}-${index}`} style={styles.historyCard}><View style={styles.historyIcon}><Ionicons name="game-controller-outline" size={20} color="#8423D9" /></View><View style={styles.historyCopy}><Text style={styles.historyTitle}>{item.title}</Text><Text style={styles.historyLabel}>{item.status === 'FAILED' ? 'Game over · attempt recorded' : item.status === 'PENDING_SYNC' ? (item.resultStatus === 'FAILED' ? 'Game over · waiting to sync' : item.resultStatus === 'IN_PROGRESS' ? 'In progress · waiting to sync' : 'Completed · waiting to sync') : item.status === 'SAVED_ON_DEVICE' ? 'In progress · saved on this device' : item.status === 'IN_PROGRESS' ? 'In progress · resume available' : item.status === 'ABANDONED' ? 'Restarted · previous attempt' : 'Completed activity'}{item.level ? ' · Level ' + item.level : ''}{item.timed ? ' · Timed challenge (speed)' : ''}{item.rawScore != null && item.maxScore != null && item.maxScore > 0 ? ' · ' + item.rawScore + '/' + item.maxScore + ' points' : ''}{item.playedAt ? ' · ' + new Date(item.playedAt).toLocaleString() : ''}{item.answeredCount != null ? ' · ' + item.answeredCount + ' responses' : ''}</Text></View><View style={styles.scoreBadge}><Text style={styles.historyScore}>{item.score == null ? '—' : `${item.score}%`}</Text></View></View>) : <View style={styles.emptyCard}><Ionicons name="time-outline" size={27} color="#A99DAE" /><Text style={styles.emptyTitle}>No recorded attempts yet</Text><Text style={styles.emptyText}>Saved attempts and unfinished activities will appear here. Pending results are shown until they sync.</Text></View>}
             <Pressable style={styles.continueButton} onPress={() => router.push('/Exercises')}><Text style={styles.continueText}>Continue practice</Text><Ionicons name="arrow-forward" size={18} color="#FFFFFF" /></Pressable>
           </>}
         </>}

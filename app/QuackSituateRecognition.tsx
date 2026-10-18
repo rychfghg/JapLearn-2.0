@@ -1042,7 +1042,7 @@ export default function QuackSituateRecognition() {
             </View>
             <View style={styles.endingHeaderCopy}>
               <Text style={styles.failureEyebrow}>RESCUE REPORT</Text>
-              <Text style={styles.endingTitle}>Ahiru is counting on you.</Text>
+              <Text style={styles.endingTitle}>Score: {score} / {maximumScore}</Text>
             </View>
           </View>
 
