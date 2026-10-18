@@ -12,7 +12,6 @@ import {
   ImageBackground,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,6 +22,7 @@ import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
 import { shuffleOptions as shuffle } from '../services/shuffleOptions';
 import styles from '../styles/stylesQuackResponseGuided';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import QuackSituateExit from '../components/QuackSituateExit';
 import replyCoachAudio from './replyCoachAudio';
 import voiceManifest from '../assets/audio/reply-coach/manifest.json';
@@ -409,7 +409,6 @@ export default function ReplyCoachStory() {
     : (chapter?.nodes ?? []).find(node => node.type === 'CHOICE'
       && getCoachContext(chapter?.nodes ?? [], node.id).dialogue.some(line => line.id === currentNode?.id))?.id ?? '';
   const context = useMemo(() => getCoachContext(chapter?.nodes ?? [], decisionId), [chapter, decisionId]);
-  const promptLine=context.dialogue[context.dialogue.length-1];
   const example = getCoachExample(chapter?.title ?? '', latestAnswer?.nodeId ?? '');
 
   const markSupport = (helpType: string) => {
@@ -939,41 +938,26 @@ export default function ReplyCoachStory() {
             </Pressable>
           ) : currentNode.type === 'CHOICE' ? (
             <>
-            {promptLine && <View style={[coachUI.bubble,{width:Math.min(560,stageSize.width*0.9),left:(stageSize.width-Math.min(560,stageSize.width*0.9))/2,maxHeight:Math.max(76,stageSize.height-panelHeight-24),paddingVertical:12,paddingHorizontal:16,borderRadius:20}]}>
+            <View style={[coachUI.bubble,{width:Math.min(560,stageSize.width*0.94),left:(stageSize.width-Math.min(560,stageSize.width*0.94))/2,maxHeight:Math.max(0,stageSize.height-panelHeight-20),paddingVertical:8,paddingHorizontal:12,borderRadius:20}]}>
+              <ScrollView style={{flexShrink:1,minHeight:0}} keyboardShouldPersistTaps="handled">
               <View style={coachUI.lineHeader}>
-                <View style={coachUI.speakerDot}/><Text style={coachUI.speaker}>{promptLine.speaker || 'Conversation'}</Text>
-                <Pressable disabled={saving} accessibilityLabel="Replay character dialogue" style={coachUI.replay} onPress={reenactConversation}><Ionicons name={activeVoiceId===promptLine.id?'volume-high':'volume-medium-outline'} size={15} color="#8423D9"/><Text style={coachUI.replayText}>Replay</Text></Pressable>
+                <Ionicons name="location-outline" size={14} color="#8423D9"/><Text style={[coachUI.speaker,{textTransform:'none',letterSpacing:0,fontSize:12}]}>{context.scene?.title || currentNode.backgroundKey}</Text>
+                <Pressable disabled={saving} accessibilityLabel="Watch Sumi and Haru repeat the conversation" style={coachUI.replay} onPress={reenactConversation}><Ionicons name="volume-medium-outline" size={15} color="#8423D9"/><Text style={coachUI.replayText}>Replay</Text></Pressable>
+                <Pressable accessibilityLabel="Show a hint for this reply" style={styles.hintButton} onPress={()=>{markSupport('hint');setHintUsed(true);setHintVisible(true);}}><Ionicons name="bulb-outline" size={16} color="#D58A1E"/><Text style={styles.hintButtonText}>Hint</Text></Pressable>
               </View>
-              <ScrollView style={{flexShrink:1,flexGrow:0}}>
-                <Text style={[coachUI.japanese,{fontSize:fitted.short?16:19,lineHeight:fitted.short?22:26}]}>{promptLine.japanese || promptLine.text}</Text>
-                <Text style={coachUI.romaji}>{promptLine.romaji}</Text>
+                <Text style={[styles.coachSceneSummary,{marginTop:0}]}>{getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker || 'Conversation partner'}</Text>
+                <Text style={[coachUI.task,{marginVertical:2}]}>{currentNode.text}</Text>
               </ScrollView>
-            </View>}
+            </View>
             <View style={[styles.decisionPanel, { height: panelHeight }]}>
+              <ScrollView key={`${currentNode.id}:${activePage}`} style={{flex:1,minHeight:0}} contentContainerStyle={{paddingBottom:4}} keyboardShouldPersistTaps="handled">
               <View style={styles.drawerHandle} />
               <View style={styles.decisionHeading}>
-                <View style={styles.decisionIcon}>
-                  <Ionicons name="chatbubbles-outline" size={21} color="#FFFFFF" />
-                </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.decisionEyebrow}>YOUR TURN</Text>
-                  <Text style={styles.decisionTitle}>{currentNode.title || 'What would you say?'}</Text>
+                  <Text style={[styles.decisionEyebrow,{color:'#64536B',letterSpacing:0,fontSize:11}]}>What would you say?</Text>
                 </View>
-                <Pressable accessibilityRole="button" accessibilityLabel="Back to listen again" disabled={saving} style={styles.coachTool} onPress={reenactConversation}><Ionicons name="volume-medium-outline" size={20} color="#8423D9" /></Pressable>
-                <Pressable
-                  style={styles.hintButton}
-                  onPress={() => {
-                    markSupport('hint');
-                    setHintUsed(true);
-                    setHintVisible(true);
-                  }}
-                >
-                  <Ionicons name="bulb-outline" size={18} color="#D58A1E" />
-                  <Text style={styles.hintButtonText}>Hint</Text>
-                </Pressable>
               </View>
-              {!fitted.short && <Text style={styles.coachSceneSummary} numberOfLines={1}>{context.scene?.title || currentNode.backgroundKey} · {getCoachPartner(chapter.title, decisionId) || context.dialogue[0]?.speaker}</Text>}
-              <Text style={[styles.decisionPrompt,coachUI.task]} numberOfLines={2}>{currentNode.text}</Text>
               {Boolean(audioError) && <Text accessibilityRole="alert" style={styles.coachNotice}>{audioError}</Text>}
               {Boolean(error) && <Text accessibilityRole="alert" style={styles.coachNotice}>{error} Please try your reply again.</Text>}
               <View style={[styles.choiceList, { flexDirection: 'row', flexWrap: 'wrap', gap: fitted.columns === 2 ? 8 : 0 }]}>
@@ -1023,6 +1007,7 @@ export default function ReplyCoachStory() {
                   </Pressable>
                 ))}
               </View>
+              </ScrollView>
               {fitted.pages > 1 && <View style={styles.coachChoicePager}>
                 <Pressable disabled={saving || activePage === 0} accessibilityLabel="Previous choices" onPress={() => setChoicePage(page => Math.max(0, page - 1))}><Ionicons name="chevron-back" size={24} color={activePage === 0 ? '#C8BBD1' : '#8423D9'} /></Pressable>
                 <Text style={styles.coachToolText}>Choices {activePage + 1}/{fitted.pages}</Text>
@@ -1031,6 +1016,7 @@ export default function ReplyCoachStory() {
             </View>
             </>
           ) : currentNode.type === 'ENDING' ? (
+            <ScrollView style={{flex:1,minHeight:0}} contentContainerStyle={{flexGrow:1,justifyContent:'center'}}>
             <View style={styles.endingCard}>
               <Ionicons name="ribbon-outline" size={48} color="#8423D9" />
               <Text style={styles.endingEyebrow}>JOURNEY COMPLETE</Text>
@@ -1040,14 +1026,16 @@ export default function ReplyCoachStory() {
                 <Text style={styles.primaryButtonText}>{saving ? 'Saving...' : 'View my results'}</Text>
               </Pressable>
             </View>
+            </ScrollView>
           ) : (
             <Pressable
               style={[
-                coachUI.dialogueWrap,
+                coachUI.dialogueWrap, {maxHeight:'90%'},
               ]}
               onPress={() => isReaction ? setCorrectionVisible(true) : moveTo(currentNode.nextNodeId)}
             >
-              <View style={coachUI.dialogueCard}>
+              <View style={[coachUI.dialogueCard,{flexShrink:1,minHeight:0}]}>
+                <ScrollView style={{flexShrink:1,minHeight:0}} keyboardShouldPersistTaps="handled">
                 <View
                   style={[
                     styles.speechTail,
@@ -1081,6 +1069,7 @@ export default function ReplyCoachStory() {
                   <Text style={styles.continueTextDark}>Tap to continue</Text>
                   <Ionicons name="chevron-forward" size={18} color="#8423D9" />
                 </View>
+                </ScrollView>
               </View>
             </Pressable>
           )}

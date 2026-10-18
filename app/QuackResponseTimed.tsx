@@ -11,7 +11,6 @@ import {
   ImageBackground,
   Modal,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
@@ -20,6 +19,7 @@ import {
 
 import AhiruMissionExit from '../components/AhiruMissionExit';
 import styles from '../styles/stylesQuackResponseGuided';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthContext } from '../context/AuthContext';
 import { loadBundledSound, stopAndUnloadSound } from '../utils/nativeAudio';
 import expoconfig from '../expoconfig';
@@ -1941,6 +1941,7 @@ export default function QuackResponseTimed() {
             </Pressable>
           ) : isChoice ? (
             <View style={[styles.decisionPanel,{maxHeight:'75%'}]}>
+              <ScrollView key={currentNode.id} style={{flexShrink:1,minHeight:0}} contentContainerStyle={{paddingBottom:4}} keyboardShouldPersistTaps="handled">
               <View style={styles.drawerHandle} />
               <View style={styles.decisionHeading}>
                 <View style={styles.decisionIcon}>
@@ -1959,7 +1960,7 @@ export default function QuackResponseTimed() {
                 </View>
               </View>
               <Text style={styles.decisionPrompt}>{currentNode.prompt}</Text>
-              <ScrollView style={{flexShrink:1}} onLayout={()=>requestAnimationFrame(()=>setChoiceReady(currentNode.id))}>
+              <View onLayout={()=>requestAnimationFrame(()=>setChoiceReady(currentNode.id))}>
                 {orderedChoices.map((choice, index) => (
                   <Pressable
                     key={choice.id}
@@ -1976,9 +1977,11 @@ export default function QuackResponseTimed() {
                     <Ionicons name="chevron-forward" size={19} color="#A58CAF" />
                   </Pressable>
                 ))}
+              </View>
               </ScrollView>
             </View>
           ) : isEnding ? (
+            <ScrollView style={{flex:1,minHeight:0}} contentContainerStyle={{flexGrow:1,justifyContent:'center'}}>
             <View style={styles.endingCard}>
               <Ionicons name="ribbon-outline" size={48} color="#8423D9" />
               <Text style={styles.endingEyebrow}>SCENARIO COMPLETE</Text>
@@ -1988,11 +1991,13 @@ export default function QuackResponseTimed() {
                 <Text style={styles.primaryButtonText}>View my results</Text>
               </Pressable>
             </View>
+            </ScrollView>
           ) : (
             // DIALOGUE and REACTION: fully automatic. No press handler — the
             // bubble just displays what's already auto-playing.
             <View style={[rushStyles.vnBubbleWrap, currentNode.characterKey === 'HARU' ? rushStyles.vnBubbleLeftAlign : rushStyles.vnBubbleRightAlign]}>
-              <View style={[rushStyles.vnBubble, { borderColor: speakerAccent }]}>
+              <View style={[rushStyles.vnBubble, { borderColor: speakerAccent,flexShrink:1,minHeight:0 }]}>
+                <ScrollView style={{flexShrink:1,minHeight:0}}>
                 <View style={[rushStyles.vnBubbleTail, { borderTopColor: speakerAccent }, currentNode.characterKey === 'HARU' ? rushStyles.vnTailLeft : rushStyles.vnTailRight]} />
                 <View style={rushStyles.vnSpeakerRow}>
                   <View style={[rushStyles.vnSpeakerDot, { backgroundColor: speakerAccent }]} />
@@ -2004,12 +2009,12 @@ export default function QuackResponseTimed() {
                   )}
                 </View>
                 {Boolean(currentNode.japanese) && (
-                  <Text style={rushStyles.vnJapanese} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.72} maxFontSizeMultiplier={1.1}>
+                  <Text style={rushStyles.vnJapanese} maxFontSizeMultiplier={1.1}>
                     {currentNode.japanese}
                   </Text>
                 )}
                 {Boolean(currentNode.romaji) && (
-                  <Text style={rushStyles.vnRomaji} numberOfLines={2} maxFontSizeMultiplier={1.05}>{currentNode.romaji}</Text>
+                  <Text style={rushStyles.vnRomaji} maxFontSizeMultiplier={1.05}>{currentNode.romaji}</Text>
                 )}
                 <View style={rushStyles.vnFooterRow}>
                   {isSpriteSpeaking ? (
@@ -2018,6 +2023,7 @@ export default function QuackResponseTimed() {
                     <Text style={[rushStyles.vnSettling, { color: speakerAccent }]}>···</Text>
                   )}
                 </View>
+                </ScrollView>
               </View>
             </View>
           )}
@@ -2384,6 +2390,7 @@ const rushStyles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 26,
+    maxHeight: '85%',
     paddingHorizontal: 20,
   },
   vnBubbleLeftAlign: { alignItems: 'flex-start' },
