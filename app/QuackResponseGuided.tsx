@@ -1,4 +1,5 @@
 import ResponsePauseMenu from '../components/ResponsePauseMenu';
+import ResponseScore from '../components/ResponseScore';
 import ResponseGameInstructions from '../components/ResponseGameInstructions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -1216,8 +1217,9 @@ export default function ReplyCoachStory() {
                     { color: evaluationTheme[reactionEvaluation].color },
                   ]}
                 >
-                  {evaluationTheme[reactionEvaluation].label.toUpperCase()}
+                  {evaluationTheme[reactionEvaluation].label} | Score: {attempt.score} / {attempt.maximumScore}
                 </Text>
+                <ResponseScore earned={latestAnswer?.points ?? 0} maximum={Math.max(0,...(nodes.get(latestAnswer?.nodeId ?? '')?.choices ?? []).map(choice=>choice.points))} total={attempt.score} totalMaximum={attempt.maximumScore}/>
               </>
             )}
             <Text style={styles.feedbackReaction}>
@@ -1277,6 +1279,7 @@ export default function ReplyCoachStory() {
               <Text style={styles.resultsEyebrow}>REPLY COACH COMPLETE</Text>
               <Text style={styles.resultsTitle}>{chapter.title}</Text>
               <Text style={styles.resultsScore}>{attempt.finalPercentage}%</Text>
+              <ResponseScore total={attempt.score} totalMaximum={attempt.maximumScore}/>
               <Text style={styles.coachNotice}>Practice score · not an independent mastery score</Text>
               <Text style={styles.coachNotice}>{attempt.answers.filter(answer => answer.supported === false).length} independent · {attempt.answers.filter(answer => answer.supported === true).length} supported · {attempt.answers.filter(answer => answer.supported == null).length} not fully tracked</Text>
               <Text style={styles.resultsRating}>

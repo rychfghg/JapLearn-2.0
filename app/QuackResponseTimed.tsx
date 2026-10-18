@@ -1,4 +1,5 @@
 import ResponsePauseMenu from '../components/ResponsePauseMenu';
+import ResponseScore from '../components/ResponseScore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Audio } from 'expo-av';
@@ -1732,7 +1733,7 @@ export default function QuackResponseTimed() {
       prompt: currentNode.prompt ?? '',
       selectedJapanese: choice.japanese,
       evaluation: choice.evaluation,
-      points: choice.points,
+      points: GOOD_TIERS.includes(choice.evaluation) ? choice.points : 0,
       feedbackTitle: choice.feedbackTitle,
       feedbackWhy: choice.feedbackWhy,
       betterExample: choice.betterExample,
@@ -2111,8 +2112,9 @@ export default function QuackResponseTimed() {
                   <Ionicons name={evaluationTheme[lastAnswer.evaluation].icon} size={34} color={evaluationTheme[lastAnswer.evaluation].color} />
                 </View>
                 <Text style={[styles.feedbackEyebrow, { color: evaluationTheme[lastAnswer.evaluation].color }]}>
-                  {evaluationTheme[lastAnswer.evaluation].label.toUpperCase()}
+                  {evaluationTheme[lastAnswer.evaluation].label} | Score: {totalPoints} / {maxPoints}
                 </Text>
+                <ResponseScore earned={lastAnswer.points} total={totalPoints} totalMaximum={maxPoints}/>
                 <Text style={styles.feedbackReaction}>{lastAnswer.feedbackTitle}</Text>
                 {lastAnswer.selectedJapanese !== '—' && (
                   <View style={rushStyles.answerMeaningCard}>
@@ -2134,14 +2136,14 @@ export default function QuackResponseTimed() {
                   </Text>
                   <Text style={styles.explanationText}>{lastAnswer.feedbackWhy}</Text>
                 </View>
-                {lastAnswer.betterExample && (
+                {(lastAnswer.betterExample || nodeMap.get(lastAnswer.nodeId)?.choices?.find(choice=>choice.evaluation==='BEST')) && (
                   <View style={rushStyles.exampleBox}>
                     <View style={rushStyles.exampleQuoteBar} />
                     <View style={{ flex: 1 }}>
-                      <Text style={rushStyles.exampleLabel}>A BETTER EXAMPLE</Text>
-                      <Text style={rushStyles.exampleJapanese}>{lastAnswer.betterExample.japanese}</Text>
-                      <Text style={rushStyles.exampleRomaji}>{lastAnswer.betterExample.romaji}</Text>
-                      <Text style={rushStyles.exampleNote}>{lastAnswer.betterExample.note}</Text>
+                      <Text style={rushStyles.exampleLabel}>{lastAnswer.evaluation==='BEST'?'A FITTING EXAMPLE':'A BETTER EXAMPLE'}</Text>
+                      <Text style={rushStyles.exampleJapanese}>{(lastAnswer.betterExample || nodeMap.get(lastAnswer.nodeId)?.choices?.find(choice=>choice.evaluation==='BEST'))?.japanese}</Text>
+                      <Text style={rushStyles.exampleRomaji}>{(lastAnswer.betterExample || nodeMap.get(lastAnswer.nodeId)?.choices?.find(choice=>choice.evaluation==='BEST'))?.romaji}</Text>
+                      {lastAnswer.betterExample && <Text style={rushStyles.exampleNote}>{lastAnswer.betterExample.note}</Text>}
                     </View>
                   </View>
                 )}
@@ -2194,6 +2196,7 @@ export default function QuackResponseTimed() {
               </View>
               <Text style={styles.resultsEyebrow}>{mode==='TIMED'?'TIMED CHALLENGE COMPLETE':'UNTIMED PRACTICE COMPLETE'}</Text>
               <Text style={styles.resultsTitle}>{mode==='PRACTICE'?'Library welcome · Four-reply practice':CHAPTER_TITLE}</Text>
+              <ResponseScore total={totalPoints} totalMaximum={maxPoints}/>
               <Text style={styles.resultsScore}>{metrics.answeredAccuracy===null?'—':metrics.answeredAccuracy+'%'}</Text><Text style={styles.coachNotice}>Accuracy among {metrics.answered} answered questions · practice score, not a mastery certificate</Text>
               <View style={rushStyles.statStrip}>{([['Incorrect',String(metrics.incorrect),'#D4635D'],['Timeouts',String(metrics.timeouts),'#D89525'],['Technical',String(metrics.technicalInterruptions),'#8A7D8F'],['Avg. time',metrics.meanResponseMs===null?'—':(metrics.meanResponseMs/1000).toFixed(1)+'s','#5086D8']] as const).map(([label,value,color],i)=><React.Fragment key={label}>{i>0&&<View style={rushStyles.statDivider}/>}<View style={rushStyles.statItem}><Text style={[rushStyles.statValue,{color}]}>{value}</Text><Text style={rushStyles.statLabel}>{label}</Text></View></React.Fragment>)}</View>
               <Text style={styles.resultsRating}>{mode==='TIMED'?'Timed challenge — speed and understanding are separate':'Untimed practice complete'}</Text>
