@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Image, ImageBackground, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import BackIcon from '../assets/svg/back-icon.svg';
 import QuackSituateMissionLoader from '../components/QuackSituateMissionLoader';
 import styles from '../styles/stylesQuackSituate';

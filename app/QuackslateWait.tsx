@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Image, ImageBackground, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import expoconfig from '../expoconfig';
 

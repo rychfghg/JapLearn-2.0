@@ -1,6 +1,6 @@
 import React from 'react';
 import {StyleSheet,Text,View} from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 export default function RescueContextCard({where,who,goal,skill}:{where:string;who:string;goal:string;skill?:string}){
   return <View style={s.card}><Text style={s.heading}>YOUR SITUATION</Text>{skill&&<Text style={s.skill}>{skill}</Text>}{([
     ['location-outline','WHERE',where],['people-outline','WHO',who],['flag-outline','GOAL',goal]

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { View, Text, Image, Pressable, ImageBackground, Modal } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesWords';

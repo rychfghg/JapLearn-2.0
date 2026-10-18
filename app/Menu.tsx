@@ -4,7 +4,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import styles from '../styles/stylesMenu';
 import { AuthContext } from '../context/AuthContext';
 import expoconfig from '../expoconfig';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useClassCode } from '../context/ClassCodeContext';
 import { offlineProgressFetch, readCachedProgress, subscribeProgress } from '../services/offlineProgress';

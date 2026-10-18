@@ -1,6 +1,6 @@
 import React,{useEffect,useRef} from 'react';
 import {AccessibilityInfo,Animated,Pressable,Text} from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 export default function RescueBriefingButton({questionId,onPress}:{questionId:string;onPress:()=>void}){
   const opacity=useRef(new Animated.Value(1)).current;
   const animation=useRef<Animated.CompositeAnimation|null>(null);

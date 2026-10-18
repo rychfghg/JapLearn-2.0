@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Image, Modal, Platform, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import expoconfig from '../expoconfig';
 import { AuthContext } from '../context/AuthContext';

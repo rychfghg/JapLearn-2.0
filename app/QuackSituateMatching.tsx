@@ -4,7 +4,7 @@ import expressionImages from '../services/expressionMatchImages';
 import expressionMedia from '../data/expressionMatchMedia.json';
 import {expressionTargetOrder} from '../services/expressionMatchTargets';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Audio } from 'expo-av';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -216,10 +216,9 @@ export default function QuackSituateMatching() {
   const bundledMediaKey=current?.bundledMediaKey??authoredMedia?.key;
   const correctBundledImage=bundledMediaKey?expressionImages[bundledMediaKey]?.scene:undefined;
   const alternativeBundledImage=bundledMediaKey?expressionImages[bundledMediaKey]?.alternative:undefined;
-  // Admin-managed media takes precedence. Bundled copies remain until the
-  // database migration is verified; generic wave/bow placeholders never win.
-  const correctImageUri = useOfflineMediaUri(isGenericGesture(current?.imageUrl) ? undefined : current?.imageUrl);
-  const alternativeImageUri = useOfflineMediaUri(isGenericGesture(current?.secondaryImageUrl) ? undefined : current?.secondaryImageUrl);
+  // Authored pictures and speech remain bundled for first-use offline play.
+  const correctImageUri = useOfflineMediaUri(correctBundledImage||isGenericGesture(current?.imageUrl) ? undefined : current?.imageUrl);
+  const alternativeImageUri = useOfflineMediaUri(alternativeBundledImage||isGenericGesture(current?.secondaryImageUrl) ? undefined : current?.secondaryImageUrl);
   const currentAnswer = current ? getAnswer(current) : null;
   const phraseAudio=current?expressionAudio[current.correctAnswer]:undefined;
   const hasPhraseAudio=!!phraseAudio||!!current?.audioUrl;
@@ -434,7 +433,7 @@ export default function QuackSituateMatching() {
     const previous=momentAudio.current;momentAudio.current=null;
     await stopAndUnloadSound(previous);
     try{
-      const source=current.audioUrl?{uri:await resolveOfflineMediaUri(current.audioUrl)}:phraseAudio;
+      const source=phraseAudio??{uri:await resolveOfflineMediaUri(current.audioUrl)};
       if(generation!==audioGeneration.current||!audioFocused.current)return;
       const loaded=await loadBundledSound(source,{shouldPlay:false,volume:1},status=>{
         if(generation!==audioGeneration.current)return;
@@ -645,8 +644,8 @@ export default function QuackSituateMatching() {
     );
   }
 
-  const correctImage = correctImageUri ? { uri: correctImageUri } : correctBundledImage;
-  const alternativeImage = alternativeImageUri ? { uri: alternativeImageUri } : alternativeBundledImage;
+  const correctImage = correctBundledImage ?? (correctImageUri ? { uri: correctImageUri } : undefined);
+  const alternativeImage = alternativeBundledImage ?? (alternativeImageUri ? { uri: alternativeImageUri } : undefined);
   const topTarget = correctPosition === 'top'
     ? { image: correctImage, scenario: current.scenario }
     : { image: alternativeImage, scenario: current.secondaryScenario || 'A different gesture and situation.' };

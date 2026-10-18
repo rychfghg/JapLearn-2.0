@@ -7,7 +7,7 @@ import expoconfig from "../expoconfig";
 import studentProfile from "../assets/img/studentProfile.png";
 import { styles } from "../styles/stylesProfile";
 import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useClassCode } from "../context/ClassCodeContext";
 import { offlineProgressFetch, subscribeProgress } from "../services/offlineProgress";

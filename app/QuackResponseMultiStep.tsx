@@ -1,7 +1,7 @@
 import ResponsePauseMenu from '../components/ResponsePauseMenu';
 import ResponseGameInstructions from '../components/ResponseGameInstructions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Audio } from 'expo-av';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';

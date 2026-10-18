@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, TextInput, Modal, Pressable, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import Logo from '../assets/svg/jpLogo.svg';
 import { useLocalSearchParams, useRouter } from 'expo-router'; // Updated to useLocalSearchParams
 import stylesReset from '../styles/stylesResetPassword'; // New styles for Reset Password

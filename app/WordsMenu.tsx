@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import BackIcon from '../assets/svg/back-icon.svg';
 import { AuthContext } from '../context/AuthContext';

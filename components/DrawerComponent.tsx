@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { FontAwesome } from '@expo/vector-icons';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 const DrawerComponent = ({ onNavigateHome, onNextPage, onPreviousPage, onClose }) => {
     const translateX = useRef(new Animated.Value(-300)).current; // Start off-screen

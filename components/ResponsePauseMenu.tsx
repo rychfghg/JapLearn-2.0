@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {Modal,Pressable,ScrollView,StyleSheet,Text,View} from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function ResponsePauseMenu({visible,onResume,onRestart,onReview}:{visible:boolean;onResume:()=>void;onRestart:()=>void;onReview:()=>void}){
   const [confirm,setConfirm]=useState(false);

@@ -1,6 +1,6 @@
 // import React from 'react';
 // import { View, Text, Image, ScrollView, Pressable } from 'react-native';
-// import { FontAwesome } from '@expo/vector-icons';
+// import FontAwesome from '@expo/vector-icons/FontAwesome';
 // import styles from '../styles/stylesLessons';
 // import CustomButton from '../components/CustomButton';
 // // import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from '@react-navigation/drawer';

@@ -1,6 +1,6 @@
 import React,{useMemo,useState} from 'react';
 import {Modal,View,Text,Pressable,ScrollView,SafeAreaView} from 'react-native';
-import {Ionicons} from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import styles from '../styles/stylesQuackResponseGuided';
 import {rushFollowups,rushSkill} from '../services/replyRushFollowups';
 import {shuffleOptions} from '../services/shuffleOptions';

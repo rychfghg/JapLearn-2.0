@@ -3,7 +3,7 @@ import { ActivityIndicator, Image, ScrollView, Text, TextInput, View, Pressable,
 import CustomModal from '../components/CustomModal';
 import styles from '../styles/stylesSignup';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import expoconfig from '../expoconfig';
 import PrivacyPolicyModal from '../components/PrivacyPolicyModal';
 import Logo from '../assets/svg/jpLogo.svg';

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { View, Text, Image, ImageBackground, TouchableOpacity, Modal, Animated, Easing } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Image, ImageBackground, TouchableOpacity, Modal, Animated, Easing, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { stylesQuackman } from '../styles/stylesQuackman';
 import { stylesClass } from '../styles/stylesClass';
 import BackIcon from '../assets/svg/back-icon.svg';
@@ -492,12 +493,11 @@ const Quackman = () => {
 
     if (gameOver) {
         return (
-            <ImageBackground
-                source={require('../assets/quackman/quackman-sky-temple.png')}
-                style={stylesQuackman.gameOverContainer}
-                resizeMode="cover"
-            >
+            <View style={stylesQuackman.gameOverContainer}>
+                <Image source={require('../assets/quackman/quackman-sky-temple.png')} style={stylesQuackman.gameOverBackground} resizeMode="cover" pointerEvents="none" />
                 <View style={stylesQuackman.screenShade} />
+                <SafeAreaView style={stylesQuackman.gameOverSafeArea}>
+                <ScrollView style={{flex:1,minHeight:0}} contentContainerStyle={stylesQuackman.gameOverContent}>
                 <Text style={stylesQuackman.gameOverText}>Game Over!</Text>
                 <Text style={stylesQuackman.scoreText}>
                 You answered {correctAnswersCount} question{correctAnswersCount === 1 ? '' : 's'}.
@@ -516,7 +516,9 @@ const Quackman = () => {
                         <Text style={stylesQuackman.backButtonText}>Back</Text>
                     </TouchableOpacity>
                 </View>
-            </ImageBackground>
+                </ScrollView>
+                </SafeAreaView>
+            </View>
         );
     }
     

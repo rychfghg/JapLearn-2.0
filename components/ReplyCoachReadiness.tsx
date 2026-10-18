@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import expoconfig from '../expoconfig';
 import styles from '../styles/stylesQuackResponseGuided';
 import { coachExamples } from '../services/replyCoachPractice';

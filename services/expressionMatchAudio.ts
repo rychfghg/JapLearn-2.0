@@ -6,7 +6,7 @@ const audio:Record<string,any>={
   "ありがとうございます":require('../assets/audio/expression-match/phrase-daa3ed597057ef8f1801.mp3'),
   "すみません":require('../assets/audio/expression-match/phrase-cb24cec6df2cc5540e55.mp3'),
   "さようなら":require('../assets/audio/expression-match/phrase-a904783c1517e1b8896b.mp3'),
-  "いただきます":require('../assets/audio/expression-match/phrase-3e56e73d24ca85085615.mp3'),
+  "いただきます":require('../assets/audio/reply-coach/choice-1-awkward.mp3'),
   "ごちそうさまでした":require('../assets/audio/expression-match/phrase-c489cf313c68fba5f382.mp3'),
   "いってきます":require('../assets/audio/expression-match/phrase-21797de3648e1486dda9.mp3'),
   "いってらっしゃい":require('../assets/audio/expression-match/phrase-10d93a52c6cd0b52ad28.mp3'),

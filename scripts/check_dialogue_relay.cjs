@@ -2,6 +2,7 @@ const fs=require('fs'),path=require('path'),assert=require('assert/strict'),cryp
 const root=path.resolve(__dirname,'..');
 require.extensions['.ts']=(mod,file)=>mod._compile(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,esModuleInterop:true}}).outputText,file);
 require.extensions['.png']=(mod,file)=>{mod.exports=file;};
+require.extensions['.mp3']=(mod,file)=>{mod.exports=file;};
 const {RELAY_SCENES,RELAY_TOTAL_RESPONSES,relayExchange}=require('../app/dialogueRelayContent.ts');
 const {recordRelayFirstAttempt,relayCanContinue,relayRunComplete}=require('../services/dialogueRelayProgress.ts');
 assert.equal(RELAY_TOTAL_RESPONSES,25);
@@ -12,6 +13,7 @@ let previous=0;
 const out=path.join(root,'assets/audio/dialogue-relay');
 const manifest=JSON.parse(fs.readFileSync(path.join(out,'conversation-manifest.json'),'utf8'));
 const old=JSON.parse(fs.readFileSync(path.join(out,'manifest.json'),'utf8'));
+const liveAudio={...require('../app/dialogueRelayAudio.ts').default,...require('../app/relayConversationAudio.ts').default};
 const ids=new Set(),review=['# Dialogue Relay — complete exchange review','',
   'Status: proposed content; instructor approval and physical-device checks are still required.',
   'Untimed practice. Japanese is followed by Romaji. Wrong replies require repair. Scores retain first attempts; they are not independent-mastery certification.',
@@ -33,7 +35,10 @@ for(const scene of RELAY_SCENES){
       const row=manifest.find(r=>r.id===`choice-${c.id}`)||old.find(r=>r.id===`choice-${c.id}`);
       assert.equal(row?.text,c.japanese,`Choice script mismatch: ${c.id}`);
       assert.equal(row.voice,'ja-JP-NanamiNeural');
-      const file=path.join(out,row.file||row.id+'.mp3');assert(fs.statSync(file).size>1000);
+      const file=liveAudio[`choice-${c.id}`];assert(file&&fs.statSync(file).size>1000);
+      // Equivalent clips may share a file, but never a different text or voice.
+      const recording=[...manifest,...old].find(r=>path.basename(file)===(r.file||r.id+'.mp3'));
+      assert.equal(recording?.text,c.japanese);assert.equal(recording?.voice,row.voice);
       review.push(`${c.correct?'Accepted':'Repair required'}: ${c.japanese}`,c.romaji,`Why: ${c.explanation}`,'');
     }
     review.push(`Sumi after accepted/repaired reply: ${d.followup}`,d.followupRomaji,'');

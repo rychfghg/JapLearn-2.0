@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackProgress';
 import expoconfig from '../expoconfig';

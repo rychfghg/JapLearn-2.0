@@ -1,6 +1,6 @@
 import ResponsePauseMenu from '../components/ResponsePauseMenu';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Audio } from 'expo-av';
 import { router } from 'expo-router';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -368,7 +368,7 @@ const audioOverrides: Record<string, any> = {
   n_phone_fee_react_timeout: require('../assets/audio/response-rush/n_phone_fee_react_timeout.mp3'),
   n_bank_opening: require('../assets/audio/response-rush/n_bank_opening.mp3'),
   n_bank_purpose_setup: require('../assets/audio/response-rush/n_bank_purpose_setup.mp3'),
-  n_bank_purpose_react_a: require('../assets/audio/response-rush/n_bank_purpose_react_a.mp3'),
+  n_bank_purpose_react_a: require('../assets/audio/response-rush/n_ward_purpose_react_a.mp3'),
   n_bank_purpose_react_b: require('../assets/audio/response-rush/n_bank_purpose_react_b.mp3'),
   n_bank_purpose_react_c: require('../assets/audio/response-rush/n_bank_purpose_react_c.mp3'),
   n_bank_purpose_react_d: require('../assets/audio/response-rush/n_bank_purpose_react_d.mp3'),
@@ -388,7 +388,7 @@ const audioOverrides: Record<string, any> = {
   n_conbini_opening: require('../assets/audio/response-rush/n_conbini_opening.mp3'),
   n_conbini_bag_setup: require('../assets/audio/response-rush/n_conbini_bag_setup.mp3'),
   n_conbini_bag_react_a: require('../assets/audio/response-rush/n_conbini_bag_react_a.mp3'),
-  n_conbini_bag_react_b: require('../assets/audio/response-rush/n_conbini_bag_react_b.mp3'),
+  n_conbini_bag_react_b: require('../assets/audio/response-rush/n_conbini_bag_react_a.mp3'),
   n_conbini_bag_react_c: require('../assets/audio/response-rush/n_conbini_bag_react_c.mp3'),
   n_conbini_bag_react_d: require('../assets/audio/response-rush/n_conbini_bag_react_d.mp3'),
   n_conbini_bag_react_timeout: require('../assets/audio/response-rush/n_conbini_bag_react_timeout.mp3'),
@@ -400,7 +400,7 @@ const audioOverrides: Record<string, any> = {
   n_conbini_payment_react_timeout: require('../assets/audio/response-rush/n_conbini_payment_react_timeout.mp3'),
   n_conbini_receipt_setup: require('../assets/audio/response-rush/n_conbini_receipt_setup.mp3'),
   n_conbini_receipt_react_a: require('../assets/audio/response-rush/n_conbini_receipt_react_a.mp3'),
-  n_conbini_receipt_react_b: require('../assets/audio/response-rush/n_conbini_receipt_react_b.mp3'),
+  n_conbini_receipt_react_b: require('../assets/audio/response-rush/n_conbini_bag_react_a.mp3'),
   n_conbini_receipt_react_c: require('../assets/audio/response-rush/n_conbini_receipt_react_c.mp3'),
   n_conbini_receipt_react_d: require('../assets/audio/response-rush/n_conbini_receipt_react_d.mp3'),
   n_conbini_receipt_react_timeout: require('../assets/audio/response-rush/n_conbini_receipt_react_timeout.mp3'),
@@ -427,7 +427,7 @@ const audioOverrides: Record<string, any> = {
   n_train_wrongPlatform_react_a: require('../assets/audio/response-rush/n_train_wrongPlatform_react_a.mp3'),
   n_train_wrongPlatform_react_b: require('../assets/audio/response-rush/n_train_wrongPlatform_react_b.mp3'),
   n_train_wrongPlatform_react_c: require('../assets/audio/response-rush/n_train_wrongPlatform_react_c.mp3'),
-  n_train_wrongPlatform_react_d: require('../assets/audio/response-rush/n_train_wrongPlatform_react_d.mp3'),
+  n_train_wrongPlatform_react_d: require('../assets/audio/response-rush/n_train_pass_react_d.mp3'),
   n_train_wrongPlatform_react_timeout: require('../assets/audio/response-rush/n_train_wrongPlatform_react_timeout.mp3'),
   n_interview_opening: require('../assets/audio/response-rush/n_interview_opening.mp3'),
   n_interview_introduce_setup: require('../assets/audio/response-rush/n_interview_introduce_setup.mp3'),
@@ -493,7 +493,7 @@ const audioOverrides: Record<string, any> = {
   n_conbini_bag_reply_a: require('../assets/audio/response-rush/n_conbini_bag_reply_a.mp3'),
   n_conbini_bag_reply_b: require('../assets/audio/response-rush/n_conbini_bag_reply_b.mp3'),
   n_conbini_bag_reply_c: require('../assets/audio/response-rush/n_conbini_bag_reply_c.mp3'),
-  n_conbini_bag_reply_d: require('../assets/audio/response-rush/n_conbini_bag_reply_d.mp3'),
+  n_conbini_bag_reply_d: require('../assets/audio/reply-coach/choice-17-rude.mp3'),
   n_conbini_payment_reply_a: require('../assets/audio/response-rush/n_conbini_payment_reply_a.mp3'),
   n_conbini_payment_reply_b: require('../assets/audio/response-rush/n_conbini_payment_reply_b.mp3'),
   n_conbini_payment_reply_c: require('../assets/audio/response-rush/n_conbini_payment_reply_c.mp3'),
@@ -531,7 +531,7 @@ const audioOverrides: Record<string, any> = {
   n_interview_whyHere_reply_c: require('../assets/audio/response-rush/n_interview_whyHere_reply_c.mp3'),
   n_interview_whyHere_reply_d: require('../assets/audio/response-rush/n_interview_whyHere_reply_d.mp3'),
   n_interview_clarify_reply_a: require('../assets/audio/response-rush/n_interview_clarify_reply_a.mp3'),
-  n_interview_clarify_reply_b: require('../assets/audio/response-rush/n_interview_clarify_reply_b.mp3'),
+  n_interview_clarify_reply_b: require('../assets/audio/response-rush/n_phone_fee_reply_b.mp3'),
   n_interview_clarify_reply_c: require('../assets/audio/response-rush/n_interview_clarify_reply_c.mp3'),
   n_interview_clarify_reply_d: require('../assets/audio/response-rush/n_interview_clarify_reply_d.mp3'),
 

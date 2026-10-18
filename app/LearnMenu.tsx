@@ -18,7 +18,7 @@ import ImageButton from '../components/ImageButton';
 import { Easing } from 'react-native-reanimated';
 import expoconfig from '../expoconfig'; // Assuming you have this config for API URLs
 import { AuthContext } from '../context/AuthContext';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loadOfflineContent } from '../services/offlineSync';
 import { offlineProgressFetch, subscribeProgress } from '../services/offlineProgress';

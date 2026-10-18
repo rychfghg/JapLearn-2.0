@@ -20,7 +20,7 @@ import expoconfig from '../expoconfig';
 import { AuthContext } from '../context/AuthContext';
 import { useClassCode } from '../context/ClassCodeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { cleanEmailInput, cleanPasswordInput, isStrictEmail } from '../utils/inputRules';
 import GoogleAuthButton from '../components/GoogleAuthButton';
 import { takePendingGoogleToken } from '../services/googleAuth';

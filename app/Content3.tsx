@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Image, ImageBackground, Platform, Pressable, Text, useWindowDimensions, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Audio } from 'expo-av';
 import { loadBundledSound } from '../utils/nativeAudio';
 import { useRouter } from 'expo-router';

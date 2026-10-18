@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, ImageBackground, TouchableOpacity, Dimensions, Modal } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { styles } from '../styles/game3Styles';
 
 const { width, height } = Dimensions.get('window');

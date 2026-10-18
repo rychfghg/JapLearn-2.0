@@ -13,7 +13,7 @@ assert(!timer.includes('hintVisible'));assert(!timer.includes('questionReplay'))
 const interruption=rush.slice(rush.indexOf('const interrupt='),rush.indexOf('const roundTotal='));
 assert(!interruption.includes('exemptNodes.current.add'));assert(interruption.includes('Math.max(1,timeLeft)*1000'));
 assert(rush.includes('Resume timed challenge'));assert(!rush.includes('Hints are available in untimed practice'));
-const controls=rush.slice(rush.indexOf('<View style={{flexDirection:\'row\',alignItems:\'center\',gap:8,marginBottom:8}}>'),rush.indexOf('<ScrollView style={{flexShrink:1}} onLayout='));
+const controls=rush.slice(rush.indexOf(') : isChoice ? ('),rush.indexOf(') : isEnding ? ('));
 assert(controls.includes('>Replay</Text>'));assert(controls.includes('>Hint</Text>'));
 for(const file of ['app/QuackResponseTimed.tsx','app/QuackResponseGuided.tsx','app/QuackResponseMultiStep.tsx'])assert(read(file).includes('>Play again</Text>'));
 console.log('PASS: repeated pause/resume preserves 15s then 12s; technical resume stays timed; hints/replay do not stop clock; all three completion screens offer Play again.');

@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Image, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import Svg, { Path } from 'react-native-svg';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackResponse';

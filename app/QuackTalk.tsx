@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Audio } from 'expo-av';
 import BackIcon from '../assets/svg/back-icon.svg';
 import styles from '../styles/stylesQuackTalk';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ImageBackground, Pressable, Modal, StyleSheet, GestureResponderEvent } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 // Define types for props
 interface ImageButtonProps {

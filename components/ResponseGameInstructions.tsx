@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function ResponseGameInstructions({visible,title,steps,onStart,onLeave}:{visible:boolean;title:string;steps:string[];onStart:()=>void;onLeave:()=>void}) {
   return <Modal visible={visible} transparent animationType="fade" onRequestClose={onLeave}>

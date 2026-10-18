@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Modal, ScrollView, Text, View, StyleSheet, Pressable, Platform, useWindowDimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 const uiFont = Platform.select({ android: 'sans-serif', ios: 'System', web: 'Inter, system-ui, sans-serif' });
 
