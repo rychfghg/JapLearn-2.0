@@ -86,13 +86,21 @@ export const styles = StyleSheet.create({
     classCodeInputReadOnly: { backgroundColor: '#F2EDF5', color: '#5E5065' },
     darkClassCodeInput: { backgroundColor: '#211827', borderColor: '#4A3955' },
     joinClassButton: {
-        minWidth: 66, height: 43, borderRadius: 13, backgroundColor: '#8423D9',
+        minWidth: 72, height: 43, borderRadius: 13, backgroundColor: '#8423D9',
         alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12,
     },
     joinClassButtonDisabled: { opacity: 0.5 },
     joinClassButtonText: { color: '#FFFFFF', fontSize: 10, fontWeight: '800', letterSpacing: 0.7 },
     joinClassButtonContent: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    classHelpText: { color: '#978D9B', fontSize: 10, marginTop: 6 },
+    classHelpText: { color: '#978D9B', fontSize: 10.5, flexShrink: 1 },
+    classHelpRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 7 },
+    classCancelText: { color: '#8423D9', fontSize: 11.5, fontWeight: '700' },
+    // Shared Edit action for name and class rows.
+    editPill: {
+        flexDirection: 'row', alignItems: 'center', gap: 5, height: 32, paddingHorizontal: 12,
+        borderRadius: 99, backgroundColor: '#F6EFFC', borderWidth: 1, borderColor: '#E7D7F4', marginLeft: 8,
+    },
+    editPillText: { color: '#8423D9', fontSize: 12, fontWeight: '700' },
 
     achievementsCard: {
         backgroundColor: '#FFFFFF', borderRadius: 23, padding: 18, marginTop: 15,

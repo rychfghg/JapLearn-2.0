@@ -151,10 +151,6 @@ const Profile = () => {
     }
   };
 
-  const handleBackPress = () => {
-    router.replace('/Menu');
-  };
-
   const joinTeacherClass = async () => {
     const nextClassCode = classCodeInput.trim();
 
@@ -327,9 +323,7 @@ const Profile = () => {
           <View style={styles.heroCircleOne} />
           <View style={styles.heroCircleTwo} />
           <View style={styles.header}>
-            <TouchableOpacity onPress={handleBackPress} style={styles.iconButton}>
-              <Ionicons name="arrow-back" size={23} color="#FFFFFF" />
-            </TouchableOpacity>
+            <View style={styles.headerSpacer} />
             <Text style={styles.headerTitle}>My Profile</Text>
             <View style={styles.headerSpacer} />
           </View>
@@ -356,19 +350,23 @@ const Profile = () => {
             <View style={styles.infoRow}>
               <View style={styles.infoIcon}><Ionicons name="person-outline" size={21} color="#8423D9" /></View>
               <View style={styles.infoCopy}><Text style={styles.infoLabel}>Full name</Text><Text style={styles.infoValue}>{user ? `${user.fname} ${user.lname}` : ""}</Text></View>
-              {isStudent && <TouchableOpacity onPress={() => setEditNameVisible(true)} accessibilityRole="button" accessibilityLabel="Edit your name" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, backgroundColor: "#F3EAFD" }}>
-                <Ionicons name="create-outline" size={16} color="#8423D9" />
-                <Text style={{ fontSize: 12, fontWeight: "600", color: "#8423D9" }}>Edit</Text>
+              {isStudent && <TouchableOpacity onPress={() => setEditNameVisible(true)} accessibilityRole="button" accessibilityLabel="Edit your name" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={styles.editPill}>
+                <Ionicons name="pencil" size={13} color="#8423D9" />
+                <Text style={styles.editPillText}>Edit</Text>
               </TouchableOpacity>}
             </View>
             <View style={styles.infoRow}>
               <View style={styles.infoIcon}><Ionicons name="mail-outline" size={21} color="#8423D9" /></View>
               <View style={styles.infoCopy}><Text style={styles.infoLabel}>Email address</Text><Text style={styles.infoValue}>{user ? user.email : ""}</Text></View>
             </View>
-            <View style={[styles.infoRow, styles.lastInfoRow, styles.classInfoRow]}>
+            <View style={[styles.infoRow, styles.lastInfoRow, (editingClass || !currentClassCode) && styles.classInfoRow]}>
               <View style={styles.infoIcon}><Ionicons name="people-outline" size={21} color="#8423D9" /></View>
               <View style={styles.classInfoCopy}>
                 <Text style={styles.infoLabel}>Class</Text>
+                {currentClassCode && !editingClass ? (
+                  <Text style={styles.infoValue}>{currentClassCode}</Text>
+                ) : (
+                <>
                 <View style={styles.classJoinRow}>
                   <TextInput
                     accessibilityLabel="Teacher class code"
@@ -401,13 +399,24 @@ const Profile = () => {
                     {joiningClass
                       ? <ActivityIndicator size="small" color="#FFFFFF" />
                       : <View style={styles.joinClassButtonContent}>
-                          <Ionicons name={currentClassCode && !editingClass ? "pencil" : "enter-outline"} size={14} color="#FFFFFF" />
-                          <Text style={styles.joinClassButtonText}>{currentClassCode && !editingClass ? "EDIT" : "JOIN"}</Text>
+                          <Ionicons name="enter-outline" size={14} color="#FFFFFF" />
+                          <Text style={styles.joinClassButtonText}>JOIN</Text>
                         </View>}
                   </TouchableOpacity>
                 </View>
-                {!currentClassCode && <Text style={styles.classHelpText}>Use the code shared by your teacher.</Text>}
+                <View style={styles.classHelpRow}>
+                  <Text style={styles.classHelpText}>Use the code shared by your teacher.</Text>
+                  {Boolean(currentClassCode) && <TouchableOpacity accessibilityRole="button" onPress={() => { setClassCodeInput(currentClassCode); setEditingClass(false); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                    <Text style={styles.classCancelText}>Cancel</Text>
+                  </TouchableOpacity>}
+                </View>
+                </>
+                )}
               </View>
+              {Boolean(currentClassCode) && !editingClass && <TouchableOpacity onPress={() => setEditingClass(true)} accessibilityRole="button" accessibilityLabel="Change your class" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={styles.editPill}>
+                <Ionicons name="pencil" size={13} color="#8423D9" />
+                <Text style={styles.editPillText}>Edit</Text>
+              </TouchableOpacity>}
             </View>
           </View>
 

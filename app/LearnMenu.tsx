@@ -13,7 +13,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import styles from '../styles/stylesLearnMenu';
-import BackIcon from '../assets/svg/back-icon.svg';
 import ImageButton from '../components/ImageButton';
 import { Easing } from 'react-native-reanimated';
 import expoconfig from '../expoconfig'; // Assuming you have this config for API URLs
@@ -203,10 +202,6 @@ const LearnMenu = () => {
   
   
 
-  const handleBackPress = () => {
-    router.push('/Menu');
-  };
-
   const handleButtonPress = (buttonTitle: 'KANA' | 'WORDS' | 'GRAMMAR') => {
     switch (buttonTitle) {
       case 'KANA':
@@ -237,9 +232,6 @@ const LearnMenu = () => {
               <View style={styles.heroFuji} />
               <View style={styles.heroFujiSnow} />
               <View style={styles.headerTopRow}>
-                <Pressable onPress={handleBackPress} style={({ pressed }) => [styles.backButtonContainer, pressed && styles.pressed]}>
-                  <BackIcon width={18} height={18} fill={'#462A5E'} />
-                </Pressable>
                 <View style={styles.headerWordmark}><Ionicons name="book" size={15} color="#8423D9" /><Text style={styles.headerWordmarkText}>JAPLEARN JOURNEY</Text></View>
                 <View style={styles.headerIcon}>
                   <Ionicons name="book" size={22} color="#8423D9" />

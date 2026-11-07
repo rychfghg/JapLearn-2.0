@@ -2,7 +2,6 @@ import { View, Pressable, ScrollView, Text, Modal, SafeAreaView, Image, ImageBac
 import React, { useContext, useState, useCallback, useEffect } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import styles from '../styles/stylesExercises';
-import BackIcon from '../assets/svg/back-icon.svg';
 import { AuthContext } from '../context/AuthContext';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { preloadExerciseCovers } from '../utils/gameAssetPreloader';
@@ -40,10 +39,6 @@ const Exercises = () => {
     }, 2600);
     return () => clearInterval(mascotTimer);
   }, []);
-
-  const handleBackPress = () => {
-    router.push('/Menu');
-  };
 
   const handleButtonPress = (buttonTitle: (typeof activities)[number]['key']) => {
     console.log(`${buttonTitle} button pressed`);
@@ -88,9 +83,6 @@ const Exercises = () => {
             <View style={styles.heroFuji} />
             <View style={styles.heroFujiSnow} />
             <View style={styles.headerTopRow}>
-              <Pressable onPress={handleBackPress} style={({ pressed }) => [styles.backButtonContainer, pressed && styles.pressed]}>
-                <BackIcon width={18} height={18} fill={'#462A5E'} />
-              </Pressable>
               <View style={styles.headerWordmark}><Ionicons name="game-controller" size={15} color="#8423D9" /><Text style={styles.headerWordmarkText}>JAPLEARN ARCADE</Text></View>
               <View style={styles.headerIcon}><Ionicons name="trophy-outline" size={22} color="#8423D9" /></View>
             </View>
