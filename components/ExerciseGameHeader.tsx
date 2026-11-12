@@ -16,7 +16,7 @@ export default function ExerciseGameHeader({ currentRound, totalRounds, previewi
       <Text style={[styles.heroKana, styles.heroKanaLeft]}>あ</Text>
       <Text style={[styles.heroKana, styles.heroKanaRight]}>記</Text>
       <View style={styles.gameHeroTop}>
-        <View style={styles.gameModePill}><Ionicons name="sparkles" size={13} color="#FFFFFF" /><Text style={styles.gameModeText}>KANA MEMORY QUEST</Text></View>
+        <View style={styles.gameModePill}><Ionicons name="albums" size={13} color="#FFFFFF" /><Text style={styles.gameModeText}>KANA MEMORY QUEST</Text></View>
         <View style={styles.roundPill}><Text style={styles.roundPillText}>ROUND {currentRound} / {totalRounds}</Text></View>
       </View>
       <Text style={styles.gameHeroTitle}>{previewing ? 'Study the cards' : 'Find the right character'}</Text>

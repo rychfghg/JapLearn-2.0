@@ -81,7 +81,7 @@ const WordsMenu = () => {
             <View style={[styles.reviewPhoto, styles.reviewPhotoBack]}><Image source={require('../assets/words3_image/train.png')} style={styles.reviewPhotoImage} resizeMode="contain" /></View>
             <View style={[styles.reviewPhoto, styles.reviewPhotoMiddle]}><Image source={require('../assets/words_premium/words2-teacher.png')} style={styles.reviewPhotoImage} resizeMode="contain" /></View>
             <View style={[styles.reviewPhoto, styles.reviewPhotoFront]}><Image source={require('../assets/words_premium/words1-friend.png')} style={styles.reviewPhotoImage} resizeMode="contain" /></View>
-            <View style={styles.reviewSpark}><Ionicons name={isReviewUnlocked ? 'sparkles' : 'lock-closed'} size={18} color="#FFFFFF" /></View>
+            <View style={styles.reviewSpark}><Ionicons name={isReviewUnlocked ? 'repeat' : 'lock-closed'} size={18} color="#FFFFFF" /></View>
           </View>
           <View style={styles.reviewContent}>
             <View style={styles.reviewTop}><Text style={styles.reviewEyebrow}>{isReviewUnlocked ? 'FINAL WORDS CHECKPOINT' : 'LOCKED CHECKPOINT'}</Text><View style={[styles.reviewStatus, isReviewUnlocked && styles.reviewStatusReady]}><Text style={[styles.reviewStatusText, isReviewUnlocked && styles.reviewStatusTextReady]}>{isReviewUnlocked ? 'READY' : '3 SETS'}</Text></View></View>

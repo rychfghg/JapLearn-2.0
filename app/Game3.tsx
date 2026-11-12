@@ -335,7 +335,7 @@ const Game3 = ({ onGameOver, onExit }) => {
               <Text style={styles.briefTitle}>The master accepts your challenge.</Text>
               <Text style={styles.briefText}>Ahiru draws his blade as the gate seals behind you. The master will test the particles you learned along the journey.</Text>
               <View style={styles.briefRule}>
-                <View style={styles.briefRuleIcon}><Ionicons name="sparkles" size={20} color="#65B83B" /></View>
+                <View style={styles.briefRuleIcon}><Ionicons name="checkmark-circle" size={20} color="#65B83B" /></View>
                 <Text style={styles.briefRuleText}>Choose the correct word, then tap Attack. Correct answers weaken the master; mistakes cost Ahiru health.</Text>
               </View>
               <View style={styles.briefDialogue}>
