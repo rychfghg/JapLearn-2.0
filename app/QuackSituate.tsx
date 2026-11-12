@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Image, ImageBackground, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
+import { Animated, Image, ImageBackground, Modal, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import BackIcon from '../assets/svg/back-icon.svg';
@@ -7,9 +7,9 @@ import QuackSituateMissionLoader from '../components/QuackSituateMissionLoader';
 import styles from '../styles/stylesQuackSituate';
 
 const missions = [
-  { title: 'Ahiru Rescue', subtitle: 'Stop the Cage Drop', description: 'Choose natural Japanese before the pirate lowers Ahiru’s cage into the sea.', objective: 'Keep the rescue rope secured', difficulty: 'RESCUE', route: '/QuackSituateRecognition', icon: 'lock-closed-outline', action: 'CAGE RESCUE', color: '#65A936', tint: '#EAF5E3', character: '救', image: require('../assets/quacksituate/pirate-rescue/cage-drop-menu-cover.png') },
-  { title: 'Expression Match', subtitle: 'Match the phrase to the gesture', description: 'Listen, drag, and connect natural Japanese with a real social gesture.', objective: 'Match every phrase and gesture', difficulty: 'GESTURE MATCH', route: '/QuackSituateMatchingLevels', icon: 'hand-left-outline', action: 'START MATCHING', color: '#7652E8', tint: '#EEE8FF', character: '会', image: require('../assets/quacksituate/cards/expression-match-gesture-cover-v2.png') },
-  { title: 'Politeness', subtitle: 'Choose the right tone', description: 'Decide which level of politeness fits the person and the moment.', objective: 'Read the relationship and tone', difficulty: 'SOCIAL', route: '/QuackSituateFormalLevels', icon: 'people-outline', action: 'TONE QUEST', color: '#8423D9', tint: '#F0E4FA', character: '礼', image: require('../assets/quacksituate/cards/politeness-mission.png') },
+  { title: 'Ahiru Rescue', subtitle: 'Stop the cage drop', description: 'Choose natural Japanese before the pirate lowers Ahiru’s cage into the sea.', objective: 'Keep the rope secure', difficulty: 'RESCUE', route: '/QuackSituateRecognition', icon: 'lock-closed-outline', action: 'CAGE RESCUE', color: '#65A936', tint: '#EAF5E3', character: '救', image: require('../assets/quacksituate/pirate-rescue/cage-drop-menu-cover.png') },
+  { title: 'Expression Match', subtitle: 'Match phrase to gesture', description: 'Listen, drag, and connect natural Japanese with a real social gesture.', objective: 'Match every pair', difficulty: 'GESTURE MATCH', route: '/QuackSituateMatchingLevels', icon: 'hand-left-outline', action: 'START MATCHING', color: '#7652E8', tint: '#EEE8FF', character: '会', image: require('../assets/quacksituate/cards/expression-match-gesture-cover-v2.png') },
+  { title: 'Politeness', subtitle: 'Choose the right tone', description: 'Decide which level of politeness fits the person and the moment.', objective: 'Read the relationship', difficulty: 'SOCIAL', route: '/QuackSituateFormalLevels', icon: 'people-outline', action: 'TONE QUEST', color: '#8423D9', tint: '#F0E4FA', character: '礼', image: require('../assets/quacksituate/cards/politeness-mission.png') },
 ] as const;
 
 const POLITENESS_LEVEL_ROUTE = '/QuackSituateFormalLevels' as const;
@@ -20,6 +20,7 @@ export default function QuackSituate() {
   const [loaded, setLoaded] = useState(skipLoading === '1');
   const [launchingMission, setLaunchingMission] = useState<(typeof missions)[number] | null>(null);
   const [showFieldNote, setShowFieldNote] = useState(true);
+  const [infoMission, setInfoMission] = useState<(typeof missions)[number] | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -160,10 +161,9 @@ export default function QuackSituate() {
                     </Text>
                   </View>
 
-                  <View style={styles.questMissionNumber}>
-                    <Text style={styles.questMissionNumberSmall}>MISSION</Text>
-                    <Text style={styles.questMissionNumberText}>0{index + 1}</Text>
-                  </View>
+                  <Pressable onPress={() => setInfoMission(mission)} hitSlop={10} accessibilityRole="button" accessibilityLabel={`About ${mission.title}`} style={({ pressed }) => [styles.questMissionInfo, pressed && styles.questMissionPressed]}>
+                    <Ionicons name="information" size={18} color="#FFFFFF" />
+                  </Pressable>
                 </View>
 
                 <View style={styles.questMissionCopy}>
@@ -184,11 +184,8 @@ export default function QuackSituate() {
                     </Text>
                   </View>
 
-                  <Text style={styles.questMissionTitle}>{mission.title}</Text>
-                  <Text style={styles.questMissionSubtitle}>{mission.subtitle}</Text>
-                  <Text style={styles.questMissionDescription}>
-                    {mission.description}
-                  </Text>
+                  <Text style={styles.questMissionTitle} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>{mission.title}</Text>
+                  <Text style={styles.questMissionSubtitle} numberOfLines={1}>{mission.subtitle}</Text>
 
                   <View style={styles.questMissionFooter}>
                     <View style={styles.questObjective}>
@@ -197,7 +194,7 @@ export default function QuackSituate() {
                         size={15}
                         color="#FFFFFF"
                       />
-                      <Text style={styles.questObjectiveText}>
+                      <Text style={styles.questObjectiveText} numberOfLines={1}>
                         {mission.objective}
                       </Text>
                     </View>
@@ -228,6 +225,18 @@ export default function QuackSituate() {
       {showFieldNote && <View style={styles.questTip}><View style={styles.questTipIcon}><Ionicons name="bulb-outline" size={20} color="#D88727"/></View><View style={styles.questTipCopy}><Text style={styles.questTipTitle}>Ahiru's field note</Text><Text style={styles.questTipText}>The best expression depends on the place, relationship, and level of formality.</Text></View><Pressable onPress={()=>setShowFieldNote(false)} accessibilityLabel="Dismiss Ahiru's field note" style={({pressed})=>[styles.questTipClose,pressed&&styles.pressed]}><Ionicons name="close" size={17} color="#8B611D"/></Pressable></View>}
 
     </ScrollView>
+    <Modal visible={!!infoMission} transparent animationType="fade" onRequestClose={() => setInfoMission(null)}>
+      <Pressable style={styles.questInfoBackdrop} onPress={() => setInfoMission(null)}>
+        <Pressable style={styles.questInfoCard} onPress={() => undefined}>
+          <View style={styles.questInfoHeader}>
+            <View style={[styles.questInfoIcon, { backgroundColor: infoMission?.tint }]}><Ionicons name={infoMission?.icon ?? 'information'} size={20} color={infoMission?.color} /></View>
+            <View style={{ flex: 1 }}><Text style={[styles.questInfoKicker, { color: infoMission?.color }]}>{infoMission?.action}</Text><Text style={styles.questInfoTitle}>{infoMission?.title}</Text></View>
+          </View>
+          <Text style={styles.questInfoText}>{infoMission?.description}</Text>
+          <Pressable onPress={() => setInfoMission(null)} style={[styles.questInfoButton, { backgroundColor: infoMission?.color }]}><Text style={styles.questInfoButtonText}>Got it</Text></Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
   </View></SafeAreaView>;
 }
 
