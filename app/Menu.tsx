@@ -145,7 +145,7 @@ const Menu = () => {
                                 <View style={[styles.headerCopy, isCompact && styles.headerCopyCompact]}>
                                     <Text style={styles.headerSubtitle}>Ready for today’s Japanese adventure?</Text>
                                     <Pressable accessibilityRole="button" accessibilityLabel={`${continuation.label}: ${continuation.title}`} onPress={() => router.push(continuation.route as any)} style={({ pressed }) => [styles.continueCard, isCompact && styles.continueCardCompact, pressed && styles.pressed]}>
-                                        <View style={styles.continueIcon}><Ionicons name={continuation.icon} size={24} color="#FFFFFF" /></View>
+                                        <View style={styles.continueIcon}><Ionicons name={continuation.icon} size={25} color="#8423D9" /></View>
                                         <View style={styles.continueCopy}>
                                             <Text style={styles.continueLabel}>{continuation.label}</Text>
                                             <Text style={styles.continueTitle} numberOfLines={2}>{continuation.title}</Text>
