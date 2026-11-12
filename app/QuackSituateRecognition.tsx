@@ -440,7 +440,7 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
     <Modal transparent visible={visible} animationType="fade">
       <View style={styles.reactionShade}>
         <View style={styles.reactionCard}>
-          <View style={[styles.reactionScene,{height:Math.min(240,height*0.3)}]}>
+          <View style={[styles.reactionScene,{height:Math.min(200,height*0.25)}]}>
             <RescueStage
               danger={danger}
               mode={failed ? 'failed' : 'live'}
@@ -458,23 +458,23 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
             <Text style={[styles.modalEyebrow, !correct && styles.wrongEyebrow]}>
               {correct ? 'AHIRU IS SAFER' : failed ? 'RESCUE FAILED' : 'ONE LEVEL LOWER'}
             </Text>
-            <Text style={styles.modalTitle}>
+            <Text style={[styles.modalTitle,{fontSize:19,lineHeight:24,marginTop:4}]}>
               {correct ? 'That phrase fits!' : failed ? 'The rescue line has given way.' : 'Ahiru is one step closer to the waves.'}
             </Text>
             {!correct && (
               <>
                 <View style={styles.answerReview}>
-                  <Text style={styles.answerReviewLabel}>YOU CHOSE</Text>
-                  <Text style={styles.answerReviewValue}>{selected?.japanese}</Text>
-                  <Text style={styles.answerReviewLabel}>BEST PHRASE</Text>
-                  <Text style={styles.correctJapanese}>{question.correctAnswer}</Text>
+                  <Text style={[styles.answerReviewLabel,{fontSize:9}]}>YOU CHOSE</Text>
+                  <Text style={[styles.answerReviewValue,{fontSize:16}]}>{selected?.japanese}</Text>
+                  <Text style={[styles.answerReviewLabel,{fontSize:9,marginTop:6}]}>BEST PHRASE</Text>
+                  <Text style={[styles.correctJapanese,{fontSize:20,marginTop:2}]}>{question.correctAnswer}</Text>
                   <Text style={styles.correctRomaji}>
                     {question.choices.find((item) => item.japanese === question.correctAnswer)?.romaji}
                   </Text>
                 </View>
                 <View style={styles.explanationBox}>
                   <Ionicons name="compass-outline" size={18} color="#65A936" />
-                  <View style={{flex:1}}><Text style={styles.answerReviewLabel}>WHY IT DOES NOT FIT THIS GOAL</Text><Text style={[styles.modalBody,{textAlign:'left',marginTop:4}]}>{rescueMismatch(question,selected?.japanese??'')}</Text></View>
+                  <View style={{flex:1}}><Text style={[styles.answerReviewLabel,{fontSize:9}]}>WHY IT DOES NOT FIT THIS GOAL</Text><Text style={[styles.modalBody,{textAlign:'left',marginTop:4,fontSize:13,lineHeight:19}]}>{rescueMismatch(question,selected?.japanese??'')}</Text></View>
                 </View>
               </>
             )}
@@ -483,7 +483,7 @@ function ReactionModal({ visible, correct, failed, danger, actionKey, selected, 
                 The pirate grumbles while Ahiru celebrates your natural Japanese.
               </Text>
             )}
-            <Pressable style={styles.primaryButton} onPress={onContinue}>
+            <Pressable style={[styles.primaryButton,{marginTop:14,minHeight:48}]} onPress={onContinue}>
               <Text style={styles.primaryButtonText}>
                 {failed ? 'FOLLOW AHIRU' : 'CONTINUE RESCUE'}
               </Text>
