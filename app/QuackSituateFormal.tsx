@@ -118,6 +118,10 @@ type StoryPhase = 'speaking' | 'choosing' | 'reaction';
 type RuntimeScenario = PolitenessScenario & { audioUrl?: string; imageUrl?: string; characterKey?: 'SUMI' | 'HARU'; npcRomaji?: string };
 
 const mediaUrl = (value?: string) => !value ? '' : value.startsWith('http') ? value : `${expoconfig.API_URL}${value}`;
+const politenessAudioUrl = (value?: string) => {
+  const staticClip = value?.match(/^(?:https:\/\/portal\.japlearn\.com)?(\/politeness\/npc-\d+\.mp3)$/);
+  return staticClip ? `https://japlearn2-0.onrender.com${staticClip[1]}` : mediaUrl(value);
+};
 
 export default function QuackSituateFormal() {
   const params = useLocalSearchParams<{
@@ -164,7 +168,7 @@ export default function QuackSituateFormal() {
             hint: authored?.hint||record.hint||'',
             explanation: authored?.explanation||record.explanation||'',
             imageUrl: mediaUrl(record.imageUrl),
-            audioUrl: mediaUrl(record.audioUrl),
+            audioUrl: politenessAudioUrl(record.audioUrl),
             choices: (record.choices || []).map((choice: any) => ({
               jp: choice.japanese,
               romaji: choice.romaji,
@@ -249,9 +253,11 @@ export default function QuackSituateFormal() {
 
     try {
       const authored=POLITENESS_SCENARIOS.find(item=>item.npcLine===question.npcLine);
-      const source=question.audioUrl?{uri:await resolveOfflineMediaUri(question.audioUrl)}:authored?npcVoices[authored.id-1]:null;
-      if(!source){finishSpeaking();return;}
-      const loaded = await loadBundledSound(
+      const bundled = authored ? npcVoices[authored.id - 1] : undefined;
+      const standardClip = authored && question.audioUrl?.endsWith(
+        `/politeness/npc-${String(authored.id).padStart(2, '0')}.mp3`,
+      );
+      const play = (source: number | { uri: string }) => loadBundledSound(
         source,
         {
           shouldPlay: true,
@@ -264,6 +270,21 @@ export default function QuackSituateFormal() {
         },
       );
 
+      const playRemote = async () => {
+        if (!question.audioUrl) throw new Error('No remote Politeness clip');
+        const uri = await resolveOfflineMediaUri(question.audioUrl);
+        try { return await play({ uri }); }
+        catch (error) {
+          if (uri === question.audioUrl) throw error;
+          return play({ uri: question.audioUrl });
+        }
+      };
+      const loaded = bundled !== undefined && (!question.audioUrl || standardClip)
+        ? await play(bundled).catch(playRemote)
+        : await playRemote().catch(error => {
+            if (bundled === undefined) throw error;
+            return play(bundled);
+          });
       sound.current = loaded.sound;
     } catch {
       finishSpeaking();

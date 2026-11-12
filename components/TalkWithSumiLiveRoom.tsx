@@ -18,7 +18,7 @@ const listening=require('../assets/img/Sumi_PoseB_WinterUni_Smile_Blush.png');
 
 type Scores={speechDetected?:boolean;recognizedText?:string;pronunciation:number;accuracy:number;fluency:number;completeness:number};
 /** One learner turn. Only turns where speech was actually detected count toward any score. */
-type Turn={id:number;learnerText:string;sumiText:string;speech:'pending'|'ok'|'none'|'failed';scores?:Scores;evaluation?:ConversationEvaluation};
+type Turn={id:number;learnerText:string;sumiText:string;speech:'pending'|'ok'|'none'|'failed';scores?:Scores;evaluation?:ConversationEvaluation;inHistory?:boolean};
 type State='connecting'|'thinking'|'start'|'speaking'|'ready'|'listening'|'saving'|'finished'|'error';
 
 const SUMI_REPLY_TIMEOUT_MS=25000;
@@ -48,7 +48,7 @@ export default function TalkWithSumiLiveRoom(){
  const liveRef=useRef<GeminiGuidedPhraseLive|null>(null);const recorderRef=useRef<AudioRecorder|null>(null);
  const webStreamRef=useRef<any>(null);const webContextRef=useRef<any>(null);const webProcessorRef=useRef<any>(null);const webRecorderRef=useRef<any>(null);const chunksRef=useRef<Blob[]>([]);
  const turnsRef=useRef<Turn[]>([]);const currentTurn=useRef<Turn|null>(null);const sumiLine=useRef('');const openingLine=useRef('');
- const startedAt=useRef(Date.now());
+ const startedAt=useRef(Date.now());const recordingReserved=useRef(false);
  const [remaining,setRemaining]=useState(10);const [resetAt,setResetAt]=useState('');const [clock,setClock]=useState(Date.now());
  const [state,setState]=useState<State>('start');const [message,setMessage]=useState('Tap Start conversation when you are ready.');
  const [blinked,setBlinked]=useState(false);const [mouth,setMouth]=useState(false);const [saveError,setSaveError]=useState('');const [notice,setNotice]=useState('');
@@ -57,7 +57,7 @@ export default function TalkWithSumiLiveRoom(){
 
  useEffect(()=>{const id=setInterval(()=>{setBlinked(true);setTimeout(()=>setBlinked(false),150);},3500);return()=>clearInterval(id);},[]);
  useEffect(()=>{if(state!=='speaking'){setMouth(false);return;}const id=setInterval(()=>setMouth(value=>!value),170);return()=>clearInterval(id);},[state]);
- useEffect(()=>{mounted.current=true;if(!user?.email){setState('error');setMessage('Sign in to talk with Sumi.');}return()=>{mounted.current=false;starting.current=false;transmitting.current=false;if(recordingTimeout.current)clearTimeout(recordingTimeout.current);if(sumiTimeout.current)clearTimeout(sumiTimeout.current);liveRef.current?.close();try{recorderRef.current?.stop();}catch{}webStreamRef.current?.getTracks?.().forEach((track:any)=>track.stop());void webContextRef.current?.close?.();if(Platform.OS!=='web')void AudioManager.setAudioSessionActivity(false).catch(()=>undefined);};},[user?.email]);
+ useEffect(()=>{mounted.current=true;if(!user?.email){setState('error');setMessage('Sign in to talk with Sumi.');}return()=>{mounted.current=false;starting.current=false;transmitting.current=false;if(recordingReserved.current){recordingReserved.current=false;void releaseResponse();}if(recordingTimeout.current)clearTimeout(recordingTimeout.current);if(sumiTimeout.current)clearTimeout(sumiTimeout.current);liveRef.current?.close();try{recorderRef.current?.stop();}catch{}webStreamRef.current?.getTracks?.().forEach((track:any)=>track.stop());void webContextRef.current?.close?.();if(Platform.OS!=='web')void AudioManager.setAudioSessionActivity(false).catch(()=>undefined);};},[user?.email]);
 
  const addHistory=(who:'sumi'|'you',text:string)=>{const clean=text.trim();if(clean)setHistory(current=>[...current,{who,text:clean}].slice(-12));};
  const quietState=(current:State)=>current==='start'||current==='error'||current==='listening'||current==='saving'||current==='finished';
@@ -68,6 +68,8 @@ export default function TalkWithSumiLiveRoom(){
   if(!mounted.current||ending.current)return;
   clearSumiTimeout();awaitingSumi.current=false;
   const line=sumiLine.current.trim();sumiLine.current='';
+  const turn=currentTurn.current;
+  if(turn&&!turn.inHistory&&turn.speech!=='none'&&turn.speech!=='failed'&&turn.learnerText.trim()){turn.inHistory=true;addHistory('you',turn.learnerText);}
   if(line){addHistory('sumi',line);if(currentTurn.current)currentTurn.current.sumiText=line;else openingLine.current=line;}
   setCanReplay(!!liveRef.current?.hasReplay());
   setState(current=>quietState(current)?current:'ready');
@@ -93,7 +95,7 @@ export default function TalkWithSumiLiveRoom(){
      onConnected:()=>{if(!mounted.current)return;setState('thinking');setMessage('Sumi is greeting you…');awaitingSumi.current=true;},
      // Speaking only animates Sumi; turn-taking is decided by onModelTurnDone.
      onSpeaking:value=>{if(!mounted.current||ending.current)return;
-      if(value){setState(current=>current==='listening'||current==='saving'||current==='finished'?current:'speaking');setMessage(replaying.current?'Replaying Sumi…':'Listen to Sumi…');return;}
+      if(value){if(!replaying.current)clearSumiTimeout();setState(current=>current==='listening'||current==='saving'||current==='finished'?current:'speaking');setMessage(replaying.current?'Replaying Sumi…':'Listen to Sumi…');return;}
       if(replaying.current){replaying.current=false;setState(current=>quietState(current)?current:'ready');setMessage('Your turn—tap the microphone and answer naturally.');}},
      onModelTurnDone:onSumiFinished,
      onInputTranscript:text=>{if(currentTurn.current)currentTurn.current.learnerText=(currentTurn.current.learnerText+text).slice(-400);},
@@ -131,7 +133,7 @@ export default function TalkWithSumiLiveRoom(){
    const reservation=await request(`${expoconfig.API_URL}/api/talk-with-sumi/reserve-response`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user?.email})});
    const quota=await reservation.json().catch(()=>({}));if(quota.resetsAt)setResetAt(quota.resetsAt);if(typeof quota.remaining==='number')setRemaining(quota.remaining);
    if(!reservation.ok)throw new Error(quota.message||'Your response could not start.');
-   reserved=true;
+   reserved=true;recordingReserved.current=true;
    if(Platform.OS==='web')await startWeb();
    else{
     await activateDeviceAudio('recording');
@@ -149,7 +151,7 @@ export default function TalkWithSumiLiveRoom(){
   }catch(error){
    transmitting.current=false;releaseWeb();
    if(recorderRef.current){try{recorderRef.current.clearOnAudioReady();recorderRef.current.stop();}catch{}recorderRef.current=null;}
-   if(reserved)void releaseResponse();
+   recordingReserved.current=false;if(reserved)void releaseResponse();
    setState('ready');setMessage(error instanceof Error?error.message:'The microphone could not start.');
   }finally{micBusy.current=false;}
  };
@@ -159,7 +161,7 @@ export default function TalkWithSumiLiveRoom(){
 
  const stopMic=async()=>{
   if(state!=='listening'||micBusy.current)return;
-  micBusy.current=true;transmitting.current=false;
+  micBusy.current=true;transmitting.current=false;recordingReserved.current=false;
   if(recordingTimeout.current)clearTimeout(recordingTimeout.current);
   const turn=currentTurn.current;
   try{
@@ -200,7 +202,7 @@ export default function TalkWithSumiLiveRoom(){
    if(body.speechDetected===false){markUnusable(turn,'none');return;}
    turn.speech='ok';turn.scores=body;
    if(!turn.learnerText&&body.recognizedText)turn.learnerText=String(body.recognizedText);
-   if(turn.learnerText)addHistory('you',turn.learnerText);
+   if(turn.learnerText&&!turn.inHistory){turn.inHistory=true;addHistory('you',turn.learnerText);}
    if(mounted.current)setValidTurns(turnsRef.current.filter(item=>item.speech==='ok').length);
   }catch{markUnusable(turn,'failed');}
  };
